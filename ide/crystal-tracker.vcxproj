@@ -110,6 +110,17 @@
   <ItemGroup>
     <ClInclude Include="..\src\main-window.h" />
     <ClInclude Include="..\src\version.h" />
+    <ClInclude Include="..\src\resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="crystal-tracker.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\res\app.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\res\app-icon.xpm" />
+    <None Include="..\res\app.xpm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
