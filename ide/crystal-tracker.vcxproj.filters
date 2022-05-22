@@ -21,15 +21,33 @@
     <ClCompile Include="..\src\main-window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\preferences.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\themes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\main-window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\version.h">
+    <ClInclude Include="..\src\preferences.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\themes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -48,6 +66,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\app-icon.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\brushed-metal.dat">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
