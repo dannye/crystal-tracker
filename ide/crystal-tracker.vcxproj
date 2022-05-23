@@ -104,19 +104,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\config.cpp" />
+    <ClCompile Include="..\src\help-window.cpp" />
+    <ClCompile Include="..\src\hex-spinner.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\main-window.cpp" />
+    <ClCompile Include="..\src\modal-dialog.cpp" />
     <ClCompile Include="..\src\preferences.cpp" />
     <ClCompile Include="..\src\themes.cpp" />
     <ClCompile Include="..\src\utils.cpp" />
+    <ClCompile Include="..\src\widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\config.h" />
+    <ClInclude Include="..\src\help-window.h" />
+    <ClInclude Include="..\src\hex-spinner.h" />
+    <ClInclude Include="..\src\icons.h" />
     <ClInclude Include="..\src\main-window.h" />
+    <ClInclude Include="..\src\modal-dialog.h" />
     <ClInclude Include="..\src\preferences.h" />
     <ClInclude Include="..\src\resource.h" />
     <ClInclude Include="..\src\themes.h" />
     <ClInclude Include="..\src\utils.h" />
     <ClInclude Include="..\src\version.h" />
+    <ClInclude Include="..\src\widgets.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="crystal-tracker.rc" />
@@ -125,9 +136,14 @@
     <Image Include="..\res\app.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\res\app-icon.xpm" />
     <None Include="..\res\app.xpm" />
+    <None Include="..\res\app-icon.xpm" />
+    <None Include="..\res\blank.xpm" />
     <None Include="..\res\brushed-metal.dat" />
+    <None Include="..\res\error.xpm" />
+    <None Include="..\res\help.html" />
+    <None Include="..\res\success.xpm" />
+    <None Include="..\res\warning.xpm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
