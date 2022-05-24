@@ -3,7 +3,7 @@
 
 #pragma warning(push, 0)
 #include <FL/Fl_Double_Window.H>
-#include <FL/Fl_Menu_Bar.H>
+#include <FL/Fl_Sys_Menu_Bar.H>
 #include <FL/Fl_Native_File_Chooser.H>
 #include <FL/Fl_Text_Buffer.H>
 #include <FL/Fl_Text_Display.H>
@@ -20,7 +20,7 @@
 class Main_Window : public Fl_Double_Window {
 private:
 	// GUI containers
-	Fl_Menu_Bar *_menu_bar;
+	Fl_Sys_Menu_Bar *_menu_bar;
 	// GUI inputs
 	Fl_Menu_Item *_recent_mis[NUM_RECENT];
 	Fl_Menu_Item
@@ -59,7 +59,7 @@ private:
 	Song _song;
 	// Window size cache
 	int _wx, _wy, _ww, _wh;
-#ifndef _WIN32
+#ifdef __X11__
 	// Window icons
 	Pixmap _icon_pixmap, _icon_mask;
 #endif

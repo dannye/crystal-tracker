@@ -43,13 +43,13 @@ static void get_program_file_dir(char *path, size_t n, const char *argv0) {
 }
 
 void Preferences::initialize(const char *argv0) {
-	// Get the directory of tilemapstudio.exe
+	// Get the directory of crystaltracker.exe
 	char dirname[FL_PATH_MAX] = {};
 	get_program_file_dir(dirname, _countof(dirname), argv0);
 
 	char prefs[FL_PATH_MAX] = {};
 
-	// Use tilemapstudio.prefs if it exists
+	// Use crystaltracker.prefs if it exists
 	strcpy(prefs, dirname);
 	strcat(prefs, DIR_SEP PROGRAM_EXE_NAME PREFS_EXT);
 	if (file_exists(prefs)) {
@@ -57,7 +57,7 @@ void Preferences::initialize(const char *argv0) {
 		return;
 	}
 
-	// Use Tilemap Studio.prefs if it exists
+	// Use Crystal Tracker.prefs if it exists
 	strcpy(prefs, dirname);
 	strcat(prefs, DIR_SEP PROGRAM_NAME PREFS_EXT);
 	if (file_exists(prefs)) {

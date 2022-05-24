@@ -2,6 +2,7 @@
 
 #pragma warning(push, 0)
 #include <FL/Fl.H>
+#include <FL/x.H>
 #pragma warning(pop)
 
 #include "version.h"
@@ -17,7 +18,11 @@
 #define MAKE_WSTR_HELPER(x) L ## x
 #define MAKE_WSTR(x) MAKE_WSTR_HELPER(x)
 
+#elif defined(__APPLE__)
+#include "cocoa.h"
 #endif
+
+static Main_Window *window = nullptr;
 
 static void use_theme(OS::Theme theme) {
 	OS::use_native_fonts();
@@ -76,6 +81,10 @@ int main(int argc, char **argv) {
 		default_theme = OS::Theme::DARK;
 	}
 	OS::Theme theme = (OS::Theme)Preferences::get("theme", (int)default_theme);
+#elif defined(__APPLE__)
+	OS::Theme default_theme = OS::Theme::AQUA;
+	if (cocoa_is_dark_mode()) default_theme = OS::Theme::DARK;
+	OS::Theme theme = (OS::Theme)Preferences::get("theme", (int)default_theme);
 #else
 	OS::Theme theme = (OS::Theme)Preferences::get("theme", (int)OS::Theme::GREYBIRD);
 #endif
@@ -87,11 +96,22 @@ int main(int argc, char **argv) {
 	int x = Preferences::get("x", 48), y = Preferences::get("y", 48);
 #endif
 	int w = Preferences::get("w", 800), h = Preferences::get("h", 600);
-	Main_Window window(x, y, w, h);
-	window.show();
+	window = new Main_Window(x, y, w, h);
+	window->show();
+	OS::update_macos_appearance(window);
 	if (Preferences::get("maximized")) {
-		window.maximize();
+		window->maximize();
 	}
+
+#ifdef __APPLE__
+	int argi = 1;
+	// Ignore the "-psn_*" parameter passed by some older macOS versions
+	// See https://stackoverflow.com/questions/10242115/os-x-strange-psn-command-line-parameter-when-launched-from-finder
+	while (argi < argc) {
+		if (memcmp(argv[argi], "-psn_", 4) != 0) break;
+		argi++;
+	}
+#endif
 
 	return Fl::run();
 }

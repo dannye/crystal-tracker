@@ -7,7 +7,9 @@
             "args": [
                 "debug"
             ],
-            "options": {},
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "problemMatcher": [
                 "$gcc"
             ],
