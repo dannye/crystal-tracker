@@ -21,7 +21,7 @@
 #endif
 
 Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_Window(x, y, w, h, PROGRAM_NAME),
-	_directory(), _asm_file(), _recent(), _wx(x), _wy(y), _ww(w), _wh(h) {
+	_directory(), _asm_file(), _recent(), _song(), _wx(x), _wy(y), _ww(w), _wh(h) {
 
 	for (int i = 0; i < NUM_RECENT; i++) {
 		_recent[i] = Preferences::get_string(Fl_Preferences::Name("recent%d", i));
@@ -37,12 +37,33 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	wh -= _menu_bar->h();
 
 	// Text display
-	_text_display = new Fl_Text_Display(wx, wy, ww, wh);
-	wy += _text_display->h();
-	wh -= _text_display->h();
-	_text_buffer = new Fl_Text_Buffer();
-	_text_display->buffer(_text_buffer);
-	_text_display->textfont(FL_COURIER);
+	_channel_1_text_display = new Fl_Text_Display(wx, wy + 21, w/4, wh, "Channel 1");
+	wx += _channel_1_text_display->w();
+	ww -= _channel_1_text_display->w();
+	_channel_1_text_buffer = new Fl_Text_Buffer();
+	_channel_1_text_display->buffer(_channel_1_text_buffer);
+	_channel_1_text_display->textfont(FL_COURIER);
+
+	_channel_2_text_display = new Fl_Text_Display(wx, wy + 21, w/4, wh, "Channel 2");
+	wx += _channel_2_text_display->w();
+	ww -= _channel_2_text_display->w();
+	_channel_2_text_buffer = new Fl_Text_Buffer();
+	_channel_2_text_display->buffer(_channel_2_text_buffer);
+	_channel_2_text_display->textfont(FL_COURIER);
+
+	_channel_3_text_display = new Fl_Text_Display(wx, wy + 21, w/4, wh, "Channel 3");
+	wx += _channel_3_text_display->w();
+	ww -= _channel_3_text_display->w();
+	_channel_3_text_buffer = new Fl_Text_Buffer();
+	_channel_3_text_display->buffer(_channel_3_text_buffer);
+	_channel_3_text_display->textfont(FL_COURIER);
+
+	_channel_4_text_display = new Fl_Text_Display(wx, wy + 21, w/4, wh, "Channel 4");
+	wx += _channel_4_text_display->w();
+	ww -= _channel_4_text_display->w();
+	_channel_4_text_buffer = new Fl_Text_Buffer();
+	_channel_4_text_display->buffer(_channel_4_text_buffer);
+	_channel_4_text_display->textfont(FL_COURIER);
 
 	// Dialogs
 	_asm_open_chooser = new Fl_Native_File_Chooser(Fl_Native_File_Chooser::BROWSE_FILE);
@@ -196,8 +217,14 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 Main_Window::~Main_Window() {
 	delete _menu_bar; // includes menu items
-	delete _text_display;
-	delete _text_buffer;
+	delete _channel_1_text_display;
+	delete _channel_2_text_display;
+	delete _channel_3_text_display;
+	delete _channel_4_text_display;
+	delete _channel_1_text_buffer;
+	delete _channel_2_text_buffer;
+	delete _channel_3_text_buffer;
+	delete _channel_4_text_buffer;
 	delete _asm_open_chooser;
 	delete _error_dialog;
 	delete _warning_dialog;
@@ -259,7 +286,7 @@ void Main_Window::maximize() {
 }
 
 void Main_Window::update_active_controls() {
-	if (!_asm_file.empty()) {
+	if (_song.loaded()) {
 		_close_mi->activate();
 	}
 	else {
@@ -337,21 +364,23 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 
 	if (filename) {
 		basename = fl_filename_name(_asm_file.c_str());
-		std::ifstream ifs;
-		open_ifstream(ifs, filename);
-		if (!ifs.good()) {
-			_asm_file = "";
-
+		Song::Result r = _song.read_song(filename);
+		if (r != Song::Result::SONG_OK) {
+			_song.clear();
 			std::string msg = "Error reading ";
-			msg = msg + basename + "!";
+			msg = msg + basename + "!\n\n" + Song::error_message(r);
 			_error_dialog->message(msg);
 			_error_dialog->show(this);
 			return;
 		}
-		_text_buffer->loadfile(filename);
+		_channel_1_text_buffer->append(_song.channel_1_commands_str().c_str());
+		_channel_2_text_buffer->append(_song.channel_2_commands_str().c_str());
+		_channel_3_text_buffer->append(_song.channel_3_commands_str().c_str());
+		_channel_4_text_buffer->append(_song.channel_4_commands_str().c_str());
 	}
 	else {
 		basename = NEW_SONG_NAME;
+		// TODO: initialize new _song
 	}
 
 	// set filenames
@@ -406,10 +435,14 @@ void Main_Window::clear_recent_cb(Fl_Menu_ *, Main_Window *mw) {
 }
 
 void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
-	if (mw->_asm_file.empty()) { return; }
+	if (!mw->_song.loaded()) { return; }
 
 	mw->label(PROGRAM_NAME);
-	mw->_text_buffer->remove(0, mw->_text_buffer->length());
+	mw->_channel_1_text_buffer->remove(0, mw->_channel_1_text_buffer->length());
+	mw->_channel_2_text_buffer->remove(0, mw->_channel_2_text_buffer->length());
+	mw->_channel_3_text_buffer->remove(0, mw->_channel_3_text_buffer->length());
+	mw->_channel_4_text_buffer->remove(0, mw->_channel_4_text_buffer->length());
+	mw->_song.clear();
 	mw->init_sizes();
 	mw->_directory.clear();
 	mw->_asm_file.clear();

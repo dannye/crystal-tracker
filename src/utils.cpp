@@ -43,10 +43,21 @@ bool ends_with_ignore_case(std::wstring_view s, std::wstring_view p) {
 	});
 }
 
+bool is_indented(std::string_view s) {
+	if (s.size() == 0) { return false; }
+	int first = s[0];
+	return first == ' ' || first == '\t';
+}
+
 void trim(std::string &s, const std::string &t) {
 	std::string::size_type p = s.find_first_not_of(t);
 	s.erase(0, p);
 	p = s.find_last_not_of(t);
+	s.erase(p + 1);
+}
+
+void rtrim(std::string &s, const std::string &t) {
+	std::string::size_type p = s.find_last_not_of(t);
 	s.erase(p + 1);
 }
 

@@ -10,6 +10,7 @@
 #pragma warning(pop)
 
 #include "modal-dialog.h"
+#include "song.h"
 #include "help-window.h"
 
 #define NUM_RECENT 10
@@ -36,8 +37,16 @@ private:
 		*_brushed_metal_theme_mi = NULL,
 		*_high_contrast_theme_mi = NULL;
 	// GUI outputs
-	Fl_Text_Buffer *_text_buffer = NULL;
-	Fl_Text_Display *_text_display = NULL;
+	Fl_Text_Buffer
+		*_channel_1_text_buffer = NULL,
+		*_channel_2_text_buffer = NULL,
+		*_channel_3_text_buffer = NULL,
+		*_channel_4_text_buffer = NULL;
+	Fl_Text_Display
+		*_channel_1_text_display = NULL,
+		*_channel_2_text_display = NULL,
+		*_channel_3_text_display = NULL,
+		*_channel_4_text_display = NULL;
 	// Conditional menu items
 	Fl_Menu_Item *_close_mi = NULL;
 	// Dialogs
@@ -47,6 +56,7 @@ private:
 	// Data
 	std::string _directory, _asm_file;
 	std::string _recent[NUM_RECENT];
+	Song _song;
 	// Window size cache
 	int _wx, _wy, _ww, _wh;
 #ifndef _WIN32
