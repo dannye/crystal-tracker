@@ -1,6 +1,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <set>
 
 #include "utils.h"
 #include "parse-song.h"
@@ -12,6 +13,7 @@ Parsed_Song::Parsed_Song(const char *f) : _song_name(), _number_of_channels(0),
 	parse_song(f);
 }
 
+// TODO: need to allow for negatives
 static bool parse_value(std::string s, uint32_t &v) {
 	trim(s);
 	size_t c = s.length();
@@ -37,11 +39,37 @@ static bool parse_value(std::string s, uint32_t &v) {
 	return false;
 }
 
-static std::string get_label(std::istringstream &iss) {
-	std::string label;
-	iss >> label;
-	rtrim(label, ":");
-	return label;
+static bool get_label(std::istringstream &iss, std::string &l, const std::string &scope = "") {
+	iss >> l;
+	rtrim(l, ":");
+	trim(l);
+	if (l.size() == 0) {
+		return false;
+	}
+	if (l[0] == '.') {
+		l = scope + l;
+	}
+	return true;
+}
+
+static bool get_number_and_label(std::istringstream &iss, uint32_t &v, std::string &l, const std::string &scope = "") {
+	std::getline(iss, l);
+	size_t p = l.find(',');
+	if (p == std::string::npos) {
+		return false;
+	}
+	if (!parse_value(l.substr(0, p), v)) {
+		return false;
+	}
+	l.erase(0, p + 1);
+	trim(l);
+	if (l.size() == 0) {
+		return false;
+	}
+	if (l[0] == '.') {
+		l = scope + l;
+	}
+	return true;
 }
 
 Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
@@ -59,6 +87,9 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 	std::list<Command> *current_channel_commands;
 	std::string current_scope;
 
+	std::set<std::string> visited_labels;
+	std::set<std::string> unvisited_labels;
+
 	while (ifs.good()) {
 		std::string line;
 		std::getline(ifs, line);
@@ -72,8 +103,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 			if (indented) {
 				return (_result = Result::SONG_BAD_FILE);
 			}
-			_song_name = get_label(lss);
-			if (_song_name.size() == 0) {
+			if (!get_label(lss, _song_name)) {
 				return (_result = Result::SONG_BAD_FILE);
 			}
 			step = Step::READING_HEADER;
@@ -100,28 +130,18 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				if (!leading_macro(lss, macro, "channel")) {
 					return (_result = Result::SONG_BAD_FILE);
 				}
-				std::string params;
-				std::getline(lss, params);
-				size_t p = params.find(',');
-				if (p == std::string::npos) {
-					return (_result = Result::SONG_BAD_FILE);
-				}
 				uint32_t channel_number = 0;
-				if (!parse_value(params.substr(0, p), channel_number)) {
+				std::string label;
+				if (!get_number_and_label(lss, channel_number, label)) {
 					return (_result = Result::SONG_BAD_FILE);
 				}
 				if (channel_number < 1 || channel_number > 4) {
 					return (_result = Result::SONG_BAD_FILE);
 				}
-				params.erase(0, p + 1);
-				trim(params);
-				if (params.size() == 0) {
-					return (_result = Result::SONG_BAD_FILE);
-				}
-				if (channel_number == 1) _channel_1_label = params;
-				if (channel_number == 2) _channel_2_label = params;
-				if (channel_number == 3) _channel_3_label = params;
-				if (channel_number == 4) _channel_4_label = params;
+				if (channel_number == 1) _channel_1_label = label;
+				if (channel_number == 2) _channel_2_label = label;
+				if (channel_number == 3) _channel_3_label = label;
+				if (channel_number == 4) _channel_4_label = label;
 				current_channel += 1;
 				if (current_channel == _number_of_channels) {
 					uint32_t num_labelled_channels = 0;
@@ -152,6 +172,9 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 						current_channel_label = _channel_4_label;
 						current_channel_commands = &_channel_4_commands;
 					}
+					current_scope = "";
+					visited_labels.clear();
+					unvisited_labels.clear();
 					ifs.seekg(0);
 					step = Step::LOOKING_FOR_CHANNEL;
 				}
@@ -160,105 +183,167 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 
 		else if (step == Step::LOOKING_FOR_CHANNEL) {
 			if (indented) continue;
-			std::string label = get_label(lss);
-			if (label == current_channel_label) {
+			std::string label;
+			if (!get_label(lss, label)) {
+				continue;
+			}
+			if (label[0] == '.') {
+				label = current_scope + label;
+			}
+			else {
 				current_scope = label;
+			}
+			if (label == current_channel_label) {
+				visited_labels.insert(label);
+				unvisited_labels.erase(label);
 				step = Step::READING_CHANNEL;
 			}
 		}
 
 		else if (step == Step::READING_CHANNEL) {
+			bool done_with_branch = false;
 			if (!indented) {
-				std::string label = get_label(lss);
-				if (label.size() > 0 && label[0] != '.') {
+				std::string label;
+				if (!get_label(lss, label)) {
+					continue;
+				}
+				if (label[0] == '.') {
+					label = current_scope + label;
+				}
+				else {
 					current_scope = label;
+				}
+				if (visited_labels.count(label)) {
+					// been here done that
+					done_with_branch = true;
+				}
+				else {
+					visited_labels.insert(label);
+					unvisited_labels.erase(label);
 				}
 				continue;
 			}
-			bool done_with_channel = false;
-			std::string macro;
-			if (!leading_macro(lss, macro)) {
-				return (_result = Result::SONG_BAD_FILE);
-			}
-			if (macro == "note") {
-				current_channel_commands->push_back({ Command_Type::NOTE });
-			}
-			else if (macro == "drum_note") {
-				current_channel_commands->push_back({ Command_Type::DRUM_NOTE });
-			}
-			else if (macro == "rest") {
-				current_channel_commands->push_back({ Command_Type::REST });
-			}
-			else if (macro == "octave") {
-				current_channel_commands->push_back({ Command_Type::OCTAVE });
-			}
-			else if (macro == "note_type") {
-				current_channel_commands->push_back({ Command_Type::NOTE_TYPE });
-			}
-			else if (macro == "drum_speed") {
-				current_channel_commands->push_back({ Command_Type::DRUM_SPEED });
-			}
-			else if (macro == "transpose") {
-				current_channel_commands->push_back({ Command_Type::TRANSPOSE });
-			}
-			else if (macro == "tempo") {
-				current_channel_commands->push_back({ Command_Type::TEMPO });
-			}
-			else if (macro == "duty_cycle") {
-				current_channel_commands->push_back({ Command_Type::DUTY_CYCLE });
-			}
-			else if (macro == "volume_envelope") {
-				current_channel_commands->push_back({ Command_Type::VOLUME_ENVELOPE });
-			}
-			else if (macro == "duty_cycle_pattern") {
-				current_channel_commands->push_back({ Command_Type::DUTY_CYCLE_PATTERN });
-			}
-			else if (macro == "pitch_slide") {
-				current_channel_commands->push_back({ Command_Type::PITCH_SLIDE });
-			}
-			else if (macro == "vibrato") {
-				current_channel_commands->push_back({ Command_Type::VIBRATO });
-			}
-			else if (macro == "toggle_noise") {
-				current_channel_commands->push_back({ Command_Type::TOGGLE_NOISE });
-			}
-			else if (macro == "force_stereo_panning") {
-				current_channel_commands->push_back({ Command_Type::FORCE_STEREO_PANNING });
-			}
-			else if (macro == "volume") {
-				current_channel_commands->push_back({ Command_Type::VOLUME });
-			}
-			else if (macro == "pitch_offset") {
-				current_channel_commands->push_back({ Command_Type::PITCH_OFFSET });
-			}
-			else if (macro == "stereo_panning") {
-				current_channel_commands->push_back({ Command_Type::STEREO_PANNING });
-			}
-			else if (macro == "sound_jump") {
-				current_channel_commands->push_back({ Command_Type::SOUND_JUMP });
-				done_with_channel = true;
-			}
-			else if (macro == "sound_loop") {
-				current_channel_commands->push_back({ Command_Type::SOUND_LOOP });
-				done_with_channel = true;
-			}
-			else if (macro == "sound_call") {
-				current_channel_commands->push_back({ Command_Type::SOUND_CALL });
-			}
-			else if (macro == "sound_ret") {
-				current_channel_commands->push_back({ Command_Type::SOUND_RET });
-				done_with_channel = true;
-			}
 			else {
-				// unknown command
-				return (_result = Result::SONG_BAD_FILE);
+				std::string macro;
+				if (!leading_macro(lss, macro)) {
+					return (_result = Result::SONG_BAD_FILE);
+				}
+				if (macro == "note") {
+					current_channel_commands->push_back({ Command_Type::NOTE });
+				}
+				else if (macro == "drum_note") {
+					current_channel_commands->push_back({ Command_Type::DRUM_NOTE });
+				}
+				else if (macro == "rest") {
+					current_channel_commands->push_back({ Command_Type::REST });
+				}
+				else if (macro == "octave") {
+					current_channel_commands->push_back({ Command_Type::OCTAVE });
+				}
+				else if (macro == "note_type") {
+					current_channel_commands->push_back({ Command_Type::NOTE_TYPE });
+				}
+				else if (macro == "drum_speed") {
+					current_channel_commands->push_back({ Command_Type::DRUM_SPEED });
+				}
+				else if (macro == "transpose") {
+					current_channel_commands->push_back({ Command_Type::TRANSPOSE });
+				}
+				else if (macro == "tempo") {
+					current_channel_commands->push_back({ Command_Type::TEMPO });
+				}
+				else if (macro == "duty_cycle") {
+					current_channel_commands->push_back({ Command_Type::DUTY_CYCLE });
+				}
+				else if (macro == "volume_envelope") {
+					current_channel_commands->push_back({ Command_Type::VOLUME_ENVELOPE });
+				}
+				else if (macro == "duty_cycle_pattern") {
+					current_channel_commands->push_back({ Command_Type::DUTY_CYCLE_PATTERN });
+				}
+				else if (macro == "pitch_slide") {
+					current_channel_commands->push_back({ Command_Type::PITCH_SLIDE });
+				}
+				else if (macro == "vibrato") {
+					current_channel_commands->push_back({ Command_Type::VIBRATO });
+				}
+				else if (macro == "toggle_noise") {
+					current_channel_commands->push_back({ Command_Type::TOGGLE_NOISE });
+				}
+				else if (macro == "force_stereo_panning") {
+					current_channel_commands->push_back({ Command_Type::FORCE_STEREO_PANNING });
+				}
+				else if (macro == "volume") {
+					current_channel_commands->push_back({ Command_Type::VOLUME });
+				}
+				else if (macro == "pitch_offset") {
+					current_channel_commands->push_back({ Command_Type::PITCH_OFFSET });
+				}
+				else if (macro == "stereo_panning") {
+					current_channel_commands->push_back({ Command_Type::STEREO_PANNING });
+				}
+				else if (macro == "sound_jump") {
+					std::string label;
+					if (!get_label(lss, label, current_scope)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+
+					if (!visited_labels.count(label)) {
+						unvisited_labels.insert(label);
+					}
+
+					current_channel_commands->push_back({ Command_Type::SOUND_JUMP });
+					done_with_branch = true;
+				}
+				else if (macro == "sound_loop") {
+					uint32_t loop_count = 0;
+					std::string label;
+					if (!get_number_and_label(lss, loop_count, label, current_scope)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (loop_count < 0 || loop_count > 255) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+
+					if (!visited_labels.count(label)) {
+						unvisited_labels.insert(label);
+					}
+
+					current_channel_commands->push_back({ Command_Type::SOUND_LOOP });
+					if (loop_count == 0) {
+						done_with_branch = true;
+					}
+				}
+				else if (macro == "sound_call") {
+					std::string label;
+					if (!get_label(lss, label, current_scope)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+
+					if (!visited_labels.count(label)) {
+						unvisited_labels.insert(label);
+					}
+
+					current_channel_commands->push_back({ Command_Type::SOUND_CALL });
+				}
+				else if (macro == "sound_ret") {
+					current_channel_commands->push_back({ Command_Type::SOUND_RET });
+					done_with_branch = true;
+				}
+				else {
+					// unknown command
+					return (_result = Result::SONG_BAD_FILE);
+				}
 			}
 
-			if (done_with_channel) {
+			if (done_with_branch && unvisited_labels.size() == 0) {
 				if (_channel_2_label.size() > 0 && current_channel < 2) {
 					current_channel = 2;
 					current_channel_label = _channel_2_label;
 					current_channel_commands = &_channel_2_commands;
+					current_scope = "";
+					visited_labels.clear();
+					unvisited_labels.clear();
 					ifs.seekg(0);
 					step = Step::LOOKING_FOR_CHANNEL;
 				}
@@ -266,6 +351,9 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					current_channel = 3;
 					current_channel_label = _channel_3_label;
 					current_channel_commands = &_channel_3_commands;
+					current_scope = "";
+					visited_labels.clear();
+					unvisited_labels.clear();
 					ifs.seekg(0);
 					step = Step::LOOKING_FOR_CHANNEL;
 				}
@@ -273,6 +361,9 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					current_channel = 4;
 					current_channel_label = _channel_4_label;
 					current_channel_commands = &_channel_4_commands;
+					current_scope = "";
+					visited_labels.clear();
+					unvisited_labels.clear();
 					ifs.seekg(0);
 					step = Step::LOOKING_FOR_CHANNEL;
 				}
@@ -280,6 +371,12 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					step = Step::DONE;
 					break;
 				}
+			}
+			else if (done_with_branch) {
+				current_channel_label = *unvisited_labels.begin();
+				current_scope = "";
+				ifs.seekg(0);
+				step = Step::LOOKING_FOR_CHANNEL;
 			}
 		}
 	}
