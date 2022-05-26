@@ -82,6 +82,9 @@ std::string Song::commands_str(const std::list<Command> &commands) const {
 		else if (command.type == Command_Type::VOLUME_ENVELOPE) {
 			str = str + " " + std::to_string(command.volume_envelope.volume) + ", " + std::to_string(command.volume_envelope.fade);
 		}
+		else if (command.type == Command_Type::PITCH_SWEEP) {
+			str = str + " " + std::to_string(command.pitch_sweep.duration) + ", " + std::to_string(command.pitch_sweep.pitch_change);
+		}
 		else if (command.type == Command_Type::DUTY_CYCLE_PATTERN) {
 			str = str + " " + std::to_string(command.duty_cycle_pattern.duty1) + ", " + std::to_string(command.duty_cycle_pattern.duty2) + ", " + std::to_string(command.duty_cycle_pattern.duty3) + ", " + std::to_string(command.duty_cycle_pattern.duty4);
 		}

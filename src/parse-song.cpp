@@ -645,6 +645,25 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					}
 				}
 
+				else if (macro == "pitch_sweep") {
+					if (current_channel != 1) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					Command command;
+					command.type = Command_Type::PITCH_SWEEP;
+					if (!get_number_and_number(lss, command.pitch_sweep.duration, command.pitch_sweep.pitch_change)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.pitch_sweep.duration < 0 || command.pitch_sweep.duration > 15) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.pitch_sweep.pitch_change == 8) command.pitch_sweep.pitch_change = 0; // 8 is used in place of 0
+					if (command.pitch_sweep.pitch_change < -7 || command.pitch_sweep.pitch_change > 7) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
+				}
+
 				else if (macro == "duty_cycle_pattern") {
 					if (current_channel != 1 && current_channel != 2) {
 						return (_result = Result::SONG_BAD_FILE);

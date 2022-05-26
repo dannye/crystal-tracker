@@ -44,6 +44,7 @@ enum class Command_Type {
 	TEMPO,
 	DUTY_CYCLE,
 	VOLUME_ENVELOPE,
+	PITCH_SWEEP,
 	DUTY_CYCLE_PATTERN,
 	PITCH_SLIDE,
 	VIBRATO,
@@ -69,6 +70,7 @@ static const char * const COMMAND_NAMES[] = {
 	"TEMPO",
 	"DUTY_CYCLE",
 	"VOLUME_ENVELOPE",
+	"PITCH_SWEEP",
 	"DUTY_CYCLE_PATTERN",
 	"PITCH_SLIDE",
 	"VIBRATO",
@@ -137,6 +139,11 @@ struct Command {
 		};
 	};
 
+	struct Pitch_Sweep {
+		int32_t duration;
+		int32_t pitch_change;
+	};
+
 	struct Duty_Cycle_Pattern {
 		int32_t duty1;
 		int32_t duty2;
@@ -202,6 +209,7 @@ struct Command {
 		Tempo tempo;
 		Duty_Cycle duty_cycle;
 		Volume_Envelope volume_envelope;
+		Pitch_Sweep pitch_sweep;
 		Duty_Cycle_Pattern duty_cycle_pattern;
 		Pitch_Slide pitch_slide;
 		Vibrato vibrato;
