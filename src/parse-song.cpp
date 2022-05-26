@@ -13,26 +13,34 @@ Parsed_Song::Parsed_Song(const char *f) : _song_name(), _number_of_channels(0),
 	parse_song(f);
 }
 
-// TODO: need to allow for negatives
-static bool parse_value(std::string s, uint32_t &v) {
+static bool parse_value(std::string s, int32_t &v) {
 	trim(s);
-	size_t c = s.length();
 	if (!s.empty()) {
-		// this is a bit too trusting...
+		int32_t scale = 1;
+		if (s[0] == '-') {
+			s.erase(0, 1);
+			trim(s);
+			if (s.empty()) return false;
+			scale = -1;
+		}
 		if (s[0] == '$') {
 			s.erase(0, 1);
-			v = (uint32_t)strtol(s.c_str(), NULL, 16);
+			if (!is_hex(s)) return false;
+			v = (int32_t)strtol(s.c_str(), NULL, 16) * scale;
+		}
+		else if (s[0] == '&') {
+			s.erase(0, 1);
+			if (!is_octal(s)) return false;
+			v = (int32_t)strtol(s.c_str(), NULL, 8) * scale;
 		}
 		else if (s[0] == '%') {
 			s.erase(0, 1);
-			v = (uint32_t)strtol(s.c_str(), NULL, 2);
-		}
-		else if (s[c-1] == 'h' || s[c-1] == 'H') {
-			s.erase(c - 1);
-			v = (uint32_t)strtol(s.c_str(), NULL, 16);
+			if (!is_binary(s)) return false;
+			v = (int32_t)strtol(s.c_str(), NULL, 2) * scale;
 		}
 		else {
-			v = (uint32_t)strtol(s.c_str(), NULL, 10);
+			if (!is_decimal(s)) return false;
+			v = (int32_t)strtol(s.c_str(), NULL, 10) * scale;
 		}
 		return true;
 	}
@@ -52,7 +60,7 @@ static bool get_label(std::istringstream &iss, std::string &l, const std::string
 	return true;
 }
 
-static bool get_number_and_label(std::istringstream &iss, uint32_t &v, std::string &l, const std::string &scope = "") {
+static bool get_number_and_label(std::istringstream &iss, int32_t &v, std::string &l, const std::string &scope = "") {
 	std::getline(iss, l);
 	size_t p = l.find(',');
 	if (p == std::string::npos) {
@@ -72,6 +80,221 @@ static bool get_number_and_label(std::istringstream &iss, uint32_t &v, std::stri
 	return true;
 }
 
+static bool get_number(std::istringstream &iss, int32_t &v) {
+	std::string l;
+	std::getline(iss, l);
+	if (!parse_value(l, v)) {
+		return false;
+	}
+	return true;
+}
+
+static bool get_number_and_number(std::istringstream &iss, int32_t &v1, int32_t &v2) {
+	std::string l;
+	std::getline(iss, l);
+	size_t p = l.find(',');
+	if (p == std::string::npos) {
+		return false;
+	}
+	if (!parse_value(l.substr(0, p), v1)) {
+		return false;
+	}
+	l.erase(0, p + 1);
+	trim(l);
+	if (l.size() == 0) {
+		return false;
+	}
+	if (!parse_value(l, v2)) {
+		return false;
+	}
+	return true;
+}
+
+static bool get_number_and_number_and_number(std::istringstream &iss, int32_t &v1, int32_t &v2, int32_t &v3) {
+	std::string l;
+	std::getline(iss, l);
+	size_t p = l.find(',');
+	if (p == std::string::npos) {
+		return false;
+	}
+	if (!parse_value(l.substr(0, p), v1)) {
+		return false;
+	}
+	l.erase(0, p + 1);
+	trim(l);
+	if (l.size() == 0) {
+		return false;
+	}
+
+	p = l.find(',');
+	if (p == std::string::npos) {
+		return false;
+	}
+	if (!parse_value(l.substr(0, p), v2)) {
+		return false;
+	}
+	l.erase(0, p + 1);
+	trim(l);
+	if (l.size() == 0) {
+		return false;
+	}
+
+	if (!parse_value(l, v3)) {
+		return false;
+	}
+	return true;
+}
+
+static bool get_number_and_number_and_number_and_number(std::istringstream &iss, int32_t &v1, int32_t &v2, int32_t &v3, int32_t &v4) {
+	std::string l;
+	std::getline(iss, l);
+	size_t p = l.find(',');
+	if (p == std::string::npos) {
+		return false;
+	}
+	if (!parse_value(l.substr(0, p), v1)) {
+		return false;
+	}
+	l.erase(0, p + 1);
+	trim(l);
+	if (l.size() == 0) {
+		return false;
+	}
+
+	p = l.find(',');
+	if (p == std::string::npos) {
+		return false;
+	}
+	if (!parse_value(l.substr(0, p), v2)) {
+		return false;
+	}
+	l.erase(0, p + 1);
+	trim(l);
+	if (l.size() == 0) {
+		return false;
+	}
+
+	p = l.find(',');
+	if (p == std::string::npos) {
+		return false;
+	}
+	if (!parse_value(l.substr(0, p), v3)) {
+		return false;
+	}
+	l.erase(0, p + 1);
+	trim(l);
+	if (l.size() == 0) {
+		return false;
+	}
+
+	if (!parse_value(l, v4)) {
+		return false;
+	}
+	return true;
+}
+
+static bool get_bool_and_bool(std::istringstream &iss, int32_t &b1, int32_t &b2) {
+	std::string l;
+	std::getline(iss, l);
+	size_t p = l.find(',');
+	if (p == std::string::npos) {
+		return false;
+	}
+	std::string s = l.substr(0, p);
+	if (s == "TRUE") {
+		b1 = true;
+	}
+	else if (s == "FALSE") {
+		b1 = false;
+	}
+	else {
+		return false;
+	}
+	l.erase(0, p + 1);
+	trim(l);
+	if (l.size() == 0) {
+		return false;
+	}
+	if (l == "TRUE") {
+		b2 = true;
+	}
+	else if (l == "FALSE") {
+		b2 = false;
+	}
+	else {
+		return false;
+	}
+	return true;
+}
+
+static bool get_pitch_from_string(const std::string &s, Pitch &p) {
+	for (size_t i = 0; i < NUM_PITCHES; ++i) {
+		if (s == PITCH_NAMES[i]) {
+			p = (Pitch)i;
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool get_pitch_and_number(std::istringstream &iss, Pitch &pitch, int32_t &v) {
+	std::string l;
+	std::getline(iss, l);
+	size_t p = l.find(',');
+	if (p == std::string::npos) {
+		return false;
+	}
+	std::string s = l.substr(0, p);
+	trim(s);
+	if (!get_pitch_from_string(s, pitch)) {
+		return false;
+	}
+	l.erase(0, p + 1);
+	trim(l);
+	if (l.size() == 0) {
+		return false;
+	}
+	if (!parse_value(l, v)) {
+		return false;
+	}
+	return true;
+}
+
+static bool get_number_and_number_and_pitch(std::istringstream &iss, int32_t &v1, int32_t &v2, Pitch &pitch) {
+	std::string l;
+	std::getline(iss, l);
+	size_t p = l.find(',');
+	if (p == std::string::npos) {
+		return false;
+	}
+	if (!parse_value(l.substr(0, p), v1)) {
+		return false;
+	}
+	l.erase(0, p + 1);
+	trim(l);
+	if (l.size() == 0) {
+		return false;
+	}
+
+	p = l.find(',');
+	if (p == std::string::npos) {
+		return false;
+	}
+	if (!parse_value(l.substr(0, p), v2)) {
+		return false;
+	}
+	l.erase(0, p + 1);
+	trim(l);
+	if (l.size() == 0) {
+		return false;
+	}
+
+	if (!get_pitch_from_string(l, pitch)) {
+		return false;
+	}
+	return true;
+}
+
 Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 	std::ifstream ifs;
 	open_ifstream(ifs, f);
@@ -82,7 +305,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 	enum class Step { LOOKING_FOR_HEADER, READING_HEADER, LOOKING_FOR_CHANNEL, READING_CHANNEL, DONE };
 
 	Step step = Step::LOOKING_FOR_HEADER;
-	uint32_t current_channel = 0;
+	int32_t current_channel = 0;
 	std::string current_channel_label;
 	std::list<Command> *current_channel_commands;
 	std::string current_scope;
@@ -116,9 +339,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				if (!leading_macro(lss, macro, "channel_count")) {
 					return (_result = Result::SONG_BAD_FILE);
 				}
-				std::string number_of_channels_str;
-				std::getline(lss, number_of_channels_str);
-				if (!parse_value(number_of_channels_str, _number_of_channels)) {
+				if (!get_number(lss, _number_of_channels)) {
 					return (_result = Result::SONG_BAD_FILE);
 				}
 				if (_number_of_channels < 1 || _number_of_channels > 4) {
@@ -130,7 +351,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				if (!leading_macro(lss, macro, "channel")) {
 					return (_result = Result::SONG_BAD_FILE);
 				}
-				uint32_t channel_number = 0;
+				int32_t channel_number = 0;
 				std::string label;
 				if (!get_number_and_label(lss, channel_number, label)) {
 					return (_result = Result::SONG_BAD_FILE);
@@ -144,7 +365,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				if (channel_number == 4) _channel_4_label = label;
 				current_channel += 1;
 				if (current_channel == _number_of_channels) {
-					uint32_t num_labelled_channels = 0;
+					int32_t num_labelled_channels = 0;
 					if (_channel_1_label.size() > 0) num_labelled_channels += 1;
 					if (_channel_2_label.size() > 0) num_labelled_channels += 1;
 					if (_channel_3_label.size() > 0) num_labelled_channels += 1;
@@ -229,107 +450,383 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					return (_result = Result::SONG_BAD_FILE);
 				}
 				if (macro == "note") {
-					current_channel_commands->push_back({ Command_Type::NOTE });
+					if (current_channel == 4) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					Command command;
+					command.type = Command_Type::NOTE;
+					if (!get_pitch_and_number(lss, command.note.pitch, command.note.length)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.note.length < 1 || command.note.length > 16) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "drum_note") {
-					current_channel_commands->push_back({ Command_Type::DRUM_NOTE });
+					if (current_channel != 4) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					Command command;
+					command.type = Command_Type::DRUM_NOTE;
+					if (!get_number_and_number(lss, command.drum_note.instrument, command.drum_note.length)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.drum_note.instrument < 1 || command.drum_note.instrument > 12) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.drum_note.length < 1 || command.drum_note.length > 16) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "rest") {
-					current_channel_commands->push_back({ Command_Type::REST });
+					Command command;
+					command.type = Command_Type::REST;
+					if (!get_number(lss, command.rest.length)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.rest.length < 1 || command.rest.length > 16) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "octave") {
-					current_channel_commands->push_back({ Command_Type::OCTAVE });
+					if (current_channel == 4) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					Command command;
+					command.type = Command_Type::OCTAVE;
+					if (!get_number(lss, command.octave.octave)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.octave.octave < 1 || command.octave.octave > 8) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "note_type") {
-					current_channel_commands->push_back({ Command_Type::NOTE_TYPE });
+					if (current_channel == 4) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (current_channel == 3) {
+						Command command;
+						command.type = Command_Type::NOTE_TYPE;
+						if (!get_number_and_number_and_number(lss, command.note_type.speed, command.note_type.volume, command.note_type.wave)) {
+							return (_result = Result::SONG_BAD_FILE);
+						}
+						if (command.note_type.speed < 1 || command.note_type.speed > 15) {
+							return (_result = Result::SONG_BAD_FILE);
+						}
+						if (command.note_type.volume < 0 || command.note_type.volume > 3) {
+							return (_result = Result::SONG_BAD_FILE);
+						}
+						if (command.note_type.wave < 0 || command.note_type.wave > 15) {
+							return (_result = Result::SONG_BAD_FILE);
+						}
+						current_channel_commands->push_back(command);
+					}
+					else {
+						Command command;
+						command.type = Command_Type::NOTE_TYPE;
+						if (!get_number_and_number_and_number(lss, command.note_type.speed, command.note_type.volume, command.note_type.fade)) {
+							return (_result = Result::SONG_BAD_FILE);
+						}
+						if (command.note_type.speed < 1 || command.note_type.speed > 15) {
+							return (_result = Result::SONG_BAD_FILE);
+						}
+						if (command.note_type.volume < 0 || command.note_type.volume > 15) {
+							return (_result = Result::SONG_BAD_FILE);
+						}
+						if (command.note_type.fade == 8) command.note_type.fade = 0; // 8 is used in place of 0
+						if (command.note_type.fade < -7 || command.note_type.fade > 7) {
+							return (_result = Result::SONG_BAD_FILE);
+						}
+						current_channel_commands->push_back(command);
+					}
 				}
+
 				else if (macro == "drum_speed") {
-					current_channel_commands->push_back({ Command_Type::DRUM_SPEED });
+					if (current_channel != 4) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					Command command;
+					command.type = Command_Type::DRUM_SPEED;
+					if (!get_number(lss, command.drum_speed.speed)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.drum_speed.speed < 1 || command.drum_speed.speed > 15) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "transpose") {
-					current_channel_commands->push_back({ Command_Type::TRANSPOSE });
+					if (current_channel == 4) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					Command command;
+					command.type = Command_Type::TRANSPOSE;
+					if (!get_number_and_number(lss, command.transpose.num_octaves, command.transpose.num_pitches)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.transpose.num_octaves < 0 || command.transpose.num_octaves > 7) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.transpose.num_pitches < 0 || command.transpose.num_pitches > 12) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "tempo") {
-					current_channel_commands->push_back({ Command_Type::TEMPO });
+					Command command;
+					command.type = Command_Type::TEMPO;
+					if (!get_number(lss, command.tempo.tempo)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.tempo.tempo < 1 || command.tempo.tempo > 1024) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "duty_cycle") {
-					current_channel_commands->push_back({ Command_Type::DUTY_CYCLE });
+					if (current_channel != 1 && current_channel != 2) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					Command command;
+					command.type = Command_Type::DUTY_CYCLE;
+					if (!get_number(lss, command.duty_cycle.duty)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.duty_cycle.duty < 0 || command.duty_cycle.duty > 3) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "volume_envelope") {
-					current_channel_commands->push_back({ Command_Type::VOLUME_ENVELOPE });
+					if (current_channel == 4) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (current_channel == 3) {
+						Command command;
+						command.type = Command_Type::VOLUME_ENVELOPE;
+						if (!get_number_and_number(lss, command.volume_envelope.volume, command.volume_envelope.wave)) {
+							return (_result = Result::SONG_BAD_FILE);
+						}
+						if (command.volume_envelope.volume < 0 || command.volume_envelope.volume > 3) {
+							return (_result = Result::SONG_BAD_FILE);
+						}
+						if (command.volume_envelope.wave < 0 || command.volume_envelope.wave > 15) {
+							return (_result = Result::SONG_BAD_FILE);
+						}
+						current_channel_commands->push_back(command);
+					}
+					else {
+						Command command;
+						command.type = Command_Type::VOLUME_ENVELOPE;
+						if (!get_number_and_number(lss, command.volume_envelope.volume, command.volume_envelope.fade)) {
+							return (_result = Result::SONG_BAD_FILE);
+						}
+						if (command.volume_envelope.volume < 0 || command.volume_envelope.volume > 15) {
+							return (_result = Result::SONG_BAD_FILE);
+						}
+						if (command.volume_envelope.fade == 8) command.volume_envelope.fade = 0; // 8 is used in place of 0
+						if (command.volume_envelope.fade < -7 || command.volume_envelope.fade > 7) {
+							return (_result = Result::SONG_BAD_FILE);
+						}
+						current_channel_commands->push_back(command);
+					}
 				}
+
 				else if (macro == "duty_cycle_pattern") {
-					current_channel_commands->push_back({ Command_Type::DUTY_CYCLE_PATTERN });
+					if (current_channel != 1 && current_channel != 2) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					Command command;
+					command.type = Command_Type::DUTY_CYCLE_PATTERN;
+					if (!get_number_and_number_and_number_and_number(lss, command.duty_cycle_pattern.duty1, command.duty_cycle_pattern.duty2, command.duty_cycle_pattern.duty3, command.duty_cycle_pattern.duty4)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.duty_cycle_pattern.duty1 < 0 || command.duty_cycle_pattern.duty1 > 3) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.duty_cycle_pattern.duty2 < 0 || command.duty_cycle_pattern.duty2 > 3) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.duty_cycle_pattern.duty3 < 0 || command.duty_cycle_pattern.duty3 > 3) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.duty_cycle_pattern.duty4 < 0 || command.duty_cycle_pattern.duty4 > 3) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "pitch_slide") {
-					current_channel_commands->push_back({ Command_Type::PITCH_SLIDE });
+					if (current_channel != 1) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					Command command;
+					command.type = Command_Type::PITCH_SLIDE;
+					if (!get_number_and_number_and_pitch(lss, command.pitch_slide.duration, command.pitch_slide.octave, command.pitch_slide.pitch)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.pitch_slide.duration < 1 || command.pitch_slide.duration > 256) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.pitch_slide.octave < 1 || command.pitch_slide.octave > 8) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "vibrato") {
-					current_channel_commands->push_back({ Command_Type::VIBRATO });
+					if (current_channel == 4) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					Command command;
+					command.type = Command_Type::VIBRATO;
+					if (!get_number_and_number_and_number(lss, command.vibrato.delay, command.vibrato.extent, command.vibrato.rate)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.vibrato.delay < 0 || command.vibrato.delay > 255) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.vibrato.extent < 0 || command.vibrato.extent > 15) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.vibrato.rate < 0 || command.vibrato.rate > 15) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "toggle_noise") {
-					current_channel_commands->push_back({ Command_Type::TOGGLE_NOISE });
+					if (current_channel != 4) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					Command command;
+					command.type = Command_Type::TOGGLE_NOISE;
+					if (!get_number(lss, command.toggle_noise.drumkit)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.toggle_noise.drumkit < 0 || command.toggle_noise.drumkit > 5) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "force_stereo_panning") {
-					current_channel_commands->push_back({ Command_Type::FORCE_STEREO_PANNING });
+					Command command;
+					command.type = Command_Type::FORCE_STEREO_PANNING;
+					if (!get_bool_and_bool(lss, command.force_stereo_panning.left, command.force_stereo_panning.right)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "volume") {
-					current_channel_commands->push_back({ Command_Type::VOLUME });
+					Command command;
+					command.type = Command_Type::VOLUME;
+					if (!get_number_and_number(lss, command.volume.left, command.volume.right)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.volume.left < 0 || command.volume.left > 7) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.volume.right < 0 || command.volume.right > 7) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "pitch_offset") {
-					current_channel_commands->push_back({ Command_Type::PITCH_OFFSET });
+					if (current_channel == 4) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					Command command;
+					command.type = Command_Type::PITCH_OFFSET;
+					if (!get_number(lss, command.pitch_offset.offset)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					if (command.pitch_offset.offset < 0 || command.pitch_offset.offset > 65535) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "stereo_panning") {
-					current_channel_commands->push_back({ Command_Type::STEREO_PANNING });
+					Command command;
+					command.type = Command_Type::STEREO_PANNING;
+					if (!get_bool_and_bool(lss, command.stereo_panning.left, command.stereo_panning.right)) {
+						return (_result = Result::SONG_BAD_FILE);
+					}
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "sound_jump") {
-					std::string label;
-					if (!get_label(lss, label, current_scope)) {
+					Command command;
+					command.type = Command_Type::SOUND_JUMP;
+					if (!get_label(lss, command.label, current_scope)) {
 						return (_result = Result::SONG_BAD_FILE);
 					}
 
-					if (!visited_labels.count(label)) {
-						unvisited_labels.insert(label);
+					if (!visited_labels.count(command.label)) {
+						unvisited_labels.insert(command.label);
 					}
 
-					current_channel_commands->push_back({ Command_Type::SOUND_JUMP });
+					current_channel_commands->push_back(command);
 					done_with_branch = true;
 				}
+
 				else if (macro == "sound_loop") {
-					uint32_t loop_count = 0;
-					std::string label;
-					if (!get_number_and_label(lss, loop_count, label, current_scope)) {
+					Command command;
+					command.type = Command_Type::SOUND_LOOP;
+					if (!get_number_and_label(lss, command.sound_loop.loop_count, command.label, current_scope)) {
 						return (_result = Result::SONG_BAD_FILE);
 					}
-					if (loop_count < 0 || loop_count > 255) {
+					if (command.sound_loop.loop_count < 0 || command.sound_loop.loop_count > 255) {
 						return (_result = Result::SONG_BAD_FILE);
 					}
 
-					if (!visited_labels.count(label)) {
-						unvisited_labels.insert(label);
+					if (!visited_labels.count(command.label)) {
+						unvisited_labels.insert(command.label);
 					}
 
-					current_channel_commands->push_back({ Command_Type::SOUND_LOOP });
-					if (loop_count == 0) {
+					current_channel_commands->push_back(command);
+					if (command.sound_loop.loop_count == 0) {
 						done_with_branch = true;
 					}
 				}
+
 				else if (macro == "sound_call") {
-					std::string label;
-					if (!get_label(lss, label, current_scope)) {
+					Command command;
+					command.type = Command_Type::SOUND_CALL;
+					if (!get_label(lss, command.label, current_scope)) {
 						return (_result = Result::SONG_BAD_FILE);
 					}
 
-					if (!visited_labels.count(label)) {
-						unvisited_labels.insert(label);
+					if (!visited_labels.count(command.label)) {
+						unvisited_labels.insert(command.label);
 					}
 
-					current_channel_commands->push_back({ Command_Type::SOUND_CALL });
+					current_channel_commands->push_back(command);
 				}
+
 				else if (macro == "sound_ret") {
-					current_channel_commands->push_back({ Command_Type::SOUND_RET });
+					Command command;
+					command.type = Command_Type::SOUND_RET;
+					current_channel_commands->push_back(command);
 					done_with_branch = true;
 				}
+
 				else {
 					// unknown command
 					return (_result = Result::SONG_BAD_FILE);

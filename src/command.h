@@ -1,6 +1,38 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
+enum class Pitch {
+	C_NAT,
+	C_SHARP,
+	D_NAT,
+	D_SHARP,
+	E_NAT,
+	F_NAT,
+	F_SHARP,
+	G_NAT,
+	G_SHARP,
+	A_NAT,
+	A_SHARP,
+	B_NAT,
+};
+
+static const char * const PITCH_NAMES[] = {
+	"C_",
+	"C#",
+	"D_",
+	"D#",
+	"E_",
+	"F_",
+	"F#",
+	"G_",
+	"G#",
+	"A_",
+	"A#",
+	"B_",
+};
+
+static const size_t NUM_PITCHES = sizeof(PITCH_NAMES) / sizeof(char *);
+
 enum class Command_Type {
 	NOTE,
 	DRUM_NOTE,
@@ -52,7 +84,137 @@ static const char * const COMMAND_NAMES[] = {
 };
 
 struct Command {
-	Command_Type command_type;
+
+	struct Note {
+		int32_t length;
+		Pitch pitch;
+	};
+
+	struct Drum_Note {
+		int32_t length;
+		int32_t instrument;
+	};
+
+	struct Rest {
+		int32_t length;
+	};
+
+	struct Octave {
+		int32_t octave;
+	};
+
+	struct Note_Type {
+		int32_t speed;
+		int32_t volume;
+		union {
+			int32_t fade;
+			int32_t wave;
+		};
+	};
+
+	struct Drum_Speed {
+		int32_t speed;
+	};
+
+	struct Transpose {
+		int32_t num_octaves;
+		int32_t num_pitches;
+	};
+
+	struct Tempo {
+		int32_t tempo;
+	};
+
+	struct Duty_Cycle {
+		int32_t duty;
+	};
+
+	struct Volume_Envelope {
+		int32_t volume;
+		union {
+			int32_t fade;
+			int32_t wave;
+		};
+	};
+
+	struct Duty_Cycle_Pattern {
+		int32_t duty1;
+		int32_t duty2;
+		int32_t duty3;
+		int32_t duty4;
+	};
+
+	struct Pitch_Slide {
+		int32_t duration;
+		int32_t octave;
+		Pitch pitch;
+	};
+
+	struct Vibrato {
+		int32_t delay;
+		int32_t extent;
+		int32_t rate;
+	};
+
+	struct Toggle_Noise {
+		int32_t drumkit;
+	};
+
+	struct Force_Stereo_Panning {
+		int32_t left;
+		int32_t right;
+	};
+
+	struct Volume {
+		int32_t left;
+		int32_t right;
+	};
+
+	struct Pitch_Offset {
+		int32_t offset;
+	};
+
+	struct Stereo_Panning {
+		int32_t left;
+		int32_t right;
+	};
+
+	struct Sound_Jump {};
+
+	struct Sound_Loop {
+		int32_t loop_count;
+	};
+
+	struct Sound_Call {};
+
+	struct Sound_Ret {};
+
+	Command_Type type;
+	std::string label; // is string really best?
+	union {
+		Note note;
+		Drum_Note drum_note;
+		Rest rest;
+		Octave octave;
+		Note_Type note_type;
+		Drum_Speed drum_speed;
+		Transpose transpose;
+		Tempo tempo;
+		Duty_Cycle duty_cycle;
+		Volume_Envelope volume_envelope;
+		Duty_Cycle_Pattern duty_cycle_pattern;
+		Pitch_Slide pitch_slide;
+		Vibrato vibrato;
+		Toggle_Noise toggle_noise;
+		Force_Stereo_Panning force_stereo_panning;
+		Volume volume;
+		Pitch_Offset pitch_offset;
+		Stereo_Panning stereo_panning;
+		Sound_Jump sound_jump;
+		Sound_Loop sound_loop;
+		Sound_Call sound_call;
+		Sound_Ret sound_ret;
+	};
 };
 
 #endif

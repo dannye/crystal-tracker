@@ -11,7 +11,7 @@ public:
 	enum class Result { SONG_OK, SONG_BAD_FILE, SONG_NULL };
 private:
 	std::string _song_name;
-	uint32_t    _number_of_channels;
+	int32_t     _number_of_channels;
 	std::string _channel_1_label;
 	std::string _channel_2_label;
 	std::string _channel_3_label;

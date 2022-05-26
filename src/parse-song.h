@@ -10,7 +10,7 @@ public:
 	enum class Result { SONG_OK, SONG_BAD_FILE, SONG_OVERFLOW, SONG_NULL };
 private:
 	std::string _song_name;
-	uint32_t    _number_of_channels;
+	int32_t     _number_of_channels;
 	std::string _channel_1_label;
 	std::string _channel_2_label;
 	std::string _channel_3_label;
@@ -24,7 +24,7 @@ public:
 	Parsed_Song(const char *f);
 	inline ~Parsed_Song() {}
 	inline std::string song_name(void) const { return _song_name; }
-	inline uint32_t number_of_channels(void) const { return _number_of_channels; }
+	inline int32_t number_of_channels(void) const { return _number_of_channels; }
 	inline std::string channel_1_label(void) const { return _channel_1_label; }
 	inline std::string channel_2_label(void) const { return _channel_2_label; }
 	inline std::string channel_3_label(void) const { return _channel_3_label; }

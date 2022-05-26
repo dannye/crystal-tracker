@@ -17,6 +17,11 @@
 
 const std::string whitespace(" \f\n\r\t\v");
 
+const std::string hex("0123456789abcdefABCDEF");
+const std::string decimal("0123456789");
+const std::string octal("01234567");
+const std::string binary("01");
+
 static bool cmp_ignore_case(const char &a, const char &b) {
 	return tolower(a) == tolower(b);
 }
@@ -51,6 +56,22 @@ bool is_indented(std::string_view s) {
 	if (s.size() == 0) { return false; }
 	int first = s[0];
 	return first == ' ' || first == '\t';
+}
+
+bool is_hex(std::string_view s) {
+	return s.find_first_not_of(hex) == std::string::npos;
+}
+
+bool is_decimal(std::string_view s) {
+	return s.find_first_not_of(decimal) == std::string::npos;
+}
+
+bool is_octal(std::string_view s) {
+	return s.find_first_not_of(octal) == std::string::npos;
+}
+
+bool is_binary(std::string_view s) {
+	return s.find_first_not_of(binary) == std::string::npos;
 }
 
 void trim(std::string &s, const std::string &t) {
