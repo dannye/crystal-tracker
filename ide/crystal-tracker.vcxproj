@@ -74,7 +74,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\lib\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fltkimagesd.lib;fltkpngd.lib;fltkjpegd.lib;fltkzlibd.lib;fltkd.lib;opengl32.lib;glu32.lib;comctl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libopenmpt-small.lib;openmpt-minimp3.lib;openmpt-miniz.lib;openmpt-stb_vorbis.lib;portaudio.lib;portaudiocpp-vc7_1-d.lib;fltkimagesd.lib;fltkpngd.lib;fltkjpegd.lib;fltkzlibd.lib;fltkd.lib;opengl32.lib;glu32.lib;comctl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmtd.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -99,7 +99,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fltkimages.lib;fltkpng.lib;fltkjpeg.lib;fltkzlib.lib;fltk.lib;opengl32.lib;glu32.lib;comctl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libopenmpt-small.lib;openmpt-minimp3.lib;openmpt-miniz.lib;openmpt-stb_vorbis.lib;portaudio.lib;portaudiocpp-vc7_1-r.lib;fltkimages.lib;fltkpng.lib;fltkjpeg.lib;fltkzlib.lib;fltk.lib;opengl32.lib;glu32.lib;comctl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>

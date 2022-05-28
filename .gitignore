@@ -3,10 +3,11 @@ bin/
 lib/
 share/
 tmp/
-fltk/
 
-# no FL includes
+# no lib includes
 include/FL/
+include/libopenmpt/
+include/portaudiocpp/
 
 # no IDE files
 .vs/
