@@ -36,6 +36,9 @@
     <ClCompile Include="..\src\parse-song.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\piano-roll.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\preferences.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -75,6 +78,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\parse-song.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\piano-roll.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\preferences.h">

@@ -111,6 +111,7 @@
     <ClCompile Include="..\src\main-window.cpp" />
     <ClCompile Include="..\src\modal-dialog.cpp" />
     <ClCompile Include="..\src\parse-song.cpp" />
+    <ClCompile Include="..\src\piano-roll.cpp" />
     <ClCompile Include="..\src\preferences.cpp" />
     <ClCompile Include="..\src\song.cpp" />
     <ClCompile Include="..\src\themes.cpp" />
@@ -126,6 +127,7 @@
     <ClInclude Include="..\src\main-window.h" />
     <ClInclude Include="..\src\modal-dialog.h" />
     <ClInclude Include="..\src\parse-song.h" />
+    <ClInclude Include="..\src\piano-roll.h" />
     <ClInclude Include="..\src\preferences.h" />
     <ClInclude Include="..\src\resource.h" />
     <ClInclude Include="..\src\song.h" />
