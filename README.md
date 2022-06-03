@@ -4,6 +4,10 @@ A song and sound editor for [pokecrystal](https://github.com/pret/pokecrystal), 
 
 WIP.
 
+Crystal Tracker currently loads and displays all standard, valid songs.
+
+![Screenshot](screenshot.png)
+
 ## Special Thanks
 
 This project takes a lot of inspiration (and a lot of backbone code structure) from [Polished Map](https://github.com/Rangi42/polished-map). A huge thank you to [Rangi42](https://github.com/Rangi42)!
