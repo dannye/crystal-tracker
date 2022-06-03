@@ -1,7 +1,10 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
+#include <string>
+
 enum class Pitch {
+	REST = -1,
 	C_NAT,
 	C_SHARP,
 	D_NAT,
@@ -223,6 +226,12 @@ struct Command {
 		Sound_Call sound_call;
 		Sound_Ret sound_ret;
 	};
+};
+
+struct Note_View {
+	int32_t length;
+	Pitch pitch;
+	int32_t octave;
 };
 
 #endif

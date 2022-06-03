@@ -11,7 +11,7 @@ public:
 	enum class Result { SONG_OK, SONG_BAD_FILE, SONG_NULL };
 private:
 	std::string _song_name;
-	int32_t     _number_of_channels;
+	int32_t     _number_of_channels = 0;
 	std::string _channel_1_label;
 	std::string _channel_2_label;
 	std::string _channel_3_label;
@@ -20,8 +20,12 @@ private:
 	std::list<Command> _channel_2_commands;
 	std::list<Command> _channel_3_commands;
 	std::list<Command> _channel_4_commands;
-	Result _result;
-	bool _loaded;
+	std::list<Note_View> _channel_1_timeline;
+	std::list<Note_View> _channel_2_timeline;
+	std::list<Note_View> _channel_3_timeline;
+	std::list<Note_View> _channel_4_timeline;
+	Result _result = Result::SONG_NULL;
+	bool _loaded = false;
 public:
 	Song();
 	~Song();
@@ -34,8 +38,13 @@ public:
 	std::string channel_2_commands_str() { return commands_str(_channel_2_commands); }
 	std::string channel_3_commands_str() { return commands_str(_channel_3_commands); }
 	std::string channel_4_commands_str() { return commands_str(_channel_4_commands); }
+
+	const std::list<Note_View> &channel_1_timeline() { return _channel_1_timeline; }
+	const std::list<Note_View> &channel_2_timeline() { return _channel_2_timeline; }
+	const std::list<Note_View> &channel_3_timeline() { return _channel_3_timeline; }
+	const std::list<Note_View> &channel_4_timeline() { return _channel_4_timeline; }
 private:
-	std::string commands_str(const std::list<Command> &) const;
+	std::string commands_str(const std::list<Command> &commands) const;
 public:
 	static const char *error_message(Result result);
 };

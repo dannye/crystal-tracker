@@ -6,10 +6,7 @@
 #include "utils.h"
 #include "parse-song.h"
 
-Parsed_Song::Parsed_Song(const char *f) : _song_name(), _number_of_channels(0),
-	_channel_1_label(), _channel_2_label(), _channel_3_label(), _channel_4_label(),
-	_channel_1_commands(), _channel_2_commands(), _channel_3_commands(), _channel_4_commands(),
-	_result(Result::SONG_NULL) {
+Parsed_Song::Parsed_Song(const char *f) {
 	parse_song(f);
 }
 

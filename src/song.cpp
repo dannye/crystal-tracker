@@ -3,10 +3,25 @@
 #include "song.h"
 #include "parse-song.h"
 
-Song::Song() : _song_name(), _number_of_channels(0),
-	_channel_1_label(), _channel_2_label(), _channel_3_label(), _channel_4_label(),
-	_channel_1_commands(), _channel_2_commands(), _channel_3_commands(), _channel_4_commands(),
-	_result(Result::SONG_NULL), _loaded(false) {}
+static std::list<Note_View> build_timeline(const std::list<Command> &commands) {
+	std::list<Note_View> timeline;
+	int32_t octave = 0;
+	for (const Command &command : commands) {
+		// TODO: handle all other commands...
+		if (command.type == Command_Type::OCTAVE) {
+			octave = command.octave.octave;
+		}
+		else if (command.type == Command_Type::NOTE) {
+			timeline.push_back(Note_View{ command.note.length, command.note.pitch, octave });
+		}
+		else if (command.type == Command_Type::REST) {
+			timeline.push_back(Note_View{ command.rest.length, Pitch::REST, octave });
+		}
+	}
+	return timeline;
+}
+
+Song::Song() {}
 
 Song::~Song() {
 	clear();
@@ -23,6 +38,10 @@ void Song::clear() {
 	_channel_2_commands.clear();
 	_channel_3_commands.clear();
 	_channel_4_commands.clear();
+	_channel_1_timeline.clear();
+	_channel_2_timeline.clear();
+	_channel_3_timeline.clear();
+	_channel_4_timeline.clear();
 	_result = Result::SONG_NULL;
 	_loaded = false;
 }
@@ -43,6 +62,10 @@ Song::Result Song::read_song(const char *f) {
 	_channel_2_commands = data.channel_2_commands();
 	_channel_3_commands = data.channel_3_commands();
 	_channel_4_commands = data.channel_4_commands();
+	_channel_1_timeline = build_timeline(_channel_1_commands);
+	_channel_2_timeline = build_timeline(_channel_2_commands);
+	_channel_3_timeline = build_timeline(_channel_3_commands);
+	_channel_4_timeline = build_timeline(_channel_4_commands);
 
 	_loaded = true;
 	return (_result = Result::SONG_OK);

@@ -421,6 +421,10 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 			_error_dialog->show(this);
 			return;
 		}
+		_piano_roll->set_channel_1_timeline(_song.channel_1_timeline());
+		_piano_roll->set_channel_2_timeline(_song.channel_2_timeline());
+		_piano_roll->set_channel_3_timeline(_song.channel_3_timeline());
+		_piano_roll->set_channel_4_timeline(_song.channel_4_timeline());
 		/* _channel_1_text_buffer->append(_song.channel_1_commands_str().c_str());
 		_channel_2_text_buffer->append(_song.channel_2_commands_str().c_str());
 		_channel_3_text_buffer->append(_song.channel_3_commands_str().c_str());
@@ -487,6 +491,7 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 
 	mw->label(PROGRAM_NAME);
+	mw->_piano_roll->clear();
 	/* mw->_channel_1_text_buffer->remove(0, mw->_channel_1_text_buffer->length());
 	mw->_channel_2_text_buffer->remove(0, mw->_channel_2_text_buffer->length());
 	mw->_channel_3_text_buffer->remove(0, mw->_channel_3_text_buffer->length());
