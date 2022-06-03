@@ -22,6 +22,12 @@
 #include "app-icon.xpm"
 #endif
 
+#ifdef __APPLE__
+	constexpr int MENU_BAR_HEIGHT = 0;
+#else
+	constexpr int MENU_BAR_HEIGHT = 21;
+#endif
+
 Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_Window(x, y, w, h, PROGRAM_NAME),
 	_directory(), _asm_file(), _recent(), _song(), _wx(x), _wy(y), _ww(w), _wh(h) {
 
@@ -34,11 +40,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	int wx = 0, wy = 0, ww = w, wh = h;
 
 	// Initialize menu bar
-#ifdef __APPLE__
-	_menu_bar = new Fl_Sys_Menu_Bar(wx, wy, ww, 0);
-#else
-	_menu_bar = new Fl_Sys_Menu_Bar(wx, wy, ww, 21);
-#endif
+	_menu_bar = new Fl_Sys_Menu_Bar(wx, wy, ww, MENU_BAR_HEIGHT);
 	wy += _menu_bar->h();
 	wh -= _menu_bar->h();
 
@@ -84,11 +86,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	// Configure window
 	box(OS_BG_BOX);
-#ifdef __APPLE__
-	size_range(335, 253);
-#else
-	size_range(335, 262);
-#endif
+	size_range(WHITE_KEY_WIDTH * 3 + 15, OCTAVE_HEIGHT + MENU_BAR_HEIGHT + 15, 0, OCTAVE_HEIGHT * NUM_OCTAVES + MENU_BAR_HEIGHT + 15);
 	callback((Fl_Callback *)exit_cb, this);
 	xclass(PROGRAM_NAME);
 
@@ -270,6 +268,12 @@ Main_Window::~Main_Window() {
 
 void Main_Window::show() {
 	Fl_Double_Window::show();
+}
+
+void Main_Window::resize(int X, int Y, int W, int H) {
+	Fl_Double_Window::resize(X, Y, W, H);
+	_menu_bar->resize(0, 0, W, _menu_bar->h());
+	_piano_roll->set_size(W, H - MENU_BAR_HEIGHT);
 }
 
 bool Main_Window::maximized() const {

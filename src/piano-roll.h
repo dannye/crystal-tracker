@@ -107,6 +107,8 @@ public:
 	Piano_Roll(const Piano_Roll&) = delete;
 	Piano_Roll& operator=(const Piano_Roll&) = delete;
 
+	void set_size(int W, int H);
+
 	void set_channel_1_timeline(const std::list<Note_View> &timeline) { _piano_timeline->set_channel_1_timeline(timeline); }
 	void set_channel_2_timeline(const std::list<Note_View> &timeline) { _piano_timeline->set_channel_2_timeline(timeline); }
 	void set_channel_3_timeline(const std::list<Note_View> &timeline) { _piano_timeline->set_channel_3_timeline(timeline); }

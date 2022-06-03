@@ -137,6 +137,7 @@ void Piano_Timeline::draw() {
 }
 
 Piano_Roll::Piano_Roll(int x, int y, int w, int h, const char *l) : Fl_Scroll(x, y, w, h, l) {
+	type(BOTH_ALWAYS);
 	_piano_timeline = new Piano_Timeline(x, y, w * 2, OCTAVE_HEIGHT * NUM_OCTAVES);
 	this->end();
 
@@ -147,6 +148,20 @@ Piano_Roll::~Piano_Roll() noexcept {
 	if (_piano_timeline) {
 		delete _piano_timeline;
 		_piano_timeline = nullptr;
+	}
+}
+
+void Piano_Roll::set_size(int W, int H) {
+	if (W != w() || H != h()) {
+		size(W, H);
+		// if window is too wide, increase the width of the timeline
+		if (hscrollbar.value() > _piano_timeline->w() - (W - scrollbar.w())) {
+			_piano_timeline->w(hscrollbar.value() + (W - scrollbar.w()));
+		}
+		// if window is too tall, clamp the vertical scroll position
+		if (scrollbar.value() > _piano_timeline->h() - (H - hscrollbar.h())) {
+			scroll_to(xposition(), _piano_timeline->h() - (H - hscrollbar.h()));
+		}
 	}
 }
 

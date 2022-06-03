@@ -68,7 +68,8 @@ private:
 public:
 	Main_Window(int x, int y, int w, int h, const char *l = NULL);
 	~Main_Window();
-	void show(void);
+	void show(void) override;
+	void resize(int X, int Y, int W, int H) override;
 	bool maximized(void) const;
 	void maximize(void);
 	void open_song(const char *filename);
