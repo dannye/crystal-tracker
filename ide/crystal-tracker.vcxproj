@@ -107,6 +107,7 @@
     <ClCompile Include="..\src\config.cpp" />
     <ClCompile Include="..\src\help-window.cpp" />
     <ClCompile Include="..\src\hex-spinner.cpp" />
+    <ClCompile Include="..\src\it-module.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\main-window.cpp" />
     <ClCompile Include="..\src\modal-dialog.cpp" />
@@ -123,6 +124,7 @@
     <ClInclude Include="..\src\config.h" />
     <ClInclude Include="..\src\help-window.h" />
     <ClInclude Include="..\src\hex-spinner.h" />
+    <ClInclude Include="..\src\it-module.h" />
     <ClInclude Include="..\src\icons.h" />
     <ClInclude Include="..\src\main-window.h" />
     <ClInclude Include="..\src\modal-dialog.h" />

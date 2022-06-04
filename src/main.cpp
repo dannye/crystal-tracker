@@ -5,6 +5,8 @@
 #include <FL/x.H>
 #pragma warning(pop)
 
+#include <portaudiocpp/PortAudioCpp.hxx>
+
 #include "version.h"
 #include "preferences.h"
 #include "themes.h"
@@ -112,6 +114,8 @@ int main(int argc, char **argv) {
 		argi++;
 	}
 #endif
+
+	portaudio::AutoSystem portaudio_initializer;
 
 	return Fl::run();
 }

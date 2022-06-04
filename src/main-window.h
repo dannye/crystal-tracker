@@ -13,6 +13,7 @@
 #include "song.h"
 #include "help-window.h"
 #include "piano-roll.h"
+#include "it-module.h"
 
 #define NUM_RECENT 10
 
@@ -59,6 +60,7 @@ private:
 	std::string _directory, _asm_file;
 	std::string _recent[NUM_RECENT];
 	Song _song;
+	IT_Module *_it_module = nullptr;
 	// Window size cache
 	int _wx, _wy, _ww, _wh;
 #ifdef __X11__
@@ -72,6 +74,7 @@ public:
 	void resize(int X, int Y, int W, int H) override;
 	bool maximized(void) const;
 	void maximize(void);
+	int handle(int event) override;
 	void open_song(const char *filename);
 private:
 	void update_active_controls(void);
@@ -101,6 +104,8 @@ private:
 	// Help menu
 	static void help_cb(Fl_Widget *w, Main_Window *mw);
 	static void about_cb(Fl_Widget *w, Main_Window *mw);
+	// Audio playback
+	static void playback_cb(void *mw);
 };
 
 #endif

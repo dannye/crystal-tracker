@@ -42,7 +42,6 @@ Piano_Timeline::Piano_Timeline(int x, int y, int w, int h, const char *l) : Fl_G
 	this->end();
 }
 
-
 Piano_Timeline::~Piano_Timeline() noexcept {
 	clear();
 	if (_keys) {

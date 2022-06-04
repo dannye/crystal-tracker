@@ -264,6 +264,9 @@ Main_Window::~Main_Window() {
 	delete _success_dialog;
 	delete _about_dialog;
 	delete _help_window;
+	if (_it_module) {
+		delete _it_module;
+	}
 }
 
 void Main_Window::show() {
@@ -328,6 +331,33 @@ void Main_Window::maximize() {
 #endif
 }
 
+int Main_Window::handle(int event) {
+	int key = 0;
+	switch (event) {
+	case FL_FOCUS:
+	case FL_UNFOCUS:
+		return 1;
+	case FL_KEYBOARD:
+		key = Fl::event_key();
+		if (key == ' ') {
+			if (_song.loaded() && (!_it_module || !_it_module->is_playing())) {
+				if (_it_module) {
+					delete _it_module;
+				}
+				_it_module = new IT_Module(_song);
+				if (_it_module->ready() && _it_module->start()) {
+					Fl::add_timeout(1.0 / 60.0, playback_cb, this);
+				}
+				// TODO: else, report error
+			}
+			return 1;
+		}
+		[[fallthrough]];
+	default:
+		return Fl_Double_Window::handle(event);
+	}
+}
+
 void Main_Window::update_active_controls() {
 	if (_song.loaded()) {
 		_close_mi->activate();
@@ -357,7 +387,7 @@ void Main_Window::update_recent_songs() {
 #ifndef __APPLE__
 		Fl_Multi_Label *ml = (Fl_Multi_Label *)_recent_mis[i]->label();
 		if (ml->labelb[0]) {
-			delete ml->labelb;
+			delete [] ml->labelb;
 			ml->labelb = "";
 		}
 #endif
@@ -656,4 +686,15 @@ void Main_Window::help_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::about_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_about_dialog->show(mw);
+}
+
+// may need to move this to a separate thread to reduce lag
+void Main_Window::playback_cb(void *mw) {
+	IT_Module *mod = ((Main_Window *)mw)->_it_module;
+	if (mod) {
+		mod->play();
+		if (mod->is_playing()) {
+			Fl::repeat_timeout(1.0 / 60.0, playback_cb, mw);
+		}
+	}
 }
