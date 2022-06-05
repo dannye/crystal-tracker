@@ -47,35 +47,6 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	// Piano Roll
 	_piano_roll = new Piano_Roll(wx, wy, ww, wh);
 
-	// Text display
-	/* _channel_1_text_display = new Fl_Text_Display(wx, wy + 21, w/4, wh, "Channel 1");
-	wx += _channel_1_text_display->w();
-	ww -= _channel_1_text_display->w();
-	_channel_1_text_buffer = new Fl_Text_Buffer();
-	_channel_1_text_display->buffer(_channel_1_text_buffer);
-	_channel_1_text_display->textfont(FL_COURIER);
-
-	_channel_2_text_display = new Fl_Text_Display(wx, wy + 21, w/4, wh, "Channel 2");
-	wx += _channel_2_text_display->w();
-	ww -= _channel_2_text_display->w();
-	_channel_2_text_buffer = new Fl_Text_Buffer();
-	_channel_2_text_display->buffer(_channel_2_text_buffer);
-	_channel_2_text_display->textfont(FL_COURIER);
-
-	_channel_3_text_display = new Fl_Text_Display(wx, wy + 21, w/4, wh, "Channel 3");
-	wx += _channel_3_text_display->w();
-	ww -= _channel_3_text_display->w();
-	_channel_3_text_buffer = new Fl_Text_Buffer();
-	_channel_3_text_display->buffer(_channel_3_text_buffer);
-	_channel_3_text_display->textfont(FL_COURIER);
-
-	_channel_4_text_display = new Fl_Text_Display(wx, wy + 21, w/4, wh, "Channel 4");
-	wx += _channel_4_text_display->w();
-	ww -= _channel_4_text_display->w();
-	_channel_4_text_buffer = new Fl_Text_Buffer();
-	_channel_4_text_display->buffer(_channel_4_text_buffer);
-	_channel_4_text_display->textfont(FL_COURIER); */
-
 	// Dialogs
 	_asm_open_chooser = new Fl_Native_File_Chooser(Fl_Native_File_Chooser::BROWSE_FILE);
 	_error_dialog = new Modal_Dialog(this, "Error", Modal_Dialog::Icon::ERROR_ICON);
@@ -250,14 +221,6 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 Main_Window::~Main_Window() {
 	delete _menu_bar; // includes menu items
 	delete _piano_roll;
-	/* delete _channel_1_text_display;
-	delete _channel_2_text_display;
-	delete _channel_3_text_display;
-	delete _channel_4_text_display;
-	delete _channel_1_text_buffer;
-	delete _channel_2_text_buffer;
-	delete _channel_3_text_buffer;
-	delete _channel_4_text_buffer; */
 	delete _asm_open_chooser;
 	delete _error_dialog;
 	delete _warning_dialog;
@@ -340,15 +303,8 @@ int Main_Window::handle(int event) {
 	case FL_KEYBOARD:
 		key = Fl::event_key();
 		if (key == ' ') {
-			if (_song.loaded() && (!_it_module || !_it_module->is_playing())) {
-				if (_it_module) {
-					delete _it_module;
-				}
-				_it_module = new IT_Module(_song);
-				if (_it_module->ready() && _it_module->start()) {
-					Fl::add_timeout(1.0 / 60.0, playback_cb, this);
-				}
-				// TODO: else, report error
+			if (_song.loaded()) {
+				toggle_playback();
 			}
 			return 1;
 		}
@@ -459,10 +415,6 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 		_piano_roll->set_channel_2_timeline(_song.channel_2_timeline());
 		_piano_roll->set_channel_3_timeline(_song.channel_3_timeline());
 		_piano_roll->set_channel_4_timeline(_song.channel_4_timeline());
-		/* _channel_1_text_buffer->append(_song.channel_1_commands_str().c_str());
-		_channel_2_text_buffer->append(_song.channel_2_commands_str().c_str());
-		_channel_3_text_buffer->append(_song.channel_3_commands_str().c_str());
-		_channel_4_text_buffer->append(_song.channel_4_commands_str().c_str()); */
 	}
 	else {
 		basename = NEW_SONG_NAME;
@@ -488,6 +440,22 @@ void Main_Window::open_recent(int n) {
 
 	const char *filename = _recent[n].c_str();
 	open_song(filename);
+}
+
+void Main_Window::toggle_playback() {
+	if (!_it_module || !_it_module->is_playing()) {
+		if (_it_module) {
+			delete _it_module;
+		}
+		_it_module = new IT_Module(_song);
+		if (_it_module->ready() && _it_module->start()) {
+			Fl::add_timeout(1.0 / 60.0, playback_cb, this);
+		}
+		// TODO: else, report error
+	}
+	else if (_it_module->is_playing()) {
+		_it_module->stop();
+	}
 }
 
 void Main_Window::open_cb(Fl_Widget *, Main_Window *mw) {
@@ -526,11 +494,10 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 
 	mw->label(PROGRAM_NAME);
 	mw->_piano_roll->clear();
-	/* mw->_channel_1_text_buffer->remove(0, mw->_channel_1_text_buffer->length());
-	mw->_channel_2_text_buffer->remove(0, mw->_channel_2_text_buffer->length());
-	mw->_channel_3_text_buffer->remove(0, mw->_channel_3_text_buffer->length());
-	mw->_channel_4_text_buffer->remove(0, mw->_channel_4_text_buffer->length()); */
 	mw->_song.clear();
+	if (mw->_it_module) {
+		mw->_it_module->stop();
+	}
 	mw->init_sizes();
 	mw->_directory.clear();
 	mw->_asm_file.clear();

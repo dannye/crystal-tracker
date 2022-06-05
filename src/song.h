@@ -34,15 +34,15 @@ public:
 	void clear();
 	Result read_song(const char *f);
 
-	std::string channel_1_commands_str() { return commands_str(_channel_1_commands); }
-	std::string channel_2_commands_str() { return commands_str(_channel_2_commands); }
-	std::string channel_3_commands_str() { return commands_str(_channel_3_commands); }
-	std::string channel_4_commands_str() { return commands_str(_channel_4_commands); }
+	std::string channel_1_commands_str() const { return commands_str(_channel_1_commands); }
+	std::string channel_2_commands_str() const { return commands_str(_channel_2_commands); }
+	std::string channel_3_commands_str() const { return commands_str(_channel_3_commands); }
+	std::string channel_4_commands_str() const { return commands_str(_channel_4_commands); }
 
-	const std::list<Note_View> &channel_1_timeline() { return _channel_1_timeline; }
-	const std::list<Note_View> &channel_2_timeline() { return _channel_2_timeline; }
-	const std::list<Note_View> &channel_3_timeline() { return _channel_3_timeline; }
-	const std::list<Note_View> &channel_4_timeline() { return _channel_4_timeline; }
+	const std::list<Note_View> &channel_1_timeline() const { return _channel_1_timeline; }
+	const std::list<Note_View> &channel_2_timeline() const { return _channel_2_timeline; }
+	const std::list<Note_View> &channel_3_timeline() const { return _channel_3_timeline; }
+	const std::list<Note_View> &channel_4_timeline() const { return _channel_4_timeline; }
 private:
 	std::string commands_str(const std::list<Command> &commands) const;
 public:

@@ -137,7 +137,7 @@ void Piano_Timeline::draw() {
 
 Piano_Roll::Piano_Roll(int x, int y, int w, int h, const char *l) : Fl_Scroll(x, y, w, h, l) {
 	type(BOTH_ALWAYS);
-	_piano_timeline = new Piano_Timeline(x, y, w * 2, OCTAVE_HEIGHT * NUM_OCTAVES);
+	_piano_timeline = new Piano_Timeline(x, y, (w - scrollbar.w()) * 2, OCTAVE_HEIGHT * NUM_OCTAVES);
 	this->end();
 
 	hscrollbar.callback((Fl_Callback *)hscrollbar_cb);
@@ -166,7 +166,7 @@ void Piano_Roll::set_size(int W, int H) {
 
 void Piano_Roll::clear() {
 	_piano_timeline->clear();
-	_piano_timeline->w(w() * 2);
+	_piano_timeline->w((w() - scrollbar.w()) * 2);
 	scroll_to(0, yposition());
 	_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
 }

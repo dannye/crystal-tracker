@@ -174,34 +174,101 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 
 	std::vector<std::vector<uint8_t>> patterns;
 
-	{
+	auto channel_1_itr = song.channel_1_timeline().begin();
+	auto channel_2_itr = song.channel_2_timeline().begin();
+	auto channel_3_itr = song.channel_3_timeline().begin();
+	/* auto channel_4_itr = song.channel_4_timeline().begin(); */
+	uint32_t channel_1_note_length = 0;
+	uint32_t channel_2_note_length = 0;
+	uint32_t channel_3_note_length = 0;
+	/* uint32_t channel_4_note_length = 0; */
+
+	do {
 		std::vector<uint8_t> pattern;
 
-		const uint8_t example_pattern[] = {
-			0x81, 0x03, 0x4C, 0x01, 0x82, 0x03, 0x4C, 0x01, 0x00, 0x81, 0x04, 0x00, 0x82, 0x04, 0x00, 0x00,
-			0x81, 0x21, 0x47, 0x82, 0x21, 0x50, 0x00, 0x81, 0x40, 0x82, 0x40, 0x00, 0x81, 0x21, 0x49, 0x82,
-			0x21, 0x4E, 0x00, 0x81, 0x40, 0x82, 0x40, 0x00, 0x81, 0x21, 0x47, 0x82, 0x21, 0x51, 0x00, 0x01,
-			0x4C, 0x02, 0x50, 0x00, 0x81, 0x40, 0x82, 0x40, 0x00, 0x00, 0x00, 0x00, 0x81, 0x30, 0x00, 0x00,
-			0x81, 0x40, 0x00, 0x00, 0x81, 0x21, 0x4B, 0x82, 0x21, 0x4B, 0x00, 0x81, 0x40, 0x82, 0x40, 0x00,
-			0x81, 0x21, 0x47, 0x82, 0x21, 0x4E, 0x00, 0x81, 0x40, 0x82, 0x40, 0x00, 0x81, 0x21, 0x49, 0x82,
-			0x21, 0x4C, 0x00, 0x81, 0x40, 0x82, 0x40, 0x00, 0x81, 0x21, 0x47, 0x82, 0x21, 0x50, 0x00, 0x01,
-			0x4B, 0x02, 0x4E, 0x00, 0x81, 0x40, 0x82, 0x40, 0x00, 0x00, 0x00, 0x00, 0x82, 0x21, 0x47, 0x00,
-			0x00, 0x82, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00
-		};
-		const uint32_t example_pattern_size = sizeof(example_pattern);
+		std::vector<uint8_t> pattern_data;
+		uint32_t row = 0;
+		while (row < pattern_num_rows && (
+			channel_1_itr != song.channel_1_timeline().end() ||
+			channel_2_itr != song.channel_2_timeline().end() ||
+			channel_3_itr != song.channel_3_timeline().end() ||
+			channel_1_note_length > 0 ||
+			channel_2_note_length > 0 ||
+			channel_3_note_length > 0
+		)) {
+			if (channel_1_note_length == 0 && channel_1_itr != song.channel_1_timeline().end()) {
+				channel_1_note_length = channel_1_itr->length - 1;
+				if (channel_1_itr->pitch != Pitch::REST) {
+					pattern_data.push_back(0x81);
+					pattern_data.push_back(0x03); // note + sample
+					pattern_data.push_back(channel_1_itr->octave * 12 + (uint32_t)channel_1_itr->pitch);
+					pattern_data.push_back(0x01); // sample
+				}
+				else {
+					pattern_data.push_back(0x81);
+					pattern_data.push_back(0x04); // new volume
+					pattern_data.push_back(0x00); // volume
+				}
+				++channel_1_itr;
+			}
+			else if (channel_1_note_length > 0) {
+				channel_1_note_length -= 1;
+			}
 
-		put_short(pattern, example_pattern_size);
-		put_short(pattern, pattern_num_rows);
-		put_short(pattern, 0); // unused
-		put_short(pattern, 0); // unused
-		for (uint32_t i = 0; i < example_pattern_size; ++i) {
-			pattern.push_back(example_pattern[i]);
+			if (channel_2_note_length == 0 && channel_2_itr != song.channel_2_timeline().end()) {
+				channel_2_note_length = channel_2_itr->length - 1;
+				if (channel_2_itr->pitch != Pitch::REST) {
+					pattern_data.push_back(0x82);
+					pattern_data.push_back(0x03); // note + sample
+					pattern_data.push_back(channel_2_itr->octave * 12 + (uint32_t)channel_2_itr->pitch);
+					pattern_data.push_back(0x01); // sample
+				}
+				else {
+					pattern_data.push_back(0x82);
+					pattern_data.push_back(0x04); // new volume
+					pattern_data.push_back(0x00); // volume
+				}
+				++channel_2_itr;
+			}
+			else if (channel_2_note_length > 0) {
+				channel_2_note_length -= 1;
+			}
+
+			if (channel_3_note_length == 0 && channel_3_itr != song.channel_3_timeline().end()) {
+				channel_3_note_length = channel_3_itr->length - 1;
+				if (channel_3_itr->pitch != Pitch::REST) {
+					pattern_data.push_back(0x83);
+					pattern_data.push_back(0x03); // note + sample
+					pattern_data.push_back(channel_3_itr->octave * 12 + (uint32_t)channel_3_itr->pitch);
+					pattern_data.push_back(0x01); // sample
+				}
+				else {
+					pattern_data.push_back(0x83);
+					pattern_data.push_back(0x04); // new volume
+					pattern_data.push_back(0x00); // volume
+				}
+				++channel_3_itr;
+			}
+			else if (channel_3_note_length > 0) {
+				channel_3_note_length -= 1;
+			}
+
+			pattern_data.push_back(0);
+			row += 1;
 		}
 
+		put_short(pattern, pattern_data.size());
+		put_short(pattern, row);
+		put_short(pattern, 0); // unused
+		put_short(pattern, 0); // unused
+		pattern.insert(pattern.end(), pattern_data.begin(), pattern_data.end());
+
 		patterns.push_back(std::move(pattern));
-	}
+	} while (
+		channel_1_itr != song.channel_1_timeline().end() ||
+		channel_2_itr != song.channel_2_timeline().end() ||
+		channel_3_itr != song.channel_3_timeline().end()
+	);
 
 	return std::move(patterns);
 }
