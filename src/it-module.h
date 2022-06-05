@@ -11,15 +11,12 @@
 
 class IT_Module {
 private:
-	uint8_t *_data = nullptr;
-	uint32_t _size = 0;
+	std::vector<uint8_t> _data;
 
 	openmpt::module *_mod = nullptr;
 
 	portaudio::BlockingStream _stream;
-	std::vector<float> _left;
-	std::vector<float> _right;
-	std::vector<float> _interleaved_buffer;
+	std::vector<float> _buffer;
 	bool _is_interleaved = false;
 public:
 	IT_Module(const Song &song);
@@ -36,6 +33,7 @@ public:
 	void play();
 private:
 	bool try_open();
+	void generate_it_module(const Song &song);
 };
 
 #endif

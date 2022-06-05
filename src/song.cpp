@@ -18,7 +18,7 @@ static std::list<Note_View> build_timeline(const std::list<Command> &commands) {
 			timeline.push_back(Note_View{ command.rest.length, Pitch::REST, octave });
 		}
 	}
-	return timeline;
+	return std::move(timeline);
 }
 
 Song::Song() {}
