@@ -147,6 +147,7 @@ std::string Song::commands_str(const std::list<Command> &commands) const {
 }
 
 const char *Song::error_message(Result result) {
+	// TODO: add specific error messages for each kind of parsing error
 	switch (result) {
 	case Result::SONG_OK:
 		return "OK.";

@@ -1,4 +1,6 @@
+#pragma warning(push, 0)
 #include <FL/fl_draw.H>
+#pragma warning(pop)
 
 #include "piano-roll.h"
 

@@ -4,9 +4,11 @@
 #include <array>
 #include <list>
 
+#pragma warning(push, 0)
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Scroll.H>
+#pragma warning(pop)
 
 #include "command.h"
 

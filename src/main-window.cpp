@@ -682,15 +682,20 @@ void Main_Window::about_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal) {
+	uint32_t tick = 0;
 	while (kill_signal.wait_for(std::chrono::milliseconds(8)) == std::future_status::timeout) {
 		if (mw->_audio_mutex.try_lock()) {
 			IT_Module *mod = mw->_it_module;
 			if (mod && mod->is_playing()) {
 				mod->play();
-				Fl::lock();
-				mw->_piano_roll->highlight_tick(mod->current_tick());
-				Fl::unlock();
-				Fl::awake();
+				uint32_t t = mod->current_tick();
+				if (t > tick) {
+					tick = t;
+					Fl::lock();
+					mw->_piano_roll->highlight_tick(tick);
+					Fl::unlock();
+					Fl::awake();
+				}
 				mw->_audio_mutex.unlock();
 			}
 			else {
