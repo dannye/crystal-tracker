@@ -843,6 +843,34 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					done_with_branch = true;
 				}
 
+				else if (macro == "toggle_perfect_pitch") {
+					// TODO
+				}
+
+				else if (macro == "load_wave") {
+					// TODO
+				}
+
+				else if (macro == "inc_octave") {
+					// TODO
+				}
+
+				else if (macro == "dec_octave") {
+					// TODO
+				}
+
+				else if (macro == "notetype0") {
+					// TODO
+				}
+
+				else if (macro == "notetype1") {
+					// TODO
+				}
+
+				else if (macro == "notetype2") {
+					// TODO
+				}
+
 				else {
 					// unknown command
 					return (_result = Result::SONG_BAD_FILE);
