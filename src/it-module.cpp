@@ -106,7 +106,7 @@ static std::vector<std::vector<uint8_t>> get_samples(const Song &song) {
 	const uint32_t sample_length = 64;
 	const uint32_t sample_loop_begin = 0;
 	const uint32_t sample_loop_end = 64;
-	const uint32_t sample_speed = 67772;
+	const uint32_t sample_speed = 33886;
 	const uint32_t sample_sustain_loop_begin = 0;
 	const uint32_t sample_sustain_loop_end = 0;
 	const uint32_t sample_vibrato_speed = 0;
@@ -117,6 +117,63 @@ static std::vector<std::vector<uint8_t>> get_samples(const Song &song) {
 	std::vector<std::vector<uint8_t>> samples;
 
 	// one hard-coded square sample
+	{
+		std::vector<uint8_t> sample;
+
+		// sample header, 80 bytes
+		{
+			sample.push_back('I');
+			sample.push_back('M');
+			sample.push_back('P');
+			sample.push_back('S');
+
+			for (uint32_t i = 0; i < sample_filename_length; ++i) {
+				sample.push_back('\0');
+			}
+
+			sample.push_back(0); // unused
+			sample.push_back(sample_global_volume);
+			sample.push_back(sample_flags);
+			sample.push_back(sample_default_volume);
+
+			for (uint32_t i = 0; i < sample_name_length; ++i) {
+				sample.push_back('\0');
+			}
+
+			sample.push_back(1); // ???
+			sample.push_back(sample_default_panning);
+
+			put_int(sample, sample_length);
+			put_int(sample, sample_loop_begin);
+			put_int(sample, sample_loop_end);
+			put_int(sample, sample_speed);
+			put_int(sample, sample_sustain_loop_begin);
+			put_int(sample, sample_sustain_loop_end);
+			put_int(sample, 0); // sample offset (index 72)
+
+			sample.push_back(sample_vibrato_speed);
+			sample.push_back(sample_vibrato_depth);
+			sample.push_back(sample_vibrato_rate);
+			sample.push_back(sample_vibrato_waveform);
+		}
+
+		// sample (50% square)
+		for (uint32_t i = 0; i < sample_length / 4; ++i) {
+			sample.push_back(127);
+		}
+		for (uint32_t i = 0; i < sample_length / 4; ++i) {
+			sample.push_back(0);
+		}
+		for (uint32_t i = 0; i < sample_length / 4; ++i) {
+			sample.push_back(127);
+		}
+		for (uint32_t i = 0; i < sample_length / 4; ++i) {
+			sample.push_back(0);
+		}
+
+		samples.push_back(std::move(sample));
+	}
+	// one hard-coded wave sample
 	{
 		std::vector<uint8_t> sample;
 
@@ -240,7 +297,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 					pattern_data.push_back(0x83);
 					pattern_data.push_back(0x03); // note + sample
 					pattern_data.push_back(channel_3_itr->octave * 12 + (uint32_t)channel_3_itr->pitch);
-					pattern_data.push_back(0x01); // sample
+					pattern_data.push_back(0x02); // sample
 				}
 				else {
 					pattern_data.push_back(0x83);
