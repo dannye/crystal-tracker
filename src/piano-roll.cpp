@@ -69,6 +69,21 @@ void Piano_Timeline::clear() {
 	_channel_4_notes.clear();
 }
 
+void Piano_Timeline::reset_note_colors() {
+	for (Fl_Box *note : _channel_1_notes) {
+		note->color(NOTE_RED);
+	}
+	for (Fl_Box *note : _channel_2_notes) {
+		note->color(NOTE_BLUE);
+	}
+	for (Fl_Box *note : _channel_3_notes) {
+		note->color(NOTE_GREEN);
+	}
+	for (Fl_Box *note : _channel_4_notes) {
+		note->color(NOTE_GRAY);
+	}
+}
+
 void Piano_Timeline::set_channel_timeline(std::list<Fl_Box *> &notes, const std::list<Note_View> &timeline, Fl_Color color) {
 	this->begin();
 	int x_pos = x() + WHITE_KEY_WIDTH;
@@ -85,7 +100,7 @@ void Piano_Timeline::set_channel_timeline(std::list<Fl_Box *> &notes, const std:
 	this->end();
 
 	if (notes.size() > 0) {
-		const int width = notes.back()->x() + notes.back()->w();
+		const int width = notes.back()->x() + parent()->w() - ((Fl_Scroll *)parent())->scrollbar.w() - WHITE_KEY_WIDTH;
 		if (width > w()) {
 			w(width);
 		}
@@ -102,6 +117,18 @@ void Piano_Timeline::set_channel_timeline(std::list<Fl_Box *> &notes, const std:
 		}
 		a[i] = (Fl_Widget *)_keys;
 	}
+}
+
+Fl_Box *Piano_Timeline::get_note_at_tick(std::list<Fl_Box *> &notes, int32_t tick) {
+	int x_pos = tick * TIME_STEP_WIDTH + WHITE_KEY_WIDTH;
+	for (Fl_Box *note : notes) {
+		int note_left = note->x() - note->parent()->x();
+		int note_right = note_left + note->w();
+		if (note_left <= x_pos && x_pos < note_right) {
+			return note;
+		}
+	}
+	return nullptr;
 }
 
 void Piano_Timeline::draw() {
@@ -169,6 +196,52 @@ void Piano_Roll::clear() {
 	_piano_timeline->w((w() - scrollbar.w()) * 2);
 	scroll_to(0, yposition());
 	_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+	_following = false;
+}
+
+void Piano_Roll::start_following() {
+	_following = true;
+	_tick = 0;
+}
+
+void Piano_Roll::stop_following() {
+	_following = false;
+	_piano_timeline->reset_note_colors();
+	redraw();
+}
+
+void Piano_Roll::highlight_tick(uint32_t t) {
+	if (_tick >= t) return; // no change
+	_tick = t;
+
+	Fl_Box *note = _piano_timeline->get_channel_1_note_at_tick(_tick);
+	if (note) {
+		note->color(fl_lighter(NOTE_RED)); // maybe subclass box to also draw() a frame
+	}
+	note = _piano_timeline->get_channel_2_note_at_tick(_tick);
+	if (note) {
+		note->color(fl_lighter(NOTE_BLUE));
+	}
+	note = _piano_timeline->get_channel_3_note_at_tick(_tick);
+	if (note) {
+		note->color(fl_lighter(NOTE_GREEN));
+	}
+	note = _piano_timeline->get_channel_4_note_at_tick(_tick);
+	if (note) {
+		note->color(fl_lighter(NOTE_GRAY));
+	}
+
+	if (_following) {
+		int x_pos = _tick * TIME_STEP_WIDTH;
+		if (x_pos > _piano_timeline->w() - (w() - scrollbar.w())) {
+			scroll_to(_piano_timeline->w() - (w() - scrollbar.w()), yposition());
+		}
+		else {
+			scroll_to(x_pos, yposition());
+		}
+		_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+	}
+	redraw();
 }
 
 void Piano_Roll::hscrollbar_cb(Fl_Scrollbar *sb, void *) {

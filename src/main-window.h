@@ -1,6 +1,8 @@
 #ifndef MAIN_WINDOW_H
 #define MAIN_WINDOW_H
 
+#include <future>
+
 #pragma warning(push, 0)
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Sys_Menu_Bar.H>
@@ -49,6 +51,10 @@ private:
 	std::string _recent[NUM_RECENT];
 	Song _song;
 	IT_Module *_it_module = nullptr;
+	// Threads
+	std::thread _audio_thread;
+	std::mutex _audio_mutex;
+	std::promise<void> _kill_signal;
 	// Window size cache
 	int _wx, _wy, _ww, _wh;
 #ifdef __X11__
@@ -71,6 +77,8 @@ private:
 	void open_song(const char *directory, const char *filename);
 	void open_recent(int n);
 	void toggle_playback();
+	void start_audio_thread();
+	void stop_audio_thread();
 	// File menu
 	static void open_cb(Fl_Widget *w, Main_Window *mw);
 	static void open_recent_cb(Fl_Menu_ *m, Main_Window *mw);
@@ -94,7 +102,7 @@ private:
 	static void help_cb(Fl_Widget *w, Main_Window *mw);
 	static void about_cb(Fl_Widget *w, Main_Window *mw);
 	// Audio playback
-	static void playback_cb(void *mw);
+	static void playback_thread(Main_Window *mw, std::future<void> kill_signal);
 };
 
 #endif

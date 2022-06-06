@@ -91,8 +91,17 @@ public:
 	void set_channel_2_timeline(const std::list<Note_View> &timeline) { set_channel_timeline(_channel_2_notes, timeline, NOTE_BLUE); }
 	void set_channel_3_timeline(const std::list<Note_View> &timeline) { set_channel_timeline(_channel_3_notes, timeline, NOTE_GREEN); }
 	void set_channel_4_timeline(const std::list<Note_View> &timeline) { set_channel_timeline(_channel_4_notes, timeline, NOTE_GRAY); }
+
+	Fl_Box *get_channel_1_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_1_notes, tick); };
+	Fl_Box *get_channel_2_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_2_notes, tick); };
+	Fl_Box *get_channel_3_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_3_notes, tick); };
+	Fl_Box *get_channel_4_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_4_notes, tick); };
+
+	void reset_note_colors();
 private:
 	void set_channel_timeline(std::list<Fl_Box *> &notes, const std::list<Note_View> &timeline, Fl_Color color);
+
+	Fl_Box *get_note_at_tick(std::list<Fl_Box *> &notes, int32_t tick);
 protected:
 	void draw() override;
 };
@@ -100,6 +109,8 @@ protected:
 class Piano_Roll : Fl_Scroll {
 private:
 	Piano_Timeline *_piano_timeline;
+	uint32_t _tick = 0;
+	bool _following = false;
 public:
 	Piano_Roll(int x, int y, int w, int h, const char *l = nullptr);
 	~Piano_Roll() noexcept;
@@ -115,6 +126,10 @@ public:
 	void set_channel_4_timeline(const std::list<Note_View> &timeline) { _piano_timeline->set_channel_4_timeline(timeline); }
 
 	void clear();
+
+	void start_following();
+	void stop_following();
+	void highlight_tick(uint32_t t);
 private:
 	static void hscrollbar_cb(Fl_Scrollbar *sb, void *);
 };

@@ -219,6 +219,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 }
 
 Main_Window::~Main_Window() {
+	stop_audio_thread();
+
 	delete _menu_bar; // includes menu items
 	delete _piano_roll;
 	delete _asm_open_chooser;
@@ -443,18 +445,39 @@ void Main_Window::open_recent(int n) {
 }
 
 void Main_Window::toggle_playback() {
+	stop_audio_thread();
+
 	if (!_it_module || !_it_module->is_playing()) {
 		if (_it_module) {
 			delete _it_module;
 		}
 		_it_module = new IT_Module(_song);
 		if (_it_module->ready() && _it_module->start()) {
-			Fl::add_timeout(1.0 / 60.0, playback_cb, this);
+			_piano_roll->start_following();
+			start_audio_thread();
 		}
 		// TODO: else, report error
 	}
 	else if (_it_module->is_playing()) {
+		_piano_roll->stop_following();
 		_it_module->stop();
+	}
+}
+
+void Main_Window::start_audio_thread() {
+	_kill_signal = std::promise<void>();
+	std::future<void> kill_future = _kill_signal.get_future();
+	_audio_thread = std::thread(&playback_thread, this, std::move(kill_future));
+}
+
+void Main_Window::stop_audio_thread() {
+	if (_audio_thread.joinable()) {
+		Fl::unlock();
+		_audio_mutex.lock();
+		_kill_signal.set_value();
+		_audio_thread.join();
+		_audio_mutex.unlock();
+		Fl::lock();
 	}
 }
 
@@ -490,13 +513,16 @@ void Main_Window::clear_recent_cb(Fl_Menu_ *, Main_Window *mw) {
 }
 
 void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
+	mw->stop_audio_thread();
+
 	if (!mw->_song.loaded()) { return; }
 
 	mw->label(PROGRAM_NAME);
 	mw->_piano_roll->clear();
 	mw->_song.clear();
 	if (mw->_it_module) {
-		mw->_it_module->stop();
+		delete mw->_it_module;
+		mw->_it_module = nullptr;
 	}
 	mw->init_sizes();
 	mw->_directory.clear();
@@ -655,13 +681,26 @@ void Main_Window::about_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_about_dialog->show(mw);
 }
 
-// may need to move this to a separate thread to reduce lag
-void Main_Window::playback_cb(void *mw) {
-	IT_Module *mod = ((Main_Window *)mw)->_it_module;
-	if (mod) {
-		mod->play();
-		if (mod->is_playing()) {
-			Fl::repeat_timeout(1.0 / 60.0, playback_cb, mw);
+void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal) {
+	while (kill_signal.wait_for(std::chrono::milliseconds(8)) == std::future_status::timeout) {
+		if (mw->_audio_mutex.try_lock()) {
+			IT_Module *mod = mw->_it_module;
+			if (mod && mod->is_playing()) {
+				mod->play();
+				Fl::lock();
+				mw->_piano_roll->highlight_tick(mod->current_tick());
+				Fl::unlock();
+				Fl::awake();
+				mw->_audio_mutex.unlock();
+			}
+			else {
+				Fl::lock();
+				mw->_piano_roll->stop_following();
+				Fl::unlock();
+				Fl::awake();
+				mw->_audio_mutex.unlock();
+				break;
+			}
 		}
 	}
 }

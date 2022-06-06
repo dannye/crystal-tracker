@@ -28,6 +28,8 @@ void IT_Module::play() {
 	std::size_t count = _is_interleaved ?
 		_mod->read_interleaved_stereo(SAMPLE_RATE, BUFFER_SIZE, _buffer.data()) :
 		_mod->read(SAMPLE_RATE, BUFFER_SIZE, _buffer.data(), _buffer.data() + BUFFER_SIZE);
+	_current_pattern = _mod->get_current_pattern();
+	_current_row = _mod->get_current_row();
 
 	if (count == 0) {
 		stop();
@@ -170,8 +172,6 @@ static std::vector<std::vector<uint8_t>> get_samples(const Song &song) {
 }
 
 static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
-	const uint32_t pattern_num_rows = 64;
-
 	std::vector<std::vector<uint8_t>> patterns;
 
 	auto channel_1_itr = song.channel_1_timeline().begin();
@@ -188,7 +188,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 
 		std::vector<uint8_t> pattern_data;
 		uint32_t row = 0;
-		while (row < pattern_num_rows && (
+		while (row < ROWS_PER_PATTERN && (
 			channel_1_itr != song.channel_1_timeline().end() ||
 			channel_2_itr != song.channel_2_timeline().end() ||
 			channel_3_itr != song.channel_3_timeline().end() ||

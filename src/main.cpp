@@ -99,6 +99,7 @@ int main(int argc, char **argv) {
 #endif
 	int w = Preferences::get("w", 800), h = Preferences::get("h", 600);
 	window = new Main_Window(x, y, w, h);
+	Fl::lock();
 	window->show();
 	OS::update_macos_appearance(window);
 	if (Preferences::get("maximized")) {
