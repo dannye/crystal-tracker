@@ -153,12 +153,20 @@ void Piano_Timeline::draw() {
 				y_pos += NOTE_ROW_HEIGHT;
 			}
 		}
+
 		int x_pos = x();
 		const size_t num_dividers = w() / TIME_STEP_WIDTH + 1;
 		for (size_t i = 0; i < num_dividers; ++i) {
 			fl_yxline(x_pos - 1, y(), y() + h());
 			fl_yxline(x_pos, y(), y() + h());
 			x_pos += TIME_STEP_WIDTH;
+		}
+
+		Piano_Roll *p = (Piano_Roll *)parent();
+		if (p->_following) {
+			x_pos = p->_realtime ? WHITE_KEY_WIDTH : x() + p->_tick * TIME_STEP_WIDTH + WHITE_KEY_WIDTH;
+			fl_color(FL_YELLOW);
+			fl_yxline(x_pos, y(), y() + h());
 		}
 	}
 	draw_children();
@@ -176,6 +184,19 @@ Piano_Roll::~Piano_Roll() noexcept {
 	if (_piano_timeline) {
 		delete _piano_timeline;
 		_piano_timeline = nullptr;
+	}
+}
+
+int Piano_Roll::handle(int event) {
+	switch (event) {
+	case FL_PUSH:
+		if (_following) {
+			_realtime = !_realtime;
+			return 1;
+		}
+		[[fallthrough]];
+	default:
+		return Fl_Scroll::handle(event);
 	}
 }
 
@@ -203,7 +224,10 @@ void Piano_Roll::clear() {
 
 void Piano_Roll::start_following() {
 	_following = true;
-	_tick = 0;
+	_tick = -1;
+	scroll_to(0, yposition());
+	_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+	redraw();
 }
 
 void Piano_Roll::stop_following() {
@@ -212,7 +236,7 @@ void Piano_Roll::stop_following() {
 	redraw();
 }
 
-void Piano_Roll::highlight_tick(uint32_t t) {
+void Piano_Roll::highlight_tick(int32_t t) {
 	if (_tick >= t) return; // no change
 	_tick = t;
 
@@ -233,8 +257,8 @@ void Piano_Roll::highlight_tick(uint32_t t) {
 		note->color(fl_lighter(NOTE_GRAY));
 	}
 
-	if (_following) {
-		int x_pos = _tick * TIME_STEP_WIDTH;
+	int x_pos = _tick * TIME_STEP_WIDTH;
+	if (_realtime || x_pos > xposition() + w() - WHITE_KEY_WIDTH * 2) {
 		if (x_pos > _piano_timeline->w() - (w() - scrollbar.w())) {
 			scroll_to(_piano_timeline->w() - (w() - scrollbar.w()), yposition());
 		}

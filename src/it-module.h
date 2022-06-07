@@ -37,7 +37,7 @@ public:
 	bool stop() { return Pa_StopStream(_stream.paStream()) == paNoError; };
 	void play();
 
-	uint32_t current_tick() const { return _current_pattern * ROWS_PER_PATTERN + _current_row; }
+	int32_t current_tick() const { return _current_pattern * ROWS_PER_PATTERN + _current_row; }
 private:
 	bool try_open();
 	void generate_it_module(const Song &song);

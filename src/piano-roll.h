@@ -109,16 +109,20 @@ protected:
 };
 
 class Piano_Roll : Fl_Scroll {
+	friend class Piano_Timeline;
 private:
 	Piano_Timeline *_piano_timeline;
-	uint32_t _tick = 0;
+	int32_t _tick = 0;
 	bool _following = false;
+	bool _realtime = true;
 public:
 	Piano_Roll(int x, int y, int w, int h, const char *l = nullptr);
 	~Piano_Roll() noexcept;
 
 	Piano_Roll(const Piano_Roll&) = delete;
 	Piano_Roll& operator=(const Piano_Roll&) = delete;
+
+	int handle(int event) override;
 
 	void set_size(int W, int H);
 
@@ -131,7 +135,7 @@ public:
 
 	void start_following();
 	void stop_following();
-	void highlight_tick(uint32_t t);
+	void highlight_tick(int32_t t);
 private:
 	static void hscrollbar_cb(Fl_Scrollbar *sb, void *);
 };
