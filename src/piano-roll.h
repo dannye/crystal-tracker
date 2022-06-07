@@ -99,11 +99,18 @@ public:
 	Fl_Box *get_channel_3_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_3_notes, tick); };
 	Fl_Box *get_channel_4_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_4_notes, tick); };
 
+	void toggle_channel_1_box_type() { toggle_channel_box_type(_channel_1_notes); }
+	void toggle_channel_2_box_type() { toggle_channel_box_type(_channel_2_notes); }
+	void toggle_channel_3_box_type() { toggle_channel_box_type(_channel_3_notes); }
+	void toggle_channel_4_box_type() { toggle_channel_box_type(_channel_4_notes); }
+
 	void reset_note_colors();
 private:
 	void set_channel_timeline(std::list<Fl_Box *> &notes, const std::list<Note_View> &timeline, Fl_Color color);
 
 	Fl_Box *get_note_at_tick(std::list<Fl_Box *> &notes, int32_t tick);
+
+	void toggle_channel_box_type(std::list<Fl_Box *> &notes);
 protected:
 	void draw() override;
 };
@@ -130,6 +137,11 @@ public:
 	void set_channel_2_timeline(const std::list<Note_View> &timeline) { _piano_timeline->set_channel_2_timeline(timeline); }
 	void set_channel_3_timeline(const std::list<Note_View> &timeline) { _piano_timeline->set_channel_3_timeline(timeline); }
 	void set_channel_4_timeline(const std::list<Note_View> &timeline) { _piano_timeline->set_channel_4_timeline(timeline); }
+
+	void toggle_channel_1_box_type() { _piano_timeline->toggle_channel_1_box_type(); }
+	void toggle_channel_2_box_type() { _piano_timeline->toggle_channel_2_box_type(); }
+	void toggle_channel_3_box_type() { _piano_timeline->toggle_channel_3_box_type(); }
+	void toggle_channel_4_box_type() { _piano_timeline->toggle_channel_4_box_type(); }
 
 	void clear();
 

@@ -133,6 +133,16 @@ Fl_Box *Piano_Timeline::get_note_at_tick(std::list<Fl_Box *> &notes, int32_t tic
 	return nullptr;
 }
 
+void Piano_Timeline::toggle_channel_box_type(std::list<Fl_Box *> &notes) {
+	if (notes.size() == 0) return;
+
+	Fl_Boxtype box = notes.front()->box() == FL_BORDER_BOX ? FL_BORDER_FRAME : FL_BORDER_BOX;
+	for (Fl_Box *note : notes) {
+		note->box(box);
+	}
+	redraw();
+}
+
 void Piano_Timeline::draw() {
 	bool dark = OS::is_dark_theme(OS::current_theme());
 	Fl_Color light_row = dark ? ALT_LIGHT_ROW : FL_LIGHT1;

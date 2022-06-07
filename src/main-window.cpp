@@ -310,6 +310,19 @@ int Main_Window::handle(int event) {
 			}
 			return 1;
 		}
+		// TODO: also add these to the view menu
+		else if (key == '1') {
+			_piano_roll->toggle_channel_1_box_type();
+		}
+		else if (key == '2') {
+			_piano_roll->toggle_channel_2_box_type();
+		}
+		else if (key == '3') {
+			_piano_roll->toggle_channel_3_box_type();
+		}
+		else if (key == '4') {
+			_piano_roll->toggle_channel_4_box_type();
+		}
 		[[fallthrough]];
 	default:
 		return Fl_Double_Window::handle(event);
