@@ -1,6 +1,7 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
+#include <set>
 #include <string>
 
 enum class Pitch {
@@ -200,7 +201,8 @@ struct Command {
 	struct Sound_Ret {};
 
 	Command_Type type;
-	std::string label; // is string really best?
+	std::set<std::string> labels;
+	std::string target;
 	union {
 		Note note;
 		Drum_Note drum_note;

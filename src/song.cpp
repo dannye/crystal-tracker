@@ -1,22 +1,79 @@
 #include <cstdio>
+#include <stack>
 
 #include "song.h"
 #include "parse-song.h"
 
+const auto find_note_with_label(const std::list<Command> &commands, std::string label) {
+	for (auto command_itr = commands.begin(); command_itr != commands.end(); ++command_itr) {
+		if (command_itr->labels.count(label) > 0) {
+			return command_itr;
+		}
+	}
+	return commands.end(); // if this happens, we've already messed up
+}
+
 static std::list<Note_View> build_timeline(const std::list<Command> &commands) {
 	std::list<Note_View> timeline;
 	int32_t octave = 0;
-	for (const Command &command : commands) {
+	auto command_itr = commands.begin();
+	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
+	std::stack<decltype(command_itr)> call_stack;
+	while (command_itr != commands.end()) {
 		// TODO: handle all other commands...
-		if (command.type == Command_Type::OCTAVE) {
-			octave = command.octave.octave;
+		if (command_itr->type == Command_Type::NOTE) {
+			timeline.push_back(Note_View{ command_itr->note.length, command_itr->note.pitch, octave });
 		}
-		else if (command.type == Command_Type::NOTE) {
-			timeline.push_back(Note_View{ command.note.length, command.note.pitch, octave });
+		else if (command_itr->type == Command_Type::DRUM_NOTE) {
+			timeline.push_back(Note_View{ command_itr->drum_note.length, (Pitch)(command_itr->drum_note.instrument % NUM_PITCHES), command_itr->drum_note.instrument / (int32_t)NUM_PITCHES + 1 });
 		}
-		else if (command.type == Command_Type::REST) {
-			timeline.push_back(Note_View{ command.rest.length, Pitch::REST, octave });
+		else if (command_itr->type == Command_Type::REST) {
+			timeline.push_back(Note_View{ command_itr->rest.length, Pitch::REST, octave });
 		}
+		else if (command_itr->type == Command_Type::OCTAVE) {
+			octave = command_itr->octave.octave;
+		}
+		else if (command_itr->type == Command_Type::SOUND_JUMP) {
+			command_itr = find_note_with_label(commands, command_itr->target);
+			continue;
+		}
+		else if (command_itr->type == Command_Type::SOUND_LOOP) {
+			if (loop_stack.size() > 0 && loop_stack.top().first == command_itr) {
+				loop_stack.top().second -= 1;
+				if (loop_stack.top().second == 0) {
+					loop_stack.pop();
+				}
+				else {
+					command_itr = find_note_with_label(commands, command_itr->target);
+					continue;
+				}
+			}
+			else {
+				if (command_itr->sound_loop.loop_count == 0) {
+					break; // assume end of song for now
+				}
+				else {
+					loop_stack.emplace(command_itr, command_itr->sound_loop.loop_count);
+					command_itr = find_note_with_label(commands, command_itr->target);
+					continue;
+				}
+			}
+		}
+		else if (command_itr->type == Command_Type::SOUND_CALL) {
+			call_stack.push(command_itr);
+			command_itr = find_note_with_label(commands, command_itr->target);
+			continue;
+		}
+		else if (command_itr->type == Command_Type::SOUND_RET) {
+			if (call_stack.size() == 0) {
+				break; // song is finished
+			}
+			else {
+				command_itr = call_stack.top();
+				call_stack.pop();
+			}
+		}
+		++command_itr;
 	}
 	return std::move(timeline);
 }
@@ -133,13 +190,13 @@ std::string Song::commands_str(const std::list<Command> &commands) const {
 			str = str + " " + std::to_string(command.stereo_panning.left) + ", " + std::to_string(command.stereo_panning.right);
 		}
 		else if (command.type == Command_Type::SOUND_JUMP) {
-			str = str + " " + command.label;
+			str = str + " " + command.target;
 		}
 		else if (command.type == Command_Type::SOUND_LOOP) {
-			str = str + " " + std::to_string(command.sound_loop.loop_count) + ", " + command.label;
+			str = str + " " + std::to_string(command.sound_loop.loop_count) + ", " + command.target;
 		}
 		else if (command.type == Command_Type::SOUND_CALL) {
-			str = str + " " + command.label;
+			str = str + " " + command.target;
 		}
 		str += "\n";
 	}
