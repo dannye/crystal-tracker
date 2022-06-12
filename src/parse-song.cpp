@@ -497,9 +497,10 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				}
 
 				else if (macro == "octave") {
-					if (current_channel == 4) {
+					// too many real songs violate this rule
+					/* if (current_channel == 4) {
 						return (_result = Result::SONG_BAD_FILE);
-					}
+					} */
 					command.type = Command_Type::OCTAVE;
 					if (!get_number(lss, command.octave.octave)) {
 						return (_result = Result::SONG_BAD_FILE);
@@ -519,7 +520,16 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 						if (!get_number_and_number_and_number(lss, command.note_type.speed, command.note_type.volume, command.note_type.wave)) {
 							return (_result = Result::SONG_BAD_FILE);
 						}
-						if (command.note_type.speed < 1 || command.note_type.speed > 15) {
+						// the allowed speeds for now...
+						if (
+							// command.note_type.speed != 1 &&
+							command.note_type.speed != 2 &&
+							// command.note_type.speed != 3 &&
+							command.note_type.speed != 4 &&
+							command.note_type.speed != 6 &&
+							command.note_type.speed != 8 &&
+							command.note_type.speed != 12
+						) {
 							return (_result = Result::SONG_BAD_FILE);
 						}
 						if (command.note_type.volume < 0 || command.note_type.volume > 3) {
@@ -535,7 +545,16 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 						if (!get_number_and_number_and_number(lss, command.note_type.speed, command.note_type.volume, command.note_type.fade)) {
 							return (_result = Result::SONG_BAD_FILE);
 						}
-						if (command.note_type.speed < 1 || command.note_type.speed > 15) {
+						// the allowed speeds for now...
+						if (
+							// command.note_type.speed != 1 &&
+							command.note_type.speed != 2 &&
+							// command.note_type.speed != 3 &&
+							command.note_type.speed != 4 &&
+							command.note_type.speed != 6 &&
+							command.note_type.speed != 8 &&
+							command.note_type.speed != 12
+						) {
 							return (_result = Result::SONG_BAD_FILE);
 						}
 						if (command.note_type.volume < 0 || command.note_type.volume > 15) {
@@ -557,7 +576,16 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					if (!get_number(lss, command.drum_speed.speed)) {
 						return (_result = Result::SONG_BAD_FILE);
 					}
-					if (command.drum_speed.speed < 1 || command.drum_speed.speed > 15) {
+					// the allowed speeds for now...
+					if (
+						// command.drum_speed.speed != 1 &&
+						command.drum_speed.speed != 2 &&
+						// command.drum_speed.speed != 3 &&
+						command.drum_speed.speed != 4 &&
+						command.drum_speed.speed != 6 &&
+						command.drum_speed.speed != 8 &&
+						command.drum_speed.speed != 12
+					) {
 						return (_result = Result::SONG_BAD_FILE);
 					}
 					current_channel_commands->push_back(command);
@@ -574,7 +602,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					if (command.transpose.num_octaves < 0 || command.transpose.num_octaves > 7) {
 						return (_result = Result::SONG_BAD_FILE);
 					}
-					if (command.transpose.num_pitches < 0 || command.transpose.num_pitches > 12) {
+					if (command.transpose.num_pitches < 0 || command.transpose.num_pitches > 24) {
 						return (_result = Result::SONG_BAD_FILE);
 					}
 					current_channel_commands->push_back(command);
@@ -724,7 +752,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					if (!get_number(lss, command.toggle_noise.drumkit)) {
 						return (_result = Result::SONG_BAD_FILE);
 					}
-					if (command.toggle_noise.drumkit < 0 || command.toggle_noise.drumkit > 5) {
+					if (command.toggle_noise.drumkit < 0 || command.toggle_noise.drumkit > 6) {
 						return (_result = Result::SONG_BAD_FILE);
 					}
 					current_channel_commands->push_back(command);

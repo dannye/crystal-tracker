@@ -234,6 +234,7 @@ struct Note_View {
 	int32_t length;
 	Pitch pitch;
 	int32_t octave;
+	int32_t speed;
 };
 
 #endif

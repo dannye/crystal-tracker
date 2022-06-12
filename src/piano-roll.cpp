@@ -90,14 +90,15 @@ void Piano_Timeline::set_channel_timeline(std::list<Fl_Box *> &notes, const std:
 	this->begin();
 	int x_pos = x() + WHITE_KEY_WIDTH;
 	for (const Note_View &note : timeline) {
+		int width = TIME_STEP_WIDTH * note.length * note.speed / DEFAULT_SPEED;
 		if (note.pitch != Pitch::REST) {
 			int y_pos = y() + (NUM_OCTAVES - note.octave) * OCTAVE_HEIGHT + (NUM_PITCHES - (size_t)note.pitch) * NOTE_ROW_HEIGHT;
-			Fl_Box *box = new Fl_Box(x_pos, y_pos, TIME_STEP_WIDTH * note.length, NOTE_ROW_HEIGHT);
+			Fl_Box *box = new Fl_Box(x_pos, y_pos, width, NOTE_ROW_HEIGHT);
 			box->box(FL_BORDER_BOX);
 			box->color(color);
 			notes.push_back(box);
 		}
-		x_pos += TIME_STEP_WIDTH * note.length;
+		x_pos += width;
 	}
 	this->end();
 
@@ -164,8 +165,8 @@ void Piano_Timeline::draw() {
 			}
 		}
 
-		int x_pos = x();
-		const size_t num_dividers = w() / TIME_STEP_WIDTH + 1;
+		int x_pos = x() + WHITE_KEY_WIDTH;
+		const size_t num_dividers = (w() - WHITE_KEY_WIDTH) / TIME_STEP_WIDTH + 1;
 		for (size_t i = 0; i < num_dividers; ++i) {
 			fl_yxline(x_pos - 1, y(), y() + h());
 			fl_yxline(x_pos, y(), y() + h());

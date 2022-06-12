@@ -9,7 +9,8 @@
 
 #include "song.h"
 
-constexpr uint32_t ROWS_PER_PATTERN = 64;
+constexpr uint32_t ROWS_PER_PATTERN = 192;
+constexpr uint32_t DEFAULT_ROWS_PER_TICK = 6;
 
 class IT_Module {
 private:
@@ -37,7 +38,7 @@ public:
 	bool stop() { return Pa_StopStream(_stream.paStream()) == paNoError; };
 	void play();
 
-	int32_t current_tick() const { return _current_pattern * ROWS_PER_PATTERN + _current_row; }
+	int32_t current_tick() const { return (_current_pattern * ROWS_PER_PATTERN + _current_row) / DEFAULT_ROWS_PER_TICK; }
 private:
 	bool try_open();
 	void generate_it_module(const Song &song);

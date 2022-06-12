@@ -15,23 +15,30 @@ const auto find_note_with_label(const std::list<Command> &commands, std::string 
 
 static std::list<Note_View> build_timeline(const std::list<Command> &commands) {
 	std::list<Note_View> timeline;
-	int32_t octave = 0;
+	int32_t octave = 1;
+	int32_t speed = 12;
 	auto command_itr = commands.begin();
 	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
 	std::stack<decltype(command_itr)> call_stack;
 	while (command_itr != commands.end()) {
 		// TODO: handle all other commands...
 		if (command_itr->type == Command_Type::NOTE) {
-			timeline.push_back(Note_View{ command_itr->note.length, command_itr->note.pitch, octave });
+			timeline.push_back(Note_View{ command_itr->note.length, command_itr->note.pitch, octave, speed });
 		}
 		else if (command_itr->type == Command_Type::DRUM_NOTE) {
-			timeline.push_back(Note_View{ command_itr->drum_note.length, (Pitch)(command_itr->drum_note.instrument % NUM_PITCHES), command_itr->drum_note.instrument / (int32_t)NUM_PITCHES + 1 });
+			timeline.push_back(Note_View{ command_itr->drum_note.length, (Pitch)(command_itr->drum_note.instrument % NUM_PITCHES), command_itr->drum_note.instrument / (int32_t)NUM_PITCHES + 1, speed });
 		}
 		else if (command_itr->type == Command_Type::REST) {
-			timeline.push_back(Note_View{ command_itr->rest.length, Pitch::REST, octave });
+			timeline.push_back(Note_View{ command_itr->rest.length, Pitch::REST, octave, speed });
 		}
 		else if (command_itr->type == Command_Type::OCTAVE) {
 			octave = command_itr->octave.octave;
+		}
+		else if (command_itr->type == Command_Type::NOTE_TYPE) {
+			speed = command_itr->note_type.speed;
+		}
+		else if (command_itr->type == Command_Type::DRUM_SPEED) {
+			speed = command_itr->drum_speed.speed;
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			command_itr = find_note_with_label(commands, command_itr->target);
@@ -52,8 +59,8 @@ static std::list<Note_View> build_timeline(const std::list<Command> &commands) {
 				if (command_itr->sound_loop.loop_count == 0) {
 					break; // assume end of song for now
 				}
-				else {
-					loop_stack.emplace(command_itr, command_itr->sound_loop.loop_count);
+				else if (command_itr->sound_loop.loop_count > 1) {
+					loop_stack.emplace(command_itr, command_itr->sound_loop.loop_count - 1);
 					command_itr = find_note_with_label(commands, command_itr->target);
 					continue;
 				}

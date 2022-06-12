@@ -253,8 +253,9 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 			channel_2_note_length > 0 ||
 			channel_3_note_length > 0
 		)) {
+			// NOTE: only even speeds are allowed for now to avoid complex time dilation
 			if (channel_1_note_length == 0 && channel_1_itr != song.channel_1_timeline().end()) {
-				channel_1_note_length = channel_1_itr->length - 1;
+				channel_1_note_length = channel_1_itr->length * channel_1_itr->speed / 2 - 1;
 				if (channel_1_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(0x81);
 					pattern_data.push_back(0x03); // note + sample
@@ -273,7 +274,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 			}
 
 			if (channel_2_note_length == 0 && channel_2_itr != song.channel_2_timeline().end()) {
-				channel_2_note_length = channel_2_itr->length - 1;
+				channel_2_note_length = channel_2_itr->length * channel_2_itr->speed / 2 - 1;
 				if (channel_2_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(0x82);
 					pattern_data.push_back(0x03); // note + sample
@@ -292,7 +293,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 			}
 
 			if (channel_3_note_length == 0 && channel_3_itr != song.channel_3_timeline().end()) {
-				channel_3_note_length = channel_3_itr->length - 1;
+				channel_3_note_length = channel_3_itr->length * channel_3_itr->speed / 2 - 1;
 				if (channel_3_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(0x83);
 					pattern_data.push_back(0x03); // note + sample
@@ -348,7 +349,7 @@ void IT_Module::generate_it_module(const Song &song) {
 
 	const uint32_t global_volume = 128;
 	const uint32_t mix_volume = 48;
-	const uint32_t initial_speed = 6;
+	const uint32_t initial_speed = 1;
 	const uint32_t initial_tempo = 125;
 	const uint32_t panning_separation = 128;
 	const uint32_t pitch_wheel_depth = 0;
