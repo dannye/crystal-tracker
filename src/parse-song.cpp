@@ -225,7 +225,7 @@ static bool get_bool_and_bool(std::istringstream &iss, int32_t &b1, int32_t &b2)
 }
 
 static bool get_pitch_from_string(const std::string &s, Pitch &p) {
-	for (size_t i = 0; i < NUM_PITCHES; ++i) {
+	for (size_t i = 1; i <= NUM_PITCHES; ++i) {
 		if (s == PITCH_NAMES[i]) {
 			p = (Pitch)i;
 			return true;

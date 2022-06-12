@@ -240,6 +240,20 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 	uint32_t channel_3_note_length = 0;
 	/* uint32_t channel_4_note_length = 0; */
 
+	Note_View channel_1_prev_note;
+	Note_View channel_2_prev_note;
+	Note_View channel_3_prev_note;
+	/* Note_View channel_4_prev_note; */
+
+	auto channel_3_volume = [](int32_t volume) {
+		return (uint8_t)(
+			volume == 1 ? 64 :
+			volume == 2 ? 32 :
+			volume == 3 ? 16 :
+			0
+		);
+	};
+
 	do {
 		std::vector<uint8_t> pattern;
 
@@ -258,18 +272,31 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 				channel_1_note_length = channel_1_itr->length * channel_1_itr->speed / 2 - 1;
 				if (channel_1_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(0x81);
-					pattern_data.push_back(0x03); // note + sample
-					pattern_data.push_back(channel_1_itr->octave * 12 + (uint32_t)channel_1_itr->pitch);
+					pattern_data.push_back(0x07); // note + sample + volume
+					pattern_data.push_back(channel_1_itr->octave * 12 + (uint32_t)channel_1_itr->pitch - 1);
 					pattern_data.push_back(0x01); // sample
+					pattern_data.push_back((channel_1_itr->volume + 1) * 4); // volume
 				}
 				else {
 					pattern_data.push_back(0x81);
 					pattern_data.push_back(0x04); // new volume
 					pattern_data.push_back(0x00); // volume
 				}
+				channel_1_prev_note = *channel_1_itr;
 				++channel_1_itr;
 			}
 			else if (channel_1_note_length > 0) {
+				if (channel_1_prev_note.fade && row % 4 == 0) {
+					pattern_data.push_back(0x81);
+					pattern_data.push_back(0x08);
+					pattern_data.push_back(0x04);
+					if (channel_1_prev_note.fade > 0) {
+						pattern_data.push_back(0xf0 | (8 - channel_1_prev_note.fade));
+					}
+					else {
+						pattern_data.push_back(((8 + channel_1_prev_note.fade) << 4) | 0x0f);
+					}
+				}
 				channel_1_note_length -= 1;
 			}
 
@@ -277,18 +304,31 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 				channel_2_note_length = channel_2_itr->length * channel_2_itr->speed / 2 - 1;
 				if (channel_2_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(0x82);
-					pattern_data.push_back(0x03); // note + sample
-					pattern_data.push_back(channel_2_itr->octave * 12 + (uint32_t)channel_2_itr->pitch);
+					pattern_data.push_back(0x07); // note + sample + volume
+					pattern_data.push_back(channel_2_itr->octave * 12 + (uint32_t)channel_2_itr->pitch - 1);
 					pattern_data.push_back(0x01); // sample
+					pattern_data.push_back((channel_2_itr->volume + 1) * 4); // volume
 				}
 				else {
 					pattern_data.push_back(0x82);
 					pattern_data.push_back(0x04); // new volume
 					pattern_data.push_back(0x00); // volume
 				}
+				channel_2_prev_note = *channel_2_itr;
 				++channel_2_itr;
 			}
 			else if (channel_2_note_length > 0) {
+				if (channel_2_prev_note.fade && row % 4 == 0) {
+					pattern_data.push_back(0x82);
+					pattern_data.push_back(0x08);
+					pattern_data.push_back(0x04);
+					if (channel_2_prev_note.fade > 0) {
+						pattern_data.push_back(0xf0 | (8 - channel_2_prev_note.fade));
+					}
+					else {
+						pattern_data.push_back(((8 + channel_2_prev_note.fade) << 4) | 0x0f);
+					}
+				}
 				channel_2_note_length -= 1;
 			}
 
@@ -296,15 +336,17 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 				channel_3_note_length = channel_3_itr->length * channel_3_itr->speed / 2 - 1;
 				if (channel_3_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(0x83);
-					pattern_data.push_back(0x03); // note + sample
-					pattern_data.push_back(channel_3_itr->octave * 12 + (uint32_t)channel_3_itr->pitch);
+					pattern_data.push_back(0x07); // note + sample + volume
+					pattern_data.push_back(channel_3_itr->octave * 12 + (uint32_t)channel_3_itr->pitch - 1);
 					pattern_data.push_back(0x02); // sample
+					pattern_data.push_back(channel_3_volume(channel_3_itr->volume)); // volume
 				}
 				else {
 					pattern_data.push_back(0x83);
 					pattern_data.push_back(0x04); // new volume
 					pattern_data.push_back(0x00); // volume
 				}
+				channel_3_prev_note = *channel_3_itr;
 				++channel_3_itr;
 			}
 			else if (channel_3_note_length > 0) {

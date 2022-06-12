@@ -4,7 +4,7 @@
 #include "song.h"
 #include "parse-song.h"
 
-const auto find_note_with_label(const std::list<Command> &commands, std::string label) {
+static const auto find_note_with_label(const std::list<Command> &commands, std::string label) {
 	for (auto command_itr = commands.begin(); command_itr != commands.end(); ++command_itr) {
 		if (command_itr->labels.count(label) > 0) {
 			return command_itr;
@@ -15,30 +15,45 @@ const auto find_note_with_label(const std::list<Command> &commands, std::string 
 
 static std::list<Note_View> build_timeline(const std::list<Command> &commands) {
 	std::list<Note_View> timeline;
-	int32_t octave = 1;
-	int32_t speed = 12;
+	Note_View note;
+	note.octave = 1;
+	note.speed = 12;
+	note.volume = 0;
+	note.fade = 0;
 	auto command_itr = commands.begin();
 	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
 	std::stack<decltype(command_itr)> call_stack;
 	while (command_itr != commands.end()) {
 		// TODO: handle all other commands...
 		if (command_itr->type == Command_Type::NOTE) {
-			timeline.push_back(Note_View{ command_itr->note.length, command_itr->note.pitch, octave, speed });
+			note.length = command_itr->note.length;
+			note.pitch = command_itr->note.pitch;
+			timeline.push_back(note);
 		}
 		else if (command_itr->type == Command_Type::DRUM_NOTE) {
-			timeline.push_back(Note_View{ command_itr->drum_note.length, (Pitch)(command_itr->drum_note.instrument % NUM_PITCHES), command_itr->drum_note.instrument / (int32_t)NUM_PITCHES + 1, speed });
+			note.length = command_itr->drum_note.length;
+			note.pitch = (Pitch)command_itr->drum_note.instrument;
+			timeline.push_back(note);
 		}
 		else if (command_itr->type == Command_Type::REST) {
-			timeline.push_back(Note_View{ command_itr->rest.length, Pitch::REST, octave, speed });
+			note.length = command_itr->rest.length;
+			note.pitch = Pitch::REST;
+			timeline.push_back(note);
 		}
 		else if (command_itr->type == Command_Type::OCTAVE) {
-			octave = command_itr->octave.octave;
+			note.octave = command_itr->octave.octave;
 		}
 		else if (command_itr->type == Command_Type::NOTE_TYPE) {
-			speed = command_itr->note_type.speed;
+			note.speed = command_itr->note_type.speed;
+			note.volume = command_itr->note_type.volume;
+			note.fade = command_itr->note_type.fade;
 		}
 		else if (command_itr->type == Command_Type::DRUM_SPEED) {
-			speed = command_itr->drum_speed.speed;
+			note.speed = command_itr->drum_speed.speed;
+		}
+		else if (command_itr->type == Command_Type::VOLUME_ENVELOPE) {
+			note.volume = command_itr->volume_envelope.volume;
+			note.fade = command_itr->volume_envelope.fade;
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			command_itr = find_note_with_label(commands, command_itr->target);

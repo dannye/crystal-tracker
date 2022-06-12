@@ -5,7 +5,7 @@
 #include <string>
 
 enum class Pitch {
-	REST = -1,
+	REST,
 	C_NAT,
 	C_SHARP,
 	D_NAT,
@@ -21,6 +21,7 @@ enum class Pitch {
 };
 
 static const char * const PITCH_NAMES[] = {
+	"",
 	"C_",
 	"C#",
 	"D_",
@@ -35,7 +36,7 @@ static const char * const PITCH_NAMES[] = {
 	"B_",
 };
 
-static const size_t NUM_PITCHES = sizeof(PITCH_NAMES) / sizeof(char *);
+static const size_t NUM_PITCHES = sizeof(PITCH_NAMES) / sizeof(char *) - 1;
 
 enum class Command_Type {
 	NOTE,
@@ -235,6 +236,11 @@ struct Note_View {
 	Pitch pitch;
 	int32_t octave;
 	int32_t speed;
+	int32_t volume;
+	union {
+		int32_t fade;
+		int32_t wave;
+	};
 };
 
 #endif
