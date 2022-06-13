@@ -1,5 +1,7 @@
 #include "it-module.h"
 
+#include <cmath>
+
 constexpr std::size_t BUFFER_SIZE = 2048;
 constexpr std::int32_t SAMPLE_RATE = 48000;
 
@@ -254,6 +256,15 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 		);
 	};
 
+	auto convert_tempo = [](int32_t tempo) {
+		// this is a purely empirical approximation.
+		// i have no idea what the real formula is.
+		int32_t bpm = std::log2(tempo - 75.0) * -75.0 / 2.0 + 360.0;
+		if (bpm < 0)   bpm = 0;
+		if (bpm > 255) bpm = 255;
+		return (uint8_t)bpm;
+	};
+
 	do {
 		std::vector<uint8_t> pattern;
 
@@ -270,6 +281,12 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 			// NOTE: only even speeds are allowed for now to avoid complex time dilation
 			if (channel_1_note_length == 0 && channel_1_itr != song.channel_1_timeline().end()) {
 				channel_1_note_length = channel_1_itr->length * channel_1_itr->speed / 2 - 1;
+				if (channel_1_itr->tempo != channel_1_prev_note.tempo) {
+					pattern_data.push_back(0x81);
+					pattern_data.push_back(0x08); // command
+					pattern_data.push_back(0x14); // tempo
+					pattern_data.push_back(convert_tempo(channel_1_itr->tempo));
+				}
 				if (channel_1_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(0x81);
 					pattern_data.push_back(0x07); // note + sample + volume
@@ -392,7 +409,7 @@ void IT_Module::generate_it_module(const Song &song) {
 	const uint32_t global_volume = 128;
 	const uint32_t mix_volume = 48;
 	const uint32_t initial_speed = 1;
-	const uint32_t initial_tempo = 125;
+	const uint32_t initial_tempo = 128;
 	const uint32_t panning_separation = 128;
 	const uint32_t pitch_wheel_depth = 0;
 	const uint32_t default_channel_panning = 32;

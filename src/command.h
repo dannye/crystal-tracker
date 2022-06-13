@@ -232,15 +232,16 @@ struct Command {
 };
 
 struct Note_View {
-	int32_t length;
-	Pitch pitch;
-	int32_t octave;
-	int32_t speed;
-	int32_t volume;
+	int32_t length = 0;
+	Pitch pitch = Pitch::REST;
+	int32_t octave = 0;
+	int32_t speed = 0;
+	int32_t volume = 0;
 	union {
-		int32_t fade;
+		int32_t fade = 0;
 		int32_t wave;
 	};
+	int32_t tempo = 0;
 };
 
 #endif

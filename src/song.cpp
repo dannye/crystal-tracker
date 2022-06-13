@@ -51,6 +51,9 @@ static std::list<Note_View> build_timeline(const std::list<Command> &commands) {
 		else if (command_itr->type == Command_Type::DRUM_SPEED) {
 			note.speed = command_itr->drum_speed.speed;
 		}
+		else if (command_itr->type == Command_Type::TEMPO) {
+			note.tempo = command_itr->tempo.tempo;
+		}
 		else if (command_itr->type == Command_Type::VOLUME_ENVELOPE) {
 			note.volume = command_itr->volume_envelope.volume;
 			note.fade = command_itr->volume_envelope.fade;
