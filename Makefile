@@ -108,7 +108,7 @@ appdir: release
 	printf 'APPL????' > $(CONTENTS)/PkgInfo
 
 
-create-dmg = lib/bin/create-dmg
+create-dmg = $(bindir)/create-dmg
 
 appdmg: appdir
 	rm -f $(APPDMG)
