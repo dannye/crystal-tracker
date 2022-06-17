@@ -14,6 +14,7 @@
 #include "help-window.h"
 #include "piano-roll.h"
 #include "it-module.h"
+#include "parse-waves.h"
 
 #define NUM_RECENT 10
 
@@ -50,6 +51,7 @@ private:
 	std::string _directory, _asm_file;
 	std::string _recent[NUM_RECENT];
 	Song _song;
+	std::vector<Wave> _waves;
 	IT_Module *_it_module = nullptr;
 	// Threads
 	std::thread _audio_thread;

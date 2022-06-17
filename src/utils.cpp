@@ -193,3 +193,37 @@ void draw_outlined_text(const char *l, int x, int y, int w, int h, Fl_Align a, F
 	fl_color(c);
 	fl_draw(l, x, y, w, h, a);
 }
+
+bool parse_value(std::string s, int32_t &v) {
+	trim(s);
+	if (!s.empty()) {
+		int32_t scale = 1;
+		if (s[0] == '-') {
+			s.erase(0, 1);
+			trim(s);
+			if (s.empty()) return false;
+			scale = -1;
+		}
+		if (s[0] == '$') {
+			s.erase(0, 1);
+			if (s.empty() || !is_hex(s)) return false;
+			v = (int32_t)strtol(s.c_str(), NULL, 16) * scale;
+		}
+		else if (s[0] == '&') {
+			s.erase(0, 1);
+			if (s.empty() || !is_octal(s)) return false;
+			v = (int32_t)strtol(s.c_str(), NULL, 8) * scale;
+		}
+		else if (s[0] == '%') {
+			s.erase(0, 1);
+			if (s.empty() || !is_binary(s)) return false;
+			v = (int32_t)strtol(s.c_str(), NULL, 2) * scale;
+		}
+		else {
+			if (!is_decimal(s)) return false;
+			v = (int32_t)strtol(s.c_str(), NULL, 10) * scale;
+		}
+		return true;
+	}
+	return false;
+}

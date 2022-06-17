@@ -10,40 +10,6 @@ Parsed_Song::Parsed_Song(const char *f) {
 	parse_song(f);
 }
 
-static bool parse_value(std::string s, int32_t &v) {
-	trim(s);
-	if (!s.empty()) {
-		int32_t scale = 1;
-		if (s[0] == '-') {
-			s.erase(0, 1);
-			trim(s);
-			if (s.empty()) return false;
-			scale = -1;
-		}
-		if (s[0] == '$') {
-			s.erase(0, 1);
-			if (!is_hex(s)) return false;
-			v = (int32_t)strtol(s.c_str(), NULL, 16) * scale;
-		}
-		else if (s[0] == '&') {
-			s.erase(0, 1);
-			if (!is_octal(s)) return false;
-			v = (int32_t)strtol(s.c_str(), NULL, 8) * scale;
-		}
-		else if (s[0] == '%') {
-			s.erase(0, 1);
-			if (!is_binary(s)) return false;
-			v = (int32_t)strtol(s.c_str(), NULL, 2) * scale;
-		}
-		else {
-			if (!is_decimal(s)) return false;
-			v = (int32_t)strtol(s.c_str(), NULL, 10) * scale;
-		}
-		return true;
-	}
-	return false;
-}
-
 static bool get_label(std::istringstream &iss, std::string &l, const std::string &scope = "") {
 	iss >> l;
 	rtrim(l, ":");

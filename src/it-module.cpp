@@ -5,8 +5,8 @@
 constexpr std::size_t BUFFER_SIZE = 2048;
 constexpr std::int32_t SAMPLE_RATE = 48000;
 
-IT_Module::IT_Module(const Song &song) : _buffer(BUFFER_SIZE * 2) {
-	generate_it_module(song);
+IT_Module::IT_Module(const Song &song, const std::vector<Wave> &waves) : _buffer(BUFFER_SIZE * 2) {
+	generate_it_module(song, waves);
 
 	_mod = new openmpt::module(_data);
 
@@ -98,7 +98,7 @@ static std::vector<std::vector<uint8_t>> get_instruments(const Song &song) {
 	return std::move(instruments);
 }
 
-static std::vector<std::vector<uint8_t>> get_samples(const Song &song) {
+static std::vector<std::vector<uint8_t>> get_samples(const Song &song, const std::vector<Wave> &waves) {
 	const uint32_t sample_filename_length = 12;
 	const uint32_t sample_global_volume = 64;
 	const uint32_t sample_flags = 0b00010001;
@@ -240,18 +240,15 @@ static std::vector<std::vector<uint8_t>> get_samples(const Song &song) {
 
 		samples.push_back(std::move(sample));
 	}
-	// one hard-coded wave sample
-	{
+	// dynamic wave samples
+	for (const Wave &wave : waves) {
 		std::vector<uint8_t> sample;
 
 		sample_header(sample);
 
-		// sample (50% square)
-		for (uint32_t i = 0; i < sample_length / 2; ++i) {
-			sample.push_back(127);
-		}
-		for (uint32_t i = 0; i < sample_length / 2; ++i) {
-			sample.push_back(0);
+		for (uint32_t i = 0; i < NUM_WAVE_SAMPLES; ++i) {
+			sample.push_back(wave[i] * 8);
+			sample.push_back(wave[i] * 8);
 		}
 
 		samples.push_back(std::move(sample));
@@ -385,7 +382,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 					pattern_data.push_back(0x83);
 					pattern_data.push_back(0x07); // note + sample + volume
 					pattern_data.push_back(channel_3_itr->octave * 12 + (uint32_t)channel_3_itr->pitch - 1);
-					pattern_data.push_back(0x05); // sample
+					pattern_data.push_back(channel_3_itr->wave + 5); // sample
 					pattern_data.push_back(channel_3_volume(channel_3_itr->volume)); // volume
 				}
 				else {
@@ -428,7 +425,7 @@ static std::size_t get_total_size(const std::vector<std::vector<uint8_t>> &data)
 	return size;
 }
 
-void IT_Module::generate_it_module(const Song &song) {
+void IT_Module::generate_it_module(const Song &song, const std::vector<Wave> &waves) {
 	const uint32_t song_name_length = 26;
 	const uint32_t pattern_row_highlight = 0x1004; // ???
 	const uint32_t tracker_version = 0x5130;
@@ -450,7 +447,7 @@ void IT_Module::generate_it_module(const Song &song) {
 	const uint32_t sample_header_size = 80;
 
 	std::vector<std::vector<uint8_t>> instruments = get_instruments(song);
-	std::vector<std::vector<uint8_t>> samples = get_samples(song);
+	std::vector<std::vector<uint8_t>> samples = get_samples(song, waves);
 	std::vector<std::vector<uint8_t>> patterns = get_patterns(song);
 
 	const uint32_t number_of_orders = patterns.size() + 1;

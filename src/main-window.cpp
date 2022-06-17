@@ -29,7 +29,7 @@
 #endif
 
 Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_Window(x, y, w, h, PROGRAM_NAME),
-	_directory(), _asm_file(), _recent(), _song(), _wx(x), _wy(y), _ww(w), _wh(h) {
+	_wx(x), _wy(y), _ww(w), _wh(h) {
 
 	for (int i = 0; i < NUM_RECENT; i++) {
 		_recent[i] = Preferences::get_string(Fl_Preferences::Name("recent%d", i));
@@ -413,6 +413,15 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 		_asm_file = "";
 	}
 
+	Parsed_Waves parsed_waves(directory);
+	if (parsed_waves.result() != Parsed_Waves::Result::WAVES_OK) {
+		std::string msg = "Error reading wave definitions!";
+		_error_dialog->message(msg);
+		_error_dialog->show(this);
+		return;
+	}
+	_waves = parsed_waves.waves();
+
 	const char *basename;
 
 	if (filename) {
@@ -464,7 +473,7 @@ void Main_Window::toggle_playback() {
 		if (_it_module) {
 			delete _it_module;
 		}
-		_it_module = new IT_Module(_song);
+		_it_module = new IT_Module(_song, _waves);
 		if (_it_module->ready() && _it_module->start()) {
 			_piano_roll->start_following();
 			start_audio_thread();
@@ -533,6 +542,7 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	mw->label(PROGRAM_NAME);
 	mw->_piano_roll->clear();
 	mw->_song.clear();
+	mw->_waves.clear();
 	if (mw->_it_module) {
 		delete mw->_it_module;
 		mw->_it_module = nullptr;
