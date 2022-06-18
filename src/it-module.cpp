@@ -268,6 +268,10 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 	uint32_t channel_2_note_length = 0;
 	uint32_t channel_3_note_length = 0;
 	/* uint32_t channel_4_note_length = 0; */
+	uint32_t channel_1_note_duration = 0;
+	uint32_t channel_2_note_duration = 0;
+	uint32_t channel_3_note_duration = 0;
+	/* uint32_t channel_4_note_duration = 0; */
 
 	Note_View channel_1_prev_note;
 	Note_View channel_2_prev_note;
@@ -308,6 +312,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 			// NOTE: only even speeds are allowed for now to avoid complex time dilation
 			if (channel_1_note_length == 0 && channel_1_itr != song.channel_1_timeline().end()) {
 				channel_1_note_length = channel_1_itr->length * channel_1_itr->speed / 2 - 1;
+				channel_1_note_duration = 0;
 				if (channel_1_itr->tempo != channel_1_prev_note.tempo) {
 					pattern_data.push_back(0x81);
 					pattern_data.push_back(0x08); // command
@@ -318,7 +323,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 					pattern_data.push_back(0x81);
 					pattern_data.push_back(0x07); // note + sample + volume
 					pattern_data.push_back(channel_1_itr->octave * 12 + (uint32_t)channel_1_itr->pitch - 1);
-					pattern_data.push_back(channel_2_itr->duty + 1); // sample
+					pattern_data.push_back(channel_1_itr->duty + 1); // sample
 					pattern_data.push_back((channel_1_itr->volume + 1) * 4); // volume
 				}
 				else {
@@ -330,7 +335,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 				++channel_1_itr;
 			}
 			else if (channel_1_note_length > 0) {
-				if (channel_1_prev_note.fade && row % 4 == 0) {
+				if (channel_1_prev_note.fade && row % 4 == 2) {
 					pattern_data.push_back(0x81);
 					pattern_data.push_back(0x08);
 					pattern_data.push_back(0x04);
@@ -341,11 +346,24 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 						pattern_data.push_back(((8 + channel_1_prev_note.fade) << 4) | 0x0f);
 					}
 				}
+				// trying to apply fade and vibrato on the same tick doesn't appear to work...
+				else if (
+					channel_1_prev_note.rate &&
+					channel_1_prev_note.extent &&
+					channel_1_note_duration >= channel_1_prev_note.delay
+				) {
+					pattern_data.push_back(0x81);
+					pattern_data.push_back(0x08); // command
+					pattern_data.push_back(0x08); // vibrato
+					pattern_data.push_back((15 - channel_1_prev_note.rate * 2) << 4 | (channel_1_prev_note.extent * 2));
+				}
 				channel_1_note_length -= 1;
+				channel_1_note_duration += 1;
 			}
 
 			if (channel_2_note_length == 0 && channel_2_itr != song.channel_2_timeline().end()) {
 				channel_2_note_length = channel_2_itr->length * channel_2_itr->speed / 2 - 1;
+				channel_2_note_duration = 0;
 				if (channel_2_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(0x82);
 					pattern_data.push_back(0x07); // note + sample + volume
@@ -362,7 +380,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 				++channel_2_itr;
 			}
 			else if (channel_2_note_length > 0) {
-				if (channel_2_prev_note.fade && row % 4 == 0) {
+				if (channel_2_prev_note.fade && row % 4 == 2) {
 					pattern_data.push_back(0x82);
 					pattern_data.push_back(0x08);
 					pattern_data.push_back(0x04);
@@ -373,11 +391,24 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 						pattern_data.push_back(((8 + channel_2_prev_note.fade) << 4) | 0x0f);
 					}
 				}
+				// trying to apply fade and vibrato on the same tick doesn't appear to work...
+				else if (
+					channel_2_prev_note.rate &&
+					channel_2_prev_note.extent &&
+					channel_2_note_duration >= channel_2_prev_note.delay
+				) {
+					pattern_data.push_back(0x82);
+					pattern_data.push_back(0x08); // command
+					pattern_data.push_back(0x08); // vibrato
+					pattern_data.push_back((15 - channel_2_prev_note.rate * 2) << 4 | (channel_2_prev_note.extent * 2));
+				}
 				channel_2_note_length -= 1;
+				channel_2_note_duration += 1;
 			}
 
 			if (channel_3_note_length == 0 && channel_3_itr != song.channel_3_timeline().end()) {
 				channel_3_note_length = channel_3_itr->length * channel_3_itr->speed / 2 - 1;
+				channel_3_note_duration = 0;
 				if (channel_3_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(0x83);
 					pattern_data.push_back(0x07); // note + sample + volume
@@ -394,7 +425,18 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 				++channel_3_itr;
 			}
 			else if (channel_3_note_length > 0) {
+				if (
+					channel_3_prev_note.rate &&
+					channel_3_prev_note.extent &&
+					channel_3_note_duration >= channel_3_prev_note.delay
+				) {
+					pattern_data.push_back(0x83);
+					pattern_data.push_back(0x08); // command
+					pattern_data.push_back(0x08); // vibrato
+					pattern_data.push_back((15 - channel_3_prev_note.rate * 2) << 4 | (channel_3_prev_note.extent * 2));
+				}
 				channel_3_note_length -= 1;
+				channel_3_note_duration += 1;
 			}
 
 			pattern_data.push_back(0);

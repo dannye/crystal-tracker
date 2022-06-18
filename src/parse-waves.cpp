@@ -27,6 +27,12 @@ Parsed_Waves::Result Parsed_Waves::parse_waves(const char *d) {
 	if (try_parse_waves(waves_file) == Parsed_Waves::Result::WAVES_OK) {
 		return _result;
 	}
+	// third, try wave_samples.asm
+	strcpy(waves_file, d);
+	strcat(waves_file, DIR_SEP "wave_samples.asm");
+	if (try_parse_waves(waves_file) == Parsed_Waves::Result::WAVES_OK) {
+		return _result;
+	}
 
 	return _result;
 }

@@ -20,6 +20,9 @@ static std::list<Note_View> build_timeline(const std::list<Command> &commands) {
 	note.speed = 12;
 	note.volume = 0;
 	note.fade = 0;
+	note.delay = 0;
+	note.extent = 0;
+	note.rate = 0;
 	auto command_itr = commands.begin();
 	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
 	std::stack<decltype(command_itr)> call_stack;
@@ -60,6 +63,11 @@ static std::list<Note_View> build_timeline(const std::list<Command> &commands) {
 		else if (command_itr->type == Command_Type::VOLUME_ENVELOPE) {
 			note.volume = command_itr->volume_envelope.volume;
 			note.fade = command_itr->volume_envelope.fade;
+		}
+		else if (command_itr->type == Command_Type::VIBRATO) {
+			note.delay = command_itr->vibrato.delay;
+			note.extent = command_itr->vibrato.extent;
+			note.rate = command_itr->vibrato.rate;
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			command_itr = find_note_with_label(commands, command_itr->target);

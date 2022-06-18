@@ -241,8 +241,11 @@ struct Note_View {
 		int32_t fade = 0;
 		int32_t wave;
 	};
-	int32_t tempo = 0;
-	int32_t duty = 0;
+	int32_t tempo  = 0;
+	int32_t duty   = 0;
+	int32_t delay  = 0; //
+	int32_t extent = 0; // vibrato
+	int32_t rate   = 0; //
 };
 
 #endif
