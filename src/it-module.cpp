@@ -291,7 +291,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 		// this is a purely empirical approximation.
 		// i have no idea what the real formula is.
 		int32_t bpm = std::log2(tempo - 75.0) * -75.0 / 2.0 + 360.0;
-		if (bpm < 0)   bpm = 0;
+		if (bpm < 32)  bpm = 32;
 		if (bpm > 255) bpm = 255;
 		return (uint8_t)bpm;
 	};
@@ -335,18 +335,26 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 				++channel_1_itr;
 			}
 			else if (channel_1_note_length > 0) {
-				if (channel_1_prev_note.fade && row % 4 == 2) {
+				if (channel_1_prev_note.fade && row % 4 == 1) {
 					pattern_data.push_back(0x81);
-					pattern_data.push_back(0x08);
-					pattern_data.push_back(0x04);
-					if (channel_1_prev_note.fade > 0) {
-						pattern_data.push_back(0xf0 | (8 - channel_1_prev_note.fade));
+					pattern_data.push_back(0x08); // command
+					if (
+						channel_1_prev_note.rate &&
+						channel_1_prev_note.extent &&
+						channel_1_note_duration > channel_1_prev_note.delay
+					) {
+						pattern_data.push_back(0x0b); // fade+vibrato
 					}
 					else {
-						pattern_data.push_back(((8 + channel_1_prev_note.fade) << 4) | 0x0f);
+						pattern_data.push_back(0x04); // fade
+					}
+					if (channel_1_prev_note.fade > 0) {
+						pattern_data.push_back(0xf0 | (10 - channel_1_prev_note.fade));
+					}
+					else {
+						pattern_data.push_back(((10 + channel_1_prev_note.fade) << 4) | 0x0f);
 					}
 				}
-				// trying to apply fade and vibrato on the same tick doesn't appear to work...
 				else if (
 					channel_1_prev_note.rate &&
 					channel_1_prev_note.extent &&
@@ -355,7 +363,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 					pattern_data.push_back(0x81);
 					pattern_data.push_back(0x08); // command
 					pattern_data.push_back(0x08); // vibrato
-					pattern_data.push_back((15 - channel_1_prev_note.rate * 2) << 4 | (channel_1_prev_note.extent * 2));
+					pattern_data.push_back((16 - channel_1_prev_note.rate * 2) << 4 | (channel_1_prev_note.extent));
 				}
 				channel_1_note_length -= 1;
 				channel_1_note_duration += 1;
@@ -380,18 +388,26 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 				++channel_2_itr;
 			}
 			else if (channel_2_note_length > 0) {
-				if (channel_2_prev_note.fade && row % 4 == 2) {
+				if (channel_2_prev_note.fade && row % 4 == 1) {
 					pattern_data.push_back(0x82);
-					pattern_data.push_back(0x08);
-					pattern_data.push_back(0x04);
-					if (channel_2_prev_note.fade > 0) {
-						pattern_data.push_back(0xf0 | (8 - channel_2_prev_note.fade));
+					pattern_data.push_back(0x08); // command
+					if (
+						channel_2_prev_note.rate &&
+						channel_2_prev_note.extent &&
+						channel_2_note_duration > channel_2_prev_note.delay
+					) {
+						pattern_data.push_back(0x0b); // fade+vibrato
 					}
 					else {
-						pattern_data.push_back(((8 + channel_2_prev_note.fade) << 4) | 0x0f);
+						pattern_data.push_back(0x04); // fade
+					}
+					if (channel_2_prev_note.fade > 0) {
+						pattern_data.push_back(0xf0 | (10 - channel_2_prev_note.fade));
+					}
+					else {
+						pattern_data.push_back(((10 + channel_2_prev_note.fade) << 4) | 0x0f);
 					}
 				}
-				// trying to apply fade and vibrato on the same tick doesn't appear to work...
 				else if (
 					channel_2_prev_note.rate &&
 					channel_2_prev_note.extent &&
@@ -400,7 +416,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 					pattern_data.push_back(0x82);
 					pattern_data.push_back(0x08); // command
 					pattern_data.push_back(0x08); // vibrato
-					pattern_data.push_back((15 - channel_2_prev_note.rate * 2) << 4 | (channel_2_prev_note.extent * 2));
+					pattern_data.push_back((16 - channel_2_prev_note.rate * 2) << 4 | (channel_2_prev_note.extent));
 				}
 				channel_2_note_length -= 1;
 				channel_2_note_duration += 1;
@@ -433,7 +449,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 					pattern_data.push_back(0x83);
 					pattern_data.push_back(0x08); // command
 					pattern_data.push_back(0x08); // vibrato
-					pattern_data.push_back((15 - channel_3_prev_note.rate * 2) << 4 | (channel_3_prev_note.extent * 2));
+					pattern_data.push_back((16 - channel_3_prev_note.rate * 2) << 4 | (channel_3_prev_note.extent));
 				}
 				channel_3_note_length -= 1;
 				channel_3_note_duration += 1;
