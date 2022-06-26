@@ -9,6 +9,7 @@
 #include <FL/Fl_Native_File_Chooser.H>
 #pragma warning(pop)
 
+#include "widgets.h"
 #include "modal-dialog.h"
 #include "song.h"
 #include "help-window.h"
@@ -24,6 +25,7 @@ class Main_Window : public Fl_Double_Window {
 private:
 	// GUI containers
 	Fl_Sys_Menu_Bar *_menu_bar;
+	Toolbar *_status_bar;
 	// GUI inputs
 	Fl_Menu_Item *_recent_mis[NUM_RECENT];
 	Fl_Menu_Item
@@ -41,6 +43,7 @@ private:
 		*_high_contrast_theme_mi = NULL;
 	// GUI outputs
 	Piano_Roll *_piano_roll = NULL;
+	Label *_status_label;
 	// Conditional menu items
 	Fl_Menu_Item *_close_mi = NULL;
 	// Dialogs
@@ -48,6 +51,7 @@ private:
 	Modal_Dialog *_error_dialog, *_warning_dialog, *_success_dialog, *_about_dialog;
 	Help_Window *_help_window;
 	// Data
+	std::string _status_message = "Ready";
 	std::string _directory, _asm_file;
 	std::string _recent[NUM_RECENT];
 	Song _song;

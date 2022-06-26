@@ -6,7 +6,6 @@
 #include "version.h"
 #include "utils.h"
 #include "themes.h"
-#include "widgets.h"
 #include "preferences.h"
 #include "config.h"
 #include "main-window.h"
@@ -27,6 +26,7 @@
 #else
 	constexpr int MENU_BAR_HEIGHT = 21;
 #endif
+constexpr int STATUS_BAR_HEIGHT = 23;
 
 Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_Window(x, y, w, h, PROGRAM_NAME),
 	_wx(x), _wy(y), _ww(w), _wh(h) {
@@ -43,6 +43,13 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_menu_bar = new Fl_Sys_Menu_Bar(wx, wy, ww, MENU_BAR_HEIGHT);
 	wy += _menu_bar->h();
 	wh -= _menu_bar->h();
+
+	// Status bar
+	_status_bar = new Toolbar(wx, h - STATUS_BAR_HEIGHT, ww, STATUS_BAR_HEIGHT);
+	wh -= _status_bar->h();
+	_status_label = new Label(0, 0, ww, MENU_BAR_HEIGHT, _status_message.c_str());
+	_status_bar->end();
+	begin();
 
 	// Piano Roll
 	_piano_roll = new Piano_Roll(wx, wy, ww, wh);
@@ -222,6 +229,7 @@ Main_Window::~Main_Window() {
 	stop_audio_thread();
 
 	delete _menu_bar; // includes menu items
+	delete _status_bar; // includes status bar fields
 	delete _piano_roll;
 	delete _asm_open_chooser;
 	delete _error_dialog;
@@ -241,7 +249,8 @@ void Main_Window::show() {
 void Main_Window::resize(int X, int Y, int W, int H) {
 	Fl_Double_Window::resize(X, Y, W, H);
 	_menu_bar->resize(0, 0, W, _menu_bar->h());
-	_piano_roll->set_size(W, H - MENU_BAR_HEIGHT);
+	_piano_roll->set_size(W, H - MENU_BAR_HEIGHT - STATUS_BAR_HEIGHT);
+	_status_bar->resize(0, H - STATUS_BAR_HEIGHT, W, _status_bar->h());
 }
 
 bool Main_Window::maximized() const {
@@ -450,6 +459,10 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	sprintf(buffer, PROGRAM_NAME " - %s", basename);
 	copy_label(buffer);
 
+	_status_message = "Opened ";
+	_status_message += basename;
+	_status_label->label(_status_message.c_str());
+
 	update_active_controls();
 
 	store_recent_song();
@@ -539,6 +552,10 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 
 	if (!mw->_song.loaded()) { return; }
 
+	const char *basename = fl_filename_name(mw->_asm_file.c_str());
+	mw->_status_message = "Closed ";
+	mw->_status_message += basename;
+
 	mw->label(PROGRAM_NAME);
 	mw->_piano_roll->clear();
 	mw->_song.clear();
@@ -552,6 +569,7 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_asm_file.clear();
 
 	mw->update_active_controls();
+	mw->_status_label->label(mw->_status_message.c_str());
 	mw->redraw();
 }
 
