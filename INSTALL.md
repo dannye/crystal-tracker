@@ -52,7 +52,7 @@ You will need [Microsoft Visual Studio](https://visualstudio.microsoft.com/vs/);
 
 30. Open ide\\**crystal-tracker.sln** in Visual Studio 2022.
 31. If the Solution Configuration dropdown on the toolbar says Debug, set it to **Release**.
-32. Go to **Build → Build Solution** or press `Ctrl+Shift+B` to build the project. This will create bin\Release\\**crystaltracker.exe**. (A Debug build will create bin\Debug\\**crystaltrackerd.exe**.
+32. Go to **Build → Build Solution** or press `Ctrl+Shift+B` to build the project. This will create bin\Release\\**crystaltracker.exe**. (A Debug build will create bin\Debug\\**crystaltrackerd.exe**.)
 
 
 ## Linux
@@ -60,6 +60,7 @@ You will need [Microsoft Visual Studio](https://visualstudio.microsoft.com/vs/);
 ### Install dependencies
 
 You need at least g++ 7 for C++17 support.
+g++ 8 is needed if building libopenmpt from source.
 
 #### Ubuntu/Debian
 
