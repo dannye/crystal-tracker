@@ -164,6 +164,26 @@ Song::Result Song::read_song(const char *f) {
 	return (_result = Result::SONG_OK);
 }
 
+void Song::new_song() {
+	_song_name = "NewSong";
+	_number_of_channels = 4;
+	_channel_1_label = "NewSong_Ch1";
+	_channel_2_label = "NewSong_Ch2";
+	_channel_3_label = "NewSong_Ch3";
+	_channel_4_label = "NewSong_Ch4";
+	_channel_1_commands = { Command(Command_Type::SOUND_RET) };
+	_channel_2_commands = { Command(Command_Type::SOUND_RET) };
+	_channel_3_commands = { Command(Command_Type::SOUND_RET) };
+	_channel_4_commands = { Command(Command_Type::SOUND_RET) };
+	_channel_1_timeline = build_timeline(_channel_1_commands);
+	_channel_2_timeline = build_timeline(_channel_2_commands);
+	_channel_3_timeline = build_timeline(_channel_3_commands);
+	_channel_4_timeline = build_timeline(_channel_4_commands);
+
+	_loaded = true;
+	_result = Result::SONG_OK;
+}
+
 std::string Song::commands_str(const std::list<Command> &commands) const {
 	std::string str;
 	for (const Command &command : commands) {

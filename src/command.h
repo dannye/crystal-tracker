@@ -229,6 +229,11 @@ struct Command {
 		Sound_Call sound_call;
 		Sound_Ret sound_ret;
 	};
+
+	Command() {}
+	Command(Command_Type t) {
+		type = t;
+	}
 };
 
 struct Note_View {

@@ -33,6 +33,7 @@ public:
 	inline bool loaded(void) const { return _loaded; }
 	void clear();
 	Result read_song(const char *f);
+	void new_song();
 
 	std::string channel_1_commands_str() const { return commands_str(_channel_1_commands); }
 	std::string channel_2_commands_str() const { return commands_str(_channel_2_commands); }

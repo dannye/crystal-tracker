@@ -70,6 +70,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_piano_roll = new Piano_Roll(wx, wy, ww, wh);
 
 	// Dialogs
+	_new_dir_chooser = new Directory_Chooser(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
 	_asm_open_chooser = new Fl_Native_File_Chooser(Fl_Native_File_Chooser::BROWSE_FILE);
 	_error_dialog = new Modal_Dialog(this, "Error", Modal_Dialog::Icon::ERROR_ICON);
 	_warning_dialog = new Modal_Dialog(this, "Warning", Modal_Dialog::Icon::WARNING_ICON);
@@ -247,6 +248,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_play_stop_tb->image(PLAY_ICON);
 
 	// Configure dialogs
+
+	_new_dir_chooser->title("Choose Project Directory");
+
 	_asm_open_chooser->title("Open Song");
 	_asm_open_chooser->filter("ASM Files\t*.asm\n");
 
@@ -280,6 +284,7 @@ Main_Window::~Main_Window() {
 	delete _toolbar; // includes toolbar buttons
 	delete _status_bar; // includes status bar fields
 	delete _piano_roll;
+	delete _new_dir_chooser;
 	delete _asm_open_chooser;
 	delete _error_dialog;
 	delete _warning_dialog;
@@ -480,6 +485,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 
 	Parsed_Waves parsed_waves(directory);
 	if (parsed_waves.result() != Parsed_Waves::Result::WAVES_OK) {
+		_directory.clear();
 		std::string msg = "Error reading wave definitions!";
 		_error_dialog->message(msg);
 		_error_dialog->show(this);
@@ -507,7 +513,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	}
 	else {
 		basename = NEW_SONG_NAME;
-		// TODO: initialize new _song
+		_song.new_song();
 	}
 
 	// set filenames
@@ -521,7 +527,9 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 
 	update_active_controls();
 
-	store_recent_song();
+	if (filename) {
+		store_recent_song();
+	}
 
 	redraw();
 }
@@ -585,7 +593,28 @@ void Main_Window::update_icons() {
 }
 
 void Main_Window::new_cb(Fl_Widget *, Main_Window *mw) {
-	//
+	char directory[FL_PATH_MAX] = {};
+
+	if (!mw->_directory.size()) {
+		int status = mw->_new_dir_chooser->show();
+		if (status == 1) { return; }
+		if (status == -1) {
+			std::string msg = "Could not get project directory!";
+			mw->_error_dialog->message(msg);
+			mw->_error_dialog->show(mw);
+			return;
+		}
+
+		const char *project_dir = mw->_new_dir_chooser->filename();
+		strcpy(directory, project_dir);
+		strcat(directory, DIR_SEP);
+	}
+	else {
+		strcpy(directory, mw->_directory.c_str());
+	}
+
+	Config::project_path_from_asm_path(directory, directory);
+	mw->open_song(directory, NULL);
 }
 
 void Main_Window::open_cb(Fl_Widget *, Main_Window *mw) {
@@ -624,7 +653,13 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 
 	if (!mw->_song.loaded()) { return; }
 
-	const char *basename = fl_filename_name(mw->_asm_file.c_str());
+	const char *basename;
+	if (mw->_asm_file.size()) {
+		basename = fl_filename_name(mw->_asm_file.c_str());
+	}
+	else {
+		basename = NEW_SONG_NAME;
+	}
 	mw->_status_message = "Closed ";
 	mw->_status_message += basename;
 

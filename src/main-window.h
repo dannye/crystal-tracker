@@ -12,10 +12,11 @@
 #include "widgets.h"
 #include "modal-dialog.h"
 #include "song.h"
-#include "help-window.h"
 #include "piano-roll.h"
 #include "it-module.h"
 #include "parse-waves.h"
+#include "help-window.h"
+#include "directory-chooser.h"
 
 #define NUM_RECENT 10
 
@@ -58,6 +59,7 @@ private:
 		*_save_as_mi = NULL,
 		*_play_stop_mi = NULL;
 	// Dialogs
+	Directory_Chooser *_new_dir_chooser;
 	Fl_Native_File_Chooser *_asm_open_chooser;
 	Modal_Dialog *_error_dialog, *_warning_dialog, *_success_dialog, *_about_dialog;
 	Help_Window *_help_window;
