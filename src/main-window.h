@@ -25,6 +25,7 @@ class Main_Window : public Fl_Double_Window {
 private:
 	// GUI containers
 	Fl_Sys_Menu_Bar *_menu_bar;
+	Toolbar *_toolbar;
 	Toolbar *_status_bar;
 	// GUI inputs
 	Fl_Menu_Item *_recent_mis[NUM_RECENT];
@@ -41,11 +42,21 @@ private:
 		*_dark_theme_mi = NULL,
 		*_brushed_metal_theme_mi = NULL,
 		*_high_contrast_theme_mi = NULL;
+	Toolbar_Button
+		*_new_tb = NULL,
+		*_open_tb = NULL,
+		*_save_tb = NULL,
+		*_save_as_tb = NULL,
+		*_play_stop_tb = NULL;
 	// GUI outputs
 	Piano_Roll *_piano_roll = NULL;
 	Label *_status_label;
 	// Conditional menu items
-	Fl_Menu_Item *_close_mi = NULL;
+	Fl_Menu_Item
+		*_close_mi = NULL,
+		*_save_mi = NULL,
+		*_save_as_mi = NULL,
+		*_play_stop_mi = NULL;
 	// Dialogs
 	Fl_Native_File_Chooser *_asm_open_chooser;
 	Modal_Dialog *_error_dialog, *_warning_dialog, *_success_dialog, *_about_dialog;
@@ -85,12 +96,18 @@ private:
 	void toggle_playback();
 	void start_audio_thread();
 	void stop_audio_thread();
+	void update_icons(void);
 	// File menu
+	static void new_cb(Fl_Widget *w, Main_Window *mw);
 	static void open_cb(Fl_Widget *w, Main_Window *mw);
 	static void open_recent_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void clear_recent_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void close_cb(Fl_Widget *w, Main_Window *mw);
+	static void save_cb(Fl_Widget *w, Main_Window *mw);
+	static void save_as_cb(Fl_Widget *w, Main_Window *mw);
 	static void exit_cb(Fl_Widget *w, Main_Window *mw);
+	// Play menu
+	static void play_stop_cb(Fl_Widget *w, Main_Window *mw);
 	// View menu
 	static void classic_theme_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void aero_theme_cb(Fl_Menu_ *m, Main_Window *mw);

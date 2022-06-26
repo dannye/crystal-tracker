@@ -26,6 +26,8 @@
 #else
 	constexpr int MENU_BAR_HEIGHT = 21;
 #endif
+constexpr int TOOLBAR_HEIGHT = 26;
+constexpr int TOOLBAR_BUTTON_HEIGHT = 24;
 constexpr int STATUS_BAR_HEIGHT = 23;
 
 Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_Window(x, y, w, h, PROGRAM_NAME),
@@ -43,6 +45,19 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_menu_bar = new Fl_Sys_Menu_Bar(wx, wy, ww, MENU_BAR_HEIGHT);
 	wy += _menu_bar->h();
 	wh -= _menu_bar->h();
+
+	// Toolbar
+	_toolbar = new Toolbar(wx, wy, ww, TOOLBAR_HEIGHT);
+	wy += _toolbar->h();
+	wh -= _toolbar->h();
+	_new_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_open_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_save_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_save_as_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	new Fl_Box(0, 0, 2, TOOLBAR_BUTTON_HEIGHT); new Spacer(0, 0, 2, TOOLBAR_BUTTON_HEIGHT); new Fl_Box(0, 0, 2, TOOLBAR_BUTTON_HEIGHT);
+	_play_stop_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_toolbar->end();
+	begin();
 
 	// Status bar
 	_status_bar = new Toolbar(wx, h - STATUS_BAR_HEIGHT, ww, STATUS_BAR_HEIGHT);
@@ -85,6 +100,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	Fl_Menu_Item menu_items[] = {
 		// label, shortcut, callback, data, flags
 		OS_SUBMENU("&File"),
+		OS_MENU_ITEM("&New...", FL_COMMAND + 'n', (Fl_Callback *)new_cb, this, 0),
 		OS_MENU_ITEM("&Open...", FL_COMMAND + 'o', (Fl_Callback *)open_cb, this, 0),
 		OS_MENU_ITEM("Open Recent", 0, NULL, NULL, FL_SUBMENU | FL_MENU_DIVIDER),
 		// NUM_RECENT items with callback open_recent_cb
@@ -100,12 +116,17 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_NULL_MENU_ITEM(FL_ALT + '0', (Fl_Callback *)open_recent_cb, this, 0),
 		OS_MENU_ITEM("Clear &Recent", 0, (Fl_Callback *)clear_recent_cb, this, 0),
 		{},
-#ifdef __APPLE__
-		OS_MENU_ITEM("&Close", FL_COMMAND + 'w', (Fl_Callback *)close_cb, this, 0),
-#else
 		OS_MENU_ITEM("&Close", FL_COMMAND + 'w', (Fl_Callback *)close_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("&Save", FL_COMMAND + 's', (Fl_Callback *)save_cb, this, 0),
+#ifdef __APPLE__
+		OS_MENU_ITEM("Save &As...", FL_COMMAND + 'S', (Fl_Callback *)save_as_cb, this, 0),
+#else
+		OS_MENU_ITEM("Save &As...", FL_COMMAND + 'S', (Fl_Callback *)save_as_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("E&xit", FL_ALT + FL_F + 4, (Fl_Callback *)exit_cb, this, 0),
 #endif
+		{},
+		OS_SUBMENU("&Play"),
+		OS_MENU_ITEM("&Play/Stop", ' ', (Fl_Callback *)play_stop_cb, this, 0),
 		{},
 		OS_SUBMENU("&View"),
 		OS_MENU_ITEM("&Theme", 0, NULL, NULL, FL_SUBMENU),
@@ -177,6 +198,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_high_contrast_theme_mi = CT_FIND_MENU_ITEM_CB(high_contrast_theme_cb);
 	// Conditional menu items
 	_close_mi = CT_FIND_MENU_ITEM_CB(close_cb);
+	_save_mi = CT_FIND_MENU_ITEM_CB(save_cb);
+	_save_as_mi = CT_FIND_MENU_ITEM_CB(save_as_cb);
+	_play_stop_mi = CT_FIND_MENU_ITEM_CB(play_stop_cb);
 #undef CT_FIND_MENU_ITEM_CB
 
 #ifndef __APPLE__
@@ -198,6 +222,29 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		else if (!mi->label()) { md--; }
 	}
 #endif
+
+	// Configure toolbar buttons
+
+	_new_tb->tooltip("New... (Ctrl+N)");
+	_new_tb->callback((Fl_Callback *)new_cb, this);
+	_new_tb->image(NEW_ICON);
+	_new_tb->take_focus();
+
+	_open_tb->tooltip("Open... (Ctrl+O)");
+	_open_tb->callback((Fl_Callback *)open_cb, this);
+	_open_tb->image(OPEN_ICON);
+
+	_save_tb->tooltip("Save (Ctrl+S)");
+	_save_tb->callback((Fl_Callback *)save_cb, this);
+	_save_tb->image(SAVE_ICON);
+
+	_save_as_tb->tooltip("Save As (Ctrl+Shift+S)");
+	_save_as_tb->callback((Fl_Callback *)save_as_cb, this);
+	_save_as_tb->image(SAVE_AS_ICON);
+
+	_play_stop_tb->tooltip("Play/Stop (Spacebar)");
+	_play_stop_tb->callback((Fl_Callback *)play_stop_cb, this);
+	_play_stop_tb->image(PLAY_ICON);
 
 	// Configure dialogs
 	_asm_open_chooser->title("Open Song");
@@ -221,6 +268,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 #include "help.html" // a C++11 raw string literal
 	);
 
+	update_icons();
 	update_recent_songs();
 	update_active_controls();
 }
@@ -229,6 +277,7 @@ Main_Window::~Main_Window() {
 	stop_audio_thread();
 
 	delete _menu_bar; // includes menu items
+	delete _toolbar; // includes toolbar buttons
 	delete _status_bar; // includes status bar fields
 	delete _piano_roll;
 	delete _asm_open_chooser;
@@ -249,7 +298,8 @@ void Main_Window::show() {
 void Main_Window::resize(int X, int Y, int W, int H) {
 	Fl_Double_Window::resize(X, Y, W, H);
 	_menu_bar->resize(0, 0, W, _menu_bar->h());
-	_piano_roll->set_size(W, H - MENU_BAR_HEIGHT - STATUS_BAR_HEIGHT);
+	_toolbar->resize(0, _menu_bar->h(), W, _toolbar->h());
+	_piano_roll->set_size(W, H - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - STATUS_BAR_HEIGHT);
 	_status_bar->resize(0, H - STATUS_BAR_HEIGHT, W, _status_bar->h());
 }
 
@@ -313,14 +363,8 @@ int Main_Window::handle(int event) {
 		return 1;
 	case FL_KEYBOARD:
 		key = Fl::event_key();
-		if (key == ' ') {
-			if (_song.loaded()) {
-				toggle_playback();
-			}
-			return 1;
-		}
 		// TODO: also add these to the view menu
-		else if (key == '1') {
+		if (key == '1') {
 			_piano_roll->toggle_channel_1_box_type();
 		}
 		else if (key == '2') {
@@ -341,9 +385,21 @@ int Main_Window::handle(int event) {
 void Main_Window::update_active_controls() {
 	if (_song.loaded()) {
 		_close_mi->activate();
+		_save_mi->activate();
+		_save_tb->activate();
+		_save_as_mi->activate();
+		_save_as_tb->activate();
+		_play_stop_mi->activate();
+		_play_stop_tb->activate();
 	}
 	else {
 		_close_mi->deactivate();
+		_save_mi->deactivate();
+		_save_tb->deactivate();
+		_save_as_mi->deactivate();
+		_save_as_tb->deactivate();
+		_play_stop_mi->deactivate();
+		_play_stop_tb->deactivate();
 	}
 
 	_menu_bar->update();
@@ -490,12 +546,16 @@ void Main_Window::toggle_playback() {
 		if (_it_module->ready() && _it_module->start()) {
 			_piano_roll->start_following();
 			start_audio_thread();
+			_play_stop_tb->image(STOP_ICON);
+			_play_stop_tb->redraw();
 		}
 		// TODO: else, report error
 	}
 	else if (_it_module->is_playing()) {
 		_piano_roll->stop_following();
 		_it_module->stop();
+		_play_stop_tb->image(PLAY_ICON);
+		_play_stop_tb->redraw();
 	}
 }
 
@@ -514,6 +574,18 @@ void Main_Window::stop_audio_thread() {
 		_audio_mutex.unlock();
 		Fl::lock();
 	}
+}
+
+void Main_Window::update_icons() {
+	make_deimage(_new_tb);
+	make_deimage(_open_tb);
+	make_deimage(_save_tb);
+	make_deimage(_save_as_tb);
+	make_deimage(_play_stop_tb);
+}
+
+void Main_Window::new_cb(Fl_Widget *, Main_Window *mw) {
+	//
 }
 
 void Main_Window::open_cb(Fl_Widget *, Main_Window *mw) {
@@ -568,9 +640,19 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_directory.clear();
 	mw->_asm_file.clear();
 
+	mw->_play_stop_tb->image(PLAY_ICON);
+
 	mw->update_active_controls();
 	mw->_status_label->label(mw->_status_message.c_str());
 	mw->redraw();
+}
+
+void Main_Window::save_cb(Fl_Widget *, Main_Window *mw) {
+	//
+}
+
+void Main_Window::save_as_cb(Fl_Widget *, Main_Window *mw) {
+	//
 }
 
 void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
@@ -628,6 +710,10 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 	Preferences::close();
 
 	exit(EXIT_SUCCESS);
+}
+
+void Main_Window::play_stop_cb(Fl_Widget *, Main_Window *mw) {
+	mw->toggle_playback();
 }
 
 void Main_Window::classic_theme_cb(Fl_Menu_ *, Main_Window *mw) {
@@ -742,6 +828,8 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 			else {
 				Fl::lock();
 				mw->_piano_roll->stop_following();
+				mw->_play_stop_tb->image(PLAY_ICON);
+				mw->_play_stop_tb->redraw();
 				Fl::unlock();
 				Fl::awake();
 				mw->_audio_mutex.unlock();
