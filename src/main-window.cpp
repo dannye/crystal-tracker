@@ -23,10 +23,11 @@
 
 #ifdef __APPLE__
 	constexpr int MENU_BAR_HEIGHT = 0;
+	constexpr int TOOLBAR_HEIGHT = 38;
 #else
 	constexpr int MENU_BAR_HEIGHT = 21;
+	constexpr int TOOLBAR_HEIGHT = 26;
 #endif
-constexpr int TOOLBAR_HEIGHT = 26;
 constexpr int TOOLBAR_BUTTON_HEIGHT = 24;
 constexpr int STATUS_BAR_HEIGHT = 23;
 
@@ -48,13 +49,19 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	// Toolbar
 	_toolbar = new Toolbar(wx, wy, ww, TOOLBAR_HEIGHT);
+#ifdef __APPLE__
+#define SEPARATE_TOOLBAR_BUTTONS new Fl_Box(0, 0, 12, TOOLBAR_HEIGHT - 2);
+	new Fl_Box(0, 0, 6, TOOLBAR_HEIGHT - 2);
+#else
+#define SEPARATE_TOOLBAR_BUTTONS new Fl_Box(0, 0, 2, TOOLBAR_BUTTON_HEIGHT); new Spacer(0, 0, 2, TOOLBAR_BUTTON_HEIGHT); new Fl_Box(0, 0, 2, TOOLBAR_BUTTON_HEIGHT)
+#endif
 	wy += _toolbar->h();
 	wh -= _toolbar->h();
 	_new_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_open_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_save_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_save_as_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	new Fl_Box(0, 0, 2, TOOLBAR_BUTTON_HEIGHT); new Spacer(0, 0, 2, TOOLBAR_BUTTON_HEIGHT); new Fl_Box(0, 0, 2, TOOLBAR_BUTTON_HEIGHT);
+	SEPARATE_TOOLBAR_BUTTONS;
 	_play_stop_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_toolbar->end();
 	begin();
@@ -62,7 +69,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	// Status bar
 	_status_bar = new Toolbar(wx, h - STATUS_BAR_HEIGHT, ww, STATUS_BAR_HEIGHT);
 	wh -= _status_bar->h();
-	_status_label = new Label(0, 0, ww, MENU_BAR_HEIGHT, _status_message.c_str());
+	_status_label = new Label(0, 0, ww, STATUS_BAR_HEIGHT - 2, _status_message.c_str());
 	_status_bar->end();
 	begin();
 
@@ -226,20 +233,20 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	// Configure toolbar buttons
 
-	_new_tb->tooltip("New... (Ctrl+N)");
+	_new_tb->tooltip("New... (" COMMAND_KEY_PLUS "N)");
 	_new_tb->callback((Fl_Callback *)new_cb, this);
 	_new_tb->image(NEW_ICON);
 	_new_tb->take_focus();
 
-	_open_tb->tooltip("Open... (Ctrl+O)");
+	_open_tb->tooltip("Open... (" COMMAND_KEY_PLUS "O)");
 	_open_tb->callback((Fl_Callback *)open_cb, this);
 	_open_tb->image(OPEN_ICON);
 
-	_save_tb->tooltip("Save (Ctrl+S)");
+	_save_tb->tooltip("Save (" COMMAND_KEY_PLUS "S)");
 	_save_tb->callback((Fl_Callback *)save_cb, this);
 	_save_tb->image(SAVE_ICON);
 
-	_save_as_tb->tooltip("Save As (Ctrl+Shift+S)");
+	_save_as_tb->tooltip("Save As (" COMMAND_SHIFT_KEYS_PLUS "S)");
 	_save_as_tb->callback((Fl_Callback *)save_as_cb, this);
 	_save_as_tb->image(SAVE_AS_ICON);
 
