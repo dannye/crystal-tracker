@@ -15,7 +15,7 @@
 const Fl_Color NOTE_RED   = fl_rgb_color(217,   0,   0);
 const Fl_Color NOTE_BLUE  = fl_rgb_color(  0, 117, 253);
 const Fl_Color NOTE_GREEN = fl_rgb_color(  3, 196,   3);
-const Fl_Color NOTE_GRAY  = fl_rgb_color(153, 153, 153);
+const Fl_Color NOTE_BROWN = fl_rgb_color(140,  60,  25);
 
 const Fl_Color ALT_LIGHT_ROW  = fl_rgb_color(35, 35, 35);
 const Fl_Color ALT_DARK_ROW   = fl_rgb_color(52, 52, 52);
@@ -93,7 +93,7 @@ public:
 	void set_channel_1_timeline(const std::list<Note_View> &timeline) { set_channel_timeline(_channel_1_notes, timeline, NOTE_RED); }
 	void set_channel_2_timeline(const std::list<Note_View> &timeline) { set_channel_timeline(_channel_2_notes, timeline, NOTE_BLUE); }
 	void set_channel_3_timeline(const std::list<Note_View> &timeline) { set_channel_timeline(_channel_3_notes, timeline, NOTE_GREEN); }
-	void set_channel_4_timeline(const std::list<Note_View> &timeline) { set_channel_timeline(_channel_4_notes, timeline, NOTE_GRAY); }
+	void set_channel_4_timeline(const std::list<Note_View> &timeline) { set_channel_timeline(_channel_4_notes, timeline, NOTE_BROWN); }
 
 	Fl_Box *get_channel_1_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_1_notes, tick); };
 	Fl_Box *get_channel_2_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_2_notes, tick); };

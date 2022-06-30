@@ -82,7 +82,7 @@ void Piano_Timeline::reset_note_colors() {
 		note->color(NOTE_GREEN);
 	}
 	for (Fl_Box *note : _channel_4_notes) {
-		note->color(NOTE_GRAY);
+		note->color(NOTE_BROWN);
 	}
 }
 
@@ -265,7 +265,7 @@ void Piano_Roll::highlight_tick(int32_t t) {
 	}
 	note = _piano_timeline->get_channel_4_note_at_tick(_tick);
 	if (note) {
-		note->color(fl_lighter(NOTE_GRAY));
+		note->color(fl_lighter(NOTE_BROWN));
 	}
 
 	int x_pos = _tick * TIME_STEP_WIDTH;
