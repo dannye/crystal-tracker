@@ -2,7 +2,6 @@
 #include <stack>
 
 #include "song.h"
-#include "parse-song.h"
 
 static const auto find_note_with_label(const std::list<Command> &commands, std::string label) {
 	for (auto command_itr = commands.begin(); command_itr != commands.end(); ++command_itr) {
@@ -135,14 +134,15 @@ void Song::clear() {
 	_channel_2_timeline.clear();
 	_channel_3_timeline.clear();
 	_channel_4_timeline.clear();
-	_result = Result::SONG_NULL;
+	_result = Parsed_Song::Result::SONG_NULL;
 	_loaded = false;
 }
 
-Song::Result Song::read_song(const char *f) {
+Parsed_Song::Result Song::read_song(const char *f) {
 	Parsed_Song data(f);
 	if (data.result() != Parsed_Song::Result::SONG_OK) {
-		return (_result = Result::SONG_BAD_FILE); // cannot parse file
+		_error_message = get_error_message(data);
+		return (_result = data.result());
 	}
 
 	_song_name = data.song_name();
@@ -161,7 +161,7 @@ Song::Result Song::read_song(const char *f) {
 	_channel_4_timeline = build_timeline(_channel_4_commands);
 
 	_loaded = true;
-	return (_result = Result::SONG_OK);
+	return (_result = Parsed_Song::Result::SONG_OK);
 }
 
 void Song::new_song() {
@@ -181,7 +181,7 @@ void Song::new_song() {
 	_channel_4_timeline = build_timeline(_channel_4_commands);
 
 	_loaded = true;
-	_result = Result::SONG_OK;
+	_result = Parsed_Song::Result::SONG_OK;
 }
 
 std::string Song::commands_str(const std::list<Command> &commands) const {
@@ -259,14 +259,33 @@ std::string Song::commands_str(const std::list<Command> &commands) const {
 	return str;
 }
 
-const char *Song::error_message(Result result) {
-	// TODO: add specific error messages for each kind of parsing error
-	switch (result) {
-	case Result::SONG_OK:
+std::string Song::get_error_message(Parsed_Song parsed_song) {
+	switch (parsed_song.result()) {
+	case Parsed_Song::Result::SONG_OK:
 		return "OK.";
-	case Result::SONG_BAD_FILE:
-		return "Not a valid song file.";
-	case Result::SONG_NULL:
+	case Parsed_Song::Result::SONG_BAD_FILE:
+		return "Cannot open song file.";
+	case Parsed_Song::Result::SONG_INVALID_HEADER:
+		return "Invalid song header.";
+	case Parsed_Song::Result::SONG_ENDED_PREMATURELY:
+		return "Channel " + std::to_string(parsed_song.channel_number()) +
+			": File ended prematurely.";
+	case Parsed_Song::Result::SONG_UNRECOGNIZED_LABEL:
+		return "Channel " + std::to_string(parsed_song.channel_number()) +
+			": Unrecognized label: " + parsed_song.label();
+	case Parsed_Song::Result::SONG_ILLEGAL_MACRO:
+		return "Line " + std::to_string(parsed_song.line_number()) +
+			": Channel " + std::to_string(parsed_song.channel_number()) +
+			": Illegal macro for channel.";
+	case Parsed_Song::Result::SONG_UNRECOGNIZED_MACRO:
+		return "Line " + std::to_string(parsed_song.line_number()) +
+			": Channel " + std::to_string(parsed_song.channel_number()) +
+			": Unrecognized macro.";
+	case Parsed_Song::Result::SONG_INVALID_MACRO_ARGUMENT:
+		return "Line " + std::to_string(parsed_song.line_number()) +
+			": Channel " + std::to_string(parsed_song.channel_number()) +
+			": Invalid macro argument.";
+	case Parsed_Song::Result::SONG_NULL:
 		return "No *.asm file chosen.";
 	default:
 		return "Unspecified error.";

@@ -7,7 +7,17 @@
 
 class Parsed_Song {
 public:
-	enum class Result { SONG_OK, SONG_BAD_FILE, SONG_OVERFLOW, SONG_NULL };
+	enum class Result {
+		SONG_OK,
+		SONG_BAD_FILE,
+		SONG_INVALID_HEADER,
+		SONG_ENDED_PREMATURELY,
+		SONG_UNRECOGNIZED_LABEL,
+		SONG_ILLEGAL_MACRO,
+		SONG_UNRECOGNIZED_MACRO,
+		SONG_INVALID_MACRO_ARGUMENT,
+		SONG_NULL
+	};
 private:
 	std::string _song_name;
 	int32_t     _number_of_channels = 0;
@@ -20,6 +30,11 @@ private:
 	std::list<Command> _channel_3_commands;
 	std::list<Command> _channel_4_commands;
 	Result _result = Result::SONG_NULL;
+
+	// for error reporting
+	int32_t _line_number = 0;
+	int32_t _channel_number = 0;
+	std::string _label;
 public:
 	Parsed_Song(const char *f);
 	inline ~Parsed_Song() {}
@@ -34,6 +49,9 @@ public:
 	inline std::list<Command> channel_3_commands(void) const { return std::move(_channel_3_commands); }
 	inline std::list<Command> channel_4_commands(void) const { return std::move(_channel_4_commands); }
 	inline Result result(void) const { return _result; }
+	inline int32_t line_number(void) const { return _line_number; }
+	inline int32_t channel_number(void) const { return _channel_number; }
+	inline const std::string &label(void) const { return _label; }
 private:
 	Result parse_song(const char *f);
 };

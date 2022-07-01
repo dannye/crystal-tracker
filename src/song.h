@@ -5,10 +5,9 @@
 
 #include "utils.h"
 #include "command.h"
+#include "parse-song.h"
 
 class Song {
-public:
-	enum class Result { SONG_OK, SONG_BAD_FILE, SONG_NULL };
 private:
 	std::string _song_name;
 	int32_t     _number_of_channels = 0;
@@ -24,16 +23,19 @@ private:
 	std::list<Note_View> _channel_2_timeline;
 	std::list<Note_View> _channel_3_timeline;
 	std::list<Note_View> _channel_4_timeline;
-	Result _result = Result::SONG_NULL;
+	Parsed_Song::Result _result = Parsed_Song::Result::SONG_NULL;
 	bool _loaded = false;
+
+	std::string _error_message;
 public:
 	Song();
 	~Song();
-	inline Result result(void) const { return _result; }
+	inline Parsed_Song::Result result(void) const { return _result; }
 	inline bool loaded(void) const { return _loaded; }
 	void clear();
-	Result read_song(const char *f);
+	Parsed_Song::Result read_song(const char *f);
 	void new_song();
+	const char *error_message() const { return _error_message.c_str(); };
 
 	std::string channel_1_commands_str() const { return commands_str(_channel_1_commands); }
 	std::string channel_2_commands_str() const { return commands_str(_channel_2_commands); }
@@ -46,8 +48,7 @@ public:
 	const std::list<Note_View> &channel_4_timeline() const { return _channel_4_timeline; }
 private:
 	std::string commands_str(const std::list<Command> &commands) const;
-public:
-	static const char *error_message(Result result);
+	std::string get_error_message(Parsed_Song parsed_song);
 };
 
 #endif

@@ -504,11 +504,11 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 
 	if (filename) {
 		basename = fl_filename_name(_asm_file.c_str());
-		Song::Result r = _song.read_song(filename);
-		if (r != Song::Result::SONG_OK) {
+		Parsed_Song::Result r = _song.read_song(filename);
+		if (r != Parsed_Song::Result::SONG_OK) {
 			_song.clear();
 			std::string msg = "Error reading ";
-			msg = msg + basename + "!\n\n" + Song::error_message(r);
+			msg = msg + basename + "!\n\n" + _song.error_message();
 			_error_dialog->message(msg);
 			_error_dialog->show(this);
 			return;
