@@ -95,7 +95,7 @@ static inline void patch_int(std::vector<uint8_t> &data, const uint32_t i, const
 
 static std::vector<std::vector<uint8_t>> get_instruments(const Song &song) {
 	std::vector<std::vector<uint8_t>> instruments;
-	return std::move(instruments);
+	return instruments;
 }
 
 static std::vector<std::vector<uint8_t>> get_samples(const Song &song, const std::vector<Wave> &waves) {
@@ -254,7 +254,7 @@ static std::vector<std::vector<uint8_t>> get_samples(const Song &song, const std
 		samples.push_back(std::move(sample));
 	}
 
-	return std::move(samples);
+	return samples;
 }
 
 static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
@@ -264,14 +264,14 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 	auto channel_2_itr = song.channel_2_timeline().begin();
 	auto channel_3_itr = song.channel_3_timeline().begin();
 	/* auto channel_4_itr = song.channel_4_timeline().begin(); */
-	uint32_t channel_1_note_length = 0;
-	uint32_t channel_2_note_length = 0;
-	uint32_t channel_3_note_length = 0;
-	/* uint32_t channel_4_note_length = 0; */
-	uint32_t channel_1_note_duration = 0;
-	uint32_t channel_2_note_duration = 0;
-	uint32_t channel_3_note_duration = 0;
-	/* uint32_t channel_4_note_duration = 0; */
+	int32_t channel_1_note_length = 0;
+	int32_t channel_2_note_length = 0;
+	int32_t channel_3_note_length = 0;
+	/* int32_t channel_4_note_length = 0; */
+	int32_t channel_1_note_duration = 0;
+	int32_t channel_2_note_duration = 0;
+	int32_t channel_3_note_duration = 0;
+	/* int32_t channel_4_note_duration = 0; */
 
 	Note_View channel_1_prev_note;
 	Note_View channel_2_prev_note;
@@ -290,7 +290,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 	auto convert_tempo = [](int32_t tempo) {
 		// this is a purely empirical approximation.
 		// i have no idea what the real formula is.
-		int32_t bpm = std::log2(tempo - 75.0) * -75.0 / 2.0 + 360.0;
+		int32_t bpm = (int32_t)(std::log2(tempo - 75.0) * -75.0 / 2.0 + 360.0);
 		if (bpm < 32)  bpm = 32;
 		if (bpm > 255) bpm = 255;
 		return (uint8_t)bpm;
@@ -472,7 +472,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 		channel_3_itr != song.channel_3_timeline().end()
 	);
 
-	return std::move(patterns);
+	return patterns;
 }
 
 static std::size_t get_total_size(const std::vector<std::vector<uint8_t>> &data) {

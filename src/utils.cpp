@@ -184,6 +184,16 @@ void open_ifstream(std::ifstream &ifs, const char *f) {
 #endif
 }
 
+void open_ofstream(std::ofstream &ofs, const char *f) {
+#ifdef _WIN32
+	wchar_t wf[FL_PATH_MAX] = {};
+	fl_utf8towc(f, strlen(f), wf, sizeof(wf));
+	ofs.open(wf, std::ios::binary);
+#else
+	ofs.open(f, std::ios::binary);
+#endif
+}
+
 void draw_outlined_text(const char *l, int x, int y, int w, int h, Fl_Align a, Fl_Color c, Fl_Color s) {
 	fl_color(s);
 	fl_draw(l, x-1, y-1, w, h, a);

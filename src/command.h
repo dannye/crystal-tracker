@@ -65,29 +65,29 @@ enum class Command_Type {
 };
 
 static const char * const COMMAND_NAMES[] = {
-	"NOTE",
-	"DRUM_NOTE",
-	"REST",
-	"OCTAVE",
-	"NOTE_TYPE",
-	"DRUM_SPEED",
-	"TRANSPOSE",
-	"TEMPO",
-	"DUTY_CYCLE",
-	"VOLUME_ENVELOPE",
-	"PITCH_SWEEP",
-	"DUTY_CYCLE_PATTERN",
-	"PITCH_SLIDE",
-	"VIBRATO",
-	"TOGGLE_NOISE",
-	"FORCE_STEREO_PANNING",
-	"VOLUME",
-	"PITCH_OFFSET",
-	"STEREO_PANNING",
-	"SOUND_JUMP",
-	"SOUND_LOOP",
-	"SOUND_CALL",
-	"SOUND_RET",
+	"note",
+	"drum_note",
+	"rest",
+	"octave",
+	"note_type",
+	"drum_speed",
+	"transpose",
+	"tempo",
+	"duty_cycle",
+	"volume_envelope",
+	"pitch_sweep",
+	"duty_cycle_pattern",
+	"pitch_slide",
+	"vibrato",
+	"toggle_noise",
+	"force_stereo_panning",
+	"volume",
+	"pitch_offset",
+	"stereo_panning",
+	"sound_jump",
+	"sound_loop",
+	"sound_call",
+	"sound_ret",
 };
 
 struct Command {
@@ -231,8 +231,9 @@ struct Command {
 	};
 
 	Command() {}
-	Command(Command_Type t) {
+	Command(Command_Type t, const std::string& label) {
 		type = t;
+		labels.insert(label);
 	}
 };
 

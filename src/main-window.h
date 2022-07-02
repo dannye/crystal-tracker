@@ -60,8 +60,8 @@ private:
 		*_play_stop_mi = NULL;
 	// Dialogs
 	Directory_Chooser *_new_dir_chooser;
-	Fl_Native_File_Chooser *_asm_open_chooser;
-	Modal_Dialog *_error_dialog, *_warning_dialog, *_success_dialog, *_about_dialog;
+	Fl_Native_File_Chooser *_asm_open_chooser, *_asm_save_chooser;
+	Modal_Dialog *_error_dialog, *_warning_dialog, *_success_dialog, *_unsaved_dialog, *_about_dialog;
 	Help_Window *_help_window;
 	// Data
 	std::string _status_message = "Ready";
@@ -87,6 +87,8 @@ public:
 	void resize(int X, int Y, int W, int H) override;
 	bool maximized(void) const;
 	void maximize(void);
+	bool unsaved(void) const;
+	const char *modified_filename(void);
 	int handle(int event) override;
 	void open_song(const char *filename);
 private:
@@ -95,6 +97,7 @@ private:
 	void update_recent_songs(void);
 	void open_song(const char *directory, const char *filename);
 	void open_recent(int n);
+	bool save_song(bool force);
 	void toggle_playback();
 	void start_audio_thread();
 	void stop_audio_thread();

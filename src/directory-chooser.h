@@ -18,6 +18,7 @@ public:
 	inline const char *title(void) const { return _title; }
 	inline void title(const char *t) { _title = t; }
 	inline const char *filename(void) const { return _filename; }
+	inline void directory(const char*) { /* TODO */ }
 	int show();
 };
 

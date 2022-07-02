@@ -79,9 +79,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	// Dialogs
 	_new_dir_chooser = new Directory_Chooser(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
 	_asm_open_chooser = new Fl_Native_File_Chooser(Fl_Native_File_Chooser::BROWSE_FILE);
+	_asm_save_chooser = new Fl_Native_File_Chooser(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
 	_error_dialog = new Modal_Dialog(this, "Error", Modal_Dialog::Icon::ERROR_ICON);
 	_warning_dialog = new Modal_Dialog(this, "Warning", Modal_Dialog::Icon::WARNING_ICON);
 	_success_dialog = new Modal_Dialog(this, "Success", Modal_Dialog::Icon::SUCCESS_ICON);
+	_unsaved_dialog = new Modal_Dialog(this, "Warning", Modal_Dialog::Icon::WARNING_ICON, true);
 	_about_dialog = new Modal_Dialog(this, "About " PROGRAM_NAME, Modal_Dialog::Icon::APP_ICON);
 	_help_window = new Help_Window(48, 48, 700, 500, PROGRAM_NAME " Help");
 
@@ -261,9 +263,15 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_asm_open_chooser->title("Open Song");
 	_asm_open_chooser->filter("ASM Files\t*.asm\n");
 
+	_asm_save_chooser->title("Save Song");
+	_asm_save_chooser->filter("ASM Files\t*.asm\n");
+	_asm_save_chooser->options(Fl_Native_File_Chooser::Option::SAVEAS_CONFIRM);
+	_asm_save_chooser->preset_file("NewSong.asm");
+
 	_error_dialog->width_range(280, 700);
 	_warning_dialog->width_range(280, 700);
 	_success_dialog->width_range(280, 700);
+	_unsaved_dialog->width_range(280, 700);
 
 	std::string subject(PROGRAM_NAME " " PROGRAM_VERSION_STRING), message(
 		"Copyright \xc2\xa9 " CURRENT_YEAR " " PROGRAM_AUTHOR ".\n"
@@ -293,9 +301,11 @@ Main_Window::~Main_Window() {
 	delete _piano_roll;
 	delete _new_dir_chooser;
 	delete _asm_open_chooser;
+	delete _asm_save_chooser;
 	delete _error_dialog;
 	delete _warning_dialog;
 	delete _success_dialog;
+	delete _unsaved_dialog;
 	delete _about_dialog;
 	delete _help_window;
 	if (_it_module) {
@@ -365,6 +375,15 @@ void Main_Window::maximize() {
 	event.xclient.data.l[3] = 1;
 	XSendEvent(fl_display, DefaultRootWindow(fl_display), False, SubstructureNotifyMask | SubstructureNotifyMask, &event);
 #endif
+}
+
+bool Main_Window::unsaved() const {
+	return _song.loaded() && _song.modified();
+}
+
+const char *Main_Window::modified_filename() {
+	if (_asm_file.empty()) { return NEW_SONG_NAME; }
+	return fl_filename_name(_asm_file.c_str());
 }
 
 int Main_Window::handle(int event) {
@@ -480,9 +499,13 @@ void Main_Window::open_song(const char *filename) {
 }
 
 void Main_Window::open_song(const char *directory, const char *filename) {
+	_song.modified(false);
 	close_cb(NULL, this);
 
 	_directory = directory;
+	_new_dir_chooser->directory(directory);
+	_asm_open_chooser->directory(directory);
+	_asm_save_chooser->directory(directory);
 	if (filename) {
 		_asm_file = filename;
 	}
@@ -520,6 +543,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	}
 	else {
 		basename = NEW_SONG_NAME;
+		_song.modified(true);
 		_song.new_song();
 	}
 
@@ -546,8 +570,58 @@ void Main_Window::open_recent(int n) {
 		return;
 	}
 
+	if (unsaved()) {
+		std::string msg = modified_filename();
+		msg = msg + " has unsaved changes!\n\n"
+			"Open another song anyway?";
+		_unsaved_dialog->message(msg);
+		_unsaved_dialog->show(this);
+		if (_unsaved_dialog->canceled()) { return; }
+	}
+
 	const char *filename = _recent[n].c_str();
 	open_song(filename);
+}
+
+bool Main_Window::save_song(bool force) {
+	const char *filename = _asm_file.c_str();
+	const char *basename = fl_filename_name(filename);
+
+	if (_song.modified() && _song.other_modified(filename)) {
+		std::string msg = basename;
+		msg = msg + " was modified by another program!\n\n"
+			"Save the song and overwrite it anyway?";
+		_unsaved_dialog->message(msg);
+		_unsaved_dialog->show(this);
+		if (_unsaved_dialog->canceled()) { return true; }
+	}
+
+	if (_song.modified() || force) {
+		if (!_song.write_song(filename)) {
+			std::string msg = "Could not write to ";
+			msg = msg + basename + "!";
+			_error_dialog->message(msg);
+			_error_dialog->show(this);
+			return false;
+		}
+
+		_song.modified(false);
+	}
+
+	if (force) {
+		store_recent_song();
+	}
+
+	std::string msg = "Saved ";
+	msg = msg + basename + "!";
+	_success_dialog->message(msg);
+	_success_dialog->show(this);
+
+	_status_message = "Saved ";
+	_status_message += basename;
+	_status_label->label(_status_message.c_str());
+
+	return true;
 }
 
 void Main_Window::toggle_playback() {
@@ -600,6 +674,15 @@ void Main_Window::update_icons() {
 }
 
 void Main_Window::new_cb(Fl_Widget *, Main_Window *mw) {
+	if (mw->unsaved()) {
+		std::string msg = mw->modified_filename();
+		msg = msg + " has unsaved changes!\n\n"
+			"Create a new song anyway?";
+		mw->_unsaved_dialog->message(msg);
+		mw->_unsaved_dialog->show(mw);
+		if (mw->_unsaved_dialog->canceled()) { return; }
+	}
+
 	char directory[FL_PATH_MAX] = {};
 
 	if (!mw->_directory.size()) {
@@ -625,6 +708,15 @@ void Main_Window::new_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::open_cb(Fl_Widget *, Main_Window *mw) {
+	if (mw->unsaved()) {
+		std::string msg = mw->modified_filename();
+		msg = msg + " has unsaved changes!\n\n"
+			"Open another song anyway?";
+		mw->_unsaved_dialog->message(msg);
+		mw->_unsaved_dialog->show(mw);
+		if (mw->_unsaved_dialog->canceled()) { return; }
+	}
+
 	int status = mw->_asm_open_chooser->show();
 	if (status == 1) { return; }
 
@@ -660,6 +752,15 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 
 	if (!mw->_song.loaded()) { return; }
 
+	if (mw->unsaved()) {
+		std::string msg = mw->modified_filename();
+		msg = msg + " has unsaved changes!\n\n"
+			"Close it anyway?";
+		mw->_unsaved_dialog->message(msg);
+		mw->_unsaved_dialog->show(mw);
+		if (mw->_unsaved_dialog->canceled()) { return; }
+	}
+
 	const char *basename;
 	if (mw->_asm_file.size()) {
 		basename = fl_filename_name(mw->_asm_file.c_str());
@@ -689,17 +790,66 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::save_cb(Fl_Widget *, Main_Window *mw) {
-	//
+void Main_Window::save_cb(Fl_Widget *w, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+
+	if (mw->_asm_file.empty()) {
+		save_as_cb(w, mw);
+	}
+	else {
+		mw->save_song(false);
+	}
 }
 
 void Main_Window::save_as_cb(Fl_Widget *, Main_Window *mw) {
-	//
+	if (!mw->_song.loaded()) { return; }
+
+	int status = mw->_asm_save_chooser->show();
+	if (status == 1) { return; }
+
+	char filename[FL_PATH_MAX] = {};
+	add_dot_ext(mw->_asm_save_chooser->filename(), ".asm", filename);
+	const char *basename = fl_filename_name(filename);
+
+	if (status == -1) {
+		std::string msg = "Could not open ";
+		msg = msg + basename + "!\n\n" + mw->_asm_save_chooser->errmsg();
+		mw->_error_dialog->message(msg);
+		mw->_error_dialog->show(mw);
+		return;
+	}
+
+	char directory[FL_PATH_MAX] = {};
+	if (!Config::project_path_from_asm_path(filename, directory)) {
+		std::string msg = "Could not get project directory for ";
+		msg = msg + basename + "!";
+		mw->_error_dialog->message(msg);
+		mw->_error_dialog->show(mw);
+		return;
+	}
+
+	mw->_directory.assign(directory);
+	mw->_asm_file.assign(filename);
+
+	char buffer[FL_PATH_MAX] = {};
+	sprintf(buffer, PROGRAM_NAME " - %s", basename);
+	mw->copy_label(buffer);
+
+	mw->save_song(true);
 }
 
 void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 	// Override default behavior of Esc to close main window
 	if (Fl::event() == FL_SHORTCUT && Fl::event_key() == FL_Escape) { return; }
+
+	if (mw->unsaved()) {
+		std::string msg = mw->modified_filename();
+		msg = msg + " has unsaved changes!\n\n"
+			"Exit anyway?";
+		mw->_unsaved_dialog->message(msg);
+		mw->_unsaved_dialog->show(mw);
+		if (mw->_unsaved_dialog->canceled()) { return; }
+	}
 
 	// Save global config
 	Preferences::set("theme", (int)OS::current_theme());

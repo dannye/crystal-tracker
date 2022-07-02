@@ -19,7 +19,7 @@ public:
 	Parsed_Waves(const char *d);
 	inline ~Parsed_Waves() {}
 	inline std::string waves_file(void) const { return _waves_file; }
-	inline std::vector<Wave> waves(void) const { return std::move(_waves); }
+	inline std::vector<Wave> waves(void) { return std::move(_waves); }
 	inline Result result(void) const { return _result; }
 private:
 	Result parse_waves(const char *d);

@@ -80,10 +80,10 @@
     <ClInclude Include="..\src\hex-spinner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\it-module.h">
+    <ClInclude Include="..\src\icons.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\icons.h">
+    <ClInclude Include="..\src\it-module.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\main-window.h">
@@ -150,6 +150,24 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\help.html">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\new.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\open.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\play.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\save.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\save-as.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\stop.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\success.xpm">

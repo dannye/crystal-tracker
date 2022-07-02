@@ -87,6 +87,7 @@ size_t file_size(const char *f);
 size_t file_size(FILE *f);
 int64_t file_modified(const char *f);
 void open_ifstream(std::ifstream &ifs, const char *f);
+void open_ofstream(std::ofstream &ofs, const char *f);
 void draw_outlined_text(const char *l, int x, int y, int w, int h, Fl_Align a, Fl_Color c, Fl_Color s);
 
 bool parse_value(std::string s, int32_t &v);

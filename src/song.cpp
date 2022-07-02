@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <fstream>
 #include <stack>
 
 #include "song.h"
@@ -110,7 +111,7 @@ static std::list<Note_View> build_timeline(const std::list<Command> &commands) {
 		}
 		++command_itr;
 	}
-	return std::move(timeline);
+	return timeline;
 }
 
 Song::Song() {}
@@ -135,6 +136,8 @@ void Song::clear() {
 	_channel_3_timeline.clear();
 	_channel_4_timeline.clear();
 	_result = Parsed_Song::Result::SONG_NULL;
+	_modified = false;
+	_mod_time = 0;
 	_loaded = false;
 }
 
@@ -160,6 +163,8 @@ Parsed_Song::Result Song::read_song(const char *f) {
 	_channel_3_timeline = build_timeline(_channel_3_commands);
 	_channel_4_timeline = build_timeline(_channel_4_commands);
 
+	_mod_time = file_modified(f);
+
 	_loaded = true;
 	return (_result = Parsed_Song::Result::SONG_OK);
 }
@@ -171,23 +176,70 @@ void Song::new_song() {
 	_channel_2_label = "NewSong_Ch2";
 	_channel_3_label = "NewSong_Ch3";
 	_channel_4_label = "NewSong_Ch4";
-	_channel_1_commands = { Command(Command_Type::SOUND_RET) };
-	_channel_2_commands = { Command(Command_Type::SOUND_RET) };
-	_channel_3_commands = { Command(Command_Type::SOUND_RET) };
-	_channel_4_commands = { Command(Command_Type::SOUND_RET) };
+	_channel_1_commands = { Command(Command_Type::SOUND_RET, _channel_1_label) };
+	_channel_2_commands = { Command(Command_Type::SOUND_RET, _channel_2_label) };
+	_channel_3_commands = { Command(Command_Type::SOUND_RET, _channel_3_label) };
+	_channel_4_commands = { Command(Command_Type::SOUND_RET, _channel_4_label) };
 	_channel_1_timeline = build_timeline(_channel_1_commands);
 	_channel_2_timeline = build_timeline(_channel_2_commands);
 	_channel_3_timeline = build_timeline(_channel_3_commands);
 	_channel_4_timeline = build_timeline(_channel_4_commands);
 
+	_mod_time = 0;
+
 	_loaded = true;
 	_result = Parsed_Song::Result::SONG_OK;
 }
 
+bool Song::write_song(const char *f) {
+	std::ofstream ofs;
+	open_ofstream(ofs, f);
+	if (!ofs.good()) { return false; }
+
+	ofs << _song_name << ":\n";
+	ofs << "\tchannel_count " << _number_of_channels << '\n';
+	if (_channel_1_label.size()) {
+		ofs << "\tchannel 1, " << _channel_1_label << '\n';
+	}
+	if (_channel_2_label.size()) {
+		ofs << "\tchannel 2, " << _channel_2_label << '\n';
+	}
+	if (_channel_3_label.size()) {
+		ofs << "\tchannel 3, " << _channel_3_label << '\n';
+	}
+	if (_channel_4_label.size()) {
+		ofs << "\tchannel 4, " << _channel_4_label << '\n';
+	}
+	if (_channel_1_label.size()) {
+		ofs << '\n' << commands_str(_channel_1_commands);
+	}
+	if (_channel_2_label.size()) {
+		ofs << '\n' << commands_str(_channel_2_commands);
+	}
+	if (_channel_3_label.size()) {
+		ofs << '\n' << commands_str(_channel_3_commands);
+	}
+	if (_channel_4_label.size()) {
+		ofs << '\n' << commands_str(_channel_4_commands);
+	}
+	ofs.close();
+
+	_mod_time = file_modified(f);
+	return true;
+}
+
 std::string Song::commands_str(const std::list<Command> &commands) const {
+	const auto to_local_label = [](const std::string &label) {
+		std::size_t dot = label.find_first_of(".");
+		return dot != std::string::npos ? &label[dot] : label.c_str();
+	};
+
 	std::string str;
 	for (const Command &command : commands) {
-		str += COMMAND_NAMES[(uint32_t)command.type];
+		for (const std::string &label : command.labels) {
+			str = str + to_local_label(label) + ":\n";
+		}
+		str = str + "\t" + COMMAND_NAMES[(uint32_t)command.type];
 		if (command.type == Command_Type::NOTE) {
 			str = str + " " + PITCH_NAMES[(uint32_t)command.note.pitch] + ", " + std::to_string(command.note.length);
 		}
@@ -234,7 +286,7 @@ std::string Song::commands_str(const std::list<Command> &commands) const {
 			str = str + " " + std::to_string(command.toggle_noise.drumkit);
 		}
 		else if (command.type == Command_Type::FORCE_STEREO_PANNING) {
-			str = str + " " + std::to_string(command.force_stereo_panning.left) + ", " + std::to_string(command.force_stereo_panning.right);
+			str = str + " " + (command.force_stereo_panning.left ? "TRUE" : "FALSE") + ", " + (command.force_stereo_panning.right ? "TRUE" : "FALSE");
 		}
 		else if (command.type == Command_Type::VOLUME) {
 			str = str + " " + std::to_string(command.volume.left) + ", " + std::to_string(command.volume.right);
@@ -243,19 +295,27 @@ std::string Song::commands_str(const std::list<Command> &commands) const {
 			str = str + " " + std::to_string(command.pitch_offset.offset);
 		}
 		else if (command.type == Command_Type::STEREO_PANNING) {
-			str = str + " " + std::to_string(command.stereo_panning.left) + ", " + std::to_string(command.stereo_panning.right);
+			str = str + " " + (command.stereo_panning.left ? "TRUE" : "FALSE") + ", " + (command.stereo_panning.right ? "TRUE" : "FALSE");
 		}
 		else if (command.type == Command_Type::SOUND_JUMP) {
-			str = str + " " + command.target;
+			str = str + " " + to_local_label(command.target);
 		}
 		else if (command.type == Command_Type::SOUND_LOOP) {
-			str = str + " " + std::to_string(command.sound_loop.loop_count) + ", " + command.target;
+			str = str + " " + std::to_string(command.sound_loop.loop_count) + ", " + to_local_label(command.target);
+			if (command.sound_loop.loop_count == 0) {
+				str = str + "\n";
+			}
 		}
 		else if (command.type == Command_Type::SOUND_CALL) {
-			str = str + " " + command.target;
+			str = str + " " + to_local_label(command.target);
+		}
+		else if (command.type == Command_Type::SOUND_RET) {
+			str = str + "\n";
 		}
 		str += "\n";
 	}
+	rtrim(str);
+	str += "\n";
 	return str;
 }
 

@@ -44,10 +44,10 @@ public:
 	inline std::string channel_2_label(void) const { return _channel_2_label; }
 	inline std::string channel_3_label(void) const { return _channel_3_label; }
 	inline std::string channel_4_label(void) const { return _channel_4_label; }
-	inline std::list<Command> channel_1_commands(void) const { return std::move(_channel_1_commands); }
-	inline std::list<Command> channel_2_commands(void) const { return std::move(_channel_2_commands); }
-	inline std::list<Command> channel_3_commands(void) const { return std::move(_channel_3_commands); }
-	inline std::list<Command> channel_4_commands(void) const { return std::move(_channel_4_commands); }
+	inline std::list<Command> channel_1_commands(void) { return std::move(_channel_1_commands); }
+	inline std::list<Command> channel_2_commands(void) { return std::move(_channel_2_commands); }
+	inline std::list<Command> channel_3_commands(void) { return std::move(_channel_3_commands); }
+	inline std::list<Command> channel_4_commands(void) { return std::move(_channel_4_commands); }
 	inline Result result(void) const { return _result; }
 	inline int32_t line_number(void) const { return _line_number; }
 	inline int32_t channel_number(void) const { return _channel_number; }

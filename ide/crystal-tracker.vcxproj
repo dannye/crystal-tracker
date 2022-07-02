@@ -127,8 +127,8 @@
     <ClInclude Include="..\src\directory-chooser.h" />
     <ClInclude Include="..\src\help-window.h" />
     <ClInclude Include="..\src\hex-spinner.h" />
-    <ClInclude Include="..\src\it-module.h" />
     <ClInclude Include="..\src\icons.h" />
+    <ClInclude Include="..\src\it-module.h" />
     <ClInclude Include="..\src\main-window.h" />
     <ClInclude Include="..\src\modal-dialog.h" />
     <ClInclude Include="..\src\parse-song.h" />
@@ -155,6 +155,12 @@
     <None Include="..\res\brushed-metal.dat" />
     <None Include="..\res\error.xpm" />
     <None Include="..\res\help.html" />
+    <None Include="..\res\new.xpm" />
+    <None Include="..\res\open.xpm" />
+    <None Include="..\res\play.xpm" />
+    <None Include="..\res\save.xpm" />
+    <None Include="..\res\save-as.xpm" />
+    <None Include="..\res\stop.xpm" />
     <None Include="..\res\success.xpm" />
     <None Include="..\res\warning.xpm" />
   </ItemGroup>
