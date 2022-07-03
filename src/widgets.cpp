@@ -583,7 +583,7 @@ int Toolbar_Button::handle(int event) {
 		if (Fl::event_key() == ' ') {
 			return 0;
 		}
-		[[fallthrough]];
+		break;
 	case FL_PUSH:
 		Fl::focus(this);
 	}

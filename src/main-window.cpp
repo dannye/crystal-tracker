@@ -414,6 +414,12 @@ int Main_Window::handle(int event) {
 		else if (key == '4') {
 			_piano_roll->toggle_channel_4_box_type();
 		}
+#ifdef __APPLE__
+		else if (key == FL_Escape) {
+			stop_playback();
+			return 1;
+		}
+#endif
 		[[fallthrough]];
 	default:
 		return Fl_Double_Window::handle(event);
