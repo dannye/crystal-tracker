@@ -48,7 +48,8 @@ private:
 		*_open_tb = NULL,
 		*_save_tb = NULL,
 		*_save_as_tb = NULL,
-		*_play_stop_tb = NULL;
+		*_play_pause_tb = NULL,
+		*_stop_tb = NULL;
 	// GUI outputs
 	Piano_Roll *_piano_roll = NULL;
 	Label *_status_label;
@@ -57,7 +58,8 @@ private:
 		*_close_mi = NULL,
 		*_save_mi = NULL,
 		*_save_as_mi = NULL,
-		*_play_stop_mi = NULL;
+		*_play_pause_mi = NULL,
+		*_stop_mi = NULL;
 	// Dialogs
 	Directory_Chooser *_new_dir_chooser;
 	Fl_Native_File_Chooser *_asm_open_chooser, *_asm_save_chooser;
@@ -99,6 +101,7 @@ private:
 	void open_recent(int n);
 	bool save_song(bool force);
 	void toggle_playback();
+	void stop_playback();
 	void start_audio_thread();
 	void stop_audio_thread();
 	void update_icons(void);
@@ -112,7 +115,8 @@ private:
 	static void save_as_cb(Fl_Widget *w, Main_Window *mw);
 	static void exit_cb(Fl_Widget *w, Main_Window *mw);
 	// Play menu
-	static void play_stop_cb(Fl_Widget *w, Main_Window *mw);
+	static void play_pause_cb(Fl_Widget *w, Main_Window *mw);
+	static void stop_cb(Fl_Widget *w, Main_Window *mw);
 	// View menu
 	static void classic_theme_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void aero_theme_cb(Fl_Menu_ *m, Main_Window *mw);

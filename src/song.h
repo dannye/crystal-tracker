@@ -41,7 +41,7 @@ public:
 	Parsed_Song::Result read_song(const char *f);
 	void new_song();
 	bool write_song(const char *f);
-	const char *error_message() const { return _error_message.c_str(); };
+	const char *error_message() const { return _error_message.c_str(); }
 
 	const std::list<Note_View> &channel_1_timeline() const { return _channel_1_timeline; }
 	const std::list<Note_View> &channel_2_timeline() const { return _channel_2_timeline; }

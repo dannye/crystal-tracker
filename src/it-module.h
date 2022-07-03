@@ -25,6 +25,8 @@ private:
 
 	int32_t _current_pattern = 0;
 	int32_t _current_row = 0;
+
+	bool _paused = false;
 public:
 	IT_Module(const Song &song, const std::vector<Wave> &waves);
 	~IT_Module() noexcept;
@@ -33,10 +35,13 @@ public:
 	IT_Module& operator=(const IT_Module&) = delete;
 
 	bool ready() const { return _stream.isOpen(); }
-	bool is_playing() { return Pa_IsStreamActive(_stream.paStream()) == 1; }
+	bool playing() { return Pa_IsStreamActive(_stream.paStream()) == 1; }
+	bool paused() const { return _paused; }
+	bool stopped() { return !playing() && !paused(); }
 
-	bool start() { return Pa_StartStream(_stream.paStream()) == paNoError; };
-	bool stop() { return Pa_StopStream(_stream.paStream()) == paNoError; };
+	bool start()   { _paused = false; return Pa_StartStream(_stream.paStream()) == paNoError; }
+	bool stop()    { _paused = false; return Pa_StopStream(_stream.paStream())  == paNoError; }
+	bool pause()   { _paused = true;  return Pa_StopStream(_stream.paStream())  == paNoError; }
 	void play();
 
 	int32_t current_tick() const { return (_current_pattern * ROWS_PER_PATTERN + _current_row) / DEFAULT_ROWS_PER_TICK; }

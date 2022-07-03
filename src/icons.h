@@ -8,6 +8,7 @@
 #include "blank.xpm"
 #include "new.xpm"
 #include "open.xpm"
+#include "pause.xpm"
 #include "play.xpm"
 #include "save.xpm"
 #include "save-as.xpm"
@@ -16,6 +17,7 @@
 static Fl_Pixmap BLANK_ICON(BLANK_XPM);
 static Fl_Pixmap NEW_ICON(NEW_XPM);
 static Fl_Pixmap OPEN_ICON(OPEN_XPM);
+static Fl_Pixmap PAUSE_ICON(PAUSE_XPM);
 static Fl_Pixmap PLAY_ICON(PLAY_XPM);
 static Fl_Pixmap SAVE_ICON(SAVE_XPM);
 static Fl_Pixmap SAVE_AS_ICON(SAVE_AS_XPM);

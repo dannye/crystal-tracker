@@ -25,7 +25,7 @@ IT_Module::~IT_Module() noexcept {
 }
 
 void IT_Module::play() {
-	if (!ready() || !is_playing()) return;
+	if (!ready() || !playing()) return;
 
 	std::size_t count = _is_interleaved ?
 		_mod->read_interleaved_stereo(SAMPLE_RATE, BUFFER_SIZE, _buffer.data()) :

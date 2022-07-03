@@ -62,7 +62,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_save_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_save_as_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	SEPARATE_TOOLBAR_BUTTONS;
-	_play_stop_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_play_pause_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_stop_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_toolbar->end();
 	begin();
 
@@ -136,7 +137,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 #endif
 		{},
 		OS_SUBMENU("&Play"),
-		OS_MENU_ITEM("&Play/Stop", ' ', (Fl_Callback *)play_stop_cb, this, 0),
+		OS_MENU_ITEM("&Play/Pause", ' ', (Fl_Callback *)play_pause_cb, this, 0),
+		OS_MENU_ITEM("&Stop", FL_Escape, (Fl_Callback *)stop_cb, this, 0),
 		{},
 		OS_SUBMENU("&View"),
 		OS_MENU_ITEM("&Theme", 0, NULL, NULL, FL_SUBMENU),
@@ -210,7 +212,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_close_mi = CT_FIND_MENU_ITEM_CB(close_cb);
 	_save_mi = CT_FIND_MENU_ITEM_CB(save_cb);
 	_save_as_mi = CT_FIND_MENU_ITEM_CB(save_as_cb);
-	_play_stop_mi = CT_FIND_MENU_ITEM_CB(play_stop_cb);
+	_play_pause_mi = CT_FIND_MENU_ITEM_CB(play_pause_cb);
+	_stop_mi = CT_FIND_MENU_ITEM_CB(stop_cb);
 #undef CT_FIND_MENU_ITEM_CB
 
 #ifndef __APPLE__
@@ -252,9 +255,13 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_save_as_tb->callback((Fl_Callback *)save_as_cb, this);
 	_save_as_tb->image(SAVE_AS_ICON);
 
-	_play_stop_tb->tooltip("Play/Stop (Spacebar)");
-	_play_stop_tb->callback((Fl_Callback *)play_stop_cb, this);
-	_play_stop_tb->image(PLAY_ICON);
+	_play_pause_tb->tooltip("Play/Pause (Spacebar)");
+	_play_pause_tb->callback((Fl_Callback *)play_pause_cb, this);
+	_play_pause_tb->image(PLAY_ICON);
+
+	_stop_tb->tooltip("Stop (Esc)");
+	_stop_tb->callback((Fl_Callback *)stop_cb, this);
+	_stop_tb->image(STOP_ICON);
 
 	// Configure dialogs
 
@@ -420,8 +427,23 @@ void Main_Window::update_active_controls() {
 		_save_tb->activate();
 		_save_as_mi->activate();
 		_save_as_tb->activate();
-		_play_stop_mi->activate();
-		_play_stop_tb->activate();
+		_play_pause_mi->activate();
+		_play_pause_tb->activate();
+		if (_it_module && _it_module->playing()) {
+			_play_pause_tb->image(PAUSE_ICON);
+		}
+		else {
+			_play_pause_tb->image(PLAY_ICON);
+		}
+		_play_pause_tb->redraw();
+		if (_it_module && !_it_module->stopped()) {
+			_stop_mi->activate();
+			_stop_tb->activate();
+		}
+		else {
+			_stop_mi->deactivate();
+			_stop_tb->deactivate();
+		}
 	}
 	else {
 		_close_mi->deactivate();
@@ -429,8 +451,12 @@ void Main_Window::update_active_controls() {
 		_save_tb->deactivate();
 		_save_as_mi->deactivate();
 		_save_as_tb->deactivate();
-		_play_stop_mi->deactivate();
-		_play_stop_tb->deactivate();
+		_play_pause_mi->deactivate();
+		_play_pause_tb->deactivate();
+		_play_pause_tb->image(PLAY_ICON);
+		_play_pause_tb->redraw();
+		_stop_mi->deactivate();
+		_stop_tb->deactivate();
 	}
 
 	_menu_bar->update();
@@ -627,7 +653,7 @@ bool Main_Window::save_song(bool force) {
 void Main_Window::toggle_playback() {
 	stop_audio_thread();
 
-	if (!_it_module || !_it_module->is_playing()) {
+	if (!_it_module || _it_module->stopped()) {
 		if (_it_module) {
 			delete _it_module;
 		}
@@ -635,16 +661,42 @@ void Main_Window::toggle_playback() {
 		if (_it_module->ready() && _it_module->start()) {
 			_piano_roll->start_following();
 			start_audio_thread();
-			_play_stop_tb->image(STOP_ICON);
-			_play_stop_tb->redraw();
+			update_active_controls();
 		}
-		// TODO: else, report error
+		else {
+			std::string msg = "There was a problem starting playback!";
+			_error_dialog->message(msg);
+			_error_dialog->show(this);
+			return;
+		}
 	}
-	else if (_it_module->is_playing()) {
+	else if (_it_module->paused()) {
+		if (_it_module->ready() && _it_module->start()) {
+			_piano_roll->unpause_following();
+			start_audio_thread();
+			update_active_controls();
+		}
+		else {
+			std::string msg = "There was a problem resuming playback!";
+			_error_dialog->message(msg);
+			_error_dialog->show(this);
+			return;
+		}
+	}
+	else { // if (_it_module->playing())
+		_it_module->pause();
+		_piano_roll->pause_following();
+		update_active_controls();
+	}
+}
+
+void Main_Window::stop_playback() {
+	stop_audio_thread();
+
+	if (_it_module && !_it_module->stopped()) {
 		_it_module->stop();
 		_piano_roll->stop_following();
-		_play_stop_tb->image(PLAY_ICON);
-		_play_stop_tb->redraw();
+		update_active_controls();
 	}
 }
 
@@ -668,7 +720,8 @@ void Main_Window::update_icons() {
 	make_deimage(_open_tb);
 	make_deimage(_save_tb);
 	make_deimage(_save_as_tb);
-	make_deimage(_play_stop_tb);
+	make_deimage(_play_pause_tb);
+	make_deimage(_stop_tb);
 }
 
 void Main_Window::new_cb(Fl_Widget *, Main_Window *mw) {
@@ -780,8 +833,6 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	mw->init_sizes();
 	mw->_directory.clear();
 	mw->_asm_file.clear();
-
-	mw->_play_stop_tb->image(PLAY_ICON);
 
 	mw->update_active_controls();
 	mw->_status_label->label(mw->_status_message.c_str());
@@ -902,8 +953,12 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 	exit(EXIT_SUCCESS);
 }
 
-void Main_Window::play_stop_cb(Fl_Widget *, Main_Window *mw) {
+void Main_Window::play_pause_cb(Fl_Widget *, Main_Window *mw) {
 	mw->toggle_playback();
+}
+
+void Main_Window::stop_cb(Fl_Widget *, Main_Window *mw) {
+	mw->stop_playback();
 }
 
 void Main_Window::classic_theme_cb(Fl_Menu_ *, Main_Window *mw) {
@@ -1003,7 +1058,7 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 	while (kill_signal.wait_for(std::chrono::milliseconds(8)) == std::future_status::timeout) {
 		if (mw->_audio_mutex.try_lock()) {
 			IT_Module *mod = mw->_it_module;
-			if (mod && mod->is_playing()) {
+			if (mod && mod->playing()) {
 				mod->play();
 				int32_t t = mod->current_tick();
 				if (t > tick) {
@@ -1024,14 +1079,13 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 void Main_Window::sync_cb(Main_Window *mw) {
 	mw->_audio_mutex.lock();
 	IT_Module *mod = mw->_it_module;
-	if (mod && mod->is_playing()) {
+	if (mod && mod->playing()) {
 		int32_t tick = mod->current_tick();
 		mw->_piano_roll->highlight_tick(tick);
 	}
-	else {
+	else if (!mod || mod->stopped()) {
 		mw->_piano_roll->stop_following();
-		mw->_play_stop_tb->image(PLAY_ICON);
-		mw->_play_stop_tb->redraw();
+		mw->update_active_controls();
 	}
 	mw->_audio_mutex.unlock();
 }

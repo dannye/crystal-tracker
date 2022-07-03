@@ -95,10 +95,10 @@ public:
 	void set_channel_3_timeline(const std::list<Note_View> &timeline) { set_channel_timeline(_channel_3_notes, timeline, NOTE_GREEN); }
 	void set_channel_4_timeline(const std::list<Note_View> &timeline) { set_channel_timeline(_channel_4_notes, timeline, NOTE_BROWN); }
 
-	Fl_Box *get_channel_1_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_1_notes, tick); };
-	Fl_Box *get_channel_2_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_2_notes, tick); };
-	Fl_Box *get_channel_3_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_3_notes, tick); };
-	Fl_Box *get_channel_4_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_4_notes, tick); };
+	Fl_Box *get_channel_1_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_1_notes, tick); }
+	Fl_Box *get_channel_2_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_2_notes, tick); }
+	Fl_Box *get_channel_3_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_3_notes, tick); }
+	Fl_Box *get_channel_4_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_4_notes, tick); }
 
 	void toggle_channel_1_box_type() { toggle_channel_box_type(_channel_1_notes); }
 	void toggle_channel_2_box_type() { toggle_channel_box_type(_channel_2_notes); }
@@ -120,7 +120,7 @@ class Piano_Roll : Fl_Scroll {
 	friend class Piano_Timeline;
 private:
 	Piano_Timeline *_piano_timeline;
-	int32_t _tick = 0;
+	int32_t _tick = -1;
 	bool _following = false;
 	bool _realtime = true;
 public:
@@ -147,7 +147,9 @@ public:
 	void clear();
 
 	void start_following();
+	void unpause_following();
 	void stop_following();
+	void pause_following();
 	void highlight_tick(int32_t t);
 private:
 	static void hscrollbar_cb(Fl_Scrollbar *sb, void *);
