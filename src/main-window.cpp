@@ -641,8 +641,8 @@ void Main_Window::toggle_playback() {
 		// TODO: else, report error
 	}
 	else if (_it_module->is_playing()) {
-		_piano_roll->stop_following();
 		_it_module->stop();
+		_piano_roll->stop_following();
 		_play_stop_tb->image(PLAY_ICON);
 		_play_stop_tb->redraw();
 	}
@@ -656,12 +656,10 @@ void Main_Window::start_audio_thread() {
 
 void Main_Window::stop_audio_thread() {
 	if (_audio_thread.joinable()) {
-		Fl::unlock();
 		_audio_mutex.lock();
 		_kill_signal.set_value();
 		_audio_thread.join();
 		_audio_mutex.unlock();
-		Fl::lock();
 	}
 }
 
@@ -1010,23 +1008,30 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 				int32_t t = mod->current_tick();
 				if (t > tick) {
 					tick = t;
-					Fl::lock();
-					mw->_piano_roll->highlight_tick(tick);
-					Fl::unlock();
-					Fl::awake();
+					Fl::awake((Fl_Awake_Handler)sync_cb, mw);
 				}
 				mw->_audio_mutex.unlock();
 			}
 			else {
-				Fl::lock();
-				mw->_piano_roll->stop_following();
-				mw->_play_stop_tb->image(PLAY_ICON);
-				mw->_play_stop_tb->redraw();
-				Fl::unlock();
-				Fl::awake();
+				Fl::awake((Fl_Awake_Handler)sync_cb, mw);
 				mw->_audio_mutex.unlock();
 				break;
 			}
 		}
 	}
+}
+
+void Main_Window::sync_cb(Main_Window *mw) {
+	mw->_audio_mutex.lock();
+	IT_Module *mod = mw->_it_module;
+	if (mod && mod->is_playing()) {
+		int32_t tick = mod->current_tick();
+		mw->_piano_roll->highlight_tick(tick);
+	}
+	else {
+		mw->_piano_roll->stop_following();
+		mw->_play_stop_tb->image(PLAY_ICON);
+		mw->_play_stop_tb->redraw();
+	}
+	mw->_audio_mutex.unlock();
 }

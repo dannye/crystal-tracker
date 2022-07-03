@@ -131,6 +131,7 @@ private:
 	static void about_cb(Fl_Widget *w, Main_Window *mw);
 	// Audio playback
 	static void playback_thread(Main_Window *mw, std::future<void> kill_signal);
+	static void sync_cb(Main_Window *mw);
 };
 
 #endif
