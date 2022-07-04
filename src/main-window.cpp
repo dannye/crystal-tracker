@@ -34,6 +34,9 @@ constexpr int STATUS_BAR_HEIGHT = 23;
 Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_Window(x, y, w, h, PROGRAM_NAME),
 	_wx(x), _wy(y), _ww(w), _wh(h) {
 
+	// Get global configs
+	int loop_config = Preferences::get("loop", 0);
+
 	for (int i = 0; i < NUM_RECENT; i++) {
 		_recent[i] = Preferences::get_string(Fl_Preferences::Name("recent%d", i));
 	}
@@ -64,6 +67,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	SEPARATE_TOOLBAR_BUTTONS;
 	_play_pause_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_stop_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_loop_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_toolbar->end();
 	begin();
 
@@ -138,7 +142,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		{},
 		OS_SUBMENU("&Play"),
 		OS_MENU_ITEM("&Play/Pause", ' ', (Fl_Callback *)play_pause_cb, this, 0),
-		OS_MENU_ITEM("&Stop", FL_Escape, (Fl_Callback *)stop_cb, this, 0),
+		OS_MENU_ITEM("&Stop", FL_Escape, (Fl_Callback *)stop_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("&Loop", FL_COMMAND + 'l', (Fl_Callback *)loop_cb, this,
+			FL_MENU_TOGGLE | (loop_config ? FL_MENU_VALUE : 0)),
 		{},
 		OS_SUBMENU("&View"),
 		OS_MENU_ITEM("&Theme", 0, NULL, NULL, FL_SUBMENU),
@@ -214,6 +220,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_save_as_mi = CT_FIND_MENU_ITEM_CB(save_as_cb);
 	_play_pause_mi = CT_FIND_MENU_ITEM_CB(play_pause_cb);
 	_stop_mi = CT_FIND_MENU_ITEM_CB(stop_cb);
+	_loop_mi = CT_FIND_MENU_ITEM_CB(loop_cb);
 #undef CT_FIND_MENU_ITEM_CB
 
 #ifndef __APPLE__
@@ -262,6 +269,12 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_stop_tb->tooltip("Stop (Esc)");
 	_stop_tb->callback((Fl_Callback *)stop_cb, this);
 	_stop_tb->image(STOP_ICON);
+
+	_loop_tb->tooltip("Loop (" COMMAND_KEY_PLUS "L)");
+	_loop_tb->callback((Fl_Callback *)loop_tb_cb, this);
+	_loop_tb->image(LOOP_ICON);
+	_loop_tb->shortcut(FL_COMMAND + 'L');
+	_loop_tb->value(loop());
 
 	// Configure dialogs
 
@@ -445,10 +458,14 @@ void Main_Window::update_active_controls() {
 		if (_it_module && !_it_module->stopped()) {
 			_stop_mi->activate();
 			_stop_tb->activate();
+			_loop_mi->deactivate();
+			_loop_tb->deactivate();
 		}
 		else {
 			_stop_mi->deactivate();
 			_stop_tb->deactivate();
+			_loop_mi->activate();
+			_loop_tb->activate();
 		}
 	}
 	else {
@@ -463,6 +480,8 @@ void Main_Window::update_active_controls() {
 		_play_pause_tb->redraw();
 		_stop_mi->deactivate();
 		_stop_tb->deactivate();
+		_loop_mi->activate();
+		_loop_tb->activate();
 	}
 
 	_menu_bar->update();
@@ -663,7 +682,8 @@ void Main_Window::toggle_playback() {
 		if (_it_module) {
 			delete _it_module;
 		}
-		_it_module = new IT_Module(_song, _waves);
+		int32_t loop_tick = loop() ? _song.get_loop_tick() : -1;
+		_it_module = new IT_Module(_song, _waves, loop_tick);
 		if (_it_module->ready() && _it_module->start()) {
 			_piano_roll->start_following();
 			start_audio_thread();
@@ -728,6 +748,7 @@ void Main_Window::update_icons() {
 	make_deimage(_save_as_tb);
 	make_deimage(_play_pause_tb);
 	make_deimage(_stop_tb);
+	make_deimage(_loop_tb);
 }
 
 void Main_Window::new_cb(Fl_Widget *, Main_Window *mw) {
@@ -950,6 +971,7 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 		Preferences::set("h", mw->h());
 	}
 	Preferences::set("maximized", mw->maximized());
+	Preferences::set("loop", mw->loop());
 	for (int i = 0; i < NUM_RECENT; i++) {
 		Preferences::set_string(Fl_Preferences::Name("recent%d", i), mw->_recent[i]);
 	}
@@ -966,6 +988,24 @@ void Main_Window::play_pause_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::stop_cb(Fl_Widget *, Main_Window *mw) {
 	mw->stop_playback();
 }
+
+#define SYNC_TB_WITH_M(tb, m) tb->value(m->mvalue()->value())
+
+void Main_Window::loop_cb(Fl_Menu_ *m, Main_Window *mw) {
+	SYNC_TB_WITH_M(mw->_loop_tb, m);
+	mw->redraw();
+}
+
+#undef SYNC_TB_WITH_M
+
+#define SYNC_MI_WITH_TB(tb, mi) if (tb->value()) mi->set(); else mi->clear()
+
+void Main_Window::loop_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
+	SYNC_MI_WITH_TB(mw->_loop_tb, mw->_loop_mi);
+	mw->redraw();
+}
+
+#undef SYNC_MI_WITH_TB
 
 void Main_Window::classic_theme_cb(Fl_Menu_ *, Main_Window *mw) {
 	OS::use_classic_theme();
@@ -1067,7 +1107,7 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 			if (mod && mod->playing()) {
 				mod->play();
 				int32_t t = mod->current_tick();
-				if (t > tick) {
+				if (t > tick || (mod->looping() && t < tick)) {
 					tick = t;
 					Fl::awake((Fl_Awake_Handler)sync_cb, mw);
 				}

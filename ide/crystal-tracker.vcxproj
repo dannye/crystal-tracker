@@ -155,6 +155,7 @@
     <None Include="..\res\brushed-metal.dat" />
     <None Include="..\res\error.xpm" />
     <None Include="..\res\help.html" />
+    <None Include="..\res\loop.xpm" />
     <None Include="..\res\new.xpm" />
     <None Include="..\res\open.xpm" />
     <None Include="..\res\pause.xpm" />

@@ -152,6 +152,9 @@
     <None Include="..\res\help.html">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\loop.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\new.xpm">
       <Filter>Resource Files</Filter>
     </None>

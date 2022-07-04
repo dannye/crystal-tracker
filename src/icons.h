@@ -6,6 +6,7 @@
 #pragma warning(pop)
 
 #include "blank.xpm"
+#include "loop.xpm"
 #include "new.xpm"
 #include "open.xpm"
 #include "pause.xpm"
@@ -15,6 +16,7 @@
 #include "stop.xpm"
 
 static Fl_Pixmap BLANK_ICON(BLANK_XPM);
+static Fl_Pixmap LOOP_ICON(LOOP_XPM);
 static Fl_Pixmap NEW_ICON(NEW_XPM);
 static Fl_Pixmap OPEN_ICON(OPEN_XPM);
 static Fl_Pixmap PAUSE_ICON(PAUSE_XPM);

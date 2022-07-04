@@ -50,6 +50,8 @@ private:
 		*_save_as_tb = NULL,
 		*_play_pause_tb = NULL,
 		*_stop_tb = NULL;
+	Toolbar_Toggle_Button
+		*_loop_tb = NULL;
 	// GUI outputs
 	Piano_Roll *_piano_roll = NULL;
 	Label *_status_label;
@@ -59,7 +61,8 @@ private:
 		*_save_mi = NULL,
 		*_save_as_mi = NULL,
 		*_play_pause_mi = NULL,
-		*_stop_mi = NULL;
+		*_stop_mi = NULL,
+		*_loop_mi = NULL;
 	// Dialogs
 	Directory_Chooser *_new_dir_chooser;
 	Fl_Native_File_Chooser *_asm_open_chooser, *_asm_save_chooser;
@@ -89,6 +92,7 @@ public:
 	void resize(int X, int Y, int W, int H) override;
 	bool maximized(void) const;
 	void maximize(void);
+	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
 	bool unsaved(void) const;
 	const char *modified_filename(void);
 	int handle(int event) override;
@@ -117,6 +121,7 @@ private:
 	// Play menu
 	static void play_pause_cb(Fl_Widget *w, Main_Window *mw);
 	static void stop_cb(Fl_Widget *w, Main_Window *mw);
+	static void loop_cb(Fl_Menu_ *m, Main_Window *mw);
 	// View menu
 	static void classic_theme_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void aero_theme_cb(Fl_Menu_ *m, Main_Window *mw);
@@ -130,6 +135,8 @@ private:
 	static void dark_theme_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void brushed_metal_theme_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void high_contrast_theme_cb(Fl_Menu_ *m, Main_Window *mw);
+	// Toolbar buttons
+	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	// Help menu
 	static void help_cb(Fl_Widget *w, Main_Window *mw);
 	static void about_cb(Fl_Widget *w, Main_Window *mw);

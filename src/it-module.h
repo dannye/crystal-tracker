@@ -28,7 +28,7 @@ private:
 
 	bool _paused = false;
 public:
-	IT_Module(const Song &song, const std::vector<Wave> &waves);
+	IT_Module(const Song &song, const std::vector<Wave> &waves, int32_t loop_tick = -1);
 	~IT_Module() noexcept;
 
 	IT_Module(const IT_Module&) = delete;
@@ -38,6 +38,7 @@ public:
 	bool playing() { return Pa_IsStreamActive(_stream.paStream()) == 1; }
 	bool paused() const { return _paused; }
 	bool stopped() { return !playing() && !paused(); }
+	bool looping() { return _mod->get_repeat_count() == -1; }
 
 	bool start()   { _paused = false; return Pa_StartStream(_stream.paStream()) == paNoError; }
 	bool stop()    { _paused = false; return Pa_StopStream(_stream.paStream())  == paNoError; }
@@ -47,7 +48,7 @@ public:
 	int32_t current_tick() const { return (_current_pattern * ROWS_PER_PATTERN + _current_row) / DEFAULT_ROWS_PER_TICK; }
 private:
 	bool try_open();
-	void generate_it_module(const Song &song, const std::vector<Wave> &waves);
+	void generate_it_module(const Song &song, const std::vector<Wave> &waves, int32_t loop_tick = -1);
 };
 
 #endif

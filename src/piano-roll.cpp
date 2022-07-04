@@ -256,7 +256,7 @@ void Piano_Roll::pause_following() {
 }
 
 void Piano_Roll::highlight_tick(int32_t t) {
-	if (_tick >= t) return; // no change
+	if (_tick == t) return; // no change
 	_tick = t;
 
 	Fl_Box *note = _piano_timeline->get_channel_1_note_at_tick(_tick);
@@ -277,7 +277,7 @@ void Piano_Roll::highlight_tick(int32_t t) {
 	}
 
 	int x_pos = _tick * TIME_STEP_WIDTH;
-	if (_realtime || x_pos > xposition() + w() - WHITE_KEY_WIDTH * 2) {
+	if (_realtime || x_pos > xposition() + w() - WHITE_KEY_WIDTH * 2 || x_pos < xposition()) {
 		if (x_pos > _piano_timeline->w() - (w() - scrollbar.w())) {
 			scroll_to(_piano_timeline->w() - (w() - scrollbar.w()), yposition());
 		}

@@ -5,10 +5,13 @@
 constexpr std::size_t BUFFER_SIZE = 2048;
 constexpr std::int32_t SAMPLE_RATE = 48000;
 
-IT_Module::IT_Module(const Song &song, const std::vector<Wave> &waves) : _buffer(BUFFER_SIZE * 2) {
-	generate_it_module(song, waves);
+IT_Module::IT_Module(const Song &song, const std::vector<Wave> &waves, int32_t loop_tick) : _buffer(BUFFER_SIZE * 2) {
+	generate_it_module(song, waves, loop_tick);
 
 	_mod = new openmpt::module(_data);
+	if (loop_tick != -1) {
+		_mod->set_repeat_count(-1);
+	}
 
 	_is_interleaved = false;
 	if (!try_open()) {
@@ -257,7 +260,7 @@ static std::vector<std::vector<uint8_t>> get_samples(const Song &song, const std
 	return samples;
 }
 
-static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
+static std::vector<std::vector<uint8_t>> get_patterns(const Song &song, int32_t loop_tick) {
 	std::vector<std::vector<uint8_t>> patterns;
 
 	auto channel_1_itr = song.channel_1_timeline().begin();
@@ -277,6 +280,16 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 	Note_View channel_2_prev_note;
 	Note_View channel_3_prev_note;
 	/* Note_View channel_4_prev_note; */
+
+	auto song_finished = [&]() {
+		return
+			channel_1_itr == song.channel_1_timeline().end() &&
+			channel_2_itr == song.channel_2_timeline().end() &&
+			channel_3_itr == song.channel_3_timeline().end() &&
+			channel_1_note_length == 0 &&
+			channel_2_note_length == 0 &&
+			channel_3_note_length == 0;
+	};
 
 	auto channel_3_volume = [](int32_t volume) {
 		return (uint8_t)(
@@ -301,20 +314,13 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 
 		std::vector<uint8_t> pattern_data;
 		uint32_t row = 0;
-		while (row < ROWS_PER_PATTERN && (
-			channel_1_itr != song.channel_1_timeline().end() ||
-			channel_2_itr != song.channel_2_timeline().end() ||
-			channel_3_itr != song.channel_3_timeline().end() ||
-			channel_1_note_length > 0 ||
-			channel_2_note_length > 0 ||
-			channel_3_note_length > 0
-		)) {
+		while (row < ROWS_PER_PATTERN && !song_finished()) {
 			// NOTE: only even speeds are allowed for now to avoid complex time dilation
 			if (channel_1_note_length == 0 && channel_1_itr != song.channel_1_timeline().end()) {
 				channel_1_note_length = channel_1_itr->length * channel_1_itr->speed / 2 - 1;
 				channel_1_note_duration = 0;
 				if (channel_1_itr->tempo != channel_1_prev_note.tempo) {
-					pattern_data.push_back(0x81);
+					pattern_data.push_back(0x85);
 					pattern_data.push_back(0x08); // command
 					pattern_data.push_back(0x14); // tempo
 					pattern_data.push_back(convert_tempo(channel_1_itr->tempo));
@@ -328,8 +334,8 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 				}
 				else {
 					pattern_data.push_back(0x81);
-					pattern_data.push_back(0x04); // new volume
-					pattern_data.push_back(0x00); // volume
+					pattern_data.push_back(0x01); // note
+					pattern_data.push_back(0xfe); // cut
 				}
 				channel_1_prev_note = *channel_1_itr;
 				++channel_1_itr;
@@ -372,6 +378,12 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 			if (channel_2_note_length == 0 && channel_2_itr != song.channel_2_timeline().end()) {
 				channel_2_note_length = channel_2_itr->length * channel_2_itr->speed / 2 - 1;
 				channel_2_note_duration = 0;
+				if (channel_2_itr->tempo != channel_2_prev_note.tempo) {
+					pattern_data.push_back(0x85);
+					pattern_data.push_back(0x08); // command
+					pattern_data.push_back(0x14); // tempo
+					pattern_data.push_back(convert_tempo(channel_2_itr->tempo));
+				}
 				if (channel_2_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(0x82);
 					pattern_data.push_back(0x07); // note + sample + volume
@@ -381,8 +393,8 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 				}
 				else {
 					pattern_data.push_back(0x82);
-					pattern_data.push_back(0x04); // new volume
-					pattern_data.push_back(0x00); // volume
+					pattern_data.push_back(0x01); // note
+					pattern_data.push_back(0xfe); // cut
 				}
 				channel_2_prev_note = *channel_2_itr;
 				++channel_2_itr;
@@ -425,6 +437,12 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 			if (channel_3_note_length == 0 && channel_3_itr != song.channel_3_timeline().end()) {
 				channel_3_note_length = channel_3_itr->length * channel_3_itr->speed / 2 - 1;
 				channel_3_note_duration = 0;
+				if (channel_3_itr->tempo != channel_3_prev_note.tempo) {
+					pattern_data.push_back(0x85);
+					pattern_data.push_back(0x08); // command
+					pattern_data.push_back(0x14); // tempo
+					pattern_data.push_back(convert_tempo(channel_3_itr->tempo));
+				}
 				if (channel_3_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(0x83);
 					pattern_data.push_back(0x07); // note + sample + volume
@@ -434,8 +452,8 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 				}
 				else {
 					pattern_data.push_back(0x83);
-					pattern_data.push_back(0x04); // new volume
-					pattern_data.push_back(0x00); // volume
+					pattern_data.push_back(0x01); // note
+					pattern_data.push_back(0xfe); // cut
 				}
 				channel_3_prev_note = *channel_3_itr;
 				++channel_3_itr;
@@ -455,6 +473,21 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 				channel_3_note_duration += 1;
 			}
 
+			if (song_finished() && loop_tick != -1) {
+				uint32_t pattern_number = (uint32_t)loop_tick / ROWS_PER_PATTERN;
+				uint32_t row_number = (uint32_t)loop_tick % ROWS_PER_PATTERN;
+
+				pattern_data.push_back(0x86);
+				pattern_data.push_back(0x08); // command
+				pattern_data.push_back(0x02); // pattern jump
+				pattern_data.push_back(pattern_number);
+
+				pattern_data.push_back(0x87);
+				pattern_data.push_back(0x08); // command
+				pattern_data.push_back(0x03); // row jump
+				pattern_data.push_back(row_number);
+			}
+
 			pattern_data.push_back(0);
 			row += 1;
 		}
@@ -466,11 +499,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song) {
 		pattern.insert(pattern.end(), pattern_data.begin(), pattern_data.end());
 
 		patterns.push_back(std::move(pattern));
-	} while (
-		channel_1_itr != song.channel_1_timeline().end() ||
-		channel_2_itr != song.channel_2_timeline().end() ||
-		channel_3_itr != song.channel_3_timeline().end()
-	);
+	} while (!song_finished());
 
 	return patterns;
 }
@@ -483,7 +512,7 @@ static std::size_t get_total_size(const std::vector<std::vector<uint8_t>> &data)
 	return size;
 }
 
-void IT_Module::generate_it_module(const Song &song, const std::vector<Wave> &waves) {
+void IT_Module::generate_it_module(const Song &song, const std::vector<Wave> &waves, int32_t loop_tick) {
 	const uint32_t song_name_length = 26;
 	const uint32_t pattern_row_highlight = 0x1004; // ???
 	const uint32_t tracker_version = 0x5130;
@@ -506,7 +535,7 @@ void IT_Module::generate_it_module(const Song &song, const std::vector<Wave> &wa
 
 	std::vector<std::vector<uint8_t>> instruments = get_instruments(song);
 	std::vector<std::vector<uint8_t>> samples = get_samples(song, waves);
-	std::vector<std::vector<uint8_t>> patterns = get_patterns(song);
+	std::vector<std::vector<uint8_t>> patterns = get_patterns(song, loop_tick);
 
 	const uint32_t number_of_orders = patterns.size() + 1;
 	const uint32_t number_of_instruments = instruments.size();
