@@ -94,7 +94,12 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	// Configure window
 	box(OS_BG_BOX);
-	size_range(WHITE_KEY_WIDTH * 3 + 15, OCTAVE_HEIGHT + MENU_BAR_HEIGHT + 15, 0, OCTAVE_HEIGHT * NUM_OCTAVES + MENU_BAR_HEIGHT + 15);
+	size_range(
+		WHITE_KEY_WIDTH * 3 + 15,
+		OCTAVE_HEIGHT + MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + STATUS_BAR_HEIGHT + 15,
+		0,
+		OCTAVE_HEIGHT * NUM_OCTAVES + MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + STATUS_BAR_HEIGHT + 15
+	);
 	callback((Fl_Callback *)exit_cb, this);
 	xclass(PROGRAM_NAME);
 

@@ -1,4 +1,5 @@
 #pragma warning(push, 0)
+#include <FL/Fl.H>
 #include <FL/fl_draw.H>
 #pragma warning(pop)
 
@@ -27,7 +28,7 @@ Piano_Keys::Piano_Keys(int x, int y, int w, int h, const char *l) : Fl_Group(x, 
 			}
 		}
 	}
-	this->end();
+	end();
 }
 
 Piano_Keys::~Piano_Keys() noexcept {
@@ -41,7 +42,7 @@ Piano_Keys::~Piano_Keys() noexcept {
 
 Piano_Timeline::Piano_Timeline(int x, int y, int w, int h, const char *l) : Fl_Group(x, y, w, h, l) {
 	_keys = new Piano_Keys(x, y, WHITE_KEY_WIDTH, OCTAVE_HEIGHT * NUM_OCTAVES);
-	this->end();
+	end();
 }
 
 Piano_Timeline::~Piano_Timeline() noexcept {
@@ -87,7 +88,7 @@ void Piano_Timeline::reset_note_colors() {
 }
 
 void Piano_Timeline::set_channel_timeline(std::list<Fl_Box *> &notes, const std::list<Note_View> &timeline, Fl_Color color) {
-	this->begin();
+	begin();
 	int x_pos = x() + WHITE_KEY_WIDTH;
 	for (const Note_View &note : timeline) {
 		int width = TIME_STEP_WIDTH * note.length * note.speed / DEFAULT_SPEED;
@@ -100,7 +101,7 @@ void Piano_Timeline::set_channel_timeline(std::list<Fl_Box *> &notes, const std:
 		}
 		x_pos += width;
 	}
-	this->end();
+	end();
 
 	if (notes.size() > 0) {
 		const int width = notes.back()->x() + parent()->w() - ((Fl_Scroll *)parent())->scrollbar.w() - WHITE_KEY_WIDTH;
@@ -184,7 +185,7 @@ void Piano_Timeline::draw() {
 Piano_Roll::Piano_Roll(int x, int y, int w, int h, const char *l) : Fl_Scroll(x, y, w, h, l) {
 	type(BOTH_ALWAYS);
 	_piano_timeline = new Piano_Timeline(x, y, (w - scrollbar.w()) * 2, OCTAVE_HEIGHT * NUM_OCTAVES);
-	this->end();
+	end();
 
 	hscrollbar.callback((Fl_Callback *)hscrollbar_cb);
 }
@@ -203,10 +204,14 @@ int Piano_Roll::handle(int event) {
 			_realtime = !_realtime;
 			return 1;
 		}
-		[[fallthrough]];
-	default:
-		return Fl_Scroll::handle(event);
+		break;
+	case FL_MOUSEWHEEL:
+		if (Fl::event_shift()) {
+			std::swap(Fl::e_dx, Fl::e_dy);
+		}
+		break;
 	}
+	return Fl_Scroll::handle(event);
 }
 
 void Piano_Roll::set_size(int W, int H) {
