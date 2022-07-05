@@ -14,11 +14,85 @@ static const auto find_note_with_label(const std::list<Command> &commands, std::
 	return commands.end(); // if this happens, we've already messed up
 }
 
-static std::list<Note_View> build_timeline(const std::list<Command> &commands, int32_t &loop_tick, int32_t &end_tick) {
-	std::map<std::string, int32_t> label_positions;
+static void calc_channel_length(const std::list<Command> &commands, int32_t &loop_tick, int32_t &end_tick) {
 	int32_t tick = 0;
 	loop_tick = -1;
 	end_tick = -1;
+	int32_t speed = 12;
+	auto command_itr = commands.begin();
+	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
+	std::stack<decltype(command_itr)> call_stack;
+	std::map<std::string, int32_t> label_positions;
+	while (command_itr != commands.end()) {
+		for (const std::string &label : command_itr->labels) {
+			label_positions.insert({ label, tick });
+		}
+		if (command_itr->type == Command_Type::NOTE) {
+			tick += command_itr->note.length * speed / 2;
+		}
+		else if (command_itr->type == Command_Type::DRUM_NOTE) {
+			tick += command_itr->drum_note.length * speed / 2;
+		}
+		else if (command_itr->type == Command_Type::REST) {
+			tick += command_itr->rest.length * speed / 2;
+		}
+		else if (command_itr->type == Command_Type::NOTE_TYPE) {
+			speed = command_itr->note_type.speed;
+		}
+		else if (command_itr->type == Command_Type::DRUM_SPEED) {
+			speed = command_itr->drum_speed.speed;
+		}
+		else if (command_itr->type == Command_Type::SOUND_JUMP) {
+			command_itr = find_note_with_label(commands, command_itr->target);
+			continue;
+		}
+		else if (command_itr->type == Command_Type::SOUND_LOOP) {
+			if (loop_stack.size() > 0 && loop_stack.top().first == command_itr) {
+				loop_stack.top().second -= 1;
+				if (loop_stack.top().second == 0) {
+					loop_stack.pop();
+				}
+				else {
+					command_itr = find_note_with_label(commands, command_itr->target);
+					continue;
+				}
+			}
+			else {
+				if (command_itr->sound_loop.loop_count == 0) {
+					if (label_positions.count(command_itr->target)) {
+						loop_tick = label_positions.at(command_itr->target);
+					}
+					end_tick = tick;
+					break; // assume end of song for now
+				}
+				else if (command_itr->sound_loop.loop_count > 1) {
+					loop_stack.emplace(command_itr, command_itr->sound_loop.loop_count - 1);
+					command_itr = find_note_with_label(commands, command_itr->target);
+					continue;
+				}
+			}
+		}
+		else if (command_itr->type == Command_Type::SOUND_CALL) {
+			call_stack.push(command_itr);
+			command_itr = find_note_with_label(commands, command_itr->target);
+			continue;
+		}
+		else if (command_itr->type == Command_Type::SOUND_RET) {
+			if (call_stack.size() == 0) {
+				end_tick = tick;
+				break; // song is finished
+			}
+			else {
+				command_itr = call_stack.top();
+				call_stack.pop();
+			}
+		}
+		++command_itr;
+	}
+}
+
+static std::list<Note_View> build_timeline(const std::list<Command> &commands, int32_t end_tick) {
+	int32_t tick = 0;
 	std::list<Note_View> timeline;
 	Note_View note;
 	note.octave = 1;
@@ -31,28 +105,34 @@ static std::list<Note_View> build_timeline(const std::list<Command> &commands, i
 	auto command_itr = commands.begin();
 	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
 	std::stack<decltype(command_itr)> call_stack;
-	while (command_itr != commands.end()) {
-		for (const std::string &label : command_itr->labels) {
-			label_positions.insert({ label, tick });
-		}
+	while (command_itr != commands.end() && tick < end_tick) {
 		// TODO: handle all other commands...
 		if (command_itr->type == Command_Type::NOTE) {
 			note.length = command_itr->note.length;
 			note.pitch = command_itr->note.pitch;
-			timeline.push_back(note);
 			tick += note.length * note.speed / 2;
+			if (tick > end_tick) {
+				note.length -= (tick - end_tick) / (note.speed / 2);
+			}
+			timeline.push_back(note);
 		}
 		else if (command_itr->type == Command_Type::DRUM_NOTE) {
 			note.length = command_itr->drum_note.length;
 			note.pitch = (Pitch)command_itr->drum_note.instrument;
-			timeline.push_back(note);
 			tick += note.length * note.speed / 2;
+			if (tick > end_tick) {
+				note.length -= (tick - end_tick) / (note.speed / 2);
+			}
+			timeline.push_back(note);
 		}
 		else if (command_itr->type == Command_Type::REST) {
 			note.length = command_itr->rest.length;
 			note.pitch = Pitch::REST;
-			timeline.push_back(note);
 			tick += note.length * note.speed / 2;
+			if (tick > end_tick) {
+				note.length -= (tick - end_tick) / (note.speed / 2);
+			}
+			timeline.push_back(note);
 		}
 		else if (command_itr->type == Command_Type::OCTAVE) {
 			note.octave = command_itr->octave.octave;
@@ -97,9 +177,9 @@ static std::list<Note_View> build_timeline(const std::list<Command> &commands, i
 			}
 			else {
 				if (command_itr->sound_loop.loop_count == 0) {
-					if (label_positions.count(command_itr->target)) {
-						loop_tick = label_positions.at(command_itr->target);
-						end_tick = tick;
+					if (tick < end_tick) {
+						command_itr = find_note_with_label(commands, command_itr->target);
+						continue;
 					}
 					break; // assume end of song for now
 				}
@@ -173,10 +253,15 @@ Parsed_Song::Result Song::read_song(const char *f) {
 	_channel_2_commands = data.channel_2_commands();
 	_channel_3_commands = data.channel_3_commands();
 	_channel_4_commands = data.channel_4_commands();
-	_channel_1_timeline = build_timeline(_channel_1_commands, _channel_1_loop_tick, _channel_1_end_tick);
-	_channel_2_timeline = build_timeline(_channel_2_commands, _channel_2_loop_tick, _channel_2_end_tick);
-	_channel_3_timeline = build_timeline(_channel_3_commands, _channel_3_loop_tick, _channel_3_end_tick);
-	_channel_4_timeline = build_timeline(_channel_4_commands, _channel_4_loop_tick, _channel_4_end_tick);
+	calc_channel_length(_channel_1_commands, _channel_1_loop_tick, _channel_1_end_tick);
+	calc_channel_length(_channel_2_commands, _channel_2_loop_tick, _channel_2_end_tick);
+	calc_channel_length(_channel_3_commands, _channel_3_loop_tick, _channel_3_end_tick);
+	calc_channel_length(_channel_4_commands, _channel_4_loop_tick, _channel_4_end_tick);
+	int32_t song_length = std::max({ _channel_1_end_tick, _channel_2_end_tick, _channel_3_end_tick, _channel_4_end_tick });
+	_channel_1_timeline = build_timeline(_channel_1_commands, song_length);
+	_channel_2_timeline = build_timeline(_channel_2_commands, song_length);
+	_channel_3_timeline = build_timeline(_channel_3_commands, song_length);
+	_channel_4_timeline = build_timeline(_channel_4_commands, song_length);
 
 	_mod_time = file_modified(f);
 
@@ -195,10 +280,15 @@ void Song::new_song() {
 	_channel_2_commands = { Command(Command_Type::SOUND_RET, _channel_2_label) };
 	_channel_3_commands = { Command(Command_Type::SOUND_RET, _channel_3_label) };
 	_channel_4_commands = { Command(Command_Type::SOUND_RET, _channel_4_label) };
-	_channel_1_timeline = build_timeline(_channel_1_commands, _channel_1_loop_tick, _channel_1_end_tick);
-	_channel_2_timeline = build_timeline(_channel_2_commands, _channel_2_loop_tick, _channel_2_end_tick);
-	_channel_3_timeline = build_timeline(_channel_3_commands, _channel_3_loop_tick, _channel_3_end_tick);
-	_channel_4_timeline = build_timeline(_channel_4_commands, _channel_4_loop_tick, _channel_4_end_tick);
+	calc_channel_length(_channel_1_commands, _channel_1_loop_tick, _channel_1_end_tick);
+	calc_channel_length(_channel_2_commands, _channel_2_loop_tick, _channel_2_end_tick);
+	calc_channel_length(_channel_3_commands, _channel_3_loop_tick, _channel_3_end_tick);
+	calc_channel_length(_channel_4_commands, _channel_4_loop_tick, _channel_4_end_tick);
+	int32_t song_length = std::max({ _channel_1_end_tick, _channel_2_end_tick, _channel_3_end_tick, _channel_4_end_tick });
+	_channel_1_timeline = build_timeline(_channel_1_commands, song_length);
+	_channel_2_timeline = build_timeline(_channel_2_commands, song_length);
+	_channel_3_timeline = build_timeline(_channel_3_commands, song_length);
+	_channel_4_timeline = build_timeline(_channel_4_commands, song_length);
 
 	_mod_time = 0;
 
@@ -244,7 +334,7 @@ bool Song::write_song(const char *f) {
 }
 
 int32_t Song::get_loop_tick() const {
-	// TODO: this naive approach works in many cases but this will need to be improved
+	// TODO: this naive approach works in many cases but this will need to be improved (see: mainmenu.asm, lookhiker.asm)
 	int32_t loop_tick = std::max({ _channel_1_loop_tick, _channel_2_loop_tick, _channel_3_loop_tick, _channel_4_loop_tick });
 	return loop_tick;
 }
