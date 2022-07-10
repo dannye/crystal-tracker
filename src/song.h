@@ -19,18 +19,6 @@ private:
 	std::list<Command> _channel_2_commands;
 	std::list<Command> _channel_3_commands;
 	std::list<Command> _channel_4_commands;
-	std::list<Note_View> _channel_1_timeline;
-	std::list<Note_View> _channel_2_timeline;
-	std::list<Note_View> _channel_3_timeline;
-	std::list<Note_View> _channel_4_timeline;
-	int32_t _channel_1_loop_tick = -1;
-	int32_t _channel_2_loop_tick = -1;
-	int32_t _channel_3_loop_tick = -1;
-	int32_t _channel_4_loop_tick = -1;
-	int32_t _channel_1_end_tick = -1;
-	int32_t _channel_2_end_tick = -1;
-	int32_t _channel_3_end_tick = -1;
-	int32_t _channel_4_end_tick = -1;
 	Parsed_Song::Result _result = Parsed_Song::Result::SONG_NULL;
 	bool _modified = false;
 	int64_t _mod_time = 0;
@@ -51,12 +39,10 @@ public:
 	bool write_song(const char *f);
 	const char *error_message() const { return _error_message.c_str(); }
 
-	int32_t get_loop_tick() const;
-
-	const std::list<Note_View> &channel_1_timeline() const { return _channel_1_timeline; }
-	const std::list<Note_View> &channel_2_timeline() const { return _channel_2_timeline; }
-	const std::list<Note_View> &channel_3_timeline() const { return _channel_3_timeline; }
-	const std::list<Note_View> &channel_4_timeline() const { return _channel_4_timeline; }
+	const std::list<Command> &channel_1_commands() const { return _channel_1_commands; }
+	const std::list<Command> &channel_2_commands() const { return _channel_2_commands; }
+	const std::list<Command> &channel_3_commands() const { return _channel_3_commands; }
+	const std::list<Command> &channel_4_commands() const { return _channel_4_commands; }
 private:
 	std::string commands_str(const std::list<Command> &commands) const;
 	std::string get_error_message(Parsed_Song parsed_song);

@@ -592,10 +592,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 			_error_dialog->show(this);
 			return;
 		}
-		_piano_roll->set_channel_1_timeline(_song.channel_1_timeline());
-		_piano_roll->set_channel_2_timeline(_song.channel_2_timeline());
-		_piano_roll->set_channel_3_timeline(_song.channel_3_timeline());
-		_piano_roll->set_channel_4_timeline(_song.channel_4_timeline());
+		_piano_roll->set_timeline(_song);
 	}
 	else {
 		basename = NEW_SONG_NAME;
@@ -687,8 +684,8 @@ void Main_Window::toggle_playback() {
 		if (_it_module) {
 			delete _it_module;
 		}
-		int32_t loop_tick = loop() ? _song.get_loop_tick() : -1;
-		_it_module = new IT_Module(_song, _waves, loop_tick);
+		int32_t loop_tick = loop() ? _piano_roll->get_loop_tick() : -1;
+		_it_module = new IT_Module(*_piano_roll, _waves, loop_tick);
 		if (_it_module->ready() && _it_module->start()) {
 			_piano_roll->start_following();
 			start_audio_thread();

@@ -7,8 +7,8 @@
 #include <libopenmpt/libopenmpt.hpp>
 #include <portaudiocpp/PortAudioCpp.hxx>
 
-#include "song.h"
 #include "parse-waves.h"
+#include "piano-roll.h"
 
 constexpr uint32_t ROWS_PER_PATTERN = 192;
 constexpr uint32_t DEFAULT_ROWS_PER_TICK = 6;
@@ -28,7 +28,7 @@ private:
 
 	bool _paused = false;
 public:
-	IT_Module(const Song &song, const std::vector<Wave> &waves, int32_t loop_tick = -1);
+	IT_Module(const Piano_Roll &song, const std::vector<Wave> &waves, int32_t loop_tick = -1);
 	~IT_Module() noexcept;
 
 	IT_Module(const IT_Module&) = delete;
@@ -48,7 +48,7 @@ public:
 	int32_t current_tick() const { return (_current_pattern * ROWS_PER_PATTERN + _current_row) / DEFAULT_ROWS_PER_TICK; }
 private:
 	bool try_open();
-	void generate_it_module(const Song &song, const std::vector<Wave> &waves, int32_t loop_tick = -1);
+	void generate_it_module(const Piano_Roll &song, const std::vector<Wave> &waves, int32_t loop_tick = -1);
 };
 
 #endif

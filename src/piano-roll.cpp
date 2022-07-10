@@ -1,3 +1,6 @@
+#include <map>
+#include <stack>
+
 #pragma warning(push, 0)
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
@@ -9,6 +12,210 @@
 
 static inline bool is_white_key(size_t i) {
 	return !(i == 1 || i == 3 || i == 5 || i == 8 || i == 10);
+}
+
+static const auto find_note_with_label(const std::list<Command> &commands, std::string label) {
+	for (auto command_itr = commands.begin(); command_itr != commands.end(); ++command_itr) {
+		if (command_itr->labels.count(label) > 0) {
+			return command_itr;
+		}
+	}
+	return commands.end(); // if this happens, we've already messed up
+}
+
+static void calc_channel_length(const std::list<Command> &commands, int32_t &loop_tick, int32_t &end_tick) {
+	int32_t tick = 0;
+	loop_tick = -1;
+	end_tick = -1;
+	int32_t speed = 12;
+	auto command_itr = commands.begin();
+	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
+	std::stack<decltype(command_itr)> call_stack;
+	std::map<std::string, int32_t> label_positions;
+	while (command_itr != commands.end()) {
+		for (const std::string &label : command_itr->labels) {
+			label_positions.insert({ label, tick });
+		}
+		if (command_itr->type == Command_Type::NOTE) {
+			tick += command_itr->note.length * speed / 2;
+		}
+		else if (command_itr->type == Command_Type::DRUM_NOTE) {
+			tick += command_itr->drum_note.length * speed / 2;
+		}
+		else if (command_itr->type == Command_Type::REST) {
+			tick += command_itr->rest.length * speed / 2;
+		}
+		else if (command_itr->type == Command_Type::NOTE_TYPE) {
+			speed = command_itr->note_type.speed;
+		}
+		else if (command_itr->type == Command_Type::DRUM_SPEED) {
+			speed = command_itr->drum_speed.speed;
+		}
+		else if (command_itr->type == Command_Type::SOUND_JUMP) {
+			command_itr = find_note_with_label(commands, command_itr->target);
+			continue;
+		}
+		else if (command_itr->type == Command_Type::SOUND_LOOP) {
+			if (loop_stack.size() > 0 && loop_stack.top().first == command_itr) {
+				loop_stack.top().second -= 1;
+				if (loop_stack.top().second == 0) {
+					loop_stack.pop();
+				}
+				else {
+					command_itr = find_note_with_label(commands, command_itr->target);
+					continue;
+				}
+			}
+			else {
+				if (command_itr->sound_loop.loop_count == 0) {
+					if (label_positions.count(command_itr->target)) {
+						loop_tick = label_positions.at(command_itr->target);
+					}
+					end_tick = tick;
+					break; // assume end of song for now
+				}
+				else if (command_itr->sound_loop.loop_count > 1) {
+					loop_stack.emplace(command_itr, command_itr->sound_loop.loop_count - 1);
+					command_itr = find_note_with_label(commands, command_itr->target);
+					continue;
+				}
+			}
+		}
+		else if (command_itr->type == Command_Type::SOUND_CALL) {
+			call_stack.push(command_itr);
+			command_itr = find_note_with_label(commands, command_itr->target);
+			continue;
+		}
+		else if (command_itr->type == Command_Type::SOUND_RET) {
+			if (call_stack.size() == 0) {
+				end_tick = tick;
+				break; // song is finished
+			}
+			else {
+				command_itr = call_stack.top();
+				call_stack.pop();
+			}
+		}
+		++command_itr;
+	}
+}
+
+static std::vector<Note_View> build_timeline(const std::list<Command> &commands, int32_t end_tick) {
+	int32_t tick = 0;
+	std::vector<Note_View> timeline;
+	Note_View note;
+	note.octave = 1;
+	note.speed = 12;
+	note.volume = 0;
+	note.fade = 0;
+	note.delay = 0;
+	note.extent = 0;
+	note.rate = 0;
+	auto command_itr = commands.begin();
+	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
+	std::stack<decltype(command_itr)> call_stack;
+	while (command_itr != commands.end() && tick < end_tick) {
+		// TODO: handle all other commands...
+		if (command_itr->type == Command_Type::NOTE) {
+			note.length = command_itr->note.length;
+			note.pitch = command_itr->note.pitch;
+			tick += note.length * note.speed / 2;
+			if (tick > end_tick) {
+				note.length -= (tick - end_tick) / (note.speed / 2);
+			}
+			timeline.push_back(note);
+		}
+		else if (command_itr->type == Command_Type::DRUM_NOTE) {
+			note.length = command_itr->drum_note.length;
+			note.pitch = (Pitch)command_itr->drum_note.instrument;
+			tick += note.length * note.speed / 2;
+			if (tick > end_tick) {
+				note.length -= (tick - end_tick) / (note.speed / 2);
+			}
+			timeline.push_back(note);
+		}
+		else if (command_itr->type == Command_Type::REST) {
+			note.length = command_itr->rest.length;
+			note.pitch = Pitch::REST;
+			tick += note.length * note.speed / 2;
+			if (tick > end_tick) {
+				note.length -= (tick - end_tick) / (note.speed / 2);
+			}
+			timeline.push_back(note);
+		}
+		else if (command_itr->type == Command_Type::OCTAVE) {
+			note.octave = command_itr->octave.octave;
+		}
+		else if (command_itr->type == Command_Type::NOTE_TYPE) {
+			note.speed = command_itr->note_type.speed;
+			note.volume = command_itr->note_type.volume;
+			note.fade = command_itr->note_type.fade;
+		}
+		else if (command_itr->type == Command_Type::DRUM_SPEED) {
+			note.speed = command_itr->drum_speed.speed;
+		}
+		else if (command_itr->type == Command_Type::TEMPO) {
+			note.tempo = command_itr->tempo.tempo;
+		}
+		else if (command_itr->type == Command_Type::DUTY_CYCLE) {
+			note.duty = command_itr->duty_cycle.duty;
+		}
+		else if (command_itr->type == Command_Type::VOLUME_ENVELOPE) {
+			note.volume = command_itr->volume_envelope.volume;
+			note.fade = command_itr->volume_envelope.fade;
+		}
+		else if (command_itr->type == Command_Type::VIBRATO) {
+			note.delay = command_itr->vibrato.delay;
+			note.extent = command_itr->vibrato.extent;
+			note.rate = command_itr->vibrato.rate;
+		}
+		else if (command_itr->type == Command_Type::SOUND_JUMP) {
+			command_itr = find_note_with_label(commands, command_itr->target);
+			continue;
+		}
+		else if (command_itr->type == Command_Type::SOUND_LOOP) {
+			if (loop_stack.size() > 0 && loop_stack.top().first == command_itr) {
+				loop_stack.top().second -= 1;
+				if (loop_stack.top().second == 0) {
+					loop_stack.pop();
+				}
+				else {
+					command_itr = find_note_with_label(commands, command_itr->target);
+					continue;
+				}
+			}
+			else {
+				if (command_itr->sound_loop.loop_count == 0) {
+					if (tick < end_tick) {
+						command_itr = find_note_with_label(commands, command_itr->target);
+						continue;
+					}
+					break; // assume end of song for now
+				}
+				else if (command_itr->sound_loop.loop_count > 1) {
+					loop_stack.emplace(command_itr, command_itr->sound_loop.loop_count - 1);
+					command_itr = find_note_with_label(commands, command_itr->target);
+					continue;
+				}
+			}
+		}
+		else if (command_itr->type == Command_Type::SOUND_CALL) {
+			call_stack.push(command_itr);
+			command_itr = find_note_with_label(commands, command_itr->target);
+			continue;
+		}
+		else if (command_itr->type == Command_Type::SOUND_RET) {
+			if (call_stack.size() == 0) {
+				break; // song is finished
+			}
+			else {
+				command_itr = call_stack.top();
+				call_stack.pop();
+			}
+		}
+		++command_itr;
+	}
+	return timeline;
 }
 
 Piano_Keys::Piano_Keys(int x, int y, int w, int h, const char *l) : Fl_Group(x, y, w, h, l) {
@@ -54,57 +261,84 @@ Piano_Timeline::~Piano_Timeline() noexcept {
 }
 
 void Piano_Timeline::clear() {
-	for (Fl_Box *note : _channel_1_notes) {
-		delete note;
-	}
 	_channel_1_notes.clear();
-	for (Fl_Box *note : _channel_2_notes) {
-		delete note;
-	}
 	_channel_2_notes.clear();
-	for (Fl_Box *note : _channel_3_notes) {
-		delete note;
-	}
 	_channel_3_notes.clear();
-	for (Fl_Box *note : _channel_4_notes) {
+	_channel_4_notes.clear();
+	for (Note_Box *note : _channel_1_timeline) {
 		delete note;
 	}
-	_channel_4_notes.clear();
+	_channel_1_timeline.clear();
+	for (Note_Box *note : _channel_2_timeline) {
+		delete note;
+	}
+	_channel_2_timeline.clear();
+	for (Note_Box *note : _channel_3_timeline) {
+		delete note;
+	}
+	_channel_3_timeline.clear();
+	for (Note_Box *note : _channel_4_timeline) {
+		delete note;
+	}
+	_channel_4_timeline.clear();
+}
+
+void Piano_Timeline::set_timeline(const Song &song) {
+	calc_channel_length(song.channel_1_commands(), _channel_1_loop_tick, _channel_1_end_tick);
+	calc_channel_length(song.channel_2_commands(), _channel_2_loop_tick, _channel_2_end_tick);
+	calc_channel_length(song.channel_3_commands(), _channel_3_loop_tick, _channel_3_end_tick);
+	calc_channel_length(song.channel_4_commands(), _channel_4_loop_tick, _channel_4_end_tick);
+	int32_t song_length = std::max({ _channel_1_end_tick, _channel_2_end_tick, _channel_3_end_tick, _channel_4_end_tick });
+	_channel_1_notes = build_timeline(song.channel_1_commands(), song_length);
+	_channel_2_notes = build_timeline(song.channel_2_commands(), song_length);
+	_channel_3_notes = build_timeline(song.channel_3_commands(), song_length);
+	_channel_4_notes = build_timeline(song.channel_4_commands(), song_length);
+
+	set_channel_timeline(_channel_1_timeline, _channel_1_notes, NOTE_RED);
+	set_channel_timeline(_channel_2_timeline, _channel_2_notes, NOTE_BLUE);
+	set_channel_timeline(_channel_3_timeline, _channel_3_notes, NOTE_GREEN);
+	set_channel_timeline(_channel_4_timeline, _channel_4_notes, NOTE_BROWN);
+}
+
+int32_t Piano_Timeline::get_loop_tick() const {
+	// TODO: this naive approach works in many cases but this will need to be improved (see: mainmenu.asm, lookhiker.asm)
+	int32_t loop_tick = std::max({ _channel_1_loop_tick, _channel_2_loop_tick, _channel_3_loop_tick, _channel_4_loop_tick });
+	return loop_tick;
 }
 
 void Piano_Timeline::reset_note_colors() {
-	for (Fl_Box *note : _channel_1_notes) {
+	for (Note_Box *note : _channel_1_timeline) {
 		note->color(NOTE_RED);
 	}
-	for (Fl_Box *note : _channel_2_notes) {
+	for (Note_Box *note : _channel_2_timeline) {
 		note->color(NOTE_BLUE);
 	}
-	for (Fl_Box *note : _channel_3_notes) {
+	for (Note_Box *note : _channel_3_timeline) {
 		note->color(NOTE_GREEN);
 	}
-	for (Fl_Box *note : _channel_4_notes) {
+	for (Note_Box *note : _channel_4_timeline) {
 		note->color(NOTE_BROWN);
 	}
 }
 
-void Piano_Timeline::set_channel_timeline(std::list<Fl_Box *> &notes, const std::list<Note_View> &timeline, Fl_Color color) {
+void Piano_Timeline::set_channel_timeline(std::vector<Note_Box *> &timeline, const std::vector<Note_View> &notes, Fl_Color color) {
 	begin();
 	int x_pos = x() + WHITE_KEY_WIDTH;
-	for (const Note_View &note : timeline) {
+	for (const Note_View &note : notes) {
 		int width = TIME_STEP_WIDTH * note.length * note.speed / DEFAULT_SPEED;
 		if (note.pitch != Pitch::REST) {
 			int y_pos = y() + (NUM_OCTAVES - note.octave) * OCTAVE_HEIGHT + (NUM_PITCHES - (size_t)note.pitch) * NOTE_ROW_HEIGHT;
-			Fl_Box *box = new Fl_Box(x_pos, y_pos, width, NOTE_ROW_HEIGHT);
+			Note_Box *box = new Note_Box(x_pos, y_pos, width, NOTE_ROW_HEIGHT);
 			box->box(FL_BORDER_BOX);
 			box->color(color);
-			notes.push_back(box);
+			timeline.push_back(box);
 		}
 		x_pos += width;
 	}
 	end();
 
-	if (notes.size() > 0) {
-		const int width = notes.back()->x() + parent()->w() - ((Fl_Scroll *)parent())->scrollbar.w() - WHITE_KEY_WIDTH;
+	if (timeline.size() > 0) {
+		const int width = timeline.back()->x() + parent()->w() - ((Fl_Scroll *)parent())->scrollbar.w() - WHITE_KEY_WIDTH;
 		if (width > w()) {
 			w(width);
 		}
@@ -123,9 +357,9 @@ void Piano_Timeline::set_channel_timeline(std::list<Fl_Box *> &notes, const std:
 	}
 }
 
-Fl_Box *Piano_Timeline::get_note_at_tick(std::list<Fl_Box *> &notes, int32_t tick) {
+Note_Box *Piano_Timeline::get_note_at_tick(std::vector<Note_Box *> &timeline, int32_t tick) {
 	int x_pos = tick * TIME_STEP_WIDTH + WHITE_KEY_WIDTH;
-	for (Fl_Box *note : notes) {
+	for (Note_Box *note : timeline) {
 		int note_left = note->x() - note->parent()->x();
 		int note_right = note_left + note->w();
 		if (note_left <= x_pos && x_pos < note_right) {
@@ -135,11 +369,11 @@ Fl_Box *Piano_Timeline::get_note_at_tick(std::list<Fl_Box *> &notes, int32_t tic
 	return nullptr;
 }
 
-void Piano_Timeline::toggle_channel_box_type(std::list<Fl_Box *> &notes) {
-	if (notes.size() == 0) return;
+void Piano_Timeline::toggle_channel_box_type(std::vector<Note_Box *> &timeline) {
+	if (timeline.size() == 0) return;
 
-	Fl_Boxtype box = notes.front()->box() == FL_BORDER_BOX ? FL_BORDER_FRAME : FL_BORDER_BOX;
-	for (Fl_Box *note : notes) {
+	Fl_Boxtype box = timeline.front()->box() == FL_BORDER_BOX ? FL_BORDER_FRAME : FL_BORDER_BOX;
+	for (Note_Box *note : timeline) {
 		note->box(box);
 	}
 	redraw();
@@ -264,7 +498,7 @@ void Piano_Roll::highlight_tick(int32_t t) {
 	if (_tick == t) return; // no change
 	_tick = t;
 
-	Fl_Box *note = _piano_timeline->get_channel_1_note_at_tick(_tick);
+	Note_Box *note = _piano_timeline->get_channel_1_note_at_tick(_tick);
 	if (note) {
 		note->color(fl_lighter(NOTE_RED)); // maybe subclass box to also draw() a frame
 	}

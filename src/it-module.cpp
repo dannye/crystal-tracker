@@ -5,7 +5,7 @@
 constexpr std::size_t BUFFER_SIZE = 2048;
 constexpr std::int32_t SAMPLE_RATE = 48000;
 
-IT_Module::IT_Module(const Song &song, const std::vector<Wave> &waves, int32_t loop_tick) : _buffer(BUFFER_SIZE * 2) {
+IT_Module::IT_Module(const Piano_Roll &song, const std::vector<Wave> &waves, int32_t loop_tick) : _buffer(BUFFER_SIZE * 2) {
 	generate_it_module(song, waves, loop_tick);
 
 	_mod = new openmpt::module(_data);
@@ -96,12 +96,12 @@ static inline void patch_int(std::vector<uint8_t> &data, const uint32_t i, const
     data[i + 3] = (v >> 24);
 }
 
-static std::vector<std::vector<uint8_t>> get_instruments(const Song &song) {
+static std::vector<std::vector<uint8_t>> get_instruments() {
 	std::vector<std::vector<uint8_t>> instruments;
 	return instruments;
 }
 
-static std::vector<std::vector<uint8_t>> get_samples(const Song &song, const std::vector<Wave> &waves) {
+static std::vector<std::vector<uint8_t>> get_samples(const std::vector<Wave> &waves) {
 	const uint32_t sample_filename_length = 12;
 	const uint32_t sample_global_volume = 64;
 	const uint32_t sample_flags = 0b00010001;
@@ -260,13 +260,13 @@ static std::vector<std::vector<uint8_t>> get_samples(const Song &song, const std
 	return samples;
 }
 
-static std::vector<std::vector<uint8_t>> get_patterns(const Song &song, int32_t loop_tick) {
+static std::vector<std::vector<uint8_t>> get_patterns(const Piano_Roll &song, int32_t loop_tick) {
 	std::vector<std::vector<uint8_t>> patterns;
 
-	auto channel_1_itr = song.channel_1_timeline().begin();
-	auto channel_2_itr = song.channel_2_timeline().begin();
-	auto channel_3_itr = song.channel_3_timeline().begin();
-	/* auto channel_4_itr = song.channel_4_timeline().begin(); */
+	auto channel_1_itr = song.channel_1_notes().begin();
+	auto channel_2_itr = song.channel_2_notes().begin();
+	auto channel_3_itr = song.channel_3_notes().begin();
+	/* auto channel_4_itr = song.channel_4_notes().begin(); */
 	int32_t channel_1_note_length = 0;
 	int32_t channel_2_note_length = 0;
 	int32_t channel_3_note_length = 0;
@@ -283,9 +283,9 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song, int32_t 
 
 	auto song_finished = [&]() {
 		return
-			channel_1_itr == song.channel_1_timeline().end() &&
-			channel_2_itr == song.channel_2_timeline().end() &&
-			channel_3_itr == song.channel_3_timeline().end() &&
+			channel_1_itr == song.channel_1_notes().end() &&
+			channel_2_itr == song.channel_2_notes().end() &&
+			channel_3_itr == song.channel_3_notes().end() &&
 			channel_1_note_length == 0 &&
 			channel_2_note_length == 0 &&
 			channel_3_note_length == 0;
@@ -316,7 +316,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song, int32_t 
 		uint32_t row = 0;
 		while (row < ROWS_PER_PATTERN && !song_finished()) {
 			// NOTE: only even speeds are allowed for now to avoid complex time dilation
-			if (channel_1_note_length == 0 && channel_1_itr != song.channel_1_timeline().end()) {
+			if (channel_1_note_length == 0 && channel_1_itr != song.channel_1_notes().end()) {
 				channel_1_note_length = channel_1_itr->length * channel_1_itr->speed / 2 - 1;
 				channel_1_note_duration = 0;
 				if (channel_1_itr->tempo != channel_1_prev_note.tempo) {
@@ -375,7 +375,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song, int32_t 
 				channel_1_note_duration += 1;
 			}
 
-			if (channel_2_note_length == 0 && channel_2_itr != song.channel_2_timeline().end()) {
+			if (channel_2_note_length == 0 && channel_2_itr != song.channel_2_notes().end()) {
 				channel_2_note_length = channel_2_itr->length * channel_2_itr->speed / 2 - 1;
 				channel_2_note_duration = 0;
 				if (channel_2_itr->tempo != channel_2_prev_note.tempo) {
@@ -434,7 +434,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Song &song, int32_t 
 				channel_2_note_duration += 1;
 			}
 
-			if (channel_3_note_length == 0 && channel_3_itr != song.channel_3_timeline().end()) {
+			if (channel_3_note_length == 0 && channel_3_itr != song.channel_3_notes().end()) {
 				channel_3_note_length = channel_3_itr->length * channel_3_itr->speed / 2 - 1;
 				channel_3_note_duration = 0;
 				if (channel_3_itr->tempo != channel_3_prev_note.tempo) {
@@ -512,7 +512,7 @@ static std::size_t get_total_size(const std::vector<std::vector<uint8_t>> &data)
 	return size;
 }
 
-void IT_Module::generate_it_module(const Song &song, const std::vector<Wave> &waves, int32_t loop_tick) {
+void IT_Module::generate_it_module(const Piano_Roll &song, const std::vector<Wave> &waves, int32_t loop_tick) {
 	const uint32_t song_name_length = 26;
 	const uint32_t pattern_row_highlight = 0x1004; // ???
 	const uint32_t tracker_version = 0x5130;
@@ -533,8 +533,8 @@ void IT_Module::generate_it_module(const Song &song, const std::vector<Wave> &wa
 
 	const uint32_t sample_header_size = 80;
 
-	std::vector<std::vector<uint8_t>> instruments = get_instruments(song);
-	std::vector<std::vector<uint8_t>> samples = get_samples(song, waves);
+	std::vector<std::vector<uint8_t>> instruments = get_instruments();
+	std::vector<std::vector<uint8_t>> samples = get_samples(waves);
 	std::vector<std::vector<uint8_t>> patterns = get_patterns(song, loop_tick);
 
 	const uint32_t number_of_orders = patterns.size() + 1;
