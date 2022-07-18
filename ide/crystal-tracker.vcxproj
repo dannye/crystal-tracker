@@ -154,9 +154,11 @@
     <None Include="..\res\blank.xpm" />
     <None Include="..\res\brushed-metal.dat" />
     <None Include="..\res\error.xpm" />
+    <None Include="..\res\four.xpm" />
     <None Include="..\res\help.html" />
     <None Include="..\res\loop.xpm" />
     <None Include="..\res\new.xpm" />
+    <None Include="..\res\one.xpm" />
     <None Include="..\res\open.xpm" />
     <None Include="..\res\pause.xpm" />
     <None Include="..\res\play.xpm" />
@@ -164,6 +166,8 @@
     <None Include="..\res\save-as.xpm" />
     <None Include="..\res\stop.xpm" />
     <None Include="..\res\success.xpm" />
+    <None Include="..\res\three.xpm" />
+    <None Include="..\res\two.xpm" />
     <None Include="..\res\warning.xpm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -67,6 +67,16 @@ public:
 	using Fl_Box::Fl_Box;
 };
 
+class Loop_Box : public Fl_Box {
+public:
+	using Fl_Box::Fl_Box;
+};
+
+class Call_Box : public Fl_Box {
+public:
+	using Fl_Box::Fl_Box;
+};
+
 class Piano_Keys : public Fl_Group {
 private:
 	std::array<Fl_Box *, NUM_NOTES_PER_OCTAVE * NUM_OCTAVES> _notes;
@@ -86,6 +96,15 @@ private:
 	std::vector<Note_Box *> _channel_2_timeline;
 	std::vector<Note_Box *> _channel_3_timeline;
 	std::vector<Note_Box *> _channel_4_timeline;
+	std::vector<Loop_Box *> _channel_1_loops;
+	std::vector<Loop_Box *> _channel_2_loops;
+	std::vector<Loop_Box *> _channel_3_loops;
+	std::vector<Loop_Box *> _channel_4_loops;
+	std::vector<Call_Box *> _channel_1_calls;
+	std::vector<Call_Box *> _channel_2_calls;
+	std::vector<Call_Box *> _channel_3_calls;
+	std::vector<Call_Box *> _channel_4_calls;
+
 	std::vector<Note_View> _channel_1_notes;
 	std::vector<Note_View> _channel_2_notes;
 	std::vector<Note_View> _channel_3_notes;
@@ -107,7 +126,7 @@ public:
 	Piano_Timeline(const Piano_Timeline&) = delete;
 	Piano_Timeline& operator=(const Piano_Timeline&) = delete;
 
-	void set_timeline(const Song &song);
+	bool set_timeline(const Song &song);
 
 	Note_Box *get_channel_1_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_1_timeline, tick); }
 	Note_Box *get_channel_2_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_2_timeline, tick); }
@@ -116,18 +135,19 @@ public:
 
 	int32_t get_loop_tick() const;
 
-	void toggle_channel_1_box_type() { toggle_channel_box_type(_channel_1_timeline); }
-	void toggle_channel_2_box_type() { toggle_channel_box_type(_channel_2_timeline); }
-	void toggle_channel_3_box_type() { toggle_channel_box_type(_channel_3_timeline); }
-	void toggle_channel_4_box_type() { toggle_channel_box_type(_channel_4_timeline); }
+	void set_channel_1_detailed(bool detailed) { set_channel_detailed(_channel_1_timeline, _channel_1_loops, _channel_1_calls, detailed); }
+	void set_channel_2_detailed(bool detailed) { set_channel_detailed(_channel_2_timeline, _channel_2_loops, _channel_2_calls, detailed); }
+	void set_channel_3_detailed(bool detailed) { set_channel_detailed(_channel_3_timeline, _channel_3_loops, _channel_3_calls, detailed); }
+	void set_channel_4_detailed(bool detailed) { set_channel_detailed(_channel_4_timeline, _channel_4_loops, _channel_4_calls, detailed); }
 
 	void reset_note_colors();
 private:
 	void set_channel_timeline(std::vector<Note_Box *> &timeline, const std::vector<Note_View> &notes, Fl_Color color);
+	bool build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Note_View> &notes, const std::list<Command> &commands, int32_t end_tick, Fl_Color color);
 
 	Note_Box *get_note_at_tick(std::vector<Note_Box *> &timeline, int32_t tick);
 
-	void toggle_channel_box_type(std::vector<Note_Box *> &timeline);
+	void set_channel_detailed(std::vector<Note_Box *> &timeline, std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, bool detailed);
 protected:
 	void draw() override;
 };
@@ -150,7 +170,7 @@ public:
 
 	void set_size(int W, int H);
 
-	void set_timeline(const Song &song) { _piano_timeline->set_timeline(song); }
+	bool set_timeline(const Song &song) { return _piano_timeline->set_timeline(song); }
 
 	const std::vector<Note_View> &channel_1_notes() const { return _piano_timeline->_channel_1_notes; }
 	const std::vector<Note_View> &channel_2_notes() const { return _piano_timeline->_channel_2_notes; }
@@ -159,10 +179,10 @@ public:
 
 	int32_t get_loop_tick() const { return _piano_timeline->get_loop_tick(); }
 
-	void toggle_channel_1_box_type() { _piano_timeline->toggle_channel_1_box_type(); }
-	void toggle_channel_2_box_type() { _piano_timeline->toggle_channel_2_box_type(); }
-	void toggle_channel_3_box_type() { _piano_timeline->toggle_channel_3_box_type(); }
-	void toggle_channel_4_box_type() { _piano_timeline->toggle_channel_4_box_type(); }
+	void set_channel_1_detailed(bool detailed) { _piano_timeline->set_channel_1_detailed(detailed); }
+	void set_channel_2_detailed(bool detailed) { _piano_timeline->set_channel_2_detailed(detailed); }
+	void set_channel_3_detailed(bool detailed) { _piano_timeline->set_channel_3_detailed(detailed); }
+	void set_channel_4_detailed(bool detailed) { _piano_timeline->set_channel_4_detailed(detailed); }
 
 	void clear();
 

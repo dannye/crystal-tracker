@@ -52,6 +52,11 @@ private:
 		*_stop_tb = NULL;
 	Toolbar_Toggle_Button
 		*_loop_tb = NULL;
+	Toolbar_Radio_Button
+		*_channel_one_tb = NULL,
+		*_channel_two_tb = NULL,
+		*_channel_three_tb = NULL,
+		*_channel_four_tb = NULL;
 	// GUI outputs
 	Piano_Roll *_piano_roll = NULL;
 	Label *_status_label;
@@ -62,7 +67,13 @@ private:
 		*_save_as_mi = NULL,
 		*_play_pause_mi = NULL,
 		*_stop_mi = NULL,
-		*_loop_mi = NULL;
+		*_loop_mi = NULL,
+		*_channel_one_mi = NULL,
+		*_channel_two_mi = NULL,
+		*_channel_three_mi = NULL,
+		*_channel_four_mi = NULL,
+		*_next_channel_mi = NULL,
+		*_previous_channel_mi = NULL;
 	// Dialogs
 	Directory_Chooser *_new_dir_chooser;
 	Fl_Native_File_Chooser *_asm_open_chooser, *_asm_save_chooser;
@@ -75,6 +86,8 @@ private:
 	Song _song;
 	std::vector<Wave> _waves;
 	IT_Module *_it_module = nullptr;
+	// Work properties
+	int _selected_channel = 0;
 	// Threads
 	std::thread _audio_thread;
 	std::mutex _audio_mutex;
@@ -93,12 +106,15 @@ public:
 	bool maximized(void) const;
 	void maximize(void);
 	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
+	inline int selected_channel(void) const { return _selected_channel; }
 	bool unsaved(void) const;
 	const char *modified_filename(void);
 	int handle(int event) override;
 	void open_song(const char *filename);
 private:
+	inline void selected_channel(int i) { _selected_channel = i; }
 	void update_active_controls(void);
+	void update_channel_detail(void);
 	void store_recent_song(void);
 	void update_recent_songs(void);
 	void open_song(const char *directory, const char *filename);
@@ -122,6 +138,13 @@ private:
 	static void play_pause_cb(Fl_Widget *w, Main_Window *mw);
 	static void stop_cb(Fl_Widget *w, Main_Window *mw);
 	static void loop_cb(Fl_Menu_ *m, Main_Window *mw);
+	// Edit menu
+	static void channel_one_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void channel_two_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void channel_three_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void channel_four_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void next_channel_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void previous_channel_cb(Fl_Menu_ *m, Main_Window *mw);
 	// View menu
 	static void classic_theme_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void aero_theme_cb(Fl_Menu_ *m, Main_Window *mw);
@@ -137,6 +160,10 @@ private:
 	static void high_contrast_theme_cb(Fl_Menu_ *m, Main_Window *mw);
 	// Toolbar buttons
 	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
+	static void channel_one_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
+	static void channel_two_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
+	static void channel_three_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
+	static void channel_four_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
 	// Help menu
 	static void help_cb(Fl_Widget *w, Main_Window *mw);
 	static void about_cb(Fl_Widget *w, Main_Window *mw);

@@ -1,5 +1,5 @@
 /* XPM */
-static const char * APP_ICON_XPM[] = {
+static const char *APP_ICON_XPM[] = {
 "16 16 27 1",
 " 	c #6A6A6A",
 ".	c #8A6363",
@@ -43,4 +43,5 @@ static const char * APP_ICON_XPM[] = {
 "     (_:::_(    ",
 "     <[[[[[<    ",
 "     (_:::_(    ",
-"      ^///^     "};
+"      ^///^     "
+};

@@ -1,5 +1,5 @@
 /* XPM */
-static const char * APP_XPM[] = {
+static const char *APP_XPM[] = {
 "48 48 5 1",
 " 	c #6A6A6A",
 ".	c #FF0000",
@@ -53,4 +53,5 @@ static const char * APP_XPM[] = {
 "                 ###############                ",
 "                                                ",
 "                                                ",
-"                                                "};
+"                                                "
+};

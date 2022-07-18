@@ -149,6 +149,9 @@
     <None Include="..\res\error.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\four.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\help.html">
       <Filter>Resource Files</Filter>
     </None>
@@ -156,6 +159,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\new.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\one.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\open.xpm">
@@ -177,6 +183,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\success.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\three.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\two.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\warning.xpm">
