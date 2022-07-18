@@ -156,7 +156,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		{},
 		OS_SUBMENU("&Play"),
 		OS_MENU_ITEM("&Play/Pause", ' ', (Fl_Callback *)play_pause_cb, this, 0),
+#ifdef __APPLE__
+		OS_MENU_ITEM("&Stop", NSEscapeCharacter, (Fl_Callback *)stop_cb, this, FL_MENU_DIVIDER),
+#else
 		OS_MENU_ITEM("&Stop", FL_Escape, (Fl_Callback *)stop_cb, this, FL_MENU_DIVIDER),
+#endif
 		OS_MENU_ITEM("&Loop", FL_COMMAND + 'l', (Fl_Callback *)loop_cb, this,
 			FL_MENU_TOGGLE | (loop_config ? FL_MENU_VALUE : 0)),
 		{},
@@ -169,8 +173,13 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 			FL_MENU_RADIO | (selected_channel() == 3 ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Channel &4", '4', (Fl_Callback *)channel_four_cb, this,
 			FL_MENU_RADIO | (selected_channel() == 4 ? FL_MENU_VALUE : 0) | FL_MENU_DIVIDER),
+#ifdef __APPLE__
+		OS_MENU_ITEM("&Next Channel", NSTabCharacter, (Fl_Callback *)next_channel_cb, this, 0),
+		OS_MENU_ITEM("&Previous Channel", FL_SHIFT + NSTabCharacter, (Fl_Callback *)previous_channel_cb, this, 0),
+#else
 		OS_MENU_ITEM("&Next Channel", FL_Tab, (Fl_Callback *)next_channel_cb, this, 0),
 		OS_MENU_ITEM("&Previous Channel", FL_SHIFT + FL_Tab, (Fl_Callback *)previous_channel_cb, this, 0),
+#endif
 		{},
 		OS_SUBMENU("&View"),
 		OS_MENU_ITEM("&Theme", 0, NULL, NULL, FL_SUBMENU),
@@ -469,8 +478,8 @@ int Main_Window::handle(int event) {
 		return 1;
 #ifdef __APPLE__
 	case FL_KEYBOARD:
-		if (Fl::event_key() == FL_Escape) {
-			stop_playback();
+		if (Fl::event_key() == FL_Tab && Fl::event_shift()) {
+			previous_channel_cb(nullptr, this);
 			return 1;
 		}
 		[[fallthrough]];

@@ -13,6 +13,7 @@ enum {
     NSFormFeedCharacter             = 0x000c,
     NSCarriageReturnCharacter       = 0x000d,
     NSBackTabCharacter              = 0x0019,
+    NSEscapeCharacter               = 0x001b,
     NSDeleteCharacter               = 0x007f,
     NSLineSeparatorCharacter        = 0x2028,
     NSParagraphSeparatorCharacter   = 0x2029
