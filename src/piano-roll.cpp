@@ -8,6 +8,7 @@
 
 #include "piano-roll.h"
 
+#include "main-window.h"
 #include "themes.h"
 
 static inline bool is_white_key(size_t i) {
@@ -98,6 +99,14 @@ static void calc_channel_length(const std::list<Command> &commands, int32_t &loo
 		}
 		++command_itr;
 	}
+}
+
+void Note_Box::draw() {
+	draw_box();
+	if (_selected) {
+		draw_box(FL_BORDER_FRAME, FL_WHITE);
+	}
+	draw_label();
 }
 
 Piano_Keys::Piano_Keys(int x, int y, int w, int h, const char *l) : Fl_Group(x, y, w, h, l) {
@@ -207,6 +216,48 @@ void Piano_Timeline::clear() {
 	_channel_2_end_tick = -1;
 	_channel_3_end_tick = -1;
 	_channel_4_end_tick = -1;
+}
+
+int Piano_Timeline::handle(int event) {
+	switch (event) {
+	case FL_PUSH:
+		if (Fl::event_button() == FL_LEFT_MOUSE) {
+			if (handle_note_selection(event)) {
+				return 1;
+			}
+		}
+		break;
+	}
+	return Fl_Group::handle(event);
+}
+
+int Piano_Timeline::handle_note_selection(int event) {
+	auto timeline = active_timeline();
+	if (!timeline) return 0;
+
+	if (!Fl::event_shift() && !Fl::event_command()) {
+		// clear selection first
+		for (Note_Box *note : *timeline) {
+			if (note->selected()) {
+				note->selected(false);
+				note->redraw();
+				_keys->redraw();
+			}
+		}
+	}
+
+	bool clicked_note = false;
+	for (Note_Box *note : *timeline) {
+		if (Fl::event_inside(note)) {
+			note->selected(!note->selected() || !Fl::event_command());
+			note->redraw();
+			_keys->redraw();
+			clicked_note = true;
+			break;
+		}
+	}
+
+	return clicked_note;
 }
 
 bool Piano_Timeline::set_timeline(const Song &song) {
@@ -446,7 +497,7 @@ bool Piano_Timeline::build_note_view(
 					begin();
 					loop = new Loop_Box(loop->x() + loop->w(), loop->y(), loop->w(), loop->h());
 					loop->box(FL_BORDER_FRAME);
-					loop->color(color);
+					loop->color(fl_lighter(color));
 					loops.push_back(loop);
 					end();
 					loop_pending = false;
@@ -464,7 +515,7 @@ bool Piano_Timeline::build_note_view(
 					int loop_y2 = 0;
 					loop = new Loop_Box(loop_x1, loop_y1, 0, loop_y2 - loop_y1);
 					loop->box(FL_BORDER_FRAME);
-					loop->color(color);
+					loop->color(fl_lighter(color));
 					loops.push_back(loop);
 					end();
 
@@ -495,7 +546,7 @@ bool Piano_Timeline::build_note_view(
 					int loop_y2 = 0;
 					loop = new Loop_Box(loop_x1, loop_y1, 0, loop_y2 - loop_y1);
 					loop->box(FL_BORDER_FRAME);
-					loop->color(color);
+					loop->color(fl_lighter(color));
 					loops.push_back(loop);
 					end();
 
@@ -517,7 +568,7 @@ bool Piano_Timeline::build_note_view(
 			int call_y2 = 0;
 			call = new Call_Box(call_x1, call_y1, 0, call_y2 - call_y1);
 			call->box(FL_BORDER_FRAME);
-			call->color(color);
+			call->color(fl_darker(color));
 			calls.push_back(call);
 			end();
 
@@ -570,6 +621,15 @@ void Piano_Timeline::set_channel_detailed(
 		call->box(group_box);
 	}
 	redraw();
+}
+
+std::vector<Note_Box *> *Piano_Timeline::active_timeline() {
+	int active_channel = ((Main_Window *)parent()->parent())->selected_channel();
+	if (active_channel == 1) return &_channel_1_timeline;
+	if (active_channel == 2) return &_channel_2_timeline;
+	if (active_channel == 3) return &_channel_3_timeline;
+	if (active_channel == 4) return &_channel_4_timeline;
+	return nullptr;
 }
 
 void Piano_Timeline::draw() {
@@ -693,7 +753,7 @@ void Piano_Roll::highlight_tick(int32_t t) {
 
 	Note_Box *note = _piano_timeline->get_channel_1_note_at_tick(_tick);
 	if (note) {
-		note->color(fl_lighter(NOTE_RED)); // maybe subclass box to also draw() a frame
+		note->color(fl_lighter(NOTE_RED));
 	}
 	note = _piano_timeline->get_channel_2_note_at_tick(_tick);
 	if (note) {

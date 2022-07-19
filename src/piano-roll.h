@@ -63,8 +63,15 @@ constexpr Note_Key NOTE_KEYS[NUM_NOTES_PER_OCTAVE] {
 };
 
 class Note_Box : public Fl_Box {
+private:
+	bool _selected = false;
 public:
 	using Fl_Box::Fl_Box;
+
+	inline bool selected(void) const { return _selected; }
+	inline void selected(bool s) { _selected = s; }
+protected:
+	void draw() override;
 };
 
 class Loop_Box : public Fl_Box {
@@ -126,6 +133,9 @@ public:
 	Piano_Timeline(const Piano_Timeline&) = delete;
 	Piano_Timeline& operator=(const Piano_Timeline&) = delete;
 
+	int handle(int event) override;
+	int handle_note_selection(int event);
+
 	bool set_timeline(const Song &song);
 
 	Note_Box *get_channel_1_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_1_timeline, tick); }
@@ -148,6 +158,8 @@ private:
 	Note_Box *get_note_at_tick(std::vector<Note_Box *> &timeline, int32_t tick);
 
 	void set_channel_detailed(std::vector<Note_Box *> &timeline, std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, bool detailed);
+
+	std::vector<Note_Box *> *active_timeline();
 protected:
 	void draw() override;
 };
