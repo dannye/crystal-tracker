@@ -65,11 +65,14 @@ constexpr Note_Key NOTE_KEYS[NUM_NOTES_PER_OCTAVE] {
 class Note_Box : public Fl_Box {
 private:
 	bool _selected = false;
+	bool _ghost = false;
 public:
 	using Fl_Box::Fl_Box;
 
 	inline bool selected(void) const { return _selected; }
 	inline void selected(bool s) { _selected = s; }
+	inline bool ghost(void) const { return _ghost; }
+	inline void ghost(bool g) { _ghost = g; }
 protected:
 	void draw() override;
 };

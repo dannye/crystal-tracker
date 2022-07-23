@@ -103,7 +103,10 @@ static void calc_channel_length(const std::list<Command> &commands, int32_t &loo
 
 void Note_Box::draw() {
 	draw_box();
-	if (_selected) {
+	if (_ghost) {
+		draw_box(FL_BORDER_FRAME, FL_LIGHT2);
+	}
+	else if (_selected) {
 		draw_box(FL_BORDER_FRAME, FL_WHITE);
 	}
 	draw_label();
@@ -248,12 +251,38 @@ int Piano_Timeline::handle_note_selection(int event) {
 
 	bool clicked_note = false;
 	for (Note_Box *note : *timeline) {
-		if (Fl::event_inside(note)) {
+		if (!note->ghost() &&Fl::event_inside(note)) {
 			note->selected(!note->selected() || !Fl::event_command());
 			note->redraw();
 			_keys->redraw();
 			clicked_note = true;
 			break;
+		}
+	}
+
+	const auto find_selection_start = [](std::vector<Note_Box *> *timeline) {
+		for (auto note_itr = timeline->begin(); note_itr != timeline->end(); ++note_itr) {
+			if ((*note_itr)->selected()) {
+				return note_itr;
+			}
+		}
+		return timeline->end();
+	};
+	const auto find_selection_end = [](std::vector<Note_Box *> *timeline) {
+		for (auto note_itr = timeline->rbegin(); note_itr != timeline->rend(); ++note_itr) {
+			if ((*note_itr)->selected()) {
+				return note_itr.base();
+			}
+		}
+		return timeline->end();
+	};
+
+	if (Fl::event_shift() && clicked_note) {
+		const auto selection_start = find_selection_start(timeline);
+		const auto selection_end = find_selection_end(timeline);
+		for (auto note_itr = selection_start; note_itr != selection_end; ++note_itr) {
+			(*note_itr)->selected(true);
+			(*note_itr)->redraw();
 		}
 	}
 
@@ -321,6 +350,7 @@ void Piano_Timeline::set_channel_timeline(std::vector<Note_Box *> &timeline, con
 			Note_Box *box = new Note_Box(x_pos, y_pos, width, NOTE_ROW_HEIGHT);
 			box->box(FL_BORDER_BOX);
 			box->color(color);
+			box->ghost(note.ghost);
 			timeline.push_back(box);
 		}
 		x_pos += width;
@@ -365,7 +395,9 @@ bool Piano_Timeline::build_note_view(
 	note.delay = 0;
 	note.extent = 0;
 	note.rate = 0;
+	note.ghost = false;
 
+	bool restarted = false;
 	bool loop_pending = false;
 	Loop_Box *loop = nullptr;
 	Call_Box *call = nullptr;
@@ -384,6 +416,7 @@ bool Piano_Timeline::build_note_view(
 			if (tick > end_tick) {
 				note.length -= (tick - end_tick) / (note.speed / 2);
 			}
+			note.ghost = restarted;
 			notes.push_back(note);
 
 			int note_x2 = TICK_TO_X_POS(tick);
@@ -417,6 +450,7 @@ bool Piano_Timeline::build_note_view(
 			if (tick > end_tick) {
 				note.length -= (tick - end_tick) / (note.speed / 2);
 			}
+			note.ghost = restarted;
 			notes.push_back(note);
 
 			int note_x2 = TICK_TO_X_POS(tick);
@@ -450,6 +484,7 @@ bool Piano_Timeline::build_note_view(
 			if (tick > end_tick) {
 				note.length -= (tick - end_tick) / (note.speed / 2);
 			}
+			note.ghost = restarted;
 			notes.push_back(note);
 
 			int note_x2 = TICK_TO_X_POS(tick);
@@ -508,7 +543,7 @@ bool Piano_Timeline::build_note_view(
 					loop = nullptr;
 					loop_stack.pop();
 				}
-				else {
+				else if (!restarted) {
 					begin();
 					int loop_x1 = TICK_TO_X_POS(tick);
 					int loop_y1 = OCTAVE_HEIGHT * NUM_OCTAVES;
@@ -526,7 +561,7 @@ bool Piano_Timeline::build_note_view(
 			else {
 				if (command_itr->sound_loop.loop_count == 0) {
 					if (tick < end_tick) {
-						// TODO: "phantom" mode
+						restarted = true;
 						// TODO: this gets trapped in an infinite loop if the channel's body advances by 0 ticks
 						command_itr = find_note_with_label(commands, command_itr->target);
 						continue;
@@ -539,16 +574,18 @@ bool Piano_Timeline::build_note_view(
 						return false;
 					}
 
-					begin();
-					loop_pending = true;
-					int loop_x1 = TICK_TO_X_POS(tick);
-					int loop_y1 = OCTAVE_HEIGHT * NUM_OCTAVES;
-					int loop_y2 = 0;
-					loop = new Loop_Box(loop_x1, loop_y1, 0, loop_y2 - loop_y1);
-					loop->box(FL_BORDER_FRAME);
-					loop->color(fl_lighter(color));
-					loops.push_back(loop);
-					end();
+					if (!restarted) {
+						begin();
+						loop_pending = true;
+						int loop_x1 = TICK_TO_X_POS(tick);
+						int loop_y1 = OCTAVE_HEIGHT * NUM_OCTAVES;
+						int loop_y2 = 0;
+						loop = new Loop_Box(loop_x1, loop_y1, 0, loop_y2 - loop_y1);
+						loop->box(FL_BORDER_FRAME);
+						loop->color(fl_lighter(color));
+						loops.push_back(loop);
+						end();
+					}
 
 					loop_stack.emplace(command_itr, command_itr->sound_loop.loop_count - 1);
 					command_itr = find_note_with_label(commands, command_itr->target);
@@ -562,15 +599,17 @@ bool Piano_Timeline::build_note_view(
 				return false;
 			}
 
-			begin();
-			int call_x1 = TICK_TO_X_POS(tick);
-			int call_y1 = OCTAVE_HEIGHT * NUM_OCTAVES;
-			int call_y2 = 0;
-			call = new Call_Box(call_x1, call_y1, 0, call_y2 - call_y1);
-			call->box(FL_BORDER_FRAME);
-			call->color(fl_darker(color));
-			calls.push_back(call);
-			end();
+			if (!restarted) {
+				begin();
+				int call_x1 = TICK_TO_X_POS(tick);
+				int call_y1 = OCTAVE_HEIGHT * NUM_OCTAVES;
+				int call_y2 = 0;
+				call = new Call_Box(call_x1, call_y1, 0, call_y2 - call_y1);
+				call->box(FL_BORDER_FRAME);
+				call->color(fl_darker(color));
+				calls.push_back(call);
+				end();
+			}
 
 			call_stack.push(command_itr);
 			command_itr = find_note_with_label(commands, command_itr->target);
@@ -588,6 +627,18 @@ bool Piano_Timeline::build_note_view(
 		}
 		++command_itr;
 	}
+
+	if (loop_pending) {
+		loop->position(loop->x() - loop->w(), loop->y());
+		begin();
+		loop = new Loop_Box(loop->x() + loop->w(), loop->y(), loop->w(), loop->h());
+		loop->box(FL_BORDER_FRAME);
+		loop->color(fl_lighter(color));
+		loops.push_back(loop);
+		end();
+		loop_pending = false;
+	}
+
 	return true;
 }
 
