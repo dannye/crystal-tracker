@@ -80,11 +80,15 @@ protected:
 class Loop_Box : public Fl_Box {
 public:
 	using Fl_Box::Fl_Box;
+protected:
+	void draw() override;
 };
 
 class Call_Box : public Fl_Box {
 public:
 	using Fl_Box::Fl_Box;
+protected:
+	void draw() override;
 };
 
 class Piano_Keys : public Fl_Group {
@@ -102,10 +106,10 @@ class Piano_Timeline : public Fl_Group {
 	friend class Piano_Roll;
 private:
 	Piano_Keys *_keys;
-	std::vector<Note_Box *> _channel_1_timeline;
-	std::vector<Note_Box *> _channel_2_timeline;
-	std::vector<Note_Box *> _channel_3_timeline;
-	std::vector<Note_Box *> _channel_4_timeline;
+	std::vector<Note_Box *> _channel_1_notes;
+	std::vector<Note_Box *> _channel_2_notes;
+	std::vector<Note_Box *> _channel_3_notes;
+	std::vector<Note_Box *> _channel_4_notes;
 	std::vector<Loop_Box *> _channel_1_loops;
 	std::vector<Loop_Box *> _channel_2_loops;
 	std::vector<Loop_Box *> _channel_3_loops;
@@ -114,6 +118,50 @@ private:
 	std::vector<Call_Box *> _channel_2_calls;
 	std::vector<Call_Box *> _channel_3_calls;
 	std::vector<Call_Box *> _channel_4_calls;
+public:
+	Piano_Timeline(int x, int y, int w, int h, const char *l = nullptr);
+	~Piano_Timeline() noexcept;
+
+	void clear();
+
+	Piano_Timeline(const Piano_Timeline&) = delete;
+	Piano_Timeline& operator=(const Piano_Timeline&) = delete;
+
+	int handle(int event) override;
+	bool handle_note_selection(int event);
+
+	Note_Box *get_channel_1_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_1_notes, tick); }
+	Note_Box *get_channel_2_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_2_notes, tick); }
+	Note_Box *get_channel_3_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_3_notes, tick); }
+	Note_Box *get_channel_4_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_4_notes, tick); }
+
+	void set_channel_1(const std::vector<Note_View> &notes, Fl_Color color) { set_channel(_channel_1_notes, notes, color); }
+	void set_channel_2(const std::vector<Note_View> &notes, Fl_Color color) { set_channel(_channel_2_notes, notes, color); }
+	void set_channel_3(const std::vector<Note_View> &notes, Fl_Color color) { set_channel(_channel_3_notes, notes, color); }
+	void set_channel_4(const std::vector<Note_View> &notes, Fl_Color color) { set_channel(_channel_4_notes, notes, color); }
+
+	void set_channel_1_detailed(bool detailed) { set_channel_detailed(_channel_1_notes, _channel_1_loops, _channel_1_calls, detailed); }
+	void set_channel_2_detailed(bool detailed) { set_channel_detailed(_channel_2_notes, _channel_2_loops, _channel_2_calls, detailed); }
+	void set_channel_3_detailed(bool detailed) { set_channel_detailed(_channel_3_notes, _channel_3_loops, _channel_3_calls, detailed); }
+	void set_channel_4_detailed(bool detailed) { set_channel_detailed(_channel_4_notes, _channel_4_loops, _channel_4_calls, detailed); }
+
+	void reset_note_colors();
+private:
+	Note_Box *get_note_at_tick(std::vector<Note_Box *> &notes, int32_t tick);
+	void set_channel(std::vector<Note_Box *> &channel, const std::vector<Note_View> &notes, Fl_Color color);
+	void set_channel_detailed(std::vector<Note_Box *> &notes, std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, bool detailed);
+
+	std::vector<Note_Box *> *active_channel();
+protected:
+	void draw() override;
+};
+
+class Piano_Roll : public Fl_Scroll {
+private:
+	Piano_Timeline *_piano_timeline;
+	int32_t _tick = -1;
+	bool _following = false;
+	bool _realtime = true;
 
 	std::vector<Note_View> _channel_1_notes;
 	std::vector<Note_View> _channel_2_notes;
@@ -128,71 +176,28 @@ private:
 	int32_t _channel_3_end_tick = -1;
 	int32_t _channel_4_end_tick = -1;
 public:
-	Piano_Timeline(int x, int y, int w, int h, const char *l = nullptr);
-	~Piano_Timeline() noexcept;
-
-	void clear();
-
-	Piano_Timeline(const Piano_Timeline&) = delete;
-	Piano_Timeline& operator=(const Piano_Timeline&) = delete;
-
-	int handle(int event) override;
-	int handle_note_selection(int event);
-
-	bool set_timeline(const Song &song);
-
-	Note_Box *get_channel_1_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_1_timeline, tick); }
-	Note_Box *get_channel_2_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_2_timeline, tick); }
-	Note_Box *get_channel_3_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_3_timeline, tick); }
-	Note_Box *get_channel_4_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_4_timeline, tick); }
-
-	int32_t get_loop_tick() const;
-
-	void set_channel_1_detailed(bool detailed) { set_channel_detailed(_channel_1_timeline, _channel_1_loops, _channel_1_calls, detailed); }
-	void set_channel_2_detailed(bool detailed) { set_channel_detailed(_channel_2_timeline, _channel_2_loops, _channel_2_calls, detailed); }
-	void set_channel_3_detailed(bool detailed) { set_channel_detailed(_channel_3_timeline, _channel_3_loops, _channel_3_calls, detailed); }
-	void set_channel_4_detailed(bool detailed) { set_channel_detailed(_channel_4_timeline, _channel_4_loops, _channel_4_calls, detailed); }
-
-	void reset_note_colors();
-private:
-	void set_channel_timeline(std::vector<Note_Box *> &timeline, const std::vector<Note_View> &notes, Fl_Color color);
-	bool build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Note_View> &notes, const std::list<Command> &commands, int32_t end_tick, Fl_Color color);
-
-	Note_Box *get_note_at_tick(std::vector<Note_Box *> &timeline, int32_t tick);
-
-	void set_channel_detailed(std::vector<Note_Box *> &timeline, std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, bool detailed);
-
-	std::vector<Note_Box *> *active_timeline();
-protected:
-	void draw() override;
-};
-
-class Piano_Roll : public Fl_Scroll {
-	friend class Piano_Timeline;
-private:
-	Piano_Timeline *_piano_timeline;
-	int32_t _tick = -1;
-	bool _following = false;
-	bool _realtime = true;
-public:
 	Piano_Roll(int x, int y, int w, int h, const char *l = nullptr);
 	~Piano_Roll() noexcept;
 
 	Piano_Roll(const Piano_Roll&) = delete;
 	Piano_Roll& operator=(const Piano_Roll&) = delete;
 
+	inline int32_t tick(void) const { return _tick; }
+
+	const std::vector<Note_View> &channel_1_notes() const { return _channel_1_notes; }
+	const std::vector<Note_View> &channel_2_notes() const { return _channel_2_notes; }
+	const std::vector<Note_View> &channel_3_notes() const { return _channel_3_notes; }
+	const std::vector<Note_View> &channel_4_notes() const { return _channel_4_notes; }
+
 	int handle(int event) override;
 
 	void set_size(int W, int H);
 
-	bool set_timeline(const Song &song) { return _piano_timeline->set_timeline(song); }
+	bool set_timeline(const Song &song);
 
-	const std::vector<Note_View> &channel_1_notes() const { return _piano_timeline->_channel_1_notes; }
-	const std::vector<Note_View> &channel_2_notes() const { return _piano_timeline->_channel_2_notes; }
-	const std::vector<Note_View> &channel_3_notes() const { return _piano_timeline->_channel_3_notes; }
-	const std::vector<Note_View> &channel_4_notes() const { return _piano_timeline->_channel_4_notes; }
+	bool build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Note_View> &notes, const std::list<Command> &commands, int32_t end_tick, Fl_Color color);
 
-	int32_t get_loop_tick() const { return _piano_timeline->get_loop_tick(); }
+	int32_t get_loop_tick() const;
 
 	void set_channel_1_detailed(bool detailed) { _piano_timeline->set_channel_1_detailed(detailed); }
 	void set_channel_2_detailed(bool detailed) { _piano_timeline->set_channel_2_detailed(detailed); }
