@@ -390,6 +390,7 @@ void Piano_Timeline::draw() {
 	bool dark = OS::is_dark_theme(OS::current_theme());
 	Fl_Color light_row = dark ? ALT_LIGHT_ROW : FL_LIGHT1;
 	Fl_Color dark_row = dark ? ALT_DARK_ROW : FL_DARK2;
+	Fl_Color cursor_color = dark ? FL_YELLOW : ALT_CURSOR;
 	if (damage() & ~FL_DAMAGE_CHILD) {
 		int y_pos = y();
 		for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
@@ -400,7 +401,7 @@ void Piano_Timeline::draw() {
 				else {
 					fl_rectf(x(), y_pos, w(), NOTE_ROW_HEIGHT, dark_row);
 				}
-				fl_color(FL_DARK3);
+				fl_color(FL_DARK2);
 				fl_xyline(x(), y_pos - 1, x() + w());
 				fl_xyline(x(), y_pos, x() + w());
 				y_pos += NOTE_ROW_HEIGHT;
@@ -410,14 +411,15 @@ void Piano_Timeline::draw() {
 		int x_pos = x() + WHITE_KEY_WIDTH;
 		const size_t num_dividers = (w() - WHITE_KEY_WIDTH) / TIME_STEP_WIDTH + 1;
 		for (size_t i = 0; i < num_dividers; ++i) {
-			fl_yxline(x_pos - 1, y(), y() + h());
+			fl_color(FL_DARK3);
 			fl_yxline(x_pos, y(), y() + h());
 			x_pos += TIME_STEP_WIDTH;
 		}
 
 		Piano_Roll *p = (Piano_Roll *)parent();
 		x_pos = x() + p->tick() * TIME_STEP_WIDTH + WHITE_KEY_WIDTH;
-		fl_color(FL_YELLOW);
+		fl_color(cursor_color);
+		fl_yxline(x_pos - 1, y(), y() + h());
 		fl_yxline(x_pos, y(), y() + h());
 	}
 	draw_children();
