@@ -672,8 +672,8 @@ bool Piano_Roll::build_note_view(
 				else if (!restarted) {
 					_piano_timeline->begin();
 					int loop_x1 = TICK_TO_X_POS(tick);
-					int loop_y1 = OCTAVE_HEIGHT * NUM_OCTAVES;
-					int loop_y2 = 0;
+					int loop_y1 = PITCH_TO_Y_POS(Pitch::C_NAT, 1);
+					int loop_y2 = PITCH_TO_Y_POS(Pitch::B_NAT, 8);
 					loop = new Loop_Box(loop_x1, loop_y1, 0, loop_y2 - loop_y1);
 					loop->box(FL_BORDER_FRAME);
 					loop->color(fl_lighter(color));
@@ -704,8 +704,8 @@ bool Piano_Roll::build_note_view(
 						_piano_timeline->begin();
 						loop_pending = true;
 						int loop_x1 = TICK_TO_X_POS(tick);
-						int loop_y1 = OCTAVE_HEIGHT * NUM_OCTAVES;
-						int loop_y2 = 0;
+						int loop_y1 = PITCH_TO_Y_POS(Pitch::C_NAT, 1);
+						int loop_y2 = PITCH_TO_Y_POS(Pitch::B_NAT, 8);
 						loop = new Loop_Box(loop_x1, loop_y1, 0, loop_y2 - loop_y1);
 						loop->box(FL_BORDER_FRAME);
 						loop->color(fl_lighter(color));
@@ -728,8 +728,8 @@ bool Piano_Roll::build_note_view(
 			if (!restarted) {
 				_piano_timeline->begin();
 				int call_x1 = TICK_TO_X_POS(tick);
-				int call_y1 = OCTAVE_HEIGHT * NUM_OCTAVES;
-				int call_y2 = 0;
+				int call_y1 = PITCH_TO_Y_POS(Pitch::C_NAT, 1);
+				int call_y2 = PITCH_TO_Y_POS(Pitch::B_NAT, 8);
 				call = new Call_Box(call_x1, call_y1, 0, call_y2 - call_y1);
 				call->box(FL_BORDER_FRAME);
 				call->color(fl_darker(color));
