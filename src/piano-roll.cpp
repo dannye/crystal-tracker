@@ -104,10 +104,18 @@ static void calc_channel_length(const std::list<Command> &commands, int32_t &loo
 void Note_Box::draw() {
 	draw_box();
 	if (_ghost) {
-		draw_box(FL_BORDER_FRAME, FL_LIGHT2);
+		draw_box(FL_BORDER_FRAME, NOTE_GHOST);
+		if (box() != FL_BORDER_FRAME) {
+			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, NOTE_GHOST);
+			draw_box(FL_BORDER_FRAME, x() + 2, y() + 2, w() - 4, h() - 4, NOTE_GHOST);
+		}
 	}
 	else if (_selected) {
-		draw_box(FL_BORDER_FRAME, FL_WHITE);
+		draw_box(FL_BORDER_FRAME, FL_FOREGROUND_COLOR);
+		if (box() != FL_BORDER_FRAME) {
+			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, FL_WHITE);
+			draw_box(FL_BORDER_FRAME, x() + 2, y() + 2, w() - 4, h() - 4, FL_WHITE);
+		}
 	}
 	draw_label();
 }
@@ -387,10 +395,13 @@ std::vector<Note_Box *> *Piano_Timeline::active_channel() {
 }
 
 void Piano_Timeline::draw() {
-	bool dark = OS::is_dark_theme(OS::current_theme());
-	Fl_Color light_row = dark ? ALT_LIGHT_ROW : FL_LIGHT1;
-	Fl_Color dark_row = dark ? ALT_DARK_ROW : FL_DARK2;
-	Fl_Color cursor_color = dark ? FL_YELLOW : ALT_CURSOR;
+	OS::Theme theme = OS::current_theme();
+	bool dark = OS::is_dark_theme(theme);
+	bool hc = theme == OS::Theme::HIGH_CONTRAST;
+	Fl_Color light_row = hc ? fl_darker(FL_BACKGROUND2_COLOR) : dark ? ALT_LIGHT_ROW : FL_LIGHT1;
+	Fl_Color dark_row = hc ? FL_BACKGROUND2_COLOR : dark ? ALT_DARK_ROW : FL_DARK2;
+	Fl_Color row_divider = hc ? FL_BACKGROUND2_COLOR : FL_DARK2;
+	Fl_Color cursor_color = dark ? FL_YELLOW : FL_MAGENTA;
 	if (damage() & ~FL_DAMAGE_CHILD) {
 		int y_pos = y();
 		for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
@@ -401,9 +412,11 @@ void Piano_Timeline::draw() {
 				else {
 					fl_rectf(x(), y_pos, w(), NOTE_ROW_HEIGHT, dark_row);
 				}
-				fl_color(FL_DARK2);
-				fl_xyline(x(), y_pos - 1, x() + w());
-				fl_xyline(x(), y_pos, x() + w());
+				if (_x == 0 || _x == 7) {
+					fl_color(row_divider);
+					fl_xyline(x(), y_pos - 1, x() + w());
+					fl_xyline(x(), y_pos, x() + w());
+				}
 				y_pos += NOTE_ROW_HEIGHT;
 			}
 		}
@@ -412,7 +425,7 @@ void Piano_Timeline::draw() {
 		const size_t num_dividers = (w() - WHITE_KEY_WIDTH) / TIME_STEP_WIDTH + 1;
 		for (size_t i = 0; i < num_dividers; ++i) {
 			fl_color(FL_DARK3);
-			fl_yxline(x_pos, y(), y() + h());
+			fl_yxline(x_pos - 1, y(), y() + h());
 			x_pos += TIME_STEP_WIDTH;
 		}
 
