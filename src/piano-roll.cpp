@@ -682,16 +682,18 @@ bool Piano_Roll::build_note_view(
 					loop = nullptr;
 					loop_stack.pop();
 				}
-				else if (!restarted) {
-					_piano_timeline->begin();
-					int loop_x1 = TICK_TO_X_POS(tick);
-					int loop_y1 = PITCH_TO_Y_POS(Pitch::C_NAT, 1);
-					int loop_y2 = PITCH_TO_Y_POS(Pitch::B_NAT, 8);
-					loop = new Loop_Box(loop_x1, loop_y1, 0, loop_y2 - loop_y1);
-					loop->box(FL_BORDER_FRAME);
-					loop->color(fl_lighter(color));
-					loops.push_back(loop);
-					_piano_timeline->end();
+				else {
+					if (!restarted) {
+						_piano_timeline->begin();
+						int loop_x1 = TICK_TO_X_POS(tick);
+						int loop_y1 = PITCH_TO_Y_POS(Pitch::C_NAT, 1);
+						int loop_y2 = PITCH_TO_Y_POS(Pitch::B_NAT, 8);
+						loop = new Loop_Box(loop_x1, loop_y1, 0, loop_y2 - loop_y1);
+						loop->box(FL_BORDER_FRAME);
+						loop->color(fl_lighter(color));
+						loops.push_back(loop);
+						_piano_timeline->end();
+					}
 
 					command_itr = find_note_with_label(commands, command_itr->target);
 					continue;
