@@ -105,14 +105,14 @@ void Note_Box::draw() {
 	draw_box();
 	if (_ghost) {
 		draw_box(FL_BORDER_FRAME, NOTE_GHOST);
-		if (box() != FL_BORDER_FRAME) {
+		if (box() != FL_BORDER_FRAME && x() + w() > 1) {
 			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, NOTE_GHOST);
 			draw_box(FL_BORDER_FRAME, x() + 2, y() + 2, w() - 4, h() - 4, NOTE_GHOST);
 		}
 	}
 	else if (_selected) {
 		draw_box(FL_BORDER_FRAME, FL_FOREGROUND_COLOR);
-		if (box() != FL_BORDER_FRAME) {
+		if (box() != FL_BORDER_FRAME && x() + w() > 1) {
 			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, FL_WHITE);
 			draw_box(FL_BORDER_FRAME, x() + 2, y() + 2, w() - 4, h() - 4, FL_WHITE);
 		}
@@ -257,7 +257,7 @@ bool Piano_Timeline::handle_note_selection(int event) {
 
 	bool clicked_note = false;
 	for (Note_Box *note : *channel) {
-		if (!note->ghost() &&Fl::event_inside(note)) {
+		if (!note->ghost() && Fl::event_inside(note)) {
 			note->selected(!note->selected() || !Fl::event_command());
 			note->redraw();
 			_keys->redraw();
