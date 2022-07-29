@@ -40,8 +40,9 @@ constexpr int NOTE_ROW_HEIGHT = OCTAVE_HEIGHT / NUM_NOTES_PER_OCTAVE;
 
 constexpr int BLACK_KEY_OFFSET = NOTE_ROW_HEIGHT / 2 - BLACK_KEY_HEIGHT / 2;
 
-constexpr int TIME_STEP_WIDTH = 48;
-constexpr int DEFAULT_SPEED = 12;
+constexpr int TICK_WIDTH = 4;
+constexpr int TICKS_PER_STEP = 12;
+constexpr int TIME_STEP_WIDTH = TICK_WIDTH * TICKS_PER_STEP;
 
 struct Note_Key {
 	int x, y, w, h;

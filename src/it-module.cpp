@@ -474,8 +474,8 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Piano_Roll &song, in
 			}
 
 			if (song_finished() && loop_tick != -1) {
-				uint32_t pattern_number = (uint32_t)loop_tick / ROWS_PER_PATTERN;
-				uint32_t row_number = (uint32_t)loop_tick % ROWS_PER_PATTERN;
+				uint32_t pattern_number = (uint32_t)(loop_tick / 2) / ROWS_PER_PATTERN;
+				uint32_t row_number = (uint32_t)(loop_tick / 2) % ROWS_PER_PATTERN;
 
 				pattern_data.push_back(0x86);
 				pattern_data.push_back(0x08); // command

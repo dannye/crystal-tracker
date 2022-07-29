@@ -11,7 +11,6 @@
 #include "piano-roll.h"
 
 constexpr uint32_t ROWS_PER_PATTERN = 192;
-constexpr uint32_t DEFAULT_ROWS_PER_TICK = 6;
 
 class IT_Module {
 private:
@@ -45,7 +44,7 @@ public:
 	bool pause()   { _paused = true;  return Pa_StopStream(_stream.paStream())  == paNoError; }
 	void play();
 
-	int32_t current_tick() const { return (_current_pattern * ROWS_PER_PATTERN + _current_row) / DEFAULT_ROWS_PER_TICK; }
+	int32_t current_tick() const { return (_current_pattern * ROWS_PER_PATTERN + _current_row) * 2; }
 private:
 	bool try_open();
 	void generate_it_module(const Piano_Roll &song, const std::vector<Wave> &waves, int32_t loop_tick = -1);

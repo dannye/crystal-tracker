@@ -1374,7 +1374,7 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 			IT_Module *mod = mw->_it_module;
 			if (mod && mod->playing()) {
 				mod->play();
-				int32_t t = mod->current_tick();
+				int32_t t = mod->current_tick() / TICKS_PER_STEP * TICKS_PER_STEP;
 				if (t > tick || (mod->looping() && t < tick)) {
 					tick = t;
 					Fl::awake((Fl_Awake_Handler)sync_cb, mw);
@@ -1394,7 +1394,7 @@ void Main_Window::sync_cb(Main_Window *mw) {
 	mw->_audio_mutex.lock();
 	IT_Module *mod = mw->_it_module;
 	if (mod && mod->playing()) {
-		int32_t tick = mod->current_tick();
+		int32_t tick = mod->current_tick() / TICKS_PER_STEP * TICKS_PER_STEP;
 		mw->_piano_roll->highlight_tick(tick);
 	}
 	else if (!mod || mod->stopped()) {

@@ -38,13 +38,13 @@ static void calc_channel_length(const std::list<Command> &commands, int32_t &loo
 			label_positions.insert({ label, tick });
 		}
 		if (command_itr->type == Command_Type::NOTE) {
-			tick += command_itr->note.length * speed / 2;
+			tick += command_itr->note.length * speed;
 		}
 		else if (command_itr->type == Command_Type::DRUM_NOTE) {
-			tick += command_itr->drum_note.length * speed / 2;
+			tick += command_itr->drum_note.length * speed;
 		}
 		else if (command_itr->type == Command_Type::REST) {
-			tick += command_itr->rest.length * speed / 2;
+			tick += command_itr->rest.length * speed;
 		}
 		else if (command_itr->type == Command_Type::NOTE_TYPE) {
 			speed = command_itr->note_type.speed;
@@ -311,7 +311,7 @@ void Piano_Timeline::reset_note_colors() {
 }
 
 Note_Box *Piano_Timeline::get_note_at_tick(std::vector<Note_Box *> &notes, int32_t tick) {
-	int x_pos = tick * TIME_STEP_WIDTH + WHITE_KEY_WIDTH;
+	int x_pos = tick * TICK_WIDTH + WHITE_KEY_WIDTH;
 	for (Note_Box *note : notes) {
 		int note_left = note->x() - note->parent()->x();
 		int note_right = note_left + note->w();
@@ -325,14 +325,14 @@ Note_Box *Piano_Timeline::get_note_at_tick(std::vector<Note_Box *> &notes, int32
 #define BASE_X (x())
 #define BASE_Y (y())
 
-#define TICK_TO_X_POS(tick) (BASE_X + WHITE_KEY_WIDTH + TIME_STEP_WIDTH * (tick) * 2 / DEFAULT_SPEED)
+#define TICK_TO_X_POS(tick) (BASE_X + WHITE_KEY_WIDTH + TICK_WIDTH * (tick))
 #define PITCH_TO_Y_POS(pitch, octave) (BASE_Y + (NUM_OCTAVES - (octave)) * OCTAVE_HEIGHT + (NUM_PITCHES - (size_t)(pitch)) * NOTE_ROW_HEIGHT)
 
 void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, const std::vector<Note_View> &notes, Fl_Color color) {
 	begin();
 	int x_pos = x() + WHITE_KEY_WIDTH;
 	for (const Note_View &note : notes) {
-		int width = TIME_STEP_WIDTH * note.length * note.speed / DEFAULT_SPEED;
+		int width = TICK_WIDTH * note.length * note.speed;
 		if (note.pitch != Pitch::REST) {
 			int y_pos = PITCH_TO_Y_POS(note.pitch, note.octave);
 			Note_Box *box = new Note_Box(x_pos, y_pos, width, NOTE_ROW_HEIGHT);
@@ -430,7 +430,7 @@ void Piano_Timeline::draw() {
 		}
 
 		Piano_Roll *p = (Piano_Roll *)parent();
-		x_pos = x() + p->tick() * TIME_STEP_WIDTH + WHITE_KEY_WIDTH;
+		x_pos = x() + p->tick() * TICK_WIDTH + WHITE_KEY_WIDTH;
 		fl_color(cursor_color);
 		fl_yxline(x_pos - 1, y(), y() + h());
 		fl_yxline(x_pos, y(), y() + h());
@@ -551,9 +551,9 @@ bool Piano_Roll::build_note_view(
 		if (command_itr->type == Command_Type::NOTE) {
 			note.length = command_itr->note.length;
 			note.pitch = command_itr->note.pitch;
-			tick += note.length * note.speed / 2;
+			tick += note.length * note.speed;
 			if (tick > end_tick) {
-				note.length -= (tick - end_tick) / (note.speed / 2);
+				note.length -= (tick - end_tick) / note.speed;
 			}
 			note.ghost = restarted;
 			notes.push_back(note);
@@ -585,9 +585,9 @@ bool Piano_Roll::build_note_view(
 		else if (command_itr->type == Command_Type::DRUM_NOTE) {
 			note.length = command_itr->drum_note.length;
 			note.pitch = (Pitch)command_itr->drum_note.instrument;
-			tick += note.length * note.speed / 2;
+			tick += note.length * note.speed;
 			if (tick > end_tick) {
-				note.length -= (tick - end_tick) / (note.speed / 2);
+				note.length -= (tick - end_tick) / note.speed;
 			}
 			note.ghost = restarted;
 			notes.push_back(note);
@@ -619,9 +619,9 @@ bool Piano_Roll::build_note_view(
 		else if (command_itr->type == Command_Type::REST) {
 			note.length = command_itr->rest.length;
 			note.pitch = Pitch::REST;
-			tick += note.length * note.speed / 2;
+			tick += note.length * note.speed;
 			if (tick > end_tick) {
-				note.length -= (tick - end_tick) / (note.speed / 2);
+				note.length -= (tick - end_tick) / note.speed;
 			}
 			note.ghost = restarted;
 			notes.push_back(note);
@@ -856,7 +856,7 @@ void Piano_Roll::highlight_tick(int32_t t) {
 		note->color(fl_lighter(NOTE_BROWN));
 	}
 
-	int x_pos = _tick * TIME_STEP_WIDTH;
+	int x_pos = _tick * TICK_WIDTH;
 	if (_realtime || x_pos > xposition() + w() - WHITE_KEY_WIDTH * 2 || x_pos < xposition()) {
 		if (x_pos > _piano_timeline->w() - (w() - scrollbar.w())) {
 			scroll_to(_piano_timeline->w() - (w() - scrollbar.w()), yposition());
