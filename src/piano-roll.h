@@ -67,11 +67,14 @@ constexpr Note_Key NOTE_KEYS[NUM_NOTES_PER_OCTAVE] {
 
 class Note_Box : public Fl_Box {
 private:
+	int32_t _index = 0;
 	bool _selected = false;
 	bool _ghost = false;
 public:
 	using Fl_Box::Fl_Box;
 
+	inline int32_t index(void) const { return _index; }
+	inline void index(int32_t i) { _index = i; }
 	inline bool selected(void) const { return _selected; }
 	inline void selected(bool s) { _selected = s; }
 	inline bool ghost(void) const { return _ghost; }
@@ -126,6 +129,10 @@ public:
 	~Piano_Timeline() noexcept;
 
 	void clear();
+	void clear_channel_1();
+	void clear_channel_2();
+	void clear_channel_3();
+	void clear_channel_4();
 
 	Piano_Timeline(const Piano_Timeline&) = delete;
 	Piano_Timeline& operator=(const Piano_Timeline&) = delete;
@@ -197,8 +204,9 @@ public:
 	void set_size(int W, int H);
 
 	bool set_timeline(const Song &song);
+	void set_channel_timeline(const int selected_channel, const Song &song);
 
-	bool build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Note_View> &notes, const std::list<Command> &commands, int32_t end_tick, Fl_Color color);
+	bool build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Note_View> &notes, const std::vector<Command> &commands, int32_t end_tick, Fl_Color color);
 
 	int32_t get_loop_tick() const;
 
@@ -214,6 +222,8 @@ public:
 	void stop_following();
 	void pause_following();
 	void highlight_tick(int32_t t);
+
+	bool delete_selection(Song &song);
 private:
 	static void hscrollbar_cb(Fl_Scrollbar *sb, void *);
 };

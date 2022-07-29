@@ -253,6 +253,7 @@ struct Note_View {
 	int32_t extent = 0; // vibrato
 	int32_t rate   = 0; //
 
+	int32_t index = 0;
 	bool ghost = false;
 };
 

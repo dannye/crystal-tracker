@@ -1,4 +1,5 @@
 #include <map>
+#include <set>
 #include <stack>
 
 #pragma warning(push, 0)
@@ -15,7 +16,7 @@ static inline bool is_white_key(size_t i) {
 	return !(i == 1 || i == 3 || i == 5 || i == 8 || i == 10);
 }
 
-static const auto find_note_with_label(const std::list<Command> &commands, std::string label) {
+static const auto find_note_with_label(const std::vector<Command> &commands, std::string label) {
 	for (auto command_itr = commands.begin(); command_itr != commands.end(); ++command_itr) {
 		if (command_itr->labels.count(label) > 0) {
 			return command_itr;
@@ -24,7 +25,7 @@ static const auto find_note_with_label(const std::list<Command> &commands, std::
 	return commands.end(); // if this happens, we've already messed up
 }
 
-static void calc_channel_length(const std::list<Command> &commands, int32_t &loop_tick, int32_t &end_tick) {
+static void calc_channel_length(const std::vector<Command> &commands, int32_t &loop_tick, int32_t &end_tick) {
 	int32_t tick = 0;
 	loop_tick = -1;
 	end_tick = -1;
@@ -175,52 +176,74 @@ Piano_Timeline::~Piano_Timeline() noexcept {
 }
 
 void Piano_Timeline::clear() {
+	clear_channel_1();
+	clear_channel_2();
+	clear_channel_3();
+	clear_channel_4();
+}
+
+void Piano_Timeline::clear_channel_1() {
 	for (Note_Box *note : _channel_1_notes) {
 		delete note;
 	}
 	_channel_1_notes.clear();
-	for (Note_Box *note : _channel_2_notes) {
-		delete note;
-	}
-	_channel_2_notes.clear();
-	for (Note_Box *note : _channel_3_notes) {
-		delete note;
-	}
-	_channel_3_notes.clear();
-	for (Note_Box *note : _channel_4_notes) {
-		delete note;
-	}
-	_channel_4_notes.clear();
 
 	for (Loop_Box *loop : _channel_1_loops) {
 		delete loop;
 	}
 	_channel_1_loops.clear();
-	for (Loop_Box *loop : _channel_2_loops) {
-		delete loop;
-	}
-	_channel_2_loops.clear();
-	for (Loop_Box *loop : _channel_3_loops) {
-		delete loop;
-	}
-	_channel_3_loops.clear();
-	for (Loop_Box *loop : _channel_4_loops) {
-		delete loop;
-	}
-	_channel_4_loops.clear();
 
 	for (Call_Box *call : _channel_1_calls) {
 		delete call;
 	}
 	_channel_1_calls.clear();
+}
+
+void Piano_Timeline::clear_channel_2() {
+	for (Note_Box *note : _channel_2_notes) {
+		delete note;
+	}
+	_channel_2_notes.clear();
+
+	for (Loop_Box *loop : _channel_2_loops) {
+		delete loop;
+	}
+	_channel_2_loops.clear();
+
 	for (Call_Box *call : _channel_2_calls) {
 		delete call;
 	}
 	_channel_2_calls.clear();
+}
+
+void Piano_Timeline::clear_channel_3() {
+	for (Note_Box *note : _channel_3_notes) {
+		delete note;
+	}
+	_channel_3_notes.clear();
+
+	for (Loop_Box *loop : _channel_3_loops) {
+		delete loop;
+	}
+	_channel_3_loops.clear();
+
 	for (Call_Box *call : _channel_3_calls) {
 		delete call;
 	}
 	_channel_3_calls.clear();
+}
+
+void Piano_Timeline::clear_channel_4() {
+	for (Note_Box *note : _channel_4_notes) {
+		delete note;
+	}
+	_channel_4_notes.clear();
+
+	for (Loop_Box *loop : _channel_4_loops) {
+		delete loop;
+	}
+	_channel_4_loops.clear();
+
 	for (Call_Box *call : _channel_4_calls) {
 		delete call;
 	}
@@ -338,6 +361,7 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, const std::ve
 			Note_Box *box = new Note_Box(x_pos, y_pos, width, NOTE_ROW_HEIGHT);
 			box->box(FL_BORDER_BOX);
 			box->color(color);
+			box->index(note.index);
 			box->ghost(note.ghost);
 			channel.push_back(box);
 		}
@@ -511,6 +535,35 @@ bool Piano_Roll::set_timeline(const Song &song) {
 	return true;
 }
 
+void Piano_Roll::set_channel_timeline(const int selected_channel, const Song &song) {
+	int32_t song_length = std::max({ _channel_1_end_tick, _channel_2_end_tick, _channel_3_end_tick, _channel_4_end_tick });
+
+	if (selected_channel == 1) {
+		_piano_timeline->clear_channel_1();
+		_channel_1_notes.clear();
+		build_note_view(_piano_timeline->_channel_1_loops, _piano_timeline->_channel_1_calls, _channel_1_notes, song.channel_1_commands(), song_length, NOTE_RED);
+		_piano_timeline->set_channel_1(_channel_1_notes, NOTE_RED);
+	}
+	else if (selected_channel == 2) {
+		_piano_timeline->clear_channel_2();
+		_channel_2_notes.clear();
+		build_note_view(_piano_timeline->_channel_2_loops, _piano_timeline->_channel_2_calls, _channel_2_notes, song.channel_2_commands(), song_length, NOTE_BLUE);
+		_piano_timeline->set_channel_2(_channel_2_notes, NOTE_BLUE);
+	}
+	else if (selected_channel == 3) {
+		_piano_timeline->clear_channel_3();
+		_channel_3_notes.clear();
+		build_note_view(_piano_timeline->_channel_3_loops, _piano_timeline->_channel_3_calls, _channel_3_notes, song.channel_3_commands(), song_length, NOTE_GREEN);
+		_piano_timeline->set_channel_3(_channel_3_notes, NOTE_GREEN);
+	}
+	else if (selected_channel == 4) {
+		_piano_timeline->clear_channel_4();
+		_channel_4_notes.clear();
+		build_note_view(_piano_timeline->_channel_4_loops, _piano_timeline->_channel_4_calls, _channel_4_notes, song.channel_4_commands(), song_length, NOTE_BROWN);
+		_piano_timeline->set_channel_4(_channel_4_notes, NOTE_BROWN);
+	}
+}
+
 #undef BASE_X
 #undef BASE_Y
 #define BASE_X (_piano_timeline->x())
@@ -520,7 +573,7 @@ bool Piano_Roll::build_note_view(
 	std::vector<Loop_Box *> &loops,
 	std::vector<Call_Box *> &calls,
 	std::vector<Note_View> &notes,
-	const std::list<Command> &commands,
+	const std::vector<Command> &commands,
 	int32_t end_tick,
 	Fl_Color color
 ) {
@@ -555,6 +608,7 @@ bool Piano_Roll::build_note_view(
 			if (tick > end_tick) {
 				note.length -= (tick - end_tick) / note.speed;
 			}
+			note.index = command_itr - commands.begin();
 			note.ghost = restarted;
 			notes.push_back(note);
 
@@ -589,6 +643,7 @@ bool Piano_Roll::build_note_view(
 			if (tick > end_tick) {
 				note.length -= (tick - end_tick) / note.speed;
 			}
+			note.index = command_itr - commands.begin();
 			note.ghost = restarted;
 			notes.push_back(note);
 
@@ -623,6 +678,7 @@ bool Piano_Roll::build_note_view(
 			if (tick > end_tick) {
 				note.length -= (tick - end_tick) / note.speed;
 			}
+			note.index = command_itr - commands.begin();
 			note.ghost = restarted;
 			notes.push_back(note);
 
@@ -833,6 +889,28 @@ void Piano_Roll::stop_following() {
 
 void Piano_Roll::pause_following() {
 	_following = false;
+}
+
+bool Piano_Roll::delete_selection(Song &song) {
+	auto channel = _piano_timeline->active_channel();
+	if (!channel) return false;
+
+	int selected_channel = ((Main_Window *)parent())->selected_channel();
+	std::set<int32_t> selected_notes;
+
+	for (Note_Box *note : *channel) {
+		if (note->selected()) {
+			selected_notes.insert(note->index());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.delete_selection(selected_channel, selected_notes);
+	set_channel_timeline(selected_channel, song);
+
+	return true;
 }
 
 void Piano_Roll::highlight_tick(int32_t t) {

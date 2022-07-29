@@ -173,6 +173,9 @@
     <None Include="..\res\play.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\redo.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\save.xpm">
       <Filter>Resource Files</Filter>
     </None>
@@ -189,6 +192,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\two.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\undo.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\warning.xpm">

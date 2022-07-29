@@ -52,6 +52,9 @@ private:
 		*_stop_tb = NULL;
 	Toolbar_Toggle_Button
 		*_loop_tb = NULL;
+	Toolbar_Button
+		*_undo_tb = NULL,
+		*_redo_tb = NULL;
 	Toolbar_Radio_Button
 		*_channel_one_tb = NULL,
 		*_channel_two_tb = NULL,
@@ -68,6 +71,9 @@ private:
 		*_play_pause_mi = NULL,
 		*_stop_mi = NULL,
 		*_loop_mi = NULL,
+		*_undo_mi = NULL,
+		*_redo_mi = NULL,
+		*_delete_mi = NULL,
 		*_channel_one_mi = NULL,
 		*_channel_two_mi = NULL,
 		*_channel_three_mi = NULL,
@@ -139,12 +145,16 @@ private:
 	static void stop_cb(Fl_Widget *w, Main_Window *mw);
 	static void loop_cb(Fl_Menu_ *m, Main_Window *mw);
 	// Edit menu
+	static void undo_cb(Fl_Widget *w, Main_Window *mw);
+	static void redo_cb(Fl_Widget *w, Main_Window *mw);
+	static void delete_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_one_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void channel_two_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void channel_three_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void channel_four_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void next_channel_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void previous_channel_cb(Fl_Menu_ *m, Main_Window *mw);
+	void sync_channel_buttons();
 	// View menu
 	static void classic_theme_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void aero_theme_cb(Fl_Menu_ *m, Main_Window *mw);

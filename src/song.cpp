@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstdio>
 #include <fstream>
 
@@ -23,7 +24,61 @@ void Song::clear() {
 	_result = Parsed_Song::Result::SONG_NULL;
 	_modified = false;
 	_mod_time = 0;
+	_history.clear();
+	_future.clear();
 	_loaded = false;
+}
+
+void Song::remember(int channel_number) {
+	_future.clear();
+	while (_history.size() >= MAX_HISTORY_SIZE) { _history.pop_front(); }
+
+	std::vector<Command> &commands = channel_commands(channel_number);
+
+	Song_State ss;
+	ss.channel_number = channel_number;
+	ss.commands = commands;
+	_history.push_back(ss);
+}
+
+int Song::undo() {
+	if (_history.empty()) { return 0; }
+	while (_future.size() >= MAX_HISTORY_SIZE) { _future.pop_front(); }
+
+	const Song_State &prev = _history.back();
+	std::vector<Command> &commands = channel_commands(prev.channel_number);
+
+	Song_State ss;
+	ss.channel_number = prev.channel_number;
+	ss.commands = commands;
+	_future.push_back(ss);
+
+	commands = prev.commands;
+	_history.pop_back();
+
+	_modified = true;
+
+	return prev.channel_number;
+}
+
+int Song::redo() {
+	if (_future.empty()) { return 0; }
+	while (_history.size() >= MAX_HISTORY_SIZE) { _history.pop_front(); }
+
+	const Song_State &next = _future.back();
+	std::vector<Command> &commands = channel_commands(next.channel_number);
+
+	Song_State ss;
+	ss.channel_number = next.channel_number;
+	ss.commands = commands;
+	_history.push_back(ss);
+
+	commands = next.commands;
+	_future.pop_back();
+
+	_modified = true;
+
+	return next.channel_number;
 }
 
 Parsed_Song::Result Song::read_song(const char *f) {
@@ -105,7 +160,20 @@ bool Song::write_song(const char *f) {
 	return true;
 }
 
-std::string Song::commands_str(const std::list<Command> &commands) const {
+void Song::delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes) {
+	remember(selected_channel);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		commands[*note_itr].type = Command_Type::REST;
+	}
+
+	// TODO: post-process to merge consecutive rests, remove unnecessary commands, etc.
+
+	_modified = true;
+}
+
+std::string Song::commands_str(const std::vector<Command> &commands) const {
 	const auto to_local_label = [](const std::string &label) {
 		std::size_t dot = label.find_first_of(".");
 		return dot != std::string::npos ? &label[dot] : label.c_str();
@@ -227,5 +295,21 @@ std::string Song::get_error_message(Parsed_Song parsed_song) {
 		return "No *.asm file chosen.";
 	default:
 		return "Unspecified error.";
+	}
+}
+
+std::vector<Command> &Song::channel_commands(const int selected_channel) {
+	assert(selected_channel >= 1 && selected_channel <= 4);
+	if (selected_channel == 1) {
+		return _channel_1_commands;
+	}
+	else if (selected_channel == 2) {
+		return _channel_2_commands;
+	}
+	else if (selected_channel == 3) {
+		return _channel_3_commands;
+	}
+	else {
+		return _channel_4_commands;
 	}
 }

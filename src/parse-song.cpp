@@ -272,7 +272,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 	enum class Step { LOOKING_FOR_HEADER, READING_HEADER, LOOKING_FOR_CHANNEL, READING_CHANNEL, DONE };
 
 	Step step = Step::LOOKING_FOR_HEADER;
-	std::list<Command> *current_channel_commands;
+	std::vector<Command> *current_channel_commands;
 	std::string current_scope;
 
 	std::set<std::string> visited_labels;

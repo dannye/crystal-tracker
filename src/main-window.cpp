@@ -69,6 +69,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_stop_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_loop_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	SEPARATE_TOOLBAR_BUTTONS;
+	_undo_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_redo_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	SEPARATE_TOOLBAR_BUTTONS;
 	_channel_one_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_channel_one_tb->when(FL_WHEN_RELEASE_ALWAYS);
 	_channel_two_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
@@ -165,6 +168,13 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 			FL_MENU_TOGGLE | (loop_config ? FL_MENU_VALUE : 0)),
 		{},
 		OS_SUBMENU("&Edit"),
+		OS_MENU_ITEM("&Undo", FL_COMMAND + 'z', (Fl_Callback *)undo_cb, this, 0),
+		OS_MENU_ITEM("&Redo", FL_COMMAND + 'y', (Fl_Callback *)redo_cb, this, FL_MENU_DIVIDER),
+#ifdef __APPLE__
+		OS_MENU_ITEM("&Delete Selection", FL_COMMAND + NSBackspaceCharacter, (Fl_Callback *)delete_cb, this, FL_MENU_DIVIDER),
+#else
+		OS_MENU_ITEM("&Delete Selection", FL_Delete, (Fl_Callback *)delete_cb, this, FL_MENU_DIVIDER),
+#endif
 		OS_MENU_ITEM("Channel &1", '1', (Fl_Callback *)channel_one_cb, this,
 			FL_MENU_RADIO | (selected_channel() == 1 ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Channel &2", '2', (Fl_Callback *)channel_two_cb, this,
@@ -256,6 +266,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_play_pause_mi = CT_FIND_MENU_ITEM_CB(play_pause_cb);
 	_stop_mi = CT_FIND_MENU_ITEM_CB(stop_cb);
 	_loop_mi = CT_FIND_MENU_ITEM_CB(loop_cb);
+	_undo_mi = CT_FIND_MENU_ITEM_CB(undo_cb);
+	_redo_mi = CT_FIND_MENU_ITEM_CB(redo_cb);
+	_delete_mi = CT_FIND_MENU_ITEM_CB(delete_cb);
 	_channel_one_mi = CT_FIND_MENU_ITEM_CB(channel_one_cb);
 	_channel_two_mi = CT_FIND_MENU_ITEM_CB(channel_two_cb);
 	_channel_three_mi = CT_FIND_MENU_ITEM_CB(channel_three_cb);
@@ -316,6 +329,14 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_loop_tb->image(LOOP_ICON);
 	_loop_tb->shortcut(FL_COMMAND + 'L');
 	_loop_tb->value(loop());
+
+	_undo_tb->tooltip("Undo (" COMMAND_KEY_PLUS "Z)");
+	_undo_tb->callback((Fl_Callback *)undo_cb, this);
+	_undo_tb->image(UNDO_ICON);
+
+	_redo_tb->tooltip("Redo (" COMMAND_KEY_PLUS "Y)");
+	_redo_tb->callback((Fl_Callback *)redo_cb, this);
+	_redo_tb->image(REDO_ICON);
 
 	_channel_one_tb->tooltip("Channel 1 (1)");
 	_channel_one_tb->callback((Fl_Callback *)channel_one_tb_cb, this);
@@ -482,15 +503,16 @@ int Main_Window::handle(int event) {
 			previous_channel_cb(nullptr, this);
 			return 1;
 		}
-		[[fallthrough]];
+		break;
 #endif
-	default:
-		return Fl_Double_Window::handle(event);
 	}
+	return Fl_Double_Window::handle(event);
 }
 
 void Main_Window::update_active_controls() {
 	if (_song.loaded()) {
+		bool playing = _it_module && _it_module->playing();
+		bool stopped = !_it_module || _it_module->stopped();
 		_close_mi->activate();
 		_save_mi->activate();
 		_save_tb->activate();
@@ -498,14 +520,14 @@ void Main_Window::update_active_controls() {
 		_save_as_tb->activate();
 		_play_pause_mi->activate();
 		_play_pause_tb->activate();
-		if (_it_module && _it_module->playing()) {
+		if (playing) {
 			_play_pause_tb->image(PAUSE_ICON);
 		}
 		else {
 			_play_pause_tb->image(PLAY_ICON);
 		}
 		_play_pause_tb->redraw();
-		if (_it_module && !_it_module->stopped()) {
+		if (!stopped) {
 			_stop_mi->activate();
 			_stop_tb->activate();
 			_loop_mi->deactivate();
@@ -516,6 +538,28 @@ void Main_Window::update_active_controls() {
 			_stop_tb->deactivate();
 			_loop_mi->activate();
 			_loop_tb->activate();
+		}
+		if (_song.can_undo() && stopped) {
+			_undo_mi->activate();
+			_undo_tb->activate();
+		}
+		else {
+			_undo_mi->deactivate();
+			_undo_tb->deactivate();
+		}
+		if (_song.can_redo() && stopped) {
+			_redo_mi->activate();
+			_redo_tb->activate();
+		}
+		else {
+			_redo_mi->deactivate();
+			_redo_tb->deactivate();
+		}
+		if (stopped) {
+			_delete_mi->activate();
+		}
+		else {
+			_delete_mi->deactivate();
 		}
 		_channel_one_mi->activate();
 		_channel_one_tb->activate();
@@ -542,6 +586,11 @@ void Main_Window::update_active_controls() {
 		_stop_tb->deactivate();
 		_loop_mi->activate();
 		_loop_tb->activate();
+		_undo_mi->deactivate();
+		_undo_tb->deactivate();
+		_redo_mi->deactivate();
+		_redo_tb->deactivate();
+		_delete_mi->deactivate();
 		_channel_one_mi->deactivate();
 		_channel_one_tb->deactivate();
 		_channel_two_mi->deactivate();
@@ -830,6 +879,8 @@ void Main_Window::update_icons() {
 	make_deimage(_play_pause_tb);
 	make_deimage(_stop_tb);
 	make_deimage(_loop_tb);
+	make_deimage(_undo_tb);
+	make_deimage(_redo_tb);
 	make_deimage(_channel_one_tb);
 	make_deimage(_channel_two_tb);
 	make_deimage(_channel_three_tb);
@@ -1102,6 +1153,38 @@ void Main_Window::loop_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 
 #undef SYNC_MI_WITH_TB
 
+void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	int channel = mw->_song.undo();
+	mw->_piano_roll->set_channel_timeline(channel, mw->_song);
+	if (channel != mw->selected_channel()) {
+		mw->selected_channel(channel);
+		mw->sync_channel_buttons();
+	}
+	mw->update_active_controls();
+	mw->redraw();
+}
+
+void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	int channel = mw->_song.redo();
+	mw->_piano_roll->set_channel_timeline(channel, mw->_song);
+	if (channel != mw->selected_channel()) {
+		mw->selected_channel(channel);
+		mw->sync_channel_buttons();
+	}
+	mw->update_active_controls();
+	mw->redraw();
+}
+
+void Main_Window::delete_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	if (mw->_piano_roll->delete_selection(mw->_song)) {
+		mw->update_active_controls();
+		mw->redraw();
+	}
+}
+
 void Main_Window::channel_one_cb(Fl_Menu_ *, Main_Window *mw) {
 	if (mw->selected_channel() == 1) {
 		mw->_channel_one_mi->clear();
@@ -1160,24 +1243,7 @@ void Main_Window::channel_four_cb(Fl_Menu_ *, Main_Window *mw) {
 
 void Main_Window::next_channel_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->selected_channel(mw->selected_channel() % 4 + 1);
-	if (mw->selected_channel() == 1) {
-		mw->_channel_one_mi->setonly();
-		mw->_channel_one_tb->setonly();
-	}
-	else if (mw->selected_channel() == 2) {
-		mw->_channel_two_mi->setonly();
-		mw->_channel_two_tb->setonly();
-	}
-	else if (mw->selected_channel() == 3) {
-		mw->_channel_three_mi->setonly();
-		mw->_channel_three_tb->setonly();
-	}
-	else if (mw->selected_channel() == 4) {
-		mw->_channel_four_mi->setonly();
-		mw->_channel_four_tb->setonly();
-	}
-	mw->update_channel_detail();
-	mw->redraw();
+	mw->sync_channel_buttons();
 }
 
 void Main_Window::previous_channel_cb(Fl_Menu_ *, Main_Window *mw) {
@@ -1187,24 +1253,28 @@ void Main_Window::previous_channel_cb(Fl_Menu_ *, Main_Window *mw) {
 	else {
 		mw->selected_channel((mw->selected_channel() + 2) % 4 + 1);
 	}
-	if (mw->selected_channel() == 1) {
-		mw->_channel_one_mi->setonly();
-		mw->_channel_one_tb->setonly();
+	mw->sync_channel_buttons();
+}
+
+void Main_Window::sync_channel_buttons() {
+	if (selected_channel() == 1) {
+		_channel_one_mi->setonly();
+		_channel_one_tb->setonly();
 	}
-	else if (mw->selected_channel() == 2) {
-		mw->_channel_two_mi->setonly();
-		mw->_channel_two_tb->setonly();
+	else if (selected_channel() == 2) {
+		_channel_two_mi->setonly();
+		_channel_two_tb->setonly();
 	}
-	else if (mw->selected_channel() == 3) {
-		mw->_channel_three_mi->setonly();
-		mw->_channel_three_tb->setonly();
+	else if (selected_channel() == 3) {
+		_channel_three_mi->setonly();
+		_channel_three_tb->setonly();
 	}
-	else if (mw->selected_channel() == 4) {
-		mw->_channel_four_mi->setonly();
-		mw->_channel_four_tb->setonly();
+	else if (selected_channel() == 4) {
+		_channel_four_mi->setonly();
+		_channel_four_tb->setonly();
 	}
-	mw->update_channel_detail();
-	mw->redraw();
+	update_channel_detail();
+	redraw();
 }
 
 void Main_Window::channel_one_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {

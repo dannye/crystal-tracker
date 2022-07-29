@@ -162,12 +162,14 @@
     <None Include="..\res\open.xpm" />
     <None Include="..\res\pause.xpm" />
     <None Include="..\res\play.xpm" />
+    <None Include="..\res\redo.xpm" />
     <None Include="..\res\save.xpm" />
     <None Include="..\res\save-as.xpm" />
     <None Include="..\res\stop.xpm" />
     <None Include="..\res\success.xpm" />
     <None Include="..\res\three.xpm" />
     <None Include="..\res\two.xpm" />
+    <None Include="..\res\undo.xpm" />
     <None Include="..\res\warning.xpm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

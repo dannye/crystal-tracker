@@ -13,11 +13,13 @@
 #include "open.xpm"
 #include "pause.xpm"
 #include "play.xpm"
+#include "redo.xpm"
 #include "save.xpm"
 #include "save-as.xpm"
 #include "stop.xpm"
 #include "three.xpm"
 #include "two.xpm"
+#include "undo.xpm"
 
 static Fl_Pixmap BLANK_ICON(BLANK_XPM);
 static Fl_Pixmap FOUR_ICON(FOUR_XPM);
@@ -27,11 +29,13 @@ static Fl_Pixmap ONE_ICON(ONE_XPM);
 static Fl_Pixmap OPEN_ICON(OPEN_XPM);
 static Fl_Pixmap PAUSE_ICON(PAUSE_XPM);
 static Fl_Pixmap PLAY_ICON(PLAY_XPM);
+static Fl_Pixmap REDO_ICON(REDO_XPM);
 static Fl_Pixmap SAVE_ICON(SAVE_XPM);
 static Fl_Pixmap SAVE_AS_ICON(SAVE_AS_XPM);
 static Fl_Pixmap STOP_ICON(STOP_XPM);
 static Fl_Pixmap THREE_ICON(THREE_XPM);
 static Fl_Pixmap TWO_ICON(TWO_XPM);
+static Fl_Pixmap UNDO_ICON(UNDO_XPM);
 
 bool make_deimage(Fl_Widget *wgt) {
 	if (!wgt || !wgt->image()) {
