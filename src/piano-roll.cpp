@@ -318,6 +318,40 @@ bool Piano_Timeline::handle_note_selection(int event) {
 	return clicked_note;
 }
 
+bool Piano_Timeline::select_all() {
+	auto channel = active_channel();
+	if (!channel) return false;
+
+	bool note_selected = false;
+	for (Note_Box *note : *channel) {
+		if (!note->selected()) {
+			note->selected(true);
+			note->redraw();
+			_keys->redraw();
+			note_selected = true;
+		}
+	}
+
+	return note_selected;
+}
+
+bool Piano_Timeline::select_none() {
+	auto channel = active_channel();
+	if (!channel) return false;
+
+	bool note_deselected = false;
+	for (Note_Box *note : *channel) {
+		if (note->selected()) {
+			note->selected(false);
+			note->redraw();
+			_keys->redraw();
+			note_deselected = true;
+		}
+	}
+
+	return note_deselected;
+}
+
 void Piano_Timeline::reset_note_colors() {
 	for (Note_Box *note : _channel_1_notes) {
 		note->color(NOTE_RED);

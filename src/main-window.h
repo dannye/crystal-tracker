@@ -74,6 +74,8 @@ private:
 		*_undo_mi = NULL,
 		*_redo_mi = NULL,
 		*_delete_mi = NULL,
+		*_select_all_mi = NULL,
+		*_select_none_mi = NULL,
 		*_channel_one_mi = NULL,
 		*_channel_two_mi = NULL,
 		*_channel_three_mi = NULL,
@@ -148,6 +150,8 @@ private:
 	static void undo_cb(Fl_Widget *w, Main_Window *mw);
 	static void redo_cb(Fl_Widget *w, Main_Window *mw);
 	static void delete_cb(Fl_Widget *w, Main_Window *mw);
+	static void select_all_cb(Fl_Widget *w, Main_Window *mw);
+	static void select_none_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_one_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void channel_two_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void channel_three_cb(Fl_Menu_ *m, Main_Window *mw);

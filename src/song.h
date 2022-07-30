@@ -13,8 +13,12 @@
 class Song {
 protected:
 	struct Song_State {
+		enum class Action {
+			DELETE_SELECTION
+		};
 		int channel_number = 0;
 		std::vector<Command> commands;
+		Action action;
 	};
 private:
 	std::string _song_name;
@@ -43,9 +47,11 @@ public:
 	inline bool other_modified(const char *f) const { return file_modified(f) > _mod_time; }
 	inline bool can_undo(void) const { return !_history.empty(); }
 	inline bool can_redo(void) const { return !_future.empty(); }
+	inline const char *undo_action(void) const { return get_action_message(_history.back().action); }
+	inline const char *redo_action(void) const { return get_action_message(_future.back().action); }
 	inline bool loaded(void) const { return _loaded; }
 	void clear();
-	void remember(int channel_number);
+	void remember(int channel_number, Song_State::Action action);
 	int undo();
 	int redo();
 	Parsed_Song::Result read_song(const char *f);
@@ -61,7 +67,8 @@ public:
 	void delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes);
 private:
 	std::string commands_str(const std::vector<Command> &commands) const;
-	std::string get_error_message(Parsed_Song parsed_song);
+	std::string get_error_message(Parsed_Song parsed_song) const;
+	const char *get_action_message(Song_State::Action action) const;
 
 	std::vector<Command> &channel_commands(const int selected_channel);
 };

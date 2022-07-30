@@ -29,7 +29,7 @@ void Song::clear() {
 	_loaded = false;
 }
 
-void Song::remember(int channel_number) {
+void Song::remember(int channel_number, Song_State::Action action) {
 	_future.clear();
 	while (_history.size() >= MAX_HISTORY_SIZE) { _history.pop_front(); }
 
@@ -38,6 +38,7 @@ void Song::remember(int channel_number) {
 	Song_State ss;
 	ss.channel_number = channel_number;
 	ss.commands = commands;
+	ss.action = action;
 	_history.push_back(ss);
 }
 
@@ -50,10 +51,11 @@ int Song::undo() {
 
 	Song_State ss;
 	ss.channel_number = prev.channel_number;
-	ss.commands = commands;
+	ss.commands = std::move(commands);
+	ss.action = prev.action;
 	_future.push_back(ss);
 
-	commands = prev.commands;
+	commands = std::move(prev.commands);
 	_history.pop_back();
 
 	_modified = true;
@@ -70,10 +72,11 @@ int Song::redo() {
 
 	Song_State ss;
 	ss.channel_number = next.channel_number;
-	ss.commands = commands;
+	ss.commands = std::move(commands);
+	ss.action = next.action;
 	_history.push_back(ss);
 
-	commands = next.commands;
+	commands = std::move(next.commands);
 	_future.pop_back();
 
 	_modified = true;
@@ -161,7 +164,7 @@ bool Song::write_song(const char *f) {
 }
 
 void Song::delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes) {
-	remember(selected_channel);
+	remember(selected_channel, Song_State::Action::DELETE_SELECTION);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
@@ -265,7 +268,7 @@ std::string Song::commands_str(const std::vector<Command> &commands) const {
 	return str;
 }
 
-std::string Song::get_error_message(Parsed_Song parsed_song) {
+std::string Song::get_error_message(Parsed_Song parsed_song) const {
 	switch (parsed_song.result()) {
 	case Parsed_Song::Result::SONG_OK:
 		return "OK.";
@@ -295,6 +298,15 @@ std::string Song::get_error_message(Parsed_Song parsed_song) {
 		return "No *.asm file chosen.";
 	default:
 		return "Unspecified error.";
+	}
+}
+
+const char *Song::get_action_message(Song_State::Action action) const {
+	switch (action) {
+	case Song_State::Action::DELETE_SELECTION:
+		return "Delete selection";
+	default:
+		return "Unspecified action";
 	}
 }
 

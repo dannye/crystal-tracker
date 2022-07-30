@@ -175,6 +175,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 #else
 		OS_MENU_ITEM("&Delete Selection", FL_Delete, (Fl_Callback *)delete_cb, this, FL_MENU_DIVIDER),
 #endif
+		OS_MENU_ITEM("Select &All", FL_COMMAND + 'a', (Fl_Callback *)select_all_cb, this, 0),
+		OS_MENU_ITEM("Select &None", FL_COMMAND + 'A', (Fl_Callback *)select_none_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Channel &1", '1', (Fl_Callback *)channel_one_cb, this,
 			FL_MENU_RADIO | (selected_channel() == 1 ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Channel &2", '2', (Fl_Callback *)channel_two_cb, this,
@@ -269,6 +271,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_undo_mi = CT_FIND_MENU_ITEM_CB(undo_cb);
 	_redo_mi = CT_FIND_MENU_ITEM_CB(redo_cb);
 	_delete_mi = CT_FIND_MENU_ITEM_CB(delete_cb);
+	_select_all_mi = CT_FIND_MENU_ITEM_CB(select_all_cb);
+	_select_none_mi = CT_FIND_MENU_ITEM_CB(select_none_cb);
 	_channel_one_mi = CT_FIND_MENU_ITEM_CB(channel_one_cb);
 	_channel_two_mi = CT_FIND_MENU_ITEM_CB(channel_two_cb);
 	_channel_three_mi = CT_FIND_MENU_ITEM_CB(channel_three_cb);
@@ -557,9 +561,13 @@ void Main_Window::update_active_controls() {
 		}
 		if (stopped) {
 			_delete_mi->activate();
+			_select_all_mi->activate();
+			_select_none_mi->activate();
 		}
 		else {
 			_delete_mi->deactivate();
+			_select_all_mi->deactivate();
+			_select_none_mi->deactivate();
 		}
 		_channel_one_mi->activate();
 		_channel_one_tb->activate();
@@ -591,6 +599,8 @@ void Main_Window::update_active_controls() {
 		_redo_mi->deactivate();
 		_redo_tb->deactivate();
 		_delete_mi->deactivate();
+		_select_all_mi->deactivate();
+		_select_none_mi->deactivate();
 		_channel_one_mi->deactivate();
 		_channel_one_tb->deactivate();
 		_channel_two_mi->deactivate();
@@ -1155,24 +1165,36 @@ void Main_Window::loop_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 
 void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+
+	mw->_status_message = "Undo: ";
+	mw->_status_message += mw->_song.undo_action();
+	mw->_status_label->label(mw->_status_message.c_str());
+
 	int channel = mw->_song.undo();
 	mw->_piano_roll->set_channel_timeline(channel, mw->_song);
 	if (channel != mw->selected_channel()) {
 		mw->selected_channel(channel);
 		mw->sync_channel_buttons();
 	}
+
 	mw->update_active_controls();
 	mw->redraw();
 }
 
 void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+
+	mw->_status_message = "Redo: ";
+	mw->_status_message += mw->_song.redo_action();
+	mw->_status_label->label(mw->_status_message.c_str());
+
 	int channel = mw->_song.redo();
 	mw->_piano_roll->set_channel_timeline(channel, mw->_song);
 	if (channel != mw->selected_channel()) {
 		mw->selected_channel(channel);
 		mw->sync_channel_buttons();
 	}
+
 	mw->update_active_controls();
 	mw->redraw();
 }
@@ -1180,9 +1202,22 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::delete_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (mw->_piano_roll->delete_selection(mw->_song)) {
+		mw->_status_message = mw->_song.undo_action();
+		mw->_status_label->label(mw->_status_message.c_str());
+
 		mw->update_active_controls();
 		mw->redraw();
 	}
+}
+
+void Main_Window::select_all_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	mw->_piano_roll->select_all();
+}
+
+void Main_Window::select_none_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	mw->_piano_roll->select_none();
 }
 
 void Main_Window::channel_one_cb(Fl_Menu_ *, Main_Window *mw) {

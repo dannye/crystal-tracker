@@ -139,6 +139,8 @@ public:
 
 	int handle(int event) override;
 	bool handle_note_selection(int event);
+	bool select_all();
+	bool select_none();
 
 	Note_Box *get_channel_1_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_1_notes, tick); }
 	Note_Box *get_channel_2_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_2_notes, tick); }
@@ -224,6 +226,8 @@ public:
 	void highlight_tick(int32_t t);
 
 	bool delete_selection(Song &song);
+	bool select_all() { return _piano_timeline->select_all(); }
+	bool select_none() { return _piano_timeline->select_none(); }
 private:
 	static void hscrollbar_cb(Fl_Scrollbar *sb, void *);
 };
