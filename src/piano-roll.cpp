@@ -490,6 +490,46 @@ int Piano_Roll::handle(int event) {
 			std::swap(Fl::e_dx, Fl::e_dy);
 		}
 		break;
+	// hack to reverse scrollbar priority
+	case FL_SHORTCUT:
+	case FL_KEYBOARD:
+		if (Fl::event_key() == FL_Page_Up) {
+			int x_pos = xposition() - (w() - WHITE_KEY_WIDTH * 2);
+			if (x_pos < 0) {
+				scroll_to(0, yposition());
+			}
+			else {
+				scroll_to(x_pos, yposition());
+			}
+			_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+			redraw();
+			return 1;
+		}
+		else if (Fl::event_key() == FL_Page_Down) {
+			int x_pos = xposition() + (w() - WHITE_KEY_WIDTH * 2);
+			if (x_pos > _piano_timeline->w() - (w() - scrollbar.w())) {
+				scroll_to(_piano_timeline->w() - (w() - scrollbar.w()), yposition());
+			}
+			else {
+				scroll_to(x_pos, yposition());
+			}
+			_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+			redraw();
+			return 1;
+		}
+		else if (Fl::event_key() == FL_Home) {
+			scroll_to(0, yposition());
+			_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+			redraw();
+			return 1;
+		}
+		else if (Fl::event_key() == FL_End) {
+			scroll_to(_piano_timeline->w() - (w() - scrollbar.w()), yposition());
+			_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+			redraw();
+			return 1;
+		}
+		break;
 	}
 	return Fl_Scroll::handle(event);
 }
