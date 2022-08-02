@@ -926,22 +926,21 @@ bool Piano_Roll::build_note_view(
 
 int32_t Piano_Roll::get_song_length() const {
 	const int32_t loop_tick = get_loop_tick();
+	const int32_t max_length = std::max({ _channel_1_end_tick, _channel_2_end_tick, _channel_3_end_tick, _channel_4_end_tick });
+
+	if (loop_tick == -1) return max_length;
+
 	int32_t song_length =
 		loop_tick == _channel_1_loop_tick ? _channel_1_end_tick :
 		loop_tick == _channel_2_loop_tick ? _channel_2_end_tick :
 		loop_tick == _channel_3_loop_tick ? _channel_3_end_tick :
 		_channel_4_end_tick;
 	const int32_t body_length = song_length - loop_tick;
-	const int32_t max_length = std::max({ _channel_1_end_tick, _channel_2_end_tick, _channel_3_end_tick, _channel_4_end_tick });
 
-	while (song_length < max_length) {
-		song_length += body_length;
-	}
-
-	const int32_t channel_1_body_length = _channel_1_end_tick - _channel_1_loop_tick;
-	const int32_t channel_2_body_length = _channel_2_end_tick - _channel_2_loop_tick;
-	const int32_t channel_3_body_length = _channel_3_end_tick - _channel_3_loop_tick;
-	const int32_t channel_4_body_length = _channel_4_end_tick - _channel_4_loop_tick;
+	const int32_t channel_1_body_length = _channel_1_loop_tick != -1 ? _channel_1_end_tick - _channel_1_loop_tick : 0;
+	const int32_t channel_2_body_length = _channel_2_loop_tick != -1 ? _channel_2_end_tick - _channel_2_loop_tick : 0;
+	const int32_t channel_3_body_length = _channel_3_loop_tick != -1 ? _channel_3_end_tick - _channel_3_loop_tick : 0;
+	const int32_t channel_4_body_length = _channel_4_loop_tick != -1 ? _channel_4_end_tick - _channel_4_loop_tick : 0;
 
 	const int32_t channel_1_offset = channel_1_body_length ? (loop_tick - _channel_1_loop_tick) % channel_1_body_length : 0;
 	const int32_t channel_2_offset = channel_2_body_length ? (loop_tick - _channel_2_loop_tick) % channel_2_body_length : 0;
@@ -956,7 +955,7 @@ int32_t Piano_Roll::get_song_length() const {
 			(channel_4_body_length == 0 || (song_length - _channel_4_loop_tick) % channel_4_body_length == channel_4_offset);
 	};
 
-	while (!channels_aligned()) {
+	while (song_length < max_length || !channels_aligned()) {
 		song_length += body_length;
 	}
 
