@@ -210,6 +210,7 @@ public:
 
 	bool build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Note_View> &notes, const std::vector<Command> &commands, int32_t end_tick, Fl_Color color);
 
+	int32_t get_song_length() const;
 	int32_t get_loop_tick() const;
 
 	void set_channel_1_detailed(bool detailed) { _piano_timeline->set_channel_1_detailed(detailed); }

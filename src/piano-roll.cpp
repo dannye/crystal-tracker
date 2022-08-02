@@ -70,11 +70,13 @@ static void calc_channel_length(const std::vector<Command> &commands, int32_t &l
 			}
 			else {
 				if (command_itr->sound_loop.loop_count == 0) {
-					if (label_positions.count(command_itr->target)) {
-						loop_tick = label_positions.at(command_itr->target);
+					if (!label_positions.count(command_itr->target)) {
+						command_itr = find_note_with_label(commands, command_itr->target);
+						continue;
 					}
+					loop_tick = label_positions.at(command_itr->target);
 					end_tick = tick;
-					break; // assume end of song for now
+					break; // song is finished
 				}
 				else if (command_itr->sound_loop.loop_count > 1) {
 					loop_stack.emplace(command_itr, command_itr->sound_loop.loop_count - 1);
@@ -588,7 +590,7 @@ bool Piano_Roll::set_timeline(const Song &song) {
 	calc_channel_length(song.channel_3_commands(), _channel_3_loop_tick, _channel_3_end_tick);
 	calc_channel_length(song.channel_4_commands(), _channel_4_loop_tick, _channel_4_end_tick);
 
-	int32_t song_length = std::max({ _channel_1_end_tick, _channel_2_end_tick, _channel_3_end_tick, _channel_4_end_tick });
+	int32_t song_length = get_song_length();
 
 	bool success = true;
 	success = success && build_note_view(_piano_timeline->_channel_1_loops, _piano_timeline->_channel_1_calls, _channel_1_notes, song.channel_1_commands(), song_length, NOTE_RED);
@@ -610,7 +612,8 @@ bool Piano_Roll::set_timeline(const Song &song) {
 }
 
 void Piano_Roll::set_channel_timeline(const int selected_channel, const Song &song) {
-	int32_t song_length = std::max({ _channel_1_end_tick, _channel_2_end_tick, _channel_3_end_tick, _channel_4_end_tick });
+	int32_t song_length = get_song_length();
+	// TODO: if song length has changed, rebuild all channel timelines
 
 	if (selected_channel == 1) {
 		_piano_timeline->clear_channel_1();
@@ -672,8 +675,12 @@ bool Piano_Roll::build_note_view(
 
 	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
 	std::stack<decltype(command_itr)> call_stack;
+	std::map<std::string, int32_t> label_positions;
 
 	while (command_itr != commands.end() && tick < end_tick) {
+		for (const std::string &label : command_itr->labels) {
+			label_positions.insert({ label, tick });
+		}
 		// TODO: handle all other commands...
 		if (command_itr->type == Command_Type::NOTE) {
 			note.length = command_itr->note.length;
@@ -831,13 +838,17 @@ bool Piano_Roll::build_note_view(
 			}
 			else {
 				if (command_itr->sound_loop.loop_count == 0) {
+					if (!label_positions.count(command_itr->target)) {
+						command_itr = find_note_with_label(commands, command_itr->target);
+						continue;
+					}
 					if (tick < end_tick) {
 						restarted = true;
 						// TODO: this gets trapped in an infinite loop if the channel's body advances by 0 ticks
 						command_itr = find_note_with_label(commands, command_itr->target);
 						continue;
 					}
-					break; // assume end of song for now
+					break; // song is finished
 				}
 				else if (command_itr->sound_loop.loop_count > 1) {
 					// nested loops not supported
@@ -913,8 +924,46 @@ bool Piano_Roll::build_note_view(
 	return true;
 }
 
+int32_t Piano_Roll::get_song_length() const {
+	const int32_t loop_tick = get_loop_tick();
+	int32_t song_length =
+		loop_tick == _channel_1_loop_tick ? _channel_1_end_tick :
+		loop_tick == _channel_2_loop_tick ? _channel_2_end_tick :
+		loop_tick == _channel_3_loop_tick ? _channel_3_end_tick :
+		_channel_4_end_tick;
+	const int32_t body_length = song_length - loop_tick;
+	const int32_t max_length = std::max({ _channel_1_end_tick, _channel_2_end_tick, _channel_3_end_tick, _channel_4_end_tick });
+
+	while (song_length < max_length) {
+		song_length += body_length;
+	}
+
+	const int32_t channel_1_body_length = _channel_1_end_tick - _channel_1_loop_tick;
+	const int32_t channel_2_body_length = _channel_2_end_tick - _channel_2_loop_tick;
+	const int32_t channel_3_body_length = _channel_3_end_tick - _channel_3_loop_tick;
+	const int32_t channel_4_body_length = _channel_4_end_tick - _channel_4_loop_tick;
+
+	const int32_t channel_1_offset = channel_1_body_length ? (loop_tick - _channel_1_loop_tick) % channel_1_body_length : 0;
+	const int32_t channel_2_offset = channel_2_body_length ? (loop_tick - _channel_2_loop_tick) % channel_2_body_length : 0;
+	const int32_t channel_3_offset = channel_3_body_length ? (loop_tick - _channel_3_loop_tick) % channel_3_body_length : 0;
+	const int32_t channel_4_offset = channel_4_body_length ? (loop_tick - _channel_4_loop_tick) % channel_4_body_length : 0;
+
+	const auto channels_aligned = [&]() {
+		return
+			(channel_1_body_length == 0 || (song_length - _channel_1_loop_tick) % channel_1_body_length == channel_1_offset) &&
+			(channel_2_body_length == 0 || (song_length - _channel_2_loop_tick) % channel_2_body_length == channel_2_offset) &&
+			(channel_3_body_length == 0 || (song_length - _channel_3_loop_tick) % channel_3_body_length == channel_3_offset) &&
+			(channel_4_body_length == 0 || (song_length - _channel_4_loop_tick) % channel_4_body_length == channel_4_offset);
+	};
+
+	while (!channels_aligned()) {
+		song_length += body_length;
+	}
+
+	return song_length;
+}
+
 int32_t Piano_Roll::get_loop_tick() const {
-	// TODO: this naive approach works in many cases but this will need to be improved (see: mainmenu.asm, lookhiker.asm)
 	int32_t loop_tick = std::max({ _channel_1_loop_tick, _channel_2_loop_tick, _channel_3_loop_tick, _channel_4_loop_tick });
 	return loop_tick;
 }
