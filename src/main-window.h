@@ -94,6 +94,7 @@ private:
 	Song _song;
 	std::vector<Wave> _waves;
 	IT_Module *_it_module = nullptr;
+	int32_t _tick = -1;
 	// Work properties
 	int _selected_channel = 0;
 	// Threads

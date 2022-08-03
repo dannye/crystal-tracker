@@ -993,6 +993,7 @@ void Piano_Roll::clear() {
 void Piano_Roll::start_following() {
 	_following = true;
 	_tick = -1;
+	_piano_timeline->reset_note_colors();
 	scroll_to(0, yposition());
 	_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
 	redraw();

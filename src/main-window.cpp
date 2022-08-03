@@ -825,6 +825,7 @@ void Main_Window::toggle_playback() {
 		int32_t loop_tick = loop() ? _piano_roll->get_loop_tick() : -1;
 		_it_module = new IT_Module(*_piano_roll, _waves, loop_tick);
 		if (_it_module->ready() && _it_module->start()) {
+			_tick = -1;
 			_piano_roll->start_following();
 			start_audio_thread();
 			update_active_controls();
@@ -861,6 +862,7 @@ void Main_Window::stop_playback() {
 
 	if (_it_module && !_it_module->stopped()) {
 		_it_module->stop();
+		_tick = -1;
 		_piano_roll->stop_following();
 		update_active_controls();
 	}
@@ -1482,11 +1484,13 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 				int32_t t = mod->current_tick() / TICKS_PER_STEP * TICKS_PER_STEP;
 				if (t > tick || (mod->looping() && t < tick)) {
 					tick = t;
+					mw->_tick = t;
 					Fl::awake((Fl_Awake_Handler)sync_cb, mw);
 				}
 				mw->_audio_mutex.unlock();
 			}
 			else {
+				mw->_tick = -1;
 				Fl::awake((Fl_Awake_Handler)sync_cb, mw);
 				mw->_audio_mutex.unlock();
 				break;
@@ -1498,11 +1502,11 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 void Main_Window::sync_cb(Main_Window *mw) {
 	mw->_audio_mutex.lock();
 	IT_Module *mod = mw->_it_module;
-	if (mod && mod->playing()) {
-		int32_t tick = mod->current_tick() / TICKS_PER_STEP * TICKS_PER_STEP;
-		mw->_piano_roll->highlight_tick(tick);
+	if (mod && mod->playing() && mw->_tick != -1) {
+		mw->_piano_roll->highlight_tick(mw->_tick);
 	}
 	else if (!mod || mod->stopped()) {
+		mw->_tick = -1;
 		mw->_piano_roll->stop_following();
 		mw->update_active_controls();
 	}
