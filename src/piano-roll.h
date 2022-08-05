@@ -18,6 +18,11 @@ const Fl_Color NOTE_BLUE  = fl_rgb_color(  0, 117, 253);
 const Fl_Color NOTE_GREEN = fl_rgb_color(  3, 196,   3);
 const Fl_Color NOTE_BROWN = fl_rgb_color(140,  60,  25);
 
+const Fl_Color NOTE_RED_LIGHT   = fl_lighter(NOTE_RED);
+const Fl_Color NOTE_BLUE_LIGHT  = fl_lighter(NOTE_BLUE);
+const Fl_Color NOTE_GREEN_LIGHT = fl_lighter(NOTE_GREEN);
+const Fl_Color NOTE_BROWN_LIGHT = fl_lighter(NOTE_BROWN);
+
 const Fl_Color NOTE_GHOST = fl_rgb_color(96);
 
 const Fl_Color ALT_LIGHT_ROW = fl_rgb_color(35, 35, 35);
@@ -142,15 +147,15 @@ public:
 	bool select_all();
 	bool select_none();
 
-	Note_Box *get_channel_1_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_1_notes, tick); }
-	Note_Box *get_channel_2_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_2_notes, tick); }
-	Note_Box *get_channel_3_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_3_notes, tick); }
-	Note_Box *get_channel_4_note_at_tick(int32_t tick) { return get_note_at_tick(_channel_4_notes, tick); }
+	void highlight_channel_1_tick(int32_t tick) { highlight_tick(_channel_1_notes, tick, NOTE_RED_LIGHT); }
+	void highlight_channel_2_tick(int32_t tick) { highlight_tick(_channel_2_notes, tick, NOTE_BLUE_LIGHT); }
+	void highlight_channel_3_tick(int32_t tick) { highlight_tick(_channel_3_notes, tick, NOTE_GREEN_LIGHT); }
+	void highlight_channel_4_tick(int32_t tick) { highlight_tick(_channel_4_notes, tick, NOTE_BROWN_LIGHT); }
 
-	void set_channel_1(const std::vector<Note_View> &notes, Fl_Color color) { set_channel(_channel_1_notes, notes, color); }
-	void set_channel_2(const std::vector<Note_View> &notes, Fl_Color color) { set_channel(_channel_2_notes, notes, color); }
-	void set_channel_3(const std::vector<Note_View> &notes, Fl_Color color) { set_channel(_channel_3_notes, notes, color); }
-	void set_channel_4(const std::vector<Note_View> &notes, Fl_Color color) { set_channel(_channel_4_notes, notes, color); }
+	void set_channel_1(const std::vector<Note_View> &notes) { set_channel(_channel_1_notes, notes, NOTE_RED); }
+	void set_channel_2(const std::vector<Note_View> &notes) { set_channel(_channel_2_notes, notes, NOTE_BLUE); }
+	void set_channel_3(const std::vector<Note_View> &notes) { set_channel(_channel_3_notes, notes, NOTE_GREEN); }
+	void set_channel_4(const std::vector<Note_View> &notes) { set_channel(_channel_4_notes, notes, NOTE_BROWN); }
 
 	void set_channel_1_detailed(bool detailed) { set_channel_detailed(_channel_1_notes, _channel_1_loops, _channel_1_calls, detailed); }
 	void set_channel_2_detailed(bool detailed) { set_channel_detailed(_channel_2_notes, _channel_2_loops, _channel_2_calls, detailed); }
@@ -159,7 +164,7 @@ public:
 
 	void reset_note_colors();
 private:
-	Note_Box *get_note_at_tick(std::vector<Note_Box *> &notes, int32_t tick);
+	void highlight_tick(std::vector<Note_Box *> &notes, int32_t tick, Fl_Color color);
 	void set_channel(std::vector<Note_Box *> &channel, const std::vector<Note_View> &notes, Fl_Color color);
 	void set_channel_detailed(std::vector<Note_Box *> &notes, std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, bool detailed);
 
