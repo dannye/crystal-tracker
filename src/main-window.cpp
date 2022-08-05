@@ -171,9 +171,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("&Undo", FL_COMMAND + 'z', (Fl_Callback *)undo_cb, this, 0),
 		OS_MENU_ITEM("&Redo", FL_COMMAND + 'y', (Fl_Callback *)redo_cb, this, FL_MENU_DIVIDER),
 #ifdef __APPLE__
-		OS_MENU_ITEM("&Delete Selection", FL_COMMAND + NSBackspaceCharacter, (Fl_Callback *)delete_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("&Delete Selection", FL_COMMAND + NSBackspaceCharacter, (Fl_Callback *)delete_cb, this, 0),
+		OS_MENU_ITEM("&Snip Selection", FL_COMMAND + FL_SHIFT + NSBackspaceCharacter, (Fl_Callback *)snip_cb, this, FL_MENU_DIVIDER),
 #else
-		OS_MENU_ITEM("&Delete Selection", FL_Delete, (Fl_Callback *)delete_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("&Delete Selection", FL_Delete, (Fl_Callback *)delete_cb, this, 0),
+		OS_MENU_ITEM("&Snip Selection", FL_SHIFT + FL_Delete, (Fl_Callback *)snip_cb, this, FL_MENU_DIVIDER),
 #endif
 		OS_MENU_ITEM("Select &All", FL_COMMAND + 'a', (Fl_Callback *)select_all_cb, this, 0),
 		OS_MENU_ITEM("Select &None", FL_COMMAND + 'A', (Fl_Callback *)select_none_cb, this, FL_MENU_DIVIDER),
@@ -271,6 +273,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_undo_mi = CT_FIND_MENU_ITEM_CB(undo_cb);
 	_redo_mi = CT_FIND_MENU_ITEM_CB(redo_cb);
 	_delete_mi = CT_FIND_MENU_ITEM_CB(delete_cb);
+	_snip_mi = CT_FIND_MENU_ITEM_CB(snip_cb);
 	_select_all_mi = CT_FIND_MENU_ITEM_CB(select_all_cb);
 	_select_none_mi = CT_FIND_MENU_ITEM_CB(select_none_cb);
 	_channel_one_mi = CT_FIND_MENU_ITEM_CB(channel_one_cb);
@@ -561,11 +564,13 @@ void Main_Window::update_active_controls() {
 		}
 		if (stopped) {
 			_delete_mi->activate();
+			_snip_mi->activate();
 			_select_all_mi->activate();
 			_select_none_mi->activate();
 		}
 		else {
 			_delete_mi->deactivate();
+			_snip_mi->deactivate();
 			_select_all_mi->deactivate();
 			_select_none_mi->deactivate();
 		}
@@ -599,6 +604,7 @@ void Main_Window::update_active_controls() {
 		_redo_mi->deactivate();
 		_redo_tb->deactivate();
 		_delete_mi->deactivate();
+		_snip_mi->deactivate();
 		_select_all_mi->deactivate();
 		_select_none_mi->deactivate();
 		_channel_one_mi->deactivate();
@@ -1204,6 +1210,17 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::delete_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (mw->_piano_roll->delete_selection(mw->_song)) {
+		mw->_status_message = mw->_song.undo_action();
+		mw->_status_label->label(mw->_status_message.c_str());
+
+		mw->update_active_controls();
+		mw->redraw();
+	}
+}
+
+void Main_Window::snip_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	if (mw->_piano_roll->snip_selection(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action();
 		mw->_status_label->label(mw->_status_message.c_str());
 

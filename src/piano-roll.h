@@ -232,6 +232,7 @@ public:
 	void highlight_tick(int32_t t);
 
 	bool delete_selection(Song &song);
+	bool snip_selection(Song &song);
 	bool select_all() { return _piano_timeline->select_all(); }
 	bool select_none() { return _piano_timeline->select_none(); }
 private:

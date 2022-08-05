@@ -14,7 +14,8 @@ class Song {
 protected:
 	struct Song_State {
 		enum class Action {
-			DELETE_SELECTION
+			DELETE_SELECTION,
+			SNIP_SELECTION
 		};
 		int channel_number = 0;
 		std::vector<Command> commands;
@@ -65,6 +66,7 @@ public:
 	const std::vector<Command> &channel_4_commands() const { return _channel_4_commands; }
 
 	void delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes);
+	void snip_selection(const int selected_channel, const std::set<int32_t> &selected_notes);
 private:
 	std::string commands_str(const std::vector<Command> &commands) const;
 	std::string get_error_message(Parsed_Song parsed_song) const;

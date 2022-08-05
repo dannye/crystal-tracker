@@ -176,6 +176,19 @@ void Song::delete_selection(const int selected_channel, const std::set<int32_t> 
 	_modified = true;
 }
 
+void Song::snip_selection(const int selected_channel, const std::set<int32_t> &selected_notes) {
+	remember(selected_channel, Song_State::Action::SNIP_SELECTION);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		commands.erase(commands.begin() + *note_itr);
+	}
+
+	// TODO: post-process to merge consecutive rests, remove unnecessary commands, etc.
+
+	_modified = true;
+}
+
 std::string Song::commands_str(const std::vector<Command> &commands) const {
 	const auto to_local_label = [](const std::string &label) {
 		std::size_t dot = label.find_first_of(".");
@@ -305,6 +318,8 @@ const char *Song::get_action_message(Song_State::Action action) const {
 	switch (action) {
 	case Song_State::Action::DELETE_SELECTION:
 		return "Delete selection";
+	case Song_State::Action::SNIP_SELECTION:
+		return "Snip selection";
 	default:
 		return "Unspecified action";
 	}

@@ -1034,6 +1034,28 @@ bool Piano_Roll::delete_selection(Song &song) {
 	return true;
 }
 
+bool Piano_Roll::snip_selection(Song &song) {
+	auto channel = _piano_timeline->active_channel();
+	if (!channel) return false;
+
+	int selected_channel = ((Main_Window *)parent())->selected_channel();
+	std::set<int32_t> selected_notes;
+
+	for (Note_Box *note : *channel) {
+		if (note->selected()) {
+			selected_notes.insert(note->index());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.snip_selection(selected_channel, selected_notes);
+	set_channel_timeline(selected_channel, song);
+
+	return true;
+}
+
 void Piano_Roll::highlight_tick(int32_t t) {
 	if (_tick == t) return; // no change
 	_tick = t;
