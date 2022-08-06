@@ -16,6 +16,8 @@ protected:
 		enum class Action {
 			PITCH_UP,
 			PITCH_DOWN,
+			OCTAVE_UP,
+			OCTAVE_DOWN,
 			DELETE_SELECTION,
 			SNIP_SELECTION
 		};
@@ -69,6 +71,8 @@ public:
 
 	void pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view);
 	void pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view);
+	void octave_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view);
+	void octave_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view);
 	void delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes);
 	void snip_selection(const int selected_channel, const std::set<int32_t> &selected_notes);
 private:

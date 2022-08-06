@@ -527,8 +527,13 @@ int Piano_Roll::handle(int event) {
 		break;
 	case FL_SHORTCUT:
 	case FL_KEYBOARD:
-		// don't hog arrow keys with alt
-		if (Fl::event_alt() && (Fl::event_key() == FL_Up || Fl::event_key() == FL_Down)) {
+		// don't hog arrow keys with ctrl
+		if (Fl::event_command() && (
+			Fl::event_key() == FL_Up ||
+			Fl::event_key() == FL_Down ||
+			Fl::event_key() == FL_Left ||
+			Fl::event_key() == FL_Right
+		)) {
 			return 0;
 		}
 		// hack to reverse scrollbar priority
@@ -1045,8 +1050,8 @@ bool Piano_Roll::pitch_up(Song &song) {
 	song.pitch_up(selected_channel, selected_notes, *view);
 	set_channel_timeline(selected_channel, song);
 
-	for (auto note_itr = selected_boxes.begin(); note_itr != selected_boxes.end(); ++note_itr) {
-		channel->at(*note_itr)->selected(true);
+	for (int32_t index : selected_boxes) {
+		channel->at(index)->selected(true);
 	}
 
 	return true;
@@ -1080,8 +1085,78 @@ bool Piano_Roll::pitch_down(Song &song) {
 	song.pitch_down(selected_channel, selected_notes, *view);
 	set_channel_timeline(selected_channel, song);
 
-	for (auto note_itr = selected_boxes.begin(); note_itr != selected_boxes.end(); ++note_itr) {
-		channel->at(*note_itr)->selected(true);
+	for (int32_t index : selected_boxes) {
+		channel->at(index)->selected(true);
+	}
+
+	return true;
+}
+
+bool Piano_Roll::octave_up(Song &song) {
+	auto channel = _piano_timeline->active_channel();
+	if (!channel) return false;
+
+	auto view = active_channel();
+
+	int selected_channel = ((Main_Window *)parent())->selected_channel();
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		auto note = *note_itr;
+		if (note->selected()) {
+			auto note_view = view->at(note->index());
+			if (note_view.octave == 8) {
+				return false;
+			}
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.octave_up(selected_channel, selected_notes, *view);
+	set_channel_timeline(selected_channel, song);
+
+	for (int32_t index : selected_boxes) {
+		channel->at(index)->selected(true);
+	}
+
+	return true;
+}
+
+bool Piano_Roll::octave_down(Song &song) {
+	auto channel = _piano_timeline->active_channel();
+	if (!channel) return false;
+
+	auto view = active_channel();
+
+	int selected_channel = ((Main_Window *)parent())->selected_channel();
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		auto note = *note_itr;
+		if (note->selected()) {
+			auto note_view = view->at(note->index());
+			if (note_view.octave == 1) {
+				return false;
+			}
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.octave_down(selected_channel, selected_notes, *view);
+	set_channel_timeline(selected_channel, song);
+
+	for (int32_t index : selected_boxes) {
+		channel->at(index)->selected(true);
 	}
 
 	return true;

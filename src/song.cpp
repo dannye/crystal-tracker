@@ -226,6 +226,46 @@ void Song::pitch_down(const int selected_channel, const std::set<int32_t> &selec
 	_modified = true;
 }
 
+void Song::octave_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view) {
+	remember(selected_channel, Song_State::Action::OCTAVE_UP);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Note_View note_view = find_note_view(view, *note_itr);
+		Command command = Command(Command_Type::OCTAVE);
+		command.octave.octave = note_view.octave;
+		commands.insert(commands.begin() + *note_itr + 1, command);
+
+		command.octave.octave = note_view.octave + 1;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands.insert(commands.begin() + *note_itr, command);
+
+		// TODO: post-process to remove redundant octave commands
+	}
+
+	_modified = true;
+}
+
+void Song::octave_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view) {
+	remember(selected_channel, Song_State::Action::OCTAVE_DOWN);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Note_View note_view = find_note_view(view, *note_itr);
+		Command command = Command(Command_Type::OCTAVE);
+		command.octave.octave = note_view.octave;
+		commands.insert(commands.begin() + *note_itr + 1, command);
+
+		command.octave.octave = note_view.octave - 1;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands.insert(commands.begin() + *note_itr, command);
+
+		// TODO: post-process to remove redundant octave commands
+	}
+
+	_modified = true;
+}
+
 void Song::delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes) {
 	remember(selected_channel, Song_State::Action::DELETE_SELECTION);
 	std::vector<Command> &commands = channel_commands(selected_channel);
@@ -385,6 +425,10 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Pitch up";
 	case Song_State::Action::PITCH_DOWN:
 		return "Pitch down";
+	case Song_State::Action::OCTAVE_UP:
+		return "Octave up";
+	case Song_State::Action::OCTAVE_DOWN:
+		return "Octave down";
 	case Song_State::Action::DELETE_SELECTION:
 		return "Delete selection";
 	case Song_State::Action::SNIP_SELECTION:

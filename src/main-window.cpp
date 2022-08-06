@@ -166,8 +166,10 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_SUBMENU("&Edit"),
 		OS_MENU_ITEM("&Undo", FL_COMMAND + 'z', (Fl_Callback *)undo_cb, this, 0),
 		OS_MENU_ITEM("&Redo", FL_COMMAND + 'y', (Fl_Callback *)redo_cb, this, FL_MENU_DIVIDER),
-		OS_MENU_ITEM("Pitch Up", FL_ALT + UP_KEY, (Fl_Callback *)pitch_up_cb, this, 0),
-		OS_MENU_ITEM("Pitch Down", FL_ALT + DOWN_KEY, (Fl_Callback *)pitch_down_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("Pitch Up", FL_COMMAND + UP_KEY, (Fl_Callback *)pitch_up_cb, this, 0),
+		OS_MENU_ITEM("Pitch Down", FL_COMMAND + DOWN_KEY, (Fl_Callback *)pitch_down_cb, this, 0),
+		OS_MENU_ITEM("Octave Up", FL_COMMAND + FL_SHIFT + UP_KEY, (Fl_Callback *)octave_up_cb, this, 0),
+		OS_MENU_ITEM("Octave Down", FL_COMMAND + FL_SHIFT + DOWN_KEY, (Fl_Callback *)octave_down_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("&Delete Selection", DELETE_KEY, (Fl_Callback *)delete_cb, this, 0),
 		OS_MENU_ITEM("&Snip Selection", FL_SHIFT + DELETE_KEY, (Fl_Callback *)snip_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Select &All", FL_COMMAND + 'a', (Fl_Callback *)select_all_cb, this, 0),
@@ -262,6 +264,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_redo_mi = CT_FIND_MENU_ITEM_CB(redo_cb);
 	_pitch_up_mi = CT_FIND_MENU_ITEM_CB(pitch_up_cb);
 	_pitch_down_mi = CT_FIND_MENU_ITEM_CB(pitch_down_cb);
+	_octave_up_mi = CT_FIND_MENU_ITEM_CB(octave_up_cb);
+	_octave_down_mi = CT_FIND_MENU_ITEM_CB(octave_down_cb);
 	_delete_mi = CT_FIND_MENU_ITEM_CB(delete_cb);
 	_snip_mi = CT_FIND_MENU_ITEM_CB(snip_cb);
 	_select_all_mi = CT_FIND_MENU_ITEM_CB(select_all_cb);
@@ -555,6 +559,8 @@ void Main_Window::update_active_controls() {
 		if (stopped) {
 			_pitch_up_mi->activate();
 			_pitch_down_mi->activate();
+			_octave_up_mi->activate();
+			_octave_down_mi->activate();
 			_delete_mi->activate();
 			_snip_mi->activate();
 			_select_all_mi->activate();
@@ -563,6 +569,8 @@ void Main_Window::update_active_controls() {
 		else {
 			_pitch_up_mi->deactivate();
 			_pitch_down_mi->deactivate();
+			_octave_up_mi->deactivate();
+			_octave_down_mi->deactivate();
 			_delete_mi->deactivate();
 			_snip_mi->deactivate();
 			_select_all_mi->deactivate();
@@ -599,6 +607,8 @@ void Main_Window::update_active_controls() {
 		_redo_tb->deactivate();
 		_pitch_up_mi->deactivate();
 		_pitch_down_mi->deactivate();
+		_octave_up_mi->deactivate();
+		_octave_down_mi->deactivate();
 		_delete_mi->deactivate();
 		_snip_mi->deactivate();
 		_select_all_mi->deactivate();
@@ -1217,6 +1227,28 @@ void Main_Window::pitch_up_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::pitch_down_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (mw->_piano_roll->pitch_down(mw->_song)) {
+		mw->_status_message = mw->_song.undo_action();
+		mw->_status_label->label(mw->_status_message.c_str());
+
+		mw->update_active_controls();
+		mw->redraw();
+	}
+}
+
+void Main_Window::octave_up_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	if (mw->_piano_roll->octave_up(mw->_song)) {
+		mw->_status_message = mw->_song.undo_action();
+		mw->_status_label->label(mw->_status_message.c_str());
+
+		mw->update_active_controls();
+		mw->redraw();
+	}
+}
+
+void Main_Window::octave_down_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	if (mw->_piano_roll->octave_down(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action();
 		mw->_status_label->label(mw->_status_message.c_str());
 
