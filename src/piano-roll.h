@@ -212,6 +212,7 @@ public:
 
 	bool set_timeline(const Song &song);
 	void set_channel_timeline(const int selected_channel, const Song &song);
+	void set_active_channel_selection(const std::set<int32_t> &selection);
 
 	bool build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Note_View> &notes, const std::vector<Command> &commands, int32_t end_tick, Fl_Color color);
 

@@ -29,7 +29,7 @@ void Song::clear() {
 	_loaded = false;
 }
 
-void Song::remember(int channel_number, Song_State::Action action) {
+void Song::remember(int channel_number, const std::set<int32_t> &selection, Song_State::Action action) {
 	_future.clear();
 	while (_history.size() >= MAX_HISTORY_SIZE) { _history.pop_front(); }
 
@@ -38,6 +38,7 @@ void Song::remember(int channel_number, Song_State::Action action) {
 	Song_State ss;
 	ss.channel_number = channel_number;
 	ss.commands = commands;
+	ss.selection = selection;
 	ss.action = action;
 	_history.push_back(ss);
 }
@@ -52,6 +53,7 @@ int Song::undo() {
 	Song_State ss;
 	ss.channel_number = prev.channel_number;
 	ss.commands = std::move(commands);
+	ss.selection = std::move(prev.selection);
 	ss.action = prev.action;
 	_future.push_back(ss);
 
@@ -73,6 +75,7 @@ int Song::redo() {
 	Song_State ss;
 	ss.channel_number = next.channel_number;
 	ss.commands = std::move(commands);
+	ss.selection = std::move(next.selection);
 	ss.action = next.action;
 	_history.push_back(ss);
 
@@ -172,8 +175,8 @@ const auto find_note_view = [](const std::vector<Note_View> &view, int32_t index
 	return Note_View{};
 };
 
-void Song::pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view) {
-	remember(selected_channel, Song_State::Action::PITCH_UP);
+void Song::pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view) {
+	remember(selected_channel, selected_boxes, Song_State::Action::PITCH_UP);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
@@ -199,8 +202,8 @@ void Song::pitch_up(const int selected_channel, const std::set<int32_t> &selecte
 	_modified = true;
 }
 
-void Song::pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view) {
-	remember(selected_channel, Song_State::Action::PITCH_DOWN);
+void Song::pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view) {
+	remember(selected_channel, selected_boxes, Song_State::Action::PITCH_DOWN);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
@@ -226,8 +229,8 @@ void Song::pitch_down(const int selected_channel, const std::set<int32_t> &selec
 	_modified = true;
 }
 
-void Song::octave_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view) {
-	remember(selected_channel, Song_State::Action::OCTAVE_UP);
+void Song::octave_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view) {
+	remember(selected_channel, selected_boxes, Song_State::Action::OCTAVE_UP);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
@@ -246,8 +249,8 @@ void Song::octave_up(const int selected_channel, const std::set<int32_t> &select
 	_modified = true;
 }
 
-void Song::octave_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view) {
-	remember(selected_channel, Song_State::Action::OCTAVE_DOWN);
+void Song::octave_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view) {
+	remember(selected_channel, selected_boxes, Song_State::Action::OCTAVE_DOWN);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
@@ -266,8 +269,8 @@ void Song::octave_down(const int selected_channel, const std::set<int32_t> &sele
 	_modified = true;
 }
 
-void Song::delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes) {
-	remember(selected_channel, Song_State::Action::DELETE_SELECTION);
+void Song::delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes) {
+	remember(selected_channel, selected_boxes, Song_State::Action::DELETE_SELECTION);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
@@ -279,8 +282,8 @@ void Song::delete_selection(const int selected_channel, const std::set<int32_t> 
 	_modified = true;
 }
 
-void Song::snip_selection(const int selected_channel, const std::set<int32_t> &selected_notes) {
-	remember(selected_channel, Song_State::Action::SNIP_SELECTION);
+void Song::snip_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SNIP_SELECTION);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {

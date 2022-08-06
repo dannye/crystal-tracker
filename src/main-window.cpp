@@ -1181,8 +1181,10 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 
 	mw->_status_message = "Undo: ";
-	mw->_status_message += mw->_song.undo_action();
+	mw->_status_message += mw->_song.undo_action_message();
 	mw->_status_label->label(mw->_status_message.c_str());
+
+	std::set<int32_t> selection = mw->_song.undo_selection();
 
 	int channel = mw->_song.undo();
 	mw->_piano_roll->set_channel_timeline(channel, mw->_song);
@@ -1190,6 +1192,7 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 		mw->selected_channel(channel);
 		mw->sync_channel_buttons();
 	}
+	mw->_piano_roll->set_active_channel_selection(selection);
 
 	mw->update_active_controls();
 	mw->redraw();
@@ -1199,14 +1202,20 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 
 	mw->_status_message = "Redo: ";
-	mw->_status_message += mw->_song.redo_action();
+	mw->_status_message += mw->_song.redo_action_message();
 	mw->_status_label->label(mw->_status_message.c_str());
+
+	Song::Song_State::Action action = mw->_song.redo_action();
+	std::set<int32_t> selection = mw->_song.redo_selection();
 
 	int channel = mw->_song.redo();
 	mw->_piano_roll->set_channel_timeline(channel, mw->_song);
 	if (channel != mw->selected_channel()) {
 		mw->selected_channel(channel);
 		mw->sync_channel_buttons();
+	}
+	if (action != Song::Song_State::Action::DELETE_SELECTION && action != Song::Song_State::Action::SNIP_SELECTION) {
+		mw->_piano_roll->set_active_channel_selection(selection);
 	}
 
 	mw->update_active_controls();
@@ -1216,7 +1225,7 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::pitch_up_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (mw->_piano_roll->pitch_up(mw->_song)) {
-		mw->_status_message = mw->_song.undo_action();
+		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
@@ -1227,7 +1236,7 @@ void Main_Window::pitch_up_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::pitch_down_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (mw->_piano_roll->pitch_down(mw->_song)) {
-		mw->_status_message = mw->_song.undo_action();
+		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
@@ -1238,7 +1247,7 @@ void Main_Window::pitch_down_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::octave_up_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (mw->_piano_roll->octave_up(mw->_song)) {
-		mw->_status_message = mw->_song.undo_action();
+		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
@@ -1249,7 +1258,7 @@ void Main_Window::octave_up_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::octave_down_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (mw->_piano_roll->octave_down(mw->_song)) {
-		mw->_status_message = mw->_song.undo_action();
+		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
@@ -1260,7 +1269,7 @@ void Main_Window::octave_down_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::delete_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (mw->_piano_roll->delete_selection(mw->_song)) {
-		mw->_status_message = mw->_song.undo_action();
+		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
@@ -1271,7 +1280,7 @@ void Main_Window::delete_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::snip_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (mw->_piano_roll->snip_selection(mw->_song)) {
-		mw->_status_message = mw->_song.undo_action();
+		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();

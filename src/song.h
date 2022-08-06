@@ -11,7 +11,7 @@
 #define MAX_HISTORY_SIZE 100
 
 class Song {
-protected:
+public:
 	struct Song_State {
 		enum class Action {
 			PITCH_UP,
@@ -23,6 +23,7 @@ protected:
 		};
 		int channel_number = 0;
 		std::vector<Command> commands;
+		std::set<int32_t> selection;
 		Action action;
 	};
 private:
@@ -52,11 +53,15 @@ public:
 	inline bool other_modified(const char *f) const { return file_modified(f) > _mod_time; }
 	inline bool can_undo(void) const { return !_history.empty(); }
 	inline bool can_redo(void) const { return !_future.empty(); }
-	inline const char *undo_action(void) const { return get_action_message(_history.back().action); }
-	inline const char *redo_action(void) const { return get_action_message(_future.back().action); }
+	inline const char *undo_action_message(void) const { return get_action_message(_history.back().action); }
+	inline const char *redo_action_message(void) const { return get_action_message(_future.back().action); }
+	inline Song_State::Action undo_action(void) const { return _history.back().action; }
+	inline Song_State::Action redo_action(void) const { return _future.back().action; }
+	inline std::set<int32_t> undo_selection(void) const { return _history.back().selection; }
+	inline std::set<int32_t> redo_selection(void) const { return _future.back().selection; }
 	inline bool loaded(void) const { return _loaded; }
 	void clear();
-	void remember(int channel_number, Song_State::Action action);
+	void remember(int channel_number, const std::set<int32_t> &selection, Song_State::Action action);
 	int undo();
 	int redo();
 	Parsed_Song::Result read_song(const char *f);
@@ -69,12 +74,12 @@ public:
 	const std::vector<Command> &channel_3_commands() const { return _channel_3_commands; }
 	const std::vector<Command> &channel_4_commands() const { return _channel_4_commands; }
 
-	void pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view);
-	void pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view);
-	void octave_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view);
-	void octave_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view);
-	void delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes);
-	void snip_selection(const int selected_channel, const std::set<int32_t> &selected_notes);
+	void pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
+	void pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
+	void octave_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
+	void octave_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
+	void delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
+	void snip_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
 private:
 	std::string commands_str(const std::vector<Command> &commands) const;
 	std::string get_error_message(Parsed_Song parsed_song) const;
