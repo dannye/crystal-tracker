@@ -73,6 +73,8 @@ private:
 		*_loop_mi = NULL,
 		*_undo_mi = NULL,
 		*_redo_mi = NULL,
+		*_pitch_up_mi = NULL,
+		*_pitch_down_mi = NULL,
 		*_delete_mi = NULL,
 		*_snip_mi = NULL,
 		*_select_all_mi = NULL,
@@ -151,6 +153,8 @@ private:
 	// Edit menu
 	static void undo_cb(Fl_Widget *w, Main_Window *mw);
 	static void redo_cb(Fl_Widget *w, Main_Window *mw);
+	static void pitch_up_cb(Fl_Widget *w, Main_Window *mw);
+	static void pitch_down_cb(Fl_Widget *w, Main_Window *mw);
 	static void delete_cb(Fl_Widget *w, Main_Window *mw);
 	static void snip_cb(Fl_Widget *w, Main_Window *mw);
 	static void select_all_cb(Fl_Widget *w, Main_Window *mw);

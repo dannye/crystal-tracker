@@ -231,6 +231,9 @@ struct Command {
 	};
 
 	Command() {}
+	Command(Command_Type t) {
+		type = t;
+	}
 	Command(Command_Type t, const std::string& label) {
 		type = t;
 		labels.insert(label);

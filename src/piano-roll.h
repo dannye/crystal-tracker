@@ -231,11 +231,15 @@ public:
 	void pause_following();
 	void highlight_tick(int32_t t);
 
+	bool pitch_up(Song &song);
+	bool pitch_down(Song &song);
 	bool delete_selection(Song &song);
 	bool snip_selection(Song &song);
 	bool select_all() { return _piano_timeline->select_all(); }
 	bool select_none() { return _piano_timeline->select_none(); }
 private:
+	std::vector<Note_View> *active_channel();
+
 	static void hscrollbar_cb(Fl_Scrollbar *sb, void *);
 };
 

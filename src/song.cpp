@@ -163,6 +163,69 @@ bool Song::write_song(const char *f) {
 	return true;
 }
 
+const auto find_note_view = [](const std::vector<Note_View> &view, int32_t index) {
+	for (const Note_View &note : view) {
+		if (note.index == index) {
+			return note;
+		}
+	}
+	return Note_View{};
+};
+
+void Song::pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view) {
+	remember(selected_channel, Song_State::Action::PITCH_UP);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		if (commands[*note_itr].note.pitch == Pitch::B_NAT) {
+			commands[*note_itr].note.pitch = Pitch::C_NAT;
+
+			Note_View note_view = find_note_view(view, *note_itr);
+			Command command = Command(Command_Type::OCTAVE);
+			command.octave.octave = note_view.octave;
+			commands.insert(commands.begin() + *note_itr + 1, command);
+
+			command.octave.octave = note_view.octave + 1;
+			command.labels = std::move(commands[*note_itr].labels);
+			commands.insert(commands.begin() + *note_itr, command);
+
+			// TODO: post-process to remove redundant octave commands
+		}
+		else {
+			commands[*note_itr].note.pitch = (Pitch)((int)commands[*note_itr].note.pitch + 1);
+		}
+	}
+
+	_modified = true;
+}
+
+void Song::pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view) {
+	remember(selected_channel, Song_State::Action::PITCH_DOWN);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		if (commands[*note_itr].note.pitch == Pitch::C_NAT) {
+			commands[*note_itr].note.pitch = Pitch::B_NAT;
+
+			Note_View note_view = find_note_view(view, *note_itr);
+			Command command = Command(Command_Type::OCTAVE);
+			command.octave.octave = note_view.octave;
+			commands.insert(commands.begin() + *note_itr + 1, command);
+
+			command.octave.octave = note_view.octave - 1;
+			command.labels = std::move(commands[*note_itr].labels);
+			commands.insert(commands.begin() + *note_itr, command);
+
+			// TODO: post-process to remove redundant octave commands
+		}
+		else {
+			commands[*note_itr].note.pitch = (Pitch)((int)commands[*note_itr].note.pitch - 1);
+		}
+	}
+
+	_modified = true;
+}
+
 void Song::delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes) {
 	remember(selected_channel, Song_State::Action::DELETE_SELECTION);
 	std::vector<Command> &commands = channel_commands(selected_channel);
@@ -171,7 +234,7 @@ void Song::delete_selection(const int selected_channel, const std::set<int32_t> 
 		commands[*note_itr].type = Command_Type::REST;
 	}
 
-	// TODO: post-process to merge consecutive rests, remove unnecessary commands, etc.
+	// TODO: post-process to merge consecutive rests, remove redundant commands, etc.
 
 	_modified = true;
 }
@@ -181,10 +244,12 @@ void Song::snip_selection(const int selected_channel, const std::set<int32_t> &s
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		// TODO: these label's order is probably not being preserved...
+		commands.at(*note_itr + 1).labels.insert(commands.at(*note_itr).labels.begin(), commands.at(*note_itr).labels.end());
 		commands.erase(commands.begin() + *note_itr);
 	}
 
-	// TODO: post-process to merge consecutive rests, remove unnecessary commands, etc.
+	// TODO: post-process to merge consecutive rests, remove redundant commands, etc.
 
 	_modified = true;
 }
@@ -316,6 +381,10 @@ std::string Song::get_error_message(Parsed_Song parsed_song) const {
 
 const char *Song::get_action_message(Song_State::Action action) const {
 	switch (action) {
+	case Song_State::Action::PITCH_UP:
+		return "Pitch up";
+	case Song_State::Action::PITCH_DOWN:
+		return "Pitch down";
 	case Song_State::Action::DELETE_SELECTION:
 		return "Delete selection";
 	case Song_State::Action::SNIP_SELECTION:

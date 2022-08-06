@@ -14,6 +14,8 @@ class Song {
 protected:
 	struct Song_State {
 		enum class Action {
+			PITCH_UP,
+			PITCH_DOWN,
 			DELETE_SELECTION,
 			SNIP_SELECTION
 		};
@@ -65,6 +67,8 @@ public:
 	const std::vector<Command> &channel_3_commands() const { return _channel_3_commands; }
 	const std::vector<Command> &channel_4_commands() const { return _channel_4_commands; }
 
+	void pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view);
+	void pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::vector<Note_View> &view);
 	void delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes);
 	void snip_selection(const int selected_channel, const std::set<int32_t> &selected_notes);
 private:
