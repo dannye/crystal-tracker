@@ -159,26 +159,17 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		{},
 		OS_SUBMENU("&Play"),
 		OS_MENU_ITEM("&Play/Pause", ' ', (Fl_Callback *)play_pause_cb, this, 0),
-#ifdef __APPLE__
-		OS_MENU_ITEM("&Stop", NSEscapeCharacter, (Fl_Callback *)stop_cb, this, FL_MENU_DIVIDER),
-#else
-		OS_MENU_ITEM("&Stop", FL_Escape, (Fl_Callback *)stop_cb, this, FL_MENU_DIVIDER),
-#endif
+		OS_MENU_ITEM("&Stop", ESCAPE_KEY, (Fl_Callback *)stop_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("&Loop", FL_COMMAND + 'l', (Fl_Callback *)loop_cb, this,
 			FL_MENU_TOGGLE | (loop_config ? FL_MENU_VALUE : 0)),
 		{},
 		OS_SUBMENU("&Edit"),
 		OS_MENU_ITEM("&Undo", FL_COMMAND + 'z', (Fl_Callback *)undo_cb, this, 0),
 		OS_MENU_ITEM("&Redo", FL_COMMAND + 'y', (Fl_Callback *)redo_cb, this, FL_MENU_DIVIDER),
-		OS_MENU_ITEM("Pitch Up", FL_ALT + FL_Up, (Fl_Callback *)pitch_up_cb, this, 0),
-		OS_MENU_ITEM("Pitch Down", FL_ALT + FL_Down, (Fl_Callback *)pitch_down_cb, this, FL_MENU_DIVIDER),
-#ifdef __APPLE__
-		OS_MENU_ITEM("&Delete Selection", FL_COMMAND + NSBackspaceCharacter, (Fl_Callback *)delete_cb, this, 0),
-		OS_MENU_ITEM("&Snip Selection", FL_COMMAND + FL_SHIFT + NSBackspaceCharacter, (Fl_Callback *)snip_cb, this, FL_MENU_DIVIDER),
-#else
-		OS_MENU_ITEM("&Delete Selection", FL_Delete, (Fl_Callback *)delete_cb, this, 0),
-		OS_MENU_ITEM("&Snip Selection", FL_SHIFT + FL_Delete, (Fl_Callback *)snip_cb, this, FL_MENU_DIVIDER),
-#endif
+		OS_MENU_ITEM("Pitch Up", FL_ALT + UP_KEY, (Fl_Callback *)pitch_up_cb, this, 0),
+		OS_MENU_ITEM("Pitch Down", FL_ALT + DOWN_KEY, (Fl_Callback *)pitch_down_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("&Delete Selection", DELETE_KEY, (Fl_Callback *)delete_cb, this, 0),
+		OS_MENU_ITEM("&Snip Selection", FL_SHIFT + DELETE_KEY, (Fl_Callback *)snip_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Select &All", FL_COMMAND + 'a', (Fl_Callback *)select_all_cb, this, 0),
 		OS_MENU_ITEM("Select N&one", FL_COMMAND + 'A', (Fl_Callback *)select_none_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Channel &1", '1', (Fl_Callback *)channel_one_cb, this,
@@ -189,13 +180,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 			FL_MENU_RADIO | (selected_channel() == 3 ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Channel &4", '4', (Fl_Callback *)channel_four_cb, this,
 			FL_MENU_RADIO | (selected_channel() == 4 ? FL_MENU_VALUE : 0) | FL_MENU_DIVIDER),
-#ifdef __APPLE__
-		OS_MENU_ITEM("&Next Channel", NSTabCharacter, (Fl_Callback *)next_channel_cb, this, 0),
-		OS_MENU_ITEM("&Previous Channel", FL_SHIFT + NSTabCharacter, (Fl_Callback *)previous_channel_cb, this, 0),
-#else
-		OS_MENU_ITEM("&Next Channel", FL_Tab, (Fl_Callback *)next_channel_cb, this, 0),
-		OS_MENU_ITEM("&Previous Channel", FL_SHIFT + FL_Tab, (Fl_Callback *)previous_channel_cb, this, 0),
-#endif
+		OS_MENU_ITEM("&Next Channel", TAB_KEY, (Fl_Callback *)next_channel_cb, this, 0),
+		OS_MENU_ITEM("&Previous Channel", FL_SHIFT + TAB_KEY, (Fl_Callback *)previous_channel_cb, this, 0),
 		{},
 		OS_SUBMENU("&View"),
 		OS_MENU_ITEM("&Theme", 0, NULL, NULL, FL_SUBMENU),

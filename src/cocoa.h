@@ -16,7 +16,11 @@ enum {
     NSEscapeCharacter               = 0x001b,
     NSDeleteCharacter               = 0x007f,
     NSLineSeparatorCharacter        = 0x2028,
-    NSParagraphSeparatorCharacter   = 0x2029
+    NSParagraphSeparatorCharacter   = 0x2029,
+    NSUpArrowFunctionKey            = 0xf700,
+    NSDownArrowFunctionKey          = 0xf701,
+    NSLeftArrowFunctionKey          = 0xf702,
+    NSRightArrowFunctionKey         = 0xf703
 };
 #endif
 

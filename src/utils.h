@@ -36,6 +36,15 @@
 #define SHIFT_KEY_PLUS SHIFT_KEY
 #define COMMAND_SHIFT_KEYS_PLUS SHIFT_KEY_PLUS COMMAND_KEY_PLUS
 #define COMMAND_ALT_KEYS_PLUS ALT_KEY_PLUS COMMAND_KEY_PLUS
+
+#define BACKSPACE_KEY NSBackspaceCharacter
+#define DELETE_KEY    FL_COMMAND + NSBackspaceCharacter
+#define TAB_KEY       NSTabCharacter
+#define ESCAPE_KEY    NSEscapeCharacter
+#define UP_KEY        NSUpArrowFunctionKey
+#define DOWN_KEY      NSDownArrowFunctionKey
+#define LEFT_KEY      NSLeftArrowFunctionKey
+#define RIGHT_KEY     NSRightArrowFunctionKey
 #else
 #define CONTROL_KEY "Ctrl"
 #define ALT_KEY "Alt"
@@ -46,6 +55,15 @@
 #define SHIFT_KEY_PLUS SHIFT_KEY "+"
 #define COMMAND_SHIFT_KEYS_PLUS COMMAND_KEY_PLUS SHIFT_KEY_PLUS
 #define COMMAND_ALT_KEYS_PLUS COMMAND_KEY_PLUS ALT_KEY_PLUS
+
+#define BACKSPACE_KEY FL_BackSpace
+#define DELETE_KEY    FL_Delete
+#define TAB_KEY       FL_Tab
+#define ESCAPE_KEY    FL_Escape
+#define UP_KEY        FL_Up
+#define DOWN_KEY      FL_Down
+#define LEFT_KEY      FL_Left
+#define RIGHT_KEY     FL_Right
 #endif
 
 #ifndef _countof
