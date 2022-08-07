@@ -297,6 +297,7 @@ void Song::move_left(const int selected_channel, const std::set<int32_t> &select
 		command.rest.length = 1;
 		commands.insert(commands.begin() + (*note_itr + offset) + 1, command);
 		if (commands[rest_index].rest.length == 1) {
+			// TODO: these label's order is probably not being preserved...
 			commands[rest_index + 1].labels.insert(commands[rest_index].labels.begin(), commands[rest_index].labels.end());
 			commands.erase(commands.begin() + rest_index);
 		}
@@ -332,13 +333,15 @@ void Song::move_right(const int selected_channel, const std::set<int32_t> &selec
 
 		int32_t rest_index = find_following_rest(command_itr);
 
+		assert(commands[rest_index].labels.size() == 0);
 		if (commands[rest_index].rest.length == 1) {
-			commands[rest_index + 1].labels.insert(commands[rest_index].labels.begin(), commands[rest_index].labels.end());
 			commands.erase(commands.begin() + rest_index);
 		}
 		else {
 			commands[rest_index].rest.length -= 1;
 		}
+
+		// TODO: this potentially puts a rest between note settings and note which is maybe not ideal?
 		Command command = Command(Command_Type::REST);
 		command.labels = std::move(commands[*note_itr].labels);
 		command.rest.length = 1;

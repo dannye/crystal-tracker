@@ -1589,7 +1589,7 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 			IT_Module *mod = mw->_it_module;
 			if (mod && mod->playing()) {
 				mod->play();
-				int32_t t = mod->current_tick() / TICKS_PER_STEP * TICKS_PER_STEP;
+				int32_t t = mod->current_tick();
 				if (t > tick || (mod->looping() && t < tick)) {
 					tick = t;
 					mw->_tick = t;

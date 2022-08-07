@@ -69,17 +69,31 @@ constexpr Note_Key NOTE_KEYS[NUM_NOTES_PER_OCTAVE] {
 	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT *  8, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, "E♭/D♯", false },
 	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT * 10, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, "D♭/C♯", false },
 };
+constexpr size_t PITCH_TO_KEY_INDEX[NUM_NOTES_PER_OCTAVE] {
+	6,  // C
+	11, // C#
+	5,  // D
+	10, // D#
+	4,  // E
+	3,  // F
+	9,  // F#
+	2,  // G
+	8,  // G#
+	1,  // A
+	7,  // A#
+	0,  // B
+};
 
 class Note_Box : public Fl_Box {
 private:
-	int32_t _index = 0;
+	const Note_View &_note_view;
 	bool _selected = false;
 	bool _ghost = false;
 public:
-	using Fl_Box::Fl_Box;
+	Note_Box(const Note_View &n, int X, int Y, int W, int H, const char *l=0)
+		: Fl_Box(X, Y, W, H, l), _note_view(n) {}
 
-	inline int32_t index(void) const { return _index; }
-	inline void index(int32_t i) { _index = i; }
+	inline const Note_View &note_view(void) const { return _note_view; }
 	inline bool selected(void) const { return _selected; }
 	inline void selected(bool s) { _selected = s; }
 	inline bool ghost(void) const { return _ghost; }
@@ -111,6 +125,9 @@ public:
 
 	Piano_Keys(const Piano_Keys&) = delete;
 	Piano_Keys& operator=(const Piano_Keys&) = delete;
+
+	void highlight_key(Pitch pitch, int32_t octave);
+	void reset_key_colors();
 };
 
 class Piano_Timeline : public Fl_Group {
