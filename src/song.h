@@ -18,6 +18,8 @@ public:
 			PITCH_DOWN,
 			OCTAVE_UP,
 			OCTAVE_DOWN,
+			MOVE_LEFT,
+			MOVE_RIGHT,
 			DELETE_SELECTION,
 			SNIP_SELECTION
 		};
@@ -78,14 +80,16 @@ public:
 	void pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void octave_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void octave_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
+	void move_left(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
+	void move_right(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
 	void delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
 	void snip_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
+
+	std::vector<Command> &channel_commands(const int selected_channel);
 private:
 	std::string commands_str(const std::vector<Command> &commands) const;
 	std::string get_error_message(Parsed_Song parsed_song) const;
 	const char *get_action_message(Song_State::Action action) const;
-
-	std::vector<Command> &channel_commands(const int selected_channel);
 };
 
 #endif

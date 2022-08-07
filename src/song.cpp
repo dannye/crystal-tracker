@@ -172,6 +172,7 @@ const auto find_note_view = [](const std::vector<Note_View> &view, int32_t index
 			return note;
 		}
 	}
+	assert(false);
 	return Note_View{};
 };
 
@@ -269,6 +270,86 @@ void Song::octave_down(const int selected_channel, const std::set<int32_t> &sele
 	_modified = true;
 }
 
+void Song::move_left(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes) {
+	remember(selected_channel, selected_boxes, Song_State::Action::MOVE_LEFT);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	int32_t offset = 0;
+
+	for (auto note_itr = selected_notes.begin(); note_itr != selected_notes.end(); ++note_itr) {
+		auto command_itr = commands.rbegin() + (commands.size() - 1 - (*note_itr + offset));
+
+		const auto find_preceding_rest = [&](decltype(command_itr) itr) {
+			++itr;
+			while (itr != commands.rend()) {
+				if (itr->type == Command_Type::REST) {
+					return (itr.base() - 1) - commands.begin();
+				}
+				++itr;
+			}
+			assert(false);
+			return commands.end() - commands.begin();
+		};
+
+		int32_t rest_index = find_preceding_rest(command_itr);
+
+		Command command = Command(Command_Type::REST);
+		command.rest.length = 1;
+		commands.insert(commands.begin() + (*note_itr + offset) + 1, command);
+		if (commands[rest_index].rest.length == 1) {
+			commands[rest_index + 1].labels.insert(commands[rest_index].labels.begin(), commands[rest_index].labels.end());
+			commands.erase(commands.begin() + rest_index);
+		}
+		else {
+			commands[rest_index].rest.length -= 1;
+			offset += 1;
+		}
+	}
+
+	// TODO: post-process to merge consecutive rests, remove redundant commands, etc.
+
+	_modified = true;
+}
+
+void Song::move_right(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes) {
+	remember(selected_channel, selected_boxes, Song_State::Action::MOVE_RIGHT);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		auto command_itr = commands.begin() + *note_itr;
+
+		const auto find_following_rest = [&](decltype(command_itr) itr) {
+			++itr;
+			while (itr != commands.end()) {
+				if (itr->type == Command_Type::REST) {
+					return itr - commands.begin();
+				}
+				++itr;
+			}
+			assert(false);
+			return commands.end() - commands.begin();
+		};
+
+		int32_t rest_index = find_following_rest(command_itr);
+
+		if (commands[rest_index].rest.length == 1) {
+			commands[rest_index + 1].labels.insert(commands[rest_index].labels.begin(), commands[rest_index].labels.end());
+			commands.erase(commands.begin() + rest_index);
+		}
+		else {
+			commands[rest_index].rest.length -= 1;
+		}
+		Command command = Command(Command_Type::REST);
+		command.labels = std::move(commands[*note_itr].labels);
+		command.rest.length = 1;
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	// TODO: post-process to merge consecutive rests, remove redundant commands, etc.
+
+	_modified = true;
+}
+
 void Song::delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes) {
 	remember(selected_channel, selected_boxes, Song_State::Action::DELETE_SELECTION);
 	std::vector<Command> &commands = channel_commands(selected_channel);
@@ -288,7 +369,7 @@ void Song::snip_selection(const int selected_channel, const std::set<int32_t> &s
 
 	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
 		// TODO: these label's order is probably not being preserved...
-		commands.at(*note_itr + 1).labels.insert(commands.at(*note_itr).labels.begin(), commands.at(*note_itr).labels.end());
+		commands[*note_itr + 1].labels.insert(commands[*note_itr].labels.begin(), commands[*note_itr].labels.end());
 		commands.erase(commands.begin() + *note_itr);
 	}
 
@@ -432,6 +513,10 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Octave up";
 	case Song_State::Action::OCTAVE_DOWN:
 		return "Octave down";
+	case Song_State::Action::MOVE_LEFT:
+		return "Move left";
+	case Song_State::Action::MOVE_RIGHT:
+		return "Move right";
 	case Song_State::Action::DELETE_SELECTION:
 		return "Delete selection";
 	case Song_State::Action::SNIP_SELECTION:

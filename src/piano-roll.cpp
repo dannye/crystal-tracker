@@ -1,3 +1,4 @@
+#include <cassert>
 #include <map>
 #include <set>
 #include <stack>
@@ -22,7 +23,8 @@ static const auto find_note_with_label(const std::vector<Command> &commands, std
 			return command_itr;
 		}
 	}
-	return commands.end(); // if this happens, we've already messed up
+	assert(false);
+	return commands.end();
 }
 
 static void calc_channel_length(const std::vector<Command> &commands, int32_t &loop_tick, int32_t &end_tick) {
@@ -389,7 +391,7 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, const std::ve
 	begin();
 	int x_pos = x() + WHITE_KEY_WIDTH;
 	for (auto note_itr = notes.begin(); note_itr != notes.end(); ++note_itr) {
-		auto note = *note_itr;
+		Note_View note = *note_itr;
 		int width = TICK_WIDTH * note.length * note.speed;
 		if (note.pitch != Pitch::REST) {
 			int y_pos = PITCH_TO_Y_POS(note.pitch, note.octave);
@@ -1064,9 +1066,9 @@ bool Piano_Roll::pitch_up(Song &song) {
 	std::set<int32_t> selected_boxes;
 
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
-		auto note = *note_itr;
+		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			auto note_view = view->at(note->index());
+			Note_View note_view = view->at(note->index());
 			if (note_view.octave == 8 && note_view.pitch == Pitch::B_NAT) {
 				return false;
 			}
@@ -1096,9 +1098,9 @@ bool Piano_Roll::pitch_down(Song &song) {
 	std::set<int32_t> selected_boxes;
 
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
-		auto note = *note_itr;
+		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			auto note_view = view->at(note->index());
+			Note_View note_view = view->at(note->index());
 			if (note_view.octave == 1 && note_view.pitch == Pitch::C_NAT) {
 				return false;
 			}
@@ -1128,9 +1130,9 @@ bool Piano_Roll::octave_up(Song &song) {
 	std::set<int32_t> selected_boxes;
 
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
-		auto note = *note_itr;
+		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			auto note_view = view->at(note->index());
+			Note_View note_view = view->at(note->index());
 			if (note_view.octave == 8) {
 				return false;
 			}
@@ -1160,9 +1162,9 @@ bool Piano_Roll::octave_down(Song &song) {
 	std::set<int32_t> selected_boxes;
 
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
-		auto note = *note_itr;
+		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			auto note_view = view->at(note->index());
+			Note_View note_view = view->at(note->index());
 			if (note_view.octave == 1) {
 				return false;
 			}
@@ -1181,6 +1183,118 @@ bool Piano_Roll::octave_down(Song &song) {
 	return true;
 }
 
+bool Piano_Roll::move_left(Song &song) {
+	auto channel = _piano_timeline->active_channel();
+	if (!channel) return false;
+
+	auto view = active_channel();
+
+	int selected_channel = ((Main_Window *)parent())->selected_channel();
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	const std::vector<Command> &commands = song.channel_commands(selected_channel);
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = view->at(note->index());
+			auto command_itr = commands.rbegin() + (commands.size() - 1 - note_view.index);
+
+			const auto is_preceded_by_rest = [&](decltype(command_itr) itr) {
+				++itr;
+				while (itr != commands.rend()) {
+					if (itr->type == Command_Type::REST) {
+						return true;
+					}
+					if (
+						(itr->type == Command_Type::NOTE || itr->type == Command_Type::DRUM_NOTE) &&
+						selected_notes.count((itr.base() - 1) - commands.begin()) > 0
+					) {
+						return true;
+					}
+					if (!is_note_setting_command(itr->type) || itr->labels.size() > 0) {
+						return false;
+					}
+					++itr;
+				}
+				return false;
+			};
+
+			if (!is_preceded_by_rest(command_itr) || command_itr->labels.size() > 0) {
+				return false;
+			}
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.move_left(selected_channel, selected_notes, selected_boxes);
+	set_channel_timeline(selected_channel, song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::move_right(Song &song) {
+	auto channel = _piano_timeline->active_channel();
+	if (!channel) return false;
+
+	auto view = active_channel();
+
+	int selected_channel = ((Main_Window *)parent())->selected_channel();
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	const std::vector<Command> &commands = song.channel_commands(selected_channel);
+
+	for (auto note_itr = channel->rbegin(); note_itr != channel->rend(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = view->at(note->index());
+			auto command_itr = commands.begin() + note_view.index;
+
+			const auto is_followed_by_rest = [&](decltype(command_itr) itr) {
+				++itr;
+				while (itr != commands.end()) {
+					if (itr->type == Command_Type::REST && itr->labels.size() == 0) {
+						return true;
+					}
+					if (
+						(itr->type == Command_Type::NOTE || itr->type == Command_Type::DRUM_NOTE) &&
+						selected_notes.count(itr - commands.begin()) > 0
+					) {
+						return true;
+					}
+					if (!is_note_setting_command(itr->type) || itr->labels.size() > 0) {
+						return false;
+					}
+					++itr;
+				}
+				return false;
+			};
+
+			if (!is_followed_by_rest(command_itr)) {
+				return false;
+			}
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert((note_itr.base() - 1) - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.move_right(selected_channel, selected_notes, selected_boxes);
+	set_channel_timeline(selected_channel, song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
 bool Piano_Roll::delete_selection(Song &song) {
 	auto channel = _piano_timeline->active_channel();
 	if (!channel) return false;
@@ -1192,9 +1306,9 @@ bool Piano_Roll::delete_selection(Song &song) {
 	std::set<int32_t> selected_boxes;
 
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
-		auto note = *note_itr;
+		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			auto note_view = view->at(note->index());
+			Note_View note_view = view->at(note->index());
 			selected_notes.insert(note_view.index);
 			selected_boxes.insert(note_itr - channel->begin());
 		}
@@ -1220,9 +1334,9 @@ bool Piano_Roll::snip_selection(Song &song) {
 	std::set<int32_t> selected_boxes;
 
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
-		auto note = *note_itr;
+		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			auto note_view = view->at(note->index());
+			Note_View note_view = view->at(note->index());
 			selected_notes.insert(note_view.index);
 			selected_boxes.insert(note_itr - channel->begin());
 		}

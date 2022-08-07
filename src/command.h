@@ -90,6 +90,26 @@ static const char * const COMMAND_NAMES[] = {
 	"sound_ret",
 };
 
+// excludes speed changes until that is handled specially
+static inline bool is_note_setting_command(Command_Type type) {
+	return (
+		type == Command_Type::OCTAVE ||
+		// type == Command_Type::NOTE_TYPE ||
+		// type == Command_Type::DRUM_SPEED ||
+		type == Command_Type::TRANSPOSE ||
+		type == Command_Type::DUTY_CYCLE ||
+		type == Command_Type::VOLUME_ENVELOPE ||
+		type == Command_Type::PITCH_SWEEP ||
+		type == Command_Type::DUTY_CYCLE_PATTERN ||
+		type == Command_Type::PITCH_SLIDE ||
+		type == Command_Type::VIBRATO ||
+		type == Command_Type::TOGGLE_NOISE ||
+		type == Command_Type::FORCE_STEREO_PANNING ||
+		type == Command_Type::PITCH_OFFSET ||
+		type == Command_Type::STEREO_PANNING
+	);
+}
+
 struct Command {
 
 	struct Note {
