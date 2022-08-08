@@ -78,22 +78,22 @@ bool IT_Module::try_open() {
 }
 
 static inline void put_int(std::vector<uint8_t> &data, const uint32_t v) {
-    data.push_back(v >>  0);
-    data.push_back(v >>  8);
-    data.push_back(v >> 16);
-    data.push_back(v >> 24);
+	data.push_back(v >>  0);
+	data.push_back(v >>  8);
+	data.push_back(v >> 16);
+	data.push_back(v >> 24);
 }
 
 static inline void put_short(std::vector<uint8_t> &data, const uint32_t v) {
-    data.push_back(v >>  0);
-    data.push_back(v >>  8);
+	data.push_back(v >>  0);
+	data.push_back(v >>  8);
 }
 
 static inline void patch_int(std::vector<uint8_t> &data, const uint32_t i, const uint32_t v) {
-    data[i + 0] = (v >>  0);
-    data[i + 1] = (v >>  8);
-    data[i + 2] = (v >> 16);
-    data[i + 3] = (v >> 24);
+	data[i + 0] = (v >>  0);
+	data[i + 1] = (v >>  8);
+	data[i + 2] = (v >> 16);
+	data[i + 3] = (v >> 24);
 }
 
 static std::vector<std::vector<uint8_t>> get_instruments() {
@@ -122,7 +122,7 @@ static std::vector<std::vector<uint8_t>> get_samples(const std::vector<Wave> &wa
 	std::vector<std::vector<uint8_t>> samples;
 
 	// sample header, 80 bytes
-	auto sample_header = [](std::vector<uint8_t> &sample) {
+	auto sample_header = [&](std::vector<uint8_t> &sample) {
 		sample.push_back('I');
 		sample.push_back('M');
 		sample.push_back('P');
