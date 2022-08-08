@@ -50,24 +50,24 @@ constexpr int TICKS_PER_STEP = 12;
 constexpr int TIME_STEP_WIDTH = TICK_WIDTH * TICKS_PER_STEP;
 
 struct Note_Key {
-	int x, y, w, h;
+	int x, y, w, h, delta;
 	const char *label;
 	bool white;
 };
 
 constexpr Note_Key NOTE_KEYS[NUM_NOTES_PER_OCTAVE] {
-	{ 0, WHITE_KEY_HEIGHT * 0 + 0, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT + 0, "                         B", true },
-	{ 0, WHITE_KEY_HEIGHT * 1 + 0, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT + 1, "                         A", true },
-	{ 0, WHITE_KEY_HEIGHT * 2 + 1, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT + 1, "                         G", true },
-	{ 0, WHITE_KEY_HEIGHT * 3 + 2, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT + 1, "                         F", true },
-	{ 0, WHITE_KEY_HEIGHT * 4 + 3, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT - 1, "                         E", true },
-	{ 0, WHITE_KEY_HEIGHT * 5 + 2, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT - 1, "                         D", true },
-	{ 0, WHITE_KEY_HEIGHT * 6 + 1, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT - 1, "                         C", true },
-	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT *  1, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, "B♭/A♯", false },
-	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT *  3, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, "A♭/G♯", false },
-	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT *  5, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, "G♭/F♯", false },
-	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT *  8, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, "E♭/D♯", false },
-	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT * 10, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, "D♭/C♯", false },
+	{ 0, WHITE_KEY_HEIGHT * 0, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT,  0, "B", true },
+	{ 0, WHITE_KEY_HEIGHT * 1, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT, +1, "A", true },
+	{ 0, WHITE_KEY_HEIGHT * 2, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT, +1, "G", true },
+	{ 0, WHITE_KEY_HEIGHT * 3, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT, +1, "F", true },
+	{ 0, WHITE_KEY_HEIGHT * 4, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT, -1, "E", true },
+	{ 0, WHITE_KEY_HEIGHT * 5, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT, -1, "D", true },
+	{ 0, WHITE_KEY_HEIGHT * 6, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT, -1, "C", true },
+	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT *  1, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, 0, "B♭/A♯", false },
+	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT *  3, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, 0, "A♭/G♯", false },
+	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT *  5, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, 0, "G♭/F♯", false },
+	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT *  8, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, 0, "E♭/D♯", false },
+	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT * 10, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, 0, "D♭/C♯", false },
 };
 constexpr size_t PITCH_TO_KEY_INDEX[NUM_NOTES_PER_OCTAVE] {
 	6,  // C
@@ -110,6 +110,13 @@ protected:
 };
 
 class Call_Box : public Fl_Box {
+public:
+	using Fl_Box::Fl_Box;
+protected:
+	void draw() override;
+};
+
+class White_Key_Box : public Fl_Box {
 public:
 	using Fl_Box::Fl_Box;
 protected:

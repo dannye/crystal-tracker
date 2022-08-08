@@ -137,20 +137,30 @@ void Call_Box::draw() {
 	draw_label();
 }
 
+void White_Key_Box::draw() {
+	draw_box();
+	draw_label(x() + BLACK_KEY_WIDTH, y(), w() - BLACK_KEY_WIDTH, h());
+}
+
 Piano_Keys::Piano_Keys(int x, int y, int w, int h, const char *l) : Fl_Group(x, y, w, h, l) {
+	int white_delta = 0, black_delta = 0;
 	for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
 		int y_pos = OCTAVE_HEIGHT * _y;
 		for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
 			size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
-			_notes[i] = new Fl_Box(NOTE_KEYS[_x].x + x, y_pos + NOTE_KEYS[_x].y + y, NOTE_KEYS[_x].w, NOTE_KEYS[_x].h, NOTE_KEYS[_x].label);
-			_notes[i]->box(FL_BORDER_BOX);
 			if (NOTE_KEYS[_x].white) {
+				_notes[i] = new White_Key_Box(NOTE_KEYS[_x].x + x, y_pos + NOTE_KEYS[_x].y + y + white_delta, NOTE_KEYS[_x].w, NOTE_KEYS[_x].h + NOTE_KEYS[_x].delta, NOTE_KEYS[_x].label);
+				_notes[i]->box(FL_BORDER_BOX);
 				_notes[i]->color(FL_BACKGROUND2_COLOR);
 				_notes[i]->labelcolor(FL_FOREGROUND_COLOR);
+				white_delta += NOTE_KEYS[_x].delta;
 			}
 			else {
+				_notes[i] = new Fl_Box(NOTE_KEYS[_x].x + x, y_pos + NOTE_KEYS[_x].y + y + black_delta, NOTE_KEYS[_x].w, NOTE_KEYS[_x].h + NOTE_KEYS[_x].delta, NOTE_KEYS[_x].label);
+				_notes[i]->box(FL_BORDER_BOX);
 				_notes[i]->color(FL_FOREGROUND_COLOR);
 				_notes[i]->labelcolor(FL_BACKGROUND2_COLOR);
+				black_delta += NOTE_KEYS[_x].delta;
 			}
 		}
 	}
