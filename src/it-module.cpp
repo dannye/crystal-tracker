@@ -266,29 +266,30 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Piano_Roll &song, in
 	auto channel_1_itr = song.channel_1_notes().begin();
 	auto channel_2_itr = song.channel_2_notes().begin();
 	auto channel_3_itr = song.channel_3_notes().begin();
-	/* auto channel_4_itr = song.channel_4_notes().begin(); */
+	auto channel_4_itr = song.channel_4_notes().begin();
 	int32_t channel_1_note_length = 0;
 	int32_t channel_2_note_length = 0;
 	int32_t channel_3_note_length = 0;
-	/* int32_t channel_4_note_length = 0; */
+	int32_t channel_4_note_length = 0;
 	int32_t channel_1_note_duration = 0;
 	int32_t channel_2_note_duration = 0;
 	int32_t channel_3_note_duration = 0;
-	/* int32_t channel_4_note_duration = 0; */
 
 	Note_View channel_1_prev_note;
 	Note_View channel_2_prev_note;
 	Note_View channel_3_prev_note;
-	/* Note_View channel_4_prev_note; */
+	Note_View channel_4_prev_note;
 
 	auto song_finished = [&]() {
 		return
 			channel_1_itr == song.channel_1_notes().end() &&
 			channel_2_itr == song.channel_2_notes().end() &&
 			channel_3_itr == song.channel_3_notes().end() &&
+			channel_4_itr == song.channel_4_notes().end() &&
 			channel_1_note_length == 0 &&
 			channel_2_note_length == 0 &&
-			channel_3_note_length == 0;
+			channel_3_note_length == 0 &&
+			channel_4_note_length == 0;
 	};
 
 	auto channel_3_volume = [](int32_t volume) {
@@ -471,6 +472,21 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Piano_Roll &song, in
 				}
 				channel_3_note_length -= 1;
 				channel_3_note_duration += 1;
+			}
+
+			if (channel_4_note_length == 0 && channel_4_itr != song.channel_4_notes().end()) {
+				channel_4_note_length = channel_4_itr->length * channel_4_itr->speed / 2 - 1;
+				if (channel_4_itr->tempo != channel_4_prev_note.tempo) {
+					pattern_data.push_back(0x85);
+					pattern_data.push_back(0x08); // command
+					pattern_data.push_back(0x14); // tempo
+					pattern_data.push_back(convert_tempo(channel_4_itr->tempo));
+				}
+				channel_4_prev_note = *channel_4_itr;
+				++channel_4_itr;
+			}
+			else if (channel_4_note_length > 0) {
+				channel_4_note_length -= 1;
 			}
 
 			if (song_finished() && loop_tick != -1) {
