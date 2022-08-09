@@ -262,6 +262,8 @@ public:
 	bool octave_down(Song &song);
 	bool move_left(Song &song);
 	bool move_right(Song &song);
+	bool shorten(Song &song);
+	bool lengthen(Song &song);
 	bool delete_selection(Song &song);
 	bool snip_selection(Song &song);
 	bool select_all() { return _piano_timeline->select_all(); }

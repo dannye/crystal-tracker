@@ -353,6 +353,57 @@ void Song::move_right(const int selected_channel, const std::set<int32_t> &selec
 	_modified = true;
 }
 
+void Song::shorten(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SHORTEN);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Command command = Command(Command_Type::REST);
+		command.rest.length = 1;
+		commands.insert(commands.begin() + *note_itr + 1, command);
+		commands[*note_itr].note.length -= 1;
+	}
+
+	// TODO: post-process to merge consecutive rests
+
+	_modified = true;
+}
+
+void Song::lengthen(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes) {
+	remember(selected_channel, selected_boxes, Song_State::Action::LENGTHEN);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		auto command_itr = commands.begin() + *note_itr;
+
+		const auto find_following_rest = [&](decltype(command_itr) itr) {
+			++itr;
+			while (itr != commands.end()) {
+				if (itr->type == Command_Type::REST) {
+					return itr - commands.begin();
+				}
+				++itr;
+			}
+			assert(false);
+			return commands.end() - commands.begin();
+		};
+
+		int32_t rest_index = find_following_rest(command_itr);
+
+		assert(commands[rest_index].labels.size() == 0);
+		if (commands[rest_index].rest.length == 1) {
+			commands.erase(commands.begin() + rest_index);
+		}
+		else {
+			commands[rest_index].rest.length -= 1;
+		}
+
+		commands[*note_itr].note.length += 1;
+	}
+
+	_modified = true;
+}
+
 void Song::delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes) {
 	remember(selected_channel, selected_boxes, Song_State::Action::DELETE_SELECTION);
 	std::vector<Command> &commands = channel_commands(selected_channel);
@@ -520,6 +571,10 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Move left";
 	case Song_State::Action::MOVE_RIGHT:
 		return "Move right";
+	case Song_State::Action::SHORTEN:
+		return "Shorten";
+	case Song_State::Action::LENGTHEN:
+		return "Lengthen";
 	case Song_State::Action::DELETE_SELECTION:
 		return "Delete selection";
 	case Song_State::Action::SNIP_SELECTION:

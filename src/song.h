@@ -20,6 +20,8 @@ public:
 			OCTAVE_DOWN,
 			MOVE_LEFT,
 			MOVE_RIGHT,
+			SHORTEN,
+			LENGTHEN,
 			DELETE_SELECTION,
 			SNIP_SELECTION
 		};
@@ -82,6 +84,8 @@ public:
 	void octave_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void move_left(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
 	void move_right(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
+	void shorten(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
+	void lengthen(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
 	void delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
 	void snip_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
 

@@ -79,6 +79,8 @@ private:
 		*_octave_down_mi = NULL,
 		*_move_left_mi = NULL,
 		*_move_right_mi = NULL,
+		*_shorten_mi = NULL,
+		*_lengthen_mi = NULL,
 		*_delete_mi = NULL,
 		*_snip_mi = NULL,
 		*_select_all_mi = NULL,
@@ -163,6 +165,8 @@ private:
 	static void octave_down_cb(Fl_Widget *w, Main_Window *mw);
 	static void move_left_cb(Fl_Widget *w, Main_Window *mw);
 	static void move_right_cb(Fl_Widget *w, Main_Window *mw);
+	static void shorten_cb(Fl_Widget *w, Main_Window *mw);
+	static void lengthen_cb(Fl_Widget *w, Main_Window *mw);
 	static void delete_cb(Fl_Widget *w, Main_Window *mw);
 	static void snip_cb(Fl_Widget *w, Main_Window *mw);
 	static void select_all_cb(Fl_Widget *w, Main_Window *mw);
