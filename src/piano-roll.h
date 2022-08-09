@@ -133,7 +133,7 @@ public:
 	Piano_Keys(const Piano_Keys&) = delete;
 	Piano_Keys& operator=(const Piano_Keys&) = delete;
 
-	void highlight_key(Pitch pitch, int32_t octave);
+	void highlight_key(Pitch pitch, int32_t octave, Fl_Color color);
 	void reset_key_colors();
 };
 

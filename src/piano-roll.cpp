@@ -176,12 +176,11 @@ Piano_Keys::~Piano_Keys() noexcept {
 	}
 }
 
-void Piano_Keys::highlight_key(Pitch pitch, int32_t octave) {
-	Fl_Color highlight_color = fl_color_average(FL_FOREGROUND_COLOR, FL_BACKGROUND2_COLOR, .5f);
+void Piano_Keys::highlight_key(Pitch pitch, int32_t octave, Fl_Color color) {
 	size_t _y = NUM_OCTAVES - octave;
 	size_t _x = PITCH_TO_KEY_INDEX[(size_t)pitch - 1];
 	size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
-	_notes[i]->color(highlight_color);
+	_notes[i]->color(color);
 }
 
 void Piano_Keys::reset_key_colors() {
@@ -413,7 +412,7 @@ void Piano_Timeline::highlight_tick(std::vector<Note_Box *> &notes, int32_t tick
 		}
 		if (note_right > x_pos) {
 			const Note_View &view = note->note_view();
-			_keys->highlight_key(view.pitch, view.octave);
+			_keys->highlight_key(view.pitch, view.octave, color);
 		}
 		note->color(color);
 	}
