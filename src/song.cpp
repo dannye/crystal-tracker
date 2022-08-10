@@ -166,7 +166,7 @@ bool Song::write_song(const char *f) {
 	return true;
 }
 
-const auto find_note_view = [](const std::vector<Note_View> &view, int32_t index) {
+Note_View find_note_view(const std::vector<Note_View> &view, int32_t index) {
 	for (const Note_View &note : view) {
 		if (note.index == index) {
 			return note;
@@ -174,7 +174,80 @@ const auto find_note_view = [](const std::vector<Note_View> &view, int32_t index
 	}
 	assert(false);
 	return Note_View{};
-};
+}
+
+void postprocess(std::vector<Command> &commands) {
+	bool deleted = false;
+	do {
+		Note_View view;
+		int32_t rest_index = -1;
+		int32_t octave_index = -1;
+		deleted = false;
+		for (int32_t i = 0; i < commands.size(); ++i) {
+			if (commands[i].labels.size() > 0 || is_control_command(commands[i].type)) {
+				view = Note_View{};
+				rest_index = -1;
+				octave_index = -1;
+			}
+
+			if (is_note_command(commands[i].type)) {
+				rest_index = -1;
+				octave_index = -1;
+			}
+
+			else if (commands[i].type == Command_Type::REST) {
+				if (rest_index == -1) {
+					if (commands[i].rest.length < 16) {
+						rest_index = i;
+					}
+				}
+				else {
+					if (commands[rest_index].rest.length + commands[i].rest.length > 16) {
+						commands[i].rest.length = commands[rest_index].rest.length + commands[i].rest.length - 16;
+						commands[rest_index].rest.length = 16;
+						rest_index = i;
+					}
+					else {
+						commands[rest_index].rest.length = commands[rest_index].rest.length + commands[i].rest.length;
+						commands.erase(commands.begin() + i);
+						i -= 1;
+
+						if (commands[rest_index].rest.length == 16) {
+							rest_index = -1;
+						}
+					}
+				}
+			}
+
+			else if (commands[i].type == Command_Type::OCTAVE) {
+				if (octave_index == -1) {
+					if (view.octave == commands[i].octave.octave) {
+						deleted = true;
+						commands.erase(commands.begin() + i);
+						i -= 1;
+					}
+					else {
+						view.octave = commands[i].octave.octave;
+						octave_index = i;
+					}
+				}
+				else {
+					deleted = true;
+					// TODO: these label's order is probably not being preserved...
+					commands[octave_index + 1].labels.insert(commands[octave_index].labels.begin(), commands[octave_index].labels.end());
+					commands.erase(commands.begin() + octave_index);
+					i -= 1;
+					if (rest_index > octave_index) {
+						rest_index -= 1;
+					}
+
+					view.octave = commands[i].octave.octave;
+					octave_index = i;
+				}
+			}
+		}
+	} while (deleted);
+}
 
 void Song::pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view) {
 	remember(selected_channel, selected_boxes, Song_State::Action::PITCH_UP);
@@ -192,13 +265,13 @@ void Song::pitch_up(const int selected_channel, const std::set<int32_t> &selecte
 			command.octave.octave = note_view.octave + 1;
 			command.labels = std::move(commands[*note_itr].labels);
 			commands.insert(commands.begin() + *note_itr, command);
-
-			// TODO: post-process to remove redundant octave commands
 		}
 		else {
 			commands[*note_itr].note.pitch = (Pitch)((int)commands[*note_itr].note.pitch + 1);
 		}
 	}
+
+	postprocess(commands);
 
 	_modified = true;
 }
@@ -219,13 +292,13 @@ void Song::pitch_down(const int selected_channel, const std::set<int32_t> &selec
 			command.octave.octave = note_view.octave - 1;
 			command.labels = std::move(commands[*note_itr].labels);
 			commands.insert(commands.begin() + *note_itr, command);
-
-			// TODO: post-process to remove redundant octave commands
 		}
 		else {
 			commands[*note_itr].note.pitch = (Pitch)((int)commands[*note_itr].note.pitch - 1);
 		}
 	}
+
+	postprocess(commands);
 
 	_modified = true;
 }
@@ -243,9 +316,9 @@ void Song::octave_up(const int selected_channel, const std::set<int32_t> &select
 		command.octave.octave = note_view.octave + 1;
 		command.labels = std::move(commands[*note_itr].labels);
 		commands.insert(commands.begin() + *note_itr, command);
-
-		// TODO: post-process to remove redundant octave commands
 	}
+
+	postprocess(commands);
 
 	_modified = true;
 }
@@ -263,9 +336,9 @@ void Song::octave_down(const int selected_channel, const std::set<int32_t> &sele
 		command.octave.octave = note_view.octave - 1;
 		command.labels = std::move(commands[*note_itr].labels);
 		commands.insert(commands.begin() + *note_itr, command);
-
-		// TODO: post-process to remove redundant octave commands
 	}
+
+	postprocess(commands);
 
 	_modified = true;
 }
@@ -307,7 +380,7 @@ void Song::move_left(const int selected_channel, const std::set<int32_t> &select
 		}
 	}
 
-	// TODO: post-process to merge consecutive rests, remove redundant commands, etc.
+	postprocess(commands);
 
 	_modified = true;
 }
@@ -348,7 +421,7 @@ void Song::move_right(const int selected_channel, const std::set<int32_t> &selec
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	// TODO: post-process to merge consecutive rests, remove redundant commands, etc.
+	postprocess(commands);
 
 	_modified = true;
 }
@@ -364,7 +437,7 @@ void Song::shorten(const int selected_channel, const std::set<int32_t> &selected
 		commands[*note_itr].note.length -= 1;
 	}
 
-	// TODO: post-process to merge consecutive rests
+	postprocess(commands);
 
 	_modified = true;
 }
@@ -401,6 +474,8 @@ void Song::lengthen(const int selected_channel, const std::set<int32_t> &selecte
 		commands[*note_itr].note.length += 1;
 	}
 
+	postprocess(commands);
+
 	_modified = true;
 }
 
@@ -412,7 +487,7 @@ void Song::delete_selection(const int selected_channel, const std::set<int32_t> 
 		commands[*note_itr].type = Command_Type::REST;
 	}
 
-	// TODO: post-process to merge consecutive rests, remove redundant commands, etc.
+	postprocess(commands);
 
 	_modified = true;
 }
@@ -427,7 +502,7 @@ void Song::snip_selection(const int selected_channel, const std::set<int32_t> &s
 		commands.erase(commands.begin() + *note_itr);
 	}
 
-	// TODO: post-process to merge consecutive rests, remove redundant commands, etc.
+	postprocess(commands);
 
 	_modified = true;
 }

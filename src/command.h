@@ -90,6 +90,13 @@ static const char * const COMMAND_NAMES[] = {
 	"sound_ret",
 };
 
+static inline bool is_note_command(Command_Type type) {
+	return (
+		type == Command_Type::NOTE ||
+		type == Command_Type::DRUM_NOTE
+	);
+}
+
 // excludes speed changes until that is handled specially
 static inline bool is_note_setting_command(Command_Type type) {
 	return (
@@ -107,6 +114,20 @@ static inline bool is_note_setting_command(Command_Type type) {
 		type == Command_Type::FORCE_STEREO_PANNING ||
 		type == Command_Type::PITCH_OFFSET ||
 		type == Command_Type::STEREO_PANNING
+	);
+}
+
+// includes speed changes until that is handled specially
+static inline bool is_control_command(Command_Type type) {
+	return (
+		type == Command_Type::NOTE_TYPE ||
+		type == Command_Type::DRUM_SPEED ||
+		type == Command_Type::TEMPO ||
+		type == Command_Type::VOLUME ||
+		type == Command_Type::SOUND_JUMP ||
+		type == Command_Type::SOUND_LOOP ||
+		type == Command_Type::SOUND_CALL ||
+		type == Command_Type::SOUND_RET
 	);
 }
 

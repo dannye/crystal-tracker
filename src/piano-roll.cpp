@@ -1247,7 +1247,7 @@ bool Piano_Roll::move_left(Song &song) {
 						return true;
 					}
 					if (
-						(itr->type == Command_Type::NOTE || itr->type == Command_Type::DRUM_NOTE) &&
+						is_note_command(itr->type) &&
 						selected_notes.count((itr.base() - 1) - commands.begin()) > 0
 					) {
 						return true;
@@ -1301,7 +1301,7 @@ bool Piano_Roll::move_right(Song &song) {
 						return true;
 					}
 					if (
-						(itr->type == Command_Type::NOTE || itr->type == Command_Type::DRUM_NOTE) &&
+						is_note_command(itr->type) &&
 						itr->labels.size() == 0 &&
 						selected_notes.count(itr - commands.begin()) > 0
 					) {
