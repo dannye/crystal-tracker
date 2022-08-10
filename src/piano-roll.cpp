@@ -288,6 +288,9 @@ void Piano_Timeline::clear_channel_4() {
 int Piano_Timeline::handle(int event) {
 	switch (event) {
 	case FL_PUSH:
+		if (((Piano_Roll *)parent())->handle_mouse_click(event)) {
+			return 1;
+		}
 		if (Fl::event_button() == FL_LEFT_MOUSE) {
 			if (handle_note_selection(event)) {
 				return 1;
@@ -552,12 +555,6 @@ Piano_Roll::~Piano_Roll() noexcept {
 
 int Piano_Roll::handle(int event) {
 	switch (event) {
-	case FL_PUSH:
-		if (_following) {
-			_realtime = !_realtime;
-			return 1;
-		}
-		break;
 	case FL_MOUSEWHEEL:
 		if (Fl::event_shift()) {
 			std::swap(Fl::e_dx, Fl::e_dy);
@@ -614,6 +611,14 @@ int Piano_Roll::handle(int event) {
 		break;
 	}
 	return Fl_Scroll::handle(event);
+}
+
+bool Piano_Roll::handle_mouse_click(int event) {
+	if (_following) {
+		_realtime = !_realtime;
+		return true;
+	}
+	return false;
 }
 
 void Piano_Roll::set_size(int W, int H) {

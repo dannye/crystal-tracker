@@ -231,6 +231,7 @@ public:
 	const std::vector<Note_View> &channel_4_notes() const { return _channel_4_notes; }
 
 	int handle(int event) override;
+	bool handle_mouse_click(int event);
 
 	void set_size(int W, int H);
 
