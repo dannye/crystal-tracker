@@ -216,6 +216,8 @@ private:
 	int32_t _channel_2_end_tick = -1;
 	int32_t _channel_3_end_tick = -1;
 	int32_t _channel_4_end_tick = -1;
+
+	int32_t _song_length = -1;
 public:
 	Piano_Roll(int x, int y, int w, int h, const char *l = nullptr);
 	~Piano_Roll() noexcept;

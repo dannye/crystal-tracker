@@ -128,6 +128,7 @@ public:
 	bool unsaved(void) const;
 	const char *modified_filename(void);
 	int handle(int event) override;
+	void set_song_position(int32_t tick);
 	void open_song(const char *filename);
 private:
 	inline void selected_channel(int i) { _selected_channel = i; }

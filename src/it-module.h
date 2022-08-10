@@ -45,6 +45,7 @@ public:
 	void play();
 
 	int32_t current_tick() const { return (_current_pattern * ROWS_PER_PATTERN + _current_row) * 2; }
+	void set_tick(int32_t tick);
 private:
 	bool try_open();
 	void generate_it_module(const Piano_Roll &song, const std::vector<Wave> &waves, int32_t loop_tick = -1);

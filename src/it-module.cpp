@@ -52,6 +52,12 @@ void IT_Module::play() {
 	catch (...) {}
 }
 
+void IT_Module::set_tick(int32_t tick) {
+	if (!ready()) return;
+
+	_mod->set_position_order_row((tick / 2) / ROWS_PER_PATTERN, (tick / 2) % ROWS_PER_PATTERN);
+}
+
 bool IT_Module::try_open() {
 	try {
 		portaudio::System &portaudio = portaudio::System::instance();

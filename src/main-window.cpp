@@ -518,6 +518,14 @@ int Main_Window::handle(int event) {
 	return Fl_Double_Window::handle(event);
 }
 
+void Main_Window::set_song_position(int32_t tick) {
+	_audio_mutex.lock();
+	if (_it_module) {
+		_it_module->set_tick(tick);
+	}
+	_audio_mutex.unlock();
+}
+
 void Main_Window::update_active_controls() {
 	if (_song.loaded()) {
 		bool playing = _it_module && _it_module->playing();
@@ -857,7 +865,10 @@ void Main_Window::toggle_playback() {
 		int32_t loop_tick = loop() ? _piano_roll->get_loop_tick() : -1;
 		_it_module = new IT_Module(*_piano_roll, _waves, loop_tick);
 		if (_it_module->ready() && _it_module->start()) {
-			_tick = -1;
+			_tick = _piano_roll->tick();
+			if (_tick != -1) {
+				_it_module->set_tick(_tick);
+			}
 			_piano_roll->start_following();
 			start_audio_thread();
 			update_active_controls();
@@ -1622,7 +1633,7 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 			if (mod && mod->playing()) {
 				mod->play();
 				int32_t t = mod->current_tick();
-				if (t > tick || (mod->looping() && t < tick)) {
+				if (tick != t) {
 					tick = t;
 					mw->_tick = t;
 					Fl::awake((Fl_Awake_Handler)sync_cb, mw);

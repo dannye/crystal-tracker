@@ -297,6 +297,11 @@ int Piano_Timeline::handle(int event) {
 			}
 		}
 		break;
+	case FL_DRAG:
+		if (((Piano_Roll *)parent())->handle_mouse_click(event)) {
+			return 1;
+		}
+		break;
 	}
 	return Fl_Group::handle(event);
 }
@@ -571,6 +576,7 @@ int Piano_Roll::handle(int event) {
 		)) {
 			return 0;
 		}
+
 		// hack to reverse scrollbar priority
 		if (Fl::event_key() == FL_Page_Up) {
 			int x_pos = xposition() - (w() - WHITE_KEY_WIDTH * 2);
@@ -608,13 +614,30 @@ int Piano_Roll::handle(int event) {
 			redraw();
 			return 1;
 		}
+
+		if (Fl::event_key() == FL_Escape) {
+			_tick = -1;
+			redraw();
+		}
 		break;
 	}
 	return Fl_Scroll::handle(event);
 }
 
 bool Piano_Roll::handle_mouse_click(int event) {
-	if (_following) {
+	if (Fl::event_button() == FL_MIDDLE_MOUSE && (!_following || event == FL_PUSH)) {
+		int32_t t = (Fl::event_x() - _piano_timeline->x() - WHITE_KEY_WIDTH) / TICK_WIDTH;
+		t = t / TICKS_PER_STEP * TICKS_PER_STEP;
+
+		if (_tick != t && 0 <= t && t < _song_length) {
+			_tick = t;
+			((Main_Window *)parent())->set_song_position(_tick);
+			redraw();
+		}
+
+		return true;
+	}
+	else if (_following && event == FL_PUSH) {
 		_realtime = !_realtime;
 		return true;
 	}
@@ -641,13 +664,13 @@ bool Piano_Roll::set_timeline(const Song &song) {
 	calc_channel_length(song.channel_3_commands(), _channel_3_loop_tick, _channel_3_end_tick);
 	calc_channel_length(song.channel_4_commands(), _channel_4_loop_tick, _channel_4_end_tick);
 
-	int32_t song_length = get_song_length();
+	_song_length = get_song_length();
 
 	bool success = true;
-	success = success && build_note_view(_piano_timeline->_channel_1_loops, _piano_timeline->_channel_1_calls, _channel_1_notes, song.channel_1_commands(), song_length, NOTE_RED);
-	success = success && build_note_view(_piano_timeline->_channel_2_loops, _piano_timeline->_channel_2_calls, _channel_2_notes, song.channel_2_commands(), song_length, NOTE_BLUE);
-	success = success && build_note_view(_piano_timeline->_channel_3_loops, _piano_timeline->_channel_3_calls, _channel_3_notes, song.channel_3_commands(), song_length, NOTE_GREEN);
-	success = success && build_note_view(_piano_timeline->_channel_4_loops, _piano_timeline->_channel_4_calls, _channel_4_notes, song.channel_4_commands(), song_length, NOTE_BROWN);
+	success = success && build_note_view(_piano_timeline->_channel_1_loops, _piano_timeline->_channel_1_calls, _channel_1_notes, song.channel_1_commands(), _song_length, NOTE_RED);
+	success = success && build_note_view(_piano_timeline->_channel_2_loops, _piano_timeline->_channel_2_calls, _channel_2_notes, song.channel_2_commands(), _song_length, NOTE_BLUE);
+	success = success && build_note_view(_piano_timeline->_channel_3_loops, _piano_timeline->_channel_3_calls, _channel_3_notes, song.channel_3_commands(), _song_length, NOTE_GREEN);
+	success = success && build_note_view(_piano_timeline->_channel_4_loops, _piano_timeline->_channel_4_calls, _channel_4_notes, song.channel_4_commands(), _song_length, NOTE_BROWN);
 
 	if (!success) {
 		clear();
@@ -1049,15 +1072,17 @@ void Piano_Roll::clear() {
 	_channel_2_end_tick = -1;
 	_channel_3_end_tick = -1;
 	_channel_4_end_tick = -1;
+	_song_length = -1;
 }
 
 void Piano_Roll::start_following() {
 	_following = true;
-	_tick = -1;
 	_piano_timeline->reset_note_colors();
 	_piano_timeline->_keys->reset_key_colors();
-	scroll_to(0, yposition());
-	_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+	if (_tick == -1) {
+		scroll_to(0, yposition());
+		_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+	}
 	redraw();
 }
 
