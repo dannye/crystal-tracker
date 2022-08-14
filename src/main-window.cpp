@@ -161,7 +161,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("&Play/Pause", ' ', (Fl_Callback *)play_pause_cb, this, 0),
 		OS_MENU_ITEM("&Stop", ESCAPE_KEY, (Fl_Callback *)stop_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("&Loop", FL_COMMAND + 'l', (Fl_Callback *)loop_cb, this,
-			FL_MENU_TOGGLE | (loop_config ? FL_MENU_VALUE : 0)),
+			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (loop_config ? FL_MENU_VALUE : 0)),
+		OS_MENU_ITEM("Toggle &Follow Mode", '\\', (Fl_Callback *)follow_cb, this, 0),
 		{},
 		OS_SUBMENU("&Edit"),
 		OS_MENU_ITEM("&Undo", FL_COMMAND + 'z', (Fl_Callback *)undo_cb, this, 0),
@@ -264,6 +265,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_play_pause_mi = CT_FIND_MENU_ITEM_CB(play_pause_cb);
 	_stop_mi = CT_FIND_MENU_ITEM_CB(stop_cb);
 	_loop_mi = CT_FIND_MENU_ITEM_CB(loop_cb);
+	_follow_mi = CT_FIND_MENU_ITEM_CB(follow_cb);
 	_undo_mi = CT_FIND_MENU_ITEM_CB(undo_cb);
 	_redo_mi = CT_FIND_MENU_ITEM_CB(redo_cb);
 	_pitch_up_mi = CT_FIND_MENU_ITEM_CB(pitch_up_cb);
@@ -549,12 +551,14 @@ void Main_Window::update_active_controls() {
 			_stop_tb->activate();
 			_loop_mi->deactivate();
 			_loop_tb->deactivate();
+			_follow_mi->activate();
 		}
 		else {
 			_stop_mi->deactivate();
 			_stop_tb->deactivate();
 			_loop_mi->activate();
 			_loop_tb->activate();
+			_follow_mi->deactivate();
 		}
 		if (_song.can_undo() && stopped) {
 			_undo_mi->activate();
@@ -625,6 +629,7 @@ void Main_Window::update_active_controls() {
 		_stop_tb->deactivate();
 		_loop_mi->activate();
 		_loop_tb->activate();
+		_follow_mi->deactivate();
 		_undo_mi->deactivate();
 		_undo_tb->deactivate();
 		_redo_mi->deactivate();
@@ -1207,6 +1212,10 @@ void Main_Window::loop_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 }
 
 #undef SYNC_MI_WITH_TB
+
+void Main_Window::follow_cb(Fl_Menu_ *m, Main_Window *mw) {
+	mw->_piano_roll->toggle_follow_mode();
+}
 
 void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }

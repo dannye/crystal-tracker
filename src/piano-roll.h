@@ -244,6 +244,8 @@ public:
 	int handle(int event) override;
 	bool handle_mouse_click(int event);
 
+	void toggle_follow_mode() { _realtime = !_realtime; }
+
 	void set_size(int W, int H);
 
 	bool set_timeline(const Song &song);

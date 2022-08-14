@@ -716,7 +716,7 @@ int Piano_Roll::handle(int event) {
 
 bool Piano_Roll::handle_mouse_click(int event) {
 	if (
-		(Fl::event_button() == FL_MIDDLE_MOUSE || (Fl::event_command() && Fl::event_button() == FL_LEFT_MOUSE)) &&
+		(Fl::event_button() == FL_MIDDLE_MOUSE || (Fl::event_command() && Fl::event_button() == FL_RIGHT_MOUSE)) &&
 		(!_following || event == FL_PUSH)
 	) {
 		int32_t t = (Fl::event_x() - _piano_timeline->x() - WHITE_KEY_WIDTH) / TICK_WIDTH;
@@ -731,7 +731,7 @@ bool Piano_Roll::handle_mouse_click(int event) {
 		return true;
 	}
 	else if (_following && event == FL_PUSH) {
-		_realtime = !_realtime;
+		toggle_follow_mode();
 		return true;
 	}
 	return false;

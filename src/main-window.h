@@ -71,6 +71,7 @@ private:
 		*_play_pause_mi = NULL,
 		*_stop_mi = NULL,
 		*_loop_mi = NULL,
+		*_follow_mi = NULL,
 		*_undo_mi = NULL,
 		*_redo_mi = NULL,
 		*_pitch_up_mi = NULL,
@@ -157,6 +158,7 @@ private:
 	static void play_pause_cb(Fl_Widget *w, Main_Window *mw);
 	static void stop_cb(Fl_Widget *w, Main_Window *mw);
 	static void loop_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void follow_cb(Fl_Menu_ *m, Main_Window *mw);
 	// Edit menu
 	static void undo_cb(Fl_Widget *w, Main_Window *mw);
 	static void redo_cb(Fl_Widget *w, Main_Window *mw);
