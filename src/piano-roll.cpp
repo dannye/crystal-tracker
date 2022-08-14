@@ -534,6 +534,96 @@ void Piano_Timeline::draw() {
 		}
 
 		Piano_Roll *p = (Piano_Roll *)parent();
+		int active_channel = ((Main_Window *)parent()->parent())->selected_channel();
+
+		int32_t loop_tick = p->get_loop_tick();
+		int32_t channel_1_loop_tick = p->channel_1_loop_tick();
+		int32_t channel_2_loop_tick = p->channel_2_loop_tick();
+		int32_t channel_3_loop_tick = p->channel_3_loop_tick();
+		int32_t channel_4_loop_tick = p->channel_4_loop_tick();
+
+		if (loop_tick != -1 &&
+			(channel_1_loop_tick == -1 || channel_1_loop_tick == loop_tick) &&
+			(channel_2_loop_tick == -1 || channel_2_loop_tick == loop_tick) &&
+			(channel_3_loop_tick == -1 || channel_3_loop_tick == loop_tick) &&
+			(channel_4_loop_tick == -1 || channel_4_loop_tick == loop_tick)
+		) {
+			x_pos = x() + loop_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+			fl_color(FL_FOREGROUND_COLOR);
+			fl_yxline(x_pos - 1, y(), y() + h());
+			fl_yxline(x_pos, y(), y() + h());
+		}
+		else {
+			if (channel_1_loop_tick != -1 && (active_channel == 0 || active_channel == 1)) {
+				x_pos = x() + channel_1_loop_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				fl_color(NOTE_RED);
+				fl_yxline(x_pos - 1, y(), y() + h());
+				fl_yxline(x_pos, y(), y() + h());
+			}
+			if (channel_2_loop_tick != -1 && (active_channel == 0 || active_channel == 2)) {
+				x_pos = x() + channel_2_loop_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				fl_color(NOTE_BLUE);
+				fl_yxline(x_pos - 1, y(), y() + h());
+				fl_yxline(x_pos, y(), y() + h());
+			}
+			if (channel_3_loop_tick != -1 && (active_channel == 0 || active_channel == 3)) {
+				x_pos = x() + channel_3_loop_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				fl_color(NOTE_GREEN);
+				fl_yxline(x_pos - 1, y(), y() + h());
+				fl_yxline(x_pos, y(), y() + h());
+			}
+			if (channel_4_loop_tick != -1 && (active_channel == 0 || active_channel == 4)) {
+				x_pos = x() + channel_4_loop_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				fl_color(NOTE_BROWN);
+				fl_yxline(x_pos - 1, y(), y() + h());
+				fl_yxline(x_pos, y(), y() + h());
+			}
+		}
+
+		int32_t end_tick = p->song_length();
+		int32_t channel_1_end_tick = p->channel_1_end_tick();
+		int32_t channel_2_end_tick = p->channel_2_end_tick();
+		int32_t channel_3_end_tick = p->channel_3_end_tick();
+		int32_t channel_4_end_tick = p->channel_4_end_tick();
+
+		if (end_tick != -1 &&
+			(channel_1_end_tick == -1 || channel_1_end_tick == end_tick) &&
+			(channel_2_end_tick == -1 || channel_2_end_tick == end_tick) &&
+			(channel_3_end_tick == -1 || channel_3_end_tick == end_tick) &&
+			(channel_4_end_tick == -1 || channel_4_end_tick == end_tick)
+		) {
+			x_pos = x() + end_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+			fl_color(FL_FOREGROUND_COLOR);
+			fl_yxline(x_pos - 1, y(), y() + h());
+			fl_yxline(x_pos, y(), y() + h());
+		}
+		else {
+			if (channel_1_end_tick != -1 && (active_channel == 0 || active_channel == 1)) {
+				x_pos = x() + channel_1_end_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				fl_color(NOTE_RED);
+				fl_yxline(x_pos - 1, y(), y() + h());
+				fl_yxline(x_pos, y(), y() + h());
+			}
+			if (channel_2_end_tick != -1 && (active_channel == 0 || active_channel == 2)) {
+				x_pos = x() + channel_2_end_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				fl_color(NOTE_BLUE);
+				fl_yxline(x_pos - 1, y(), y() + h());
+				fl_yxline(x_pos, y(), y() + h());
+			}
+			if (channel_3_end_tick != -1 && (active_channel == 0 || active_channel == 3)) {
+				x_pos = x() + channel_3_end_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				fl_color(NOTE_GREEN);
+				fl_yxline(x_pos - 1, y(), y() + h());
+				fl_yxline(x_pos, y(), y() + h());
+			}
+			if (channel_4_end_tick != -1 && (active_channel == 0 || active_channel == 4)) {
+				x_pos = x() + channel_4_end_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				fl_color(NOTE_BROWN);
+				fl_yxline(x_pos - 1, y(), y() + h());
+				fl_yxline(x_pos, y(), y() + h());
+			}
+		}
+
 		int32_t tick = p->tick() == -1 ? -1 : p->tick() / TICKS_PER_STEP * TICKS_PER_STEP;
 		x_pos = x() + tick * TICK_WIDTH + WHITE_KEY_WIDTH;
 		fl_color(cursor_color);
@@ -625,7 +715,10 @@ int Piano_Roll::handle(int event) {
 }
 
 bool Piano_Roll::handle_mouse_click(int event) {
-	if (Fl::event_button() == FL_MIDDLE_MOUSE && (!_following || event == FL_PUSH)) {
+	if (
+		(Fl::event_button() == FL_MIDDLE_MOUSE || (Fl::event_command() && Fl::event_button() == FL_LEFT_MOUSE)) &&
+		(!_following || event == FL_PUSH)
+	) {
 		int32_t t = (Fl::event_x() - _piano_timeline->x() - WHITE_KEY_WIDTH) / TICK_WIDTH;
 		t = t / TICKS_PER_STEP * TICKS_PER_STEP;
 

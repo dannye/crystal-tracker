@@ -1653,7 +1653,7 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 void Main_Window::sync_cb(Main_Window *mw) {
 	mw->_audio_mutex.lock();
 	IT_Module *mod = mw->_it_module;
-	if (mod && mod->playing() && mw->_tick != -1) {
+	if (mod && mod->playing() && mw->_tick > 0) {
 		mw->_piano_roll->highlight_tick(mw->_tick);
 	}
 	else if (!mod || mod->stopped()) {

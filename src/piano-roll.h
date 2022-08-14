@@ -227,10 +227,19 @@ public:
 
 	inline int32_t tick(void) const { return _tick; }
 
-	const std::vector<Note_View> &channel_1_notes() const { return _channel_1_notes; }
-	const std::vector<Note_View> &channel_2_notes() const { return _channel_2_notes; }
-	const std::vector<Note_View> &channel_3_notes() const { return _channel_3_notes; }
-	const std::vector<Note_View> &channel_4_notes() const { return _channel_4_notes; }
+	inline const std::vector<Note_View> &channel_1_notes() const { return _channel_1_notes; }
+	inline const std::vector<Note_View> &channel_2_notes() const { return _channel_2_notes; }
+	inline const std::vector<Note_View> &channel_3_notes() const { return _channel_3_notes; }
+	inline const std::vector<Note_View> &channel_4_notes() const { return _channel_4_notes; }
+	inline int32_t channel_1_loop_tick() const { return _channel_1_loop_tick; }
+	inline int32_t channel_2_loop_tick() const { return _channel_2_loop_tick; }
+	inline int32_t channel_3_loop_tick() const { return _channel_3_loop_tick; }
+	inline int32_t channel_4_loop_tick() const { return _channel_4_loop_tick; }
+	inline int32_t channel_1_end_tick() const { return _channel_1_end_tick; }
+	inline int32_t channel_2_end_tick() const { return _channel_2_end_tick; }
+	inline int32_t channel_3_end_tick() const { return _channel_3_end_tick; }
+	inline int32_t channel_4_end_tick() const { return _channel_4_end_tick; }
+	inline int32_t song_length(void) const { return _song_length; }
 
 	int handle(int event) override;
 	bool handle_mouse_click(int event);
