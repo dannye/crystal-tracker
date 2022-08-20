@@ -43,6 +43,8 @@ private:
 		*_dark_theme_mi = NULL,
 		*_brushed_metal_theme_mi = NULL,
 		*_high_contrast_theme_mi = NULL;
+	Fl_Menu_Item
+		*_full_screen_mi = NULL;
 	Toolbar_Button
 		*_new_tb = NULL,
 		*_open_tb = NULL,
@@ -124,6 +126,7 @@ public:
 	void resize(int X, int Y, int W, int H) override;
 	bool maximized(void) const;
 	void maximize(void);
+	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
 	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
 	inline int selected_channel(void) const { return _selected_channel; }
 	bool unsaved(void) const;
@@ -194,6 +197,7 @@ private:
 	static void dark_theme_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void brushed_metal_theme_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void high_contrast_theme_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void full_screen_cb(Fl_Menu_ *m, Main_Window *mw);
 	// Toolbar buttons
 	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void channel_one_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);

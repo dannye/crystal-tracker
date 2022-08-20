@@ -45,6 +45,8 @@
 #define DOWN_KEY      NSDownArrowFunctionKey
 #define LEFT_KEY      NSLeftArrowFunctionKey
 #define RIGHT_KEY     NSRightArrowFunctionKey
+
+#define FULLSCREEN_KEY FL_COMMAND + FL_SHIFT + 'f'
 #else
 #define CONTROL_KEY "Ctrl"
 #define ALT_KEY "Alt"
@@ -64,6 +66,8 @@
 #define DOWN_KEY      FL_Down
 #define LEFT_KEY      FL_Left
 #define RIGHT_KEY     FL_Right
+
+#define FULLSCREEN_KEY FL_F + 11
 #endif
 
 #ifndef _countof

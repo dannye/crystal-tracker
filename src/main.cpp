@@ -102,7 +102,14 @@ int main(int argc, char **argv) {
 	Fl::lock();
 	window->show();
 	OS::update_macos_appearance(window);
-	if (Preferences::get("maximized")) {
+	if (window->full_screen()) {
+#ifdef __APPLE__
+		cocoa_fullscreen(window, true);
+#else
+		window->fullscreen();
+#endif
+	}
+	else if (Preferences::get("maximized")) {
 		window->maximize();
 	}
 

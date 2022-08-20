@@ -41,6 +41,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		_recent[i] = Preferences::get_string(Fl_Preferences::Name("recent%d", i));
 	}
 
+	int fullscreen = Preferences::get("fullscreen", 0);
+
 	// Populate window
 
 	int wx = 0, wy = 0, ww = w, wh = h;
@@ -191,7 +193,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("&Previous Channel", FL_SHIFT + TAB_KEY, (Fl_Callback *)previous_channel_cb, this, 0),
 		{},
 		OS_SUBMENU("&View"),
-		OS_MENU_ITEM("&Theme", 0, NULL, NULL, FL_SUBMENU),
+		OS_MENU_ITEM("&Theme", 0, NULL, NULL, FL_SUBMENU | FL_MENU_DIVIDER),
 		OS_MENU_ITEM("&Classic", 0, (Fl_Callback *)classic_theme_cb, this,
 			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::CLASSIC ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("&Aero", 0, (Fl_Callback *)aero_theme_cb, this,
@@ -216,6 +218,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::BRUSHED_METAL ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("&High Contrast", 0, (Fl_Callback *)high_contrast_theme_cb, this,
 			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::HIGH_CONTRAST ? FL_MENU_VALUE : 0)),
+		{},
+		OS_MENU_ITEM("Full &Screen", FULLSCREEN_KEY, (Fl_Callback *)full_screen_cb, this,
+			FL_MENU_TOGGLE | (fullscreen ? FL_MENU_VALUE : 0)),
 		{},
 		{},
 		OS_SUBMENU("&Help"),
@@ -258,6 +263,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_dark_theme_mi = CT_FIND_MENU_ITEM_CB(dark_theme_cb);
 	_brushed_metal_theme_mi = CT_FIND_MENU_ITEM_CB(brushed_metal_theme_cb);
 	_high_contrast_theme_mi = CT_FIND_MENU_ITEM_CB(high_contrast_theme_cb);
+	_full_screen_mi = CT_FIND_MENU_ITEM_CB(full_screen_cb);
 	// Conditional menu items
 	_close_mi = CT_FIND_MENU_ITEM_CB(close_cb);
 	_save_mi = CT_FIND_MENU_ITEM_CB(save_cb);
@@ -1135,7 +1141,18 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 
 	// Save global config
 	Preferences::set("theme", (int)OS::current_theme());
-	if (mw->maximized()) {
+#ifdef __APPLE__
+	if (cocoa_is_fullscreen(mw)) {
+#else
+	if (mw->full_screen()) {
+#endif
+		Preferences::set("x", mw->_wx);
+		Preferences::set("y", mw->_wy);
+		Preferences::set("w", mw->_ww);
+		Preferences::set("h", mw->_wh);
+		Preferences::set("fullscreen", 1);
+	}
+	else if (mw->maximized()) {
 #ifdef _WIN32
 		HWND hwnd = fl_xid(mw);
 		WINDOWPLACEMENT wp;
@@ -1169,12 +1186,14 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 		Preferences::set("w", mw->_ww);
 		Preferences::set("h", mw->_wh);
 #endif
+		Preferences::set("fullscreen", 0);
 	}
 	else {
 		Preferences::set("x", mw->x());
 		Preferences::set("y", mw->y());
 		Preferences::set("w", mw->w());
 		Preferences::set("h", mw->h());
+		Preferences::set("fullscreen", 0);
 	}
 	Preferences::set("maximized", mw->maximized());
 	Preferences::set("loop", mw->loop());
@@ -1624,6 +1643,34 @@ void Main_Window::high_contrast_theme_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->_high_contrast_theme_mi->setonly();
 	mw->update_icons();
 	mw->redraw();
+}
+
+void Main_Window::full_screen_cb(Fl_Menu_ *m, Main_Window *mw) {
+#ifdef __APPLE__
+	if (!cocoa_is_fullscreen(mw)) {
+		if (!mw->maximized()) {
+			mw->_wx = mw->x(); mw->_wy = mw->y();
+			mw->_ww = mw->w(); mw->_wh = mw->h();
+		}
+		cocoa_fullscreen(mw, true);
+		mw->_full_screen_mi->set();
+	}
+	else {
+		cocoa_fullscreen(mw, false);
+		mw->_full_screen_mi->clear();
+	}
+#else
+	if (m->mvalue()->value()) {
+		if (!mw->maximized()) {
+			mw->_wx = mw->x(); mw->_wy = mw->y();
+			mw->_ww = mw->w(); mw->_wh = mw->h();
+		}
+		mw->fullscreen();
+	}
+	else {
+		mw->fullscreen_off(mw->_wx, mw->_wy, mw->_ww, mw->_wh);
+	}
+#endif
 }
 
 void Main_Window::help_cb(Fl_Widget *, Main_Window *mw) {
