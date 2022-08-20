@@ -344,7 +344,6 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_loop_tb->tooltip("Loop (" COMMAND_KEY_PLUS "L)");
 	_loop_tb->callback((Fl_Callback *)loop_tb_cb, this);
 	_loop_tb->image(LOOP_ICON);
-	_loop_tb->shortcut(FL_COMMAND + 'L');
 	_loop_tb->value(loop());
 
 	_undo_tb->tooltip("Undo (" COMMAND_KEY_PLUS "Z)");
@@ -358,25 +357,21 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_one_tb->tooltip("Channel 1 (1)");
 	_channel_one_tb->callback((Fl_Callback *)channel_one_tb_cb, this);
 	_channel_one_tb->image(ONE_ICON);
-	_channel_one_tb->shortcut('1');
 	_channel_one_tb->value(selected_channel() == 1);
 
 	_channel_two_tb->tooltip("Channel 2 (2)");
 	_channel_two_tb->callback((Fl_Callback *)channel_two_tb_cb, this);
 	_channel_two_tb->image(TWO_ICON);
-	_channel_two_tb->shortcut('2');
 	_channel_two_tb->value(selected_channel() == 2);
 
 	_channel_three_tb->tooltip("Channel 3 (3)");
 	_channel_three_tb->callback((Fl_Callback *)channel_three_tb_cb, this);
 	_channel_three_tb->image(THREE_ICON);
-	_channel_three_tb->shortcut('3');
 	_channel_three_tb->value(selected_channel() == 3);
 
 	_channel_four_tb->tooltip("Channel 4 (4)");
 	_channel_four_tb->callback((Fl_Callback *)channel_four_tb_cb, this);
 	_channel_four_tb->image(FOUR_ICON);
-	_channel_four_tb->shortcut('4');
 	_channel_four_tb->value(selected_channel() == 4);
 
 	// Configure dialogs
@@ -1227,6 +1222,7 @@ void Main_Window::loop_cb(Fl_Menu_ *m, Main_Window *mw) {
 
 void Main_Window::loop_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 	SYNC_MI_WITH_TB(mw->_loop_tb, mw->_loop_mi);
+	mw->_menu_bar->update();
 	mw->redraw();
 }
 
@@ -1412,6 +1408,7 @@ void Main_Window::channel_one_cb(Fl_Menu_ *, Main_Window *mw) {
 		mw->selected_channel(1);
 	}
 	mw->update_channel_detail();
+	mw->_menu_bar->update();
 	mw->redraw();
 }
 
@@ -1426,6 +1423,7 @@ void Main_Window::channel_two_cb(Fl_Menu_ *, Main_Window *mw) {
 		mw->selected_channel(2);
 	}
 	mw->update_channel_detail();
+	mw->_menu_bar->update();
 	mw->redraw();
 }
 
@@ -1440,6 +1438,7 @@ void Main_Window::channel_three_cb(Fl_Menu_ *, Main_Window *mw) {
 		mw->selected_channel(3);
 	}
 	mw->update_channel_detail();
+	mw->_menu_bar->update();
 	mw->redraw();
 }
 
@@ -1454,6 +1453,7 @@ void Main_Window::channel_four_cb(Fl_Menu_ *, Main_Window *mw) {
 		mw->selected_channel(4);
 	}
 	mw->update_channel_detail();
+	mw->_menu_bar->update();
 	mw->redraw();
 }
 
@@ -1490,6 +1490,7 @@ void Main_Window::sync_channel_buttons() {
 		_channel_four_tb->setonly();
 	}
 	update_channel_detail();
+	_menu_bar->update();
 	redraw();
 }
 
@@ -1504,6 +1505,7 @@ void Main_Window::channel_one_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 		mw->selected_channel(1);
 	}
 	mw->update_channel_detail();
+	mw->_menu_bar->update();
 	mw->redraw();
 }
 
@@ -1518,6 +1520,7 @@ void Main_Window::channel_two_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 		mw->selected_channel(2);
 	}
 	mw->update_channel_detail();
+	mw->_menu_bar->update();
 	mw->redraw();
 }
 
@@ -1532,6 +1535,7 @@ void Main_Window::channel_three_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 		mw->selected_channel(3);
 	}
 	mw->update_channel_detail();
+	mw->_menu_bar->update();
 	mw->redraw();
 }
 
@@ -1546,6 +1550,7 @@ void Main_Window::channel_four_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 		mw->selected_channel(4);
 	}
 	mw->update_channel_detail();
+	mw->_menu_bar->update();
 	mw->redraw();
 }
 
