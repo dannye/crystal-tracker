@@ -246,7 +246,7 @@ struct Command {
 	std::set<std::string> labels;
 	std::string target;
 	union {
-		Note note;
+		Note note = {};
 		Drum_Note drum_note;
 		Rest rest;
 		Octave octave;

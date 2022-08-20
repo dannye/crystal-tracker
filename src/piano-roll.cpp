@@ -17,7 +17,7 @@ static inline bool is_white_key(size_t i) {
 	return !(i == 1 || i == 3 || i == 5 || i == 8 || i == 10);
 }
 
-static const auto find_note_with_label(const std::vector<Command> &commands, std::string label) {
+static auto find_note_with_label(const std::vector<Command> &commands, std::string label) {
 	for (auto command_itr = commands.begin(); command_itr != commands.end(); ++command_itr) {
 		if (command_itr->labels.count(label) > 0) {
 			return command_itr;

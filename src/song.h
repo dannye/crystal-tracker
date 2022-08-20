@@ -28,7 +28,7 @@ public:
 		int channel_number = 0;
 		std::vector<Command> commands;
 		std::set<int32_t> selection;
-		Action action;
+		Action action = {};
 	};
 private:
 	std::string _song_name;

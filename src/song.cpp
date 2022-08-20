@@ -47,7 +47,7 @@ int Song::undo() {
 	if (_history.empty()) { return 0; }
 	while (_future.size() >= MAX_HISTORY_SIZE) { _future.pop_front(); }
 
-	const Song_State &prev = _history.back();
+	Song_State &prev = _history.back();
 	std::vector<Command> &commands = channel_commands(prev.channel_number);
 
 	Song_State ss;
@@ -69,7 +69,7 @@ int Song::redo() {
 	if (_future.empty()) { return 0; }
 	while (_history.size() >= MAX_HISTORY_SIZE) { _history.pop_front(); }
 
-	const Song_State &next = _future.back();
+	Song_State &next = _future.back();
 	std::vector<Command> &commands = channel_commands(next.channel_number);
 
 	Song_State ss;
@@ -183,7 +183,7 @@ void postprocess(std::vector<Command> &commands) {
 		int32_t rest_index = -1;
 		int32_t octave_index = -1;
 		deleted = false;
-		for (int32_t i = 0; i < commands.size(); ++i) {
+		for (uint32_t i = 0; i < commands.size(); ++i) {
 			if (commands[i].labels.size() > 0 || is_control_command(commands[i].type)) {
 				view = Note_View{};
 				rest_index = -1;
