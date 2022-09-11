@@ -137,6 +137,8 @@ public:
 	void reset_key_colors();
 };
 
+class Piano_Roll;
+
 class Piano_Timeline : public Fl_Group {
 	friend class Piano_Roll;
 private:
@@ -166,6 +168,9 @@ public:
 	Piano_Timeline(const Piano_Timeline&) = delete;
 	Piano_Timeline& operator=(const Piano_Timeline&) = delete;
 
+	Piano_Roll *parent() const { return (Piano_Roll *)Fl_Group::parent(); }
+	inline int selected_channel() const;
+
 	int handle(int event) override;
 	bool handle_note_selection(int event);
 	bool select_all();
@@ -192,10 +197,12 @@ private:
 	void set_channel(std::vector<Note_Box *> &channel, const std::vector<Note_View> &notes, Fl_Color color);
 	void set_channel_detailed(std::vector<Note_Box *> &notes, std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, bool detailed);
 
-	std::vector<Note_Box *> *active_channel();
+	std::vector<Note_Box *> *active_channel_boxes();
 protected:
 	void draw() override;
 };
+
+class Main_Window;
 
 class Piano_Roll : public Fl_Scroll {
 private:
@@ -225,6 +232,9 @@ public:
 	Piano_Roll(const Piano_Roll&) = delete;
 	Piano_Roll& operator=(const Piano_Roll&) = delete;
 
+	Main_Window *parent() const { return (Main_Window *)Fl_Scroll::parent(); }
+	inline int selected_channel() const;
+
 	inline int32_t tick(void) const { return _tick; }
 
 	inline const std::vector<Note_View> &channel_1_notes() const { return _channel_1_notes; }
@@ -249,7 +259,7 @@ public:
 	void set_size(int W, int H);
 
 	bool set_timeline(const Song &song);
-	void set_channel_timeline(const int selected_channel, const Song &song);
+	void set_active_channel_timeline(const Song &song);
 	void set_active_channel_selection(const std::set<int32_t> &selection);
 
 	bool build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Note_View> &notes, const std::vector<Command> &commands, int32_t end_tick, Fl_Color color);
@@ -283,7 +293,7 @@ public:
 	bool select_all() { return _piano_timeline->select_all(); }
 	bool select_none() { return _piano_timeline->select_none(); }
 private:
-	std::vector<Note_View> *active_channel();
+	std::vector<Note_View> *active_channel_view();
 
 	static void hscrollbar_cb(Fl_Scrollbar *sb, void *);
 };

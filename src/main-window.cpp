@@ -222,7 +222,6 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("Full &Screen", FULLSCREEN_KEY, (Fl_Callback *)full_screen_cb, this,
 			FL_MENU_TOGGLE | (fullscreen ? FL_MENU_VALUE : 0)),
 		{},
-		{},
 		OS_SUBMENU("&Help"),
 #ifdef __APPLE__
 		OS_MENU_ITEM("&Help", FL_F + 1, (Fl_Callback *)help_cb, this, 0),
@@ -1242,11 +1241,11 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 	std::set<int32_t> selection = mw->_song.undo_selection();
 
 	int channel = mw->_song.undo();
-	mw->_piano_roll->set_channel_timeline(channel, mw->_song);
 	if (channel != mw->selected_channel()) {
 		mw->selected_channel(channel);
 		mw->sync_channel_buttons();
 	}
+	mw->_piano_roll->set_active_channel_timeline(mw->_song);
 	mw->_piano_roll->set_active_channel_selection(selection);
 
 	mw->update_active_controls();
@@ -1264,11 +1263,11 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 	std::set<int32_t> selection = mw->_song.redo_selection();
 
 	int channel = mw->_song.redo();
-	mw->_piano_roll->set_channel_timeline(channel, mw->_song);
 	if (channel != mw->selected_channel()) {
 		mw->selected_channel(channel);
 		mw->sync_channel_buttons();
 	}
+	mw->_piano_roll->set_active_channel_timeline(mw->_song);
 	if (action != Song::Song_State::Action::DELETE_SELECTION && action != Song::Song_State::Action::SNIP_SELECTION) {
 		mw->_piano_roll->set_active_channel_selection(selection);
 	}

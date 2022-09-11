@@ -285,10 +285,14 @@ void Piano_Timeline::clear_channel_4() {
 	_channel_4_calls.clear();
 }
 
+inline int Piano_Timeline::selected_channel() const {
+	return parent()->selected_channel();
+}
+
 int Piano_Timeline::handle(int event) {
 	switch (event) {
 	case FL_PUSH:
-		if (((Piano_Roll *)parent())->handle_mouse_click(event)) {
+		if (parent()->handle_mouse_click(event)) {
 			return 1;
 		}
 		if (Fl::event_button() == FL_LEFT_MOUSE) {
@@ -298,7 +302,7 @@ int Piano_Timeline::handle(int event) {
 		}
 		break;
 	case FL_DRAG:
-		if (((Piano_Roll *)parent())->handle_mouse_click(event)) {
+		if (parent()->handle_mouse_click(event)) {
 			return 1;
 		}
 		break;
@@ -307,7 +311,7 @@ int Piano_Timeline::handle(int event) {
 }
 
 bool Piano_Timeline::handle_note_selection(int event) {
-	auto channel = active_channel();
+	auto channel = active_channel_boxes();
 	if (!channel) return false;
 
 	if (!Fl::event_shift() && !Fl::event_command()) {
@@ -362,7 +366,7 @@ bool Piano_Timeline::handle_note_selection(int event) {
 }
 
 bool Piano_Timeline::select_all() {
-	auto channel = active_channel();
+	auto channel = active_channel_boxes();
 	if (!channel) return false;
 
 	bool note_selected = false;
@@ -379,7 +383,7 @@ bool Piano_Timeline::select_all() {
 }
 
 bool Piano_Timeline::select_none() {
-	auto channel = active_channel();
+	auto channel = active_channel_boxes();
 	if (!channel) return false;
 
 	bool note_deselected = false;
@@ -413,7 +417,7 @@ void Piano_Timeline::reset_note_colors() {
 void Piano_Timeline::highlight_tick(std::vector<Note_Box *> &notes, int32_t tick, Fl_Color color) {
 	int x_pos = tick * TICK_WIDTH + WHITE_KEY_WIDTH;
 	for (Note_Box *note : notes) {
-		int note_left = note->x() - note->parent()->x();
+		int note_left = note->x() - x();
 		int note_right = note_left + note->w();
 		if (note_left > x_pos) {
 			return;
@@ -450,7 +454,7 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, const std::ve
 	end();
 
 	if (channel.size() > 0) {
-		const int width = channel.back()->x() + parent()->w() - ((Fl_Scroll *)parent())->scrollbar.w() - WHITE_KEY_WIDTH;
+		const int width = channel.back()->x() + parent()->w() - parent()->scrollbar.w() - WHITE_KEY_WIDTH;
 		if (width > w()) {
 			w(width);
 		}
@@ -489,8 +493,8 @@ void Piano_Timeline::set_channel_detailed(
 	redraw();
 }
 
-std::vector<Note_Box *> *Piano_Timeline::active_channel() {
-	int active_channel = ((Main_Window *)parent()->parent())->selected_channel();
+std::vector<Note_Box *> *Piano_Timeline::active_channel_boxes() {
+	int active_channel = selected_channel();
 	if (active_channel == 1) return &_channel_1_notes;
 	if (active_channel == 2) return &_channel_2_notes;
 	if (active_channel == 3) return &_channel_3_notes;
@@ -533,8 +537,8 @@ void Piano_Timeline::draw() {
 			x_pos += TIME_STEP_WIDTH;
 		}
 
-		Piano_Roll *p = (Piano_Roll *)parent();
-		int active_channel = ((Main_Window *)parent()->parent())->selected_channel();
+		Piano_Roll *p = parent();
+		int active_channel = selected_channel();
 
 		int32_t loop_tick = p->get_loop_tick();
 		int32_t channel_1_loop_tick = p->channel_1_loop_tick();
@@ -648,6 +652,10 @@ Piano_Roll::~Piano_Roll() noexcept {
 	}
 }
 
+inline int Piano_Roll::selected_channel() const {
+	return parent()->selected_channel();
+}
+
 int Piano_Roll::handle(int event) {
 	switch (event) {
 	case FL_MOUSEWHEEL:
@@ -724,7 +732,7 @@ bool Piano_Roll::handle_mouse_click(int event) {
 
 		if (_tick != t && 0 <= t && t < _song_length) {
 			_tick = t;
-			((Main_Window *)parent())->set_song_position(_tick);
+			parent()->set_song_position(_tick);
 			redraw();
 		}
 
@@ -778,29 +786,29 @@ bool Piano_Roll::set_timeline(const Song &song) {
 	return true;
 }
 
-void Piano_Roll::set_channel_timeline(const int selected_channel, const Song &song) {
+void Piano_Roll::set_active_channel_timeline(const Song &song) {
 	int32_t song_length = get_song_length();
 	// TODO: if song length has changed, rebuild all channel timelines
 
-	if (selected_channel == 1) {
+	if (selected_channel() == 1) {
 		_piano_timeline->clear_channel_1();
 		_channel_1_notes.clear();
 		build_note_view(_piano_timeline->_channel_1_loops, _piano_timeline->_channel_1_calls, _channel_1_notes, song.channel_1_commands(), song_length, NOTE_RED);
 		_piano_timeline->set_channel_1(_channel_1_notes);
 	}
-	else if (selected_channel == 2) {
+	else if (selected_channel() == 2) {
 		_piano_timeline->clear_channel_2();
 		_channel_2_notes.clear();
 		build_note_view(_piano_timeline->_channel_2_loops, _piano_timeline->_channel_2_calls, _channel_2_notes, song.channel_2_commands(), song_length, NOTE_BLUE);
 		_piano_timeline->set_channel_2(_channel_2_notes);
 	}
-	else if (selected_channel == 3) {
+	else if (selected_channel() == 3) {
 		_piano_timeline->clear_channel_3();
 		_channel_3_notes.clear();
 		build_note_view(_piano_timeline->_channel_3_loops, _piano_timeline->_channel_3_calls, _channel_3_notes, song.channel_3_commands(), song_length, NOTE_GREEN);
 		_piano_timeline->set_channel_3(_channel_3_notes);
 	}
-	else if (selected_channel == 4) {
+	else if (selected_channel() == 4) {
 		_piano_timeline->clear_channel_4();
 		_channel_4_notes.clear();
 		build_note_view(_piano_timeline->_channel_4_loops, _piano_timeline->_channel_4_calls, _channel_4_notes, song.channel_4_commands(), song_length, NOTE_BROWN);
@@ -809,7 +817,7 @@ void Piano_Roll::set_channel_timeline(const int selected_channel, const Song &so
 }
 
 void Piano_Roll::set_active_channel_selection(const std::set<int32_t> &selection) {
-	auto channel = _piano_timeline->active_channel();
+	auto channel = _piano_timeline->active_channel_boxes();
 	if (!channel) return;
 
 	for (int32_t index : selection) {
@@ -1220,12 +1228,11 @@ void Piano_Roll::highlight_tick(int32_t t) {
 }
 
 bool Piano_Roll::pitch_up(Song &song) {
-	auto channel = _piano_timeline->active_channel();
+	auto channel = _piano_timeline->active_channel_boxes();
 	if (!channel) return false;
 
-	auto view = active_channel();
+	auto view = active_channel_view();
 
-	int selected_channel = ((Main_Window *)parent())->selected_channel();
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
@@ -1244,20 +1251,19 @@ bool Piano_Roll::pitch_up(Song &song) {
 		return false;
 	}
 
-	song.pitch_up(selected_channel, selected_notes, selected_boxes, *view);
-	set_channel_timeline(selected_channel, song);
+	song.pitch_up(selected_channel(), selected_notes, selected_boxes, *view);
+	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
 	return true;
 }
 
 bool Piano_Roll::pitch_down(Song &song) {
-	auto channel = _piano_timeline->active_channel();
+	auto channel = _piano_timeline->active_channel_boxes();
 	if (!channel) return false;
 
-	auto view = active_channel();
+	auto view = active_channel_view();
 
-	int selected_channel = ((Main_Window *)parent())->selected_channel();
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
@@ -1276,20 +1282,19 @@ bool Piano_Roll::pitch_down(Song &song) {
 		return false;
 	}
 
-	song.pitch_down(selected_channel, selected_notes, selected_boxes, *view);
-	set_channel_timeline(selected_channel, song);
+	song.pitch_down(selected_channel(), selected_notes, selected_boxes, *view);
+	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
 	return true;
 }
 
 bool Piano_Roll::octave_up(Song &song) {
-	auto channel = _piano_timeline->active_channel();
+	auto channel = _piano_timeline->active_channel_boxes();
 	if (!channel) return false;
 
-	auto view = active_channel();
+	auto view = active_channel_view();
 
-	int selected_channel = ((Main_Window *)parent())->selected_channel();
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
@@ -1308,20 +1313,19 @@ bool Piano_Roll::octave_up(Song &song) {
 		return false;
 	}
 
-	song.octave_up(selected_channel, selected_notes, selected_boxes, *view);
-	set_channel_timeline(selected_channel, song);
+	song.octave_up(selected_channel(), selected_notes, selected_boxes, *view);
+	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
 	return true;
 }
 
 bool Piano_Roll::octave_down(Song &song) {
-	auto channel = _piano_timeline->active_channel();
+	auto channel = _piano_timeline->active_channel_boxes();
 	if (!channel) return false;
 
-	auto view = active_channel();
+	auto view = active_channel_view();
 
-	int selected_channel = ((Main_Window *)parent())->selected_channel();
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
@@ -1340,22 +1344,21 @@ bool Piano_Roll::octave_down(Song &song) {
 		return false;
 	}
 
-	song.octave_down(selected_channel, selected_notes, selected_boxes, *view);
-	set_channel_timeline(selected_channel, song);
+	song.octave_down(selected_channel(), selected_notes, selected_boxes, *view);
+	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
 	return true;
 }
 
 bool Piano_Roll::move_left(Song &song) {
-	auto channel = _piano_timeline->active_channel();
+	auto channel = _piano_timeline->active_channel_boxes();
 	if (!channel) return false;
 
-	int selected_channel = ((Main_Window *)parent())->selected_channel();
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
-	const std::vector<Command> &commands = song.channel_commands(selected_channel);
+	const std::vector<Command> &commands = song.channel_commands(selected_channel());
 
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
@@ -1394,22 +1397,21 @@ bool Piano_Roll::move_left(Song &song) {
 		return false;
 	}
 
-	song.move_left(selected_channel, selected_notes, selected_boxes);
-	set_channel_timeline(selected_channel, song);
+	song.move_left(selected_channel(), selected_notes, selected_boxes);
+	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
 	return true;
 }
 
 bool Piano_Roll::move_right(Song &song) {
-	auto channel = _piano_timeline->active_channel();
+	auto channel = _piano_timeline->active_channel_boxes();
 	if (!channel) return false;
 
-	int selected_channel = ((Main_Window *)parent())->selected_channel();
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
-	const std::vector<Command> &commands = song.channel_commands(selected_channel);
+	const std::vector<Command> &commands = song.channel_commands(selected_channel());
 
 	for (auto note_itr = channel->rbegin(); note_itr != channel->rend(); ++note_itr) {
 		Note_Box *note = *note_itr;
@@ -1449,18 +1451,17 @@ bool Piano_Roll::move_right(Song &song) {
 		return false;
 	}
 
-	song.move_right(selected_channel, selected_notes, selected_boxes);
-	set_channel_timeline(selected_channel, song);
+	song.move_right(selected_channel(), selected_notes, selected_boxes);
+	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
 	return true;
 }
 
 bool Piano_Roll::shorten(Song &song) {
-	auto channel = _piano_timeline->active_channel();
+	auto channel = _piano_timeline->active_channel_boxes();
 	if (!channel) return false;
 
-	int selected_channel = ((Main_Window *)parent())->selected_channel();
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
@@ -1479,22 +1480,21 @@ bool Piano_Roll::shorten(Song &song) {
 		return false;
 	}
 
-	song.shorten(selected_channel, selected_notes, selected_boxes);
-	set_channel_timeline(selected_channel, song);
+	song.shorten(selected_channel(), selected_notes, selected_boxes);
+	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
 	return true;
 }
 
 bool Piano_Roll::lengthen(Song &song) {
-	auto channel = _piano_timeline->active_channel();
+	auto channel = _piano_timeline->active_channel_boxes();
 	if (!channel) return false;
 
-	int selected_channel = ((Main_Window *)parent())->selected_channel();
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
-	const std::vector<Command> &commands = song.channel_commands(selected_channel);
+	const std::vector<Command> &commands = song.channel_commands(selected_channel());
 
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
@@ -1527,18 +1527,17 @@ bool Piano_Roll::lengthen(Song &song) {
 		return false;
 	}
 
-	song.lengthen(selected_channel, selected_notes, selected_boxes);
-	set_channel_timeline(selected_channel, song);
+	song.lengthen(selected_channel(), selected_notes, selected_boxes);
+	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
 	return true;
 }
 
 bool Piano_Roll::delete_selection(Song &song) {
-	auto channel = _piano_timeline->active_channel();
+	auto channel = _piano_timeline->active_channel_boxes();
 	if (!channel) return false;
 
-	int selected_channel = ((Main_Window *)parent())->selected_channel();
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
@@ -1554,17 +1553,16 @@ bool Piano_Roll::delete_selection(Song &song) {
 		return false;
 	}
 
-	song.delete_selection(selected_channel, selected_notes, selected_boxes);
-	set_channel_timeline(selected_channel, song);
+	song.delete_selection(selected_channel(), selected_notes, selected_boxes);
+	set_active_channel_timeline(song);
 
 	return true;
 }
 
 bool Piano_Roll::snip_selection(Song &song) {
-	auto channel = _piano_timeline->active_channel();
+	auto channel = _piano_timeline->active_channel_boxes();
 	if (!channel) return false;
 
-	int selected_channel = ((Main_Window *)parent())->selected_channel();
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
@@ -1580,14 +1578,14 @@ bool Piano_Roll::snip_selection(Song &song) {
 		return false;
 	}
 
-	song.snip_selection(selected_channel, selected_notes, selected_boxes);
-	set_channel_timeline(selected_channel, song);
+	song.snip_selection(selected_channel(), selected_notes, selected_boxes);
+	set_active_channel_timeline(song);
 
 	return true;
 }
 
-std::vector<Note_View> *Piano_Roll::active_channel() {
-	int active_channel = ((Main_Window *)parent())->selected_channel();
+std::vector<Note_View> *Piano_Roll::active_channel_view() {
+	int active_channel = selected_channel();
 	if (active_channel == 1) return &_channel_1_notes;
 	if (active_channel == 2) return &_channel_2_notes;
 	if (active_channel == 3) return &_channel_3_notes;
