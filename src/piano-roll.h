@@ -210,6 +210,7 @@ private:
 	int32_t _tick = -1;
 	bool _following = false;
 	bool _realtime = true;
+	bool _paused = false;
 
 	std::vector<Note_View> _channel_1_notes;
 	std::vector<Note_View> _channel_2_notes;
@@ -236,6 +237,8 @@ public:
 	inline int selected_channel() const;
 
 	inline int32_t tick(void) const { return _tick; }
+	inline bool following(void) const { return _following; }
+	inline bool paused(void) const { return _paused; }
 
 	inline const std::vector<Note_View> &channel_1_notes() const { return _channel_1_notes; }
 	inline const std::vector<Note_View> &channel_2_notes() const { return _channel_2_notes; }
@@ -272,6 +275,8 @@ public:
 	void set_channel_3_detailed(bool detailed) { _piano_timeline->set_channel_3_detailed(detailed); }
 	void set_channel_4_detailed(bool detailed) { _piano_timeline->set_channel_4_detailed(detailed); }
 
+	void align_cursor();
+
 	void clear();
 
 	void start_following();
@@ -293,6 +298,8 @@ public:
 	bool select_all() { return _piano_timeline->select_all(); }
 	bool select_none() { return _piano_timeline->select_none(); }
 private:
+	int32_t quantize_tick(int32_t tick, bool round = false);
+
 	std::vector<Note_View> *active_channel_view();
 
 	static void hscrollbar_cb(Fl_Scrollbar *sb, void *);

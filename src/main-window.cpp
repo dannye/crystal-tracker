@@ -666,6 +666,7 @@ void Main_Window::update_channel_detail() {
 	_piano_roll->set_channel_2_detailed(selected_channel() == 0 || selected_channel() == 2);
 	_piano_roll->set_channel_3_detailed(selected_channel() == 0 || selected_channel() == 3);
 	_piano_roll->set_channel_4_detailed(selected_channel() == 0 || selected_channel() == 4);
+	_piano_roll->align_cursor();
 }
 
 void Main_Window::store_recent_song() {

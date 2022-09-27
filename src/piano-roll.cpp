@@ -628,7 +628,10 @@ void Piano_Timeline::draw() {
 			}
 		}
 
-		int32_t tick = p->tick() == -1 ? -1 : p->tick() / TICKS_PER_STEP * TICKS_PER_STEP;
+		int32_t tick = p->tick();
+		if (tick != -1 && (parent()->following() || parent()->paused())) {
+			tick = tick / TICKS_PER_STEP * TICKS_PER_STEP;
+		}
 		x_pos = x() + tick * TICK_WIDTH + WHITE_KEY_WIDTH;
 		fl_color(cursor_color);
 		fl_yxline(x_pos - 1, y(), y() + h());
@@ -728,7 +731,7 @@ bool Piano_Roll::handle_mouse_click(int event) {
 		(!_following || event == FL_PUSH)
 	) {
 		int32_t t = (Fl::event_x() - _piano_timeline->x() - WHITE_KEY_WIDTH) / TICK_WIDTH;
-		t = t / TICKS_PER_STEP * TICKS_PER_STEP;
+		t = quantize_tick(t);
 
 		if (_tick != t && 0 <= t && t < _song_length) {
 			_tick = t;
@@ -1151,6 +1154,10 @@ int32_t Piano_Roll::get_loop_tick() const {
 	return loop_tick;
 }
 
+void Piano_Roll::align_cursor() {
+	_tick = quantize_tick(_tick, true);
+}
+
 void Piano_Roll::clear() {
 	_piano_timeline->clear();
 	_piano_timeline->w((w() - scrollbar.w()) * 2);
@@ -1158,6 +1165,7 @@ void Piano_Roll::clear() {
 	scroll_to(0, yposition());
 	_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
 	_following = false;
+	_paused = false;
 	_tick = -1;
 
 	_channel_1_notes.clear();
@@ -1178,6 +1186,7 @@ void Piano_Roll::clear() {
 
 void Piano_Roll::start_following() {
 	_following = true;
+	_paused = false;
 	_piano_timeline->reset_note_colors();
 	_piano_timeline->_keys->reset_key_colors();
 	if (_tick == -1) {
@@ -1189,10 +1198,12 @@ void Piano_Roll::start_following() {
 
 void Piano_Roll::unpause_following() {
 	_following = true;
+	_paused = false;
 }
 
 void Piano_Roll::stop_following() {
 	_following = false;
+	_paused = false;
 	_tick = -1;
 	_piano_timeline->reset_note_colors();
 	_piano_timeline->_keys->reset_key_colors();
@@ -1201,6 +1212,7 @@ void Piano_Roll::stop_following() {
 
 void Piano_Roll::pause_following() {
 	_following = false;
+	_paused = true;
 }
 
 void Piano_Roll::highlight_tick(int32_t t) {
@@ -1582,6 +1594,21 @@ bool Piano_Roll::snip_selection(Song &song) {
 	set_active_channel_timeline(song);
 
 	return true;
+}
+
+int32_t Piano_Roll::quantize_tick(int32_t tick, bool round) {
+	const auto view = active_channel_view();
+	if (view && !_following && !_paused) {
+		int32_t t_left = 0;
+		for (const Note_View &note : *view) {
+			int32_t t_right = t_left + note.length * note.speed;
+			if (t_right > tick) {
+				return t_left + (tick - t_left + (round ? note.speed / 2 : 0)) / note.speed * note.speed;
+			}
+			t_left = t_right;
+		}
+	}
+	return tick / TICKS_PER_STEP * TICKS_PER_STEP;
 }
 
 std::vector<Note_View> *Piano_Roll::active_channel_view() {
