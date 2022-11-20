@@ -508,14 +508,57 @@ int Main_Window::handle(int event) {
 	case FL_FOCUS:
 	case FL_UNFOCUS:
 		return 1;
-#ifdef __APPLE__
 	case FL_KEYBOARD:
-		if (Fl::event_key() == FL_Tab && Fl::event_shift()) {
+#ifdef __APPLE__
+		if (Fl::event_shift() && Fl::event_key() == FL_Tab) {
 			previous_channel_cb(nullptr, this);
 			return 1;
 		}
-		break;
 #endif
+		if (!Fl::event_state(FL_SHIFT | FL_COMMAND | FL_ALT) && (!_it_module || _it_module->stopped())) {
+			switch (Fl::event_key()) {
+			case 'r':
+				put_note(Pitch::REST);
+				return 1;
+			case 'z':
+				put_note(Pitch::C_NAT);
+				return 1;
+			case 's':
+				put_note(Pitch::C_SHARP);
+				return 1;
+			case 'x':
+				put_note(Pitch::D_NAT);
+				return 1;
+			case 'd':
+				put_note(Pitch::D_SHARP);
+				return 1;
+			case 'c':
+				put_note(Pitch::E_NAT);
+				return 1;
+			case 'v':
+				put_note(Pitch::F_NAT);
+				return 1;
+			case 'g':
+				put_note(Pitch::F_SHARP);
+				return 1;
+			case 'b':
+				put_note(Pitch::G_NAT);
+				return 1;
+			case 'h':
+				put_note(Pitch::G_SHARP);
+				return 1;
+			case 'n':
+				put_note(Pitch::A_NAT);
+				return 1;
+			case 'j':
+				put_note(Pitch::A_SHARP);
+				return 1;
+			case 'm':
+				put_note(Pitch::B_NAT);
+				return 1;
+			}
+		}
+		break;
 	}
 	return Fl_Double_Window::handle(event);
 }
@@ -1230,6 +1273,17 @@ void Main_Window::loop_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 
 void Main_Window::follow_cb(Fl_Menu_ *m, Main_Window *mw) {
 	mw->_piano_roll->toggle_follow_mode();
+}
+
+void Main_Window::put_note(Pitch pitch) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->put_note(_song, pitch)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
 }
 
 void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {

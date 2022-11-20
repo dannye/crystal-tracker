@@ -163,6 +163,7 @@ private:
 	static void loop_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void follow_cb(Fl_Menu_ *m, Main_Window *mw);
 	// Edit menu
+	void put_note(Pitch pitch);
 	static void undo_cb(Fl_Widget *w, Main_Window *mw);
 	static void redo_cb(Fl_Widget *w, Main_Window *mw);
 	static void pitch_up_cb(Fl_Widget *w, Main_Window *mw);

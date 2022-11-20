@@ -249,6 +249,47 @@ void postprocess(std::vector<Command> &commands) {
 	} while (deleted);
 }
 
+void Song::put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t index, int32_t tick_offset) {
+	remember(selected_channel, selected_boxes, Song_State::Action::PUT_NOTE);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	Command_Type new_type = pitch == Pitch::REST ? Command_Type::REST : Command_Type::NOTE;
+
+	assert(commands[index].type == Command_Type::NOTE || commands[index].type == Command_Type::REST);
+
+	Command_Type old_type = commands[index].type;
+	int32_t old_length = commands[index].note.length;
+	Pitch old_pitch = commands[index].note.pitch;
+
+	if (tick_offset == 0) {
+		commands[index].type = new_type;
+		commands[index].note.pitch = pitch;
+		commands[index].note.length = 1;
+	}
+	else {
+		commands[index].note.length = tick_offset;
+
+		Command command = Command(new_type);
+		command.note.length = 1;
+		command.note.pitch = pitch;
+		commands.insert(commands.begin() + index + 1, command);
+
+		old_length -= tick_offset;
+		index += 1;
+	}
+
+	if (old_length > 1) {
+		Command command = Command(old_type);
+		command.note.length = old_length - 1;
+		command.note.pitch = old_pitch;
+		commands.insert(commands.begin() + index + 1, command);
+	}
+
+	postprocess(commands);
+
+	_modified = true;
+}
+
 void Song::pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view) {
 	remember(selected_channel, selected_boxes, Song_State::Action::PITCH_UP);
 	std::vector<Command> &commands = channel_commands(selected_channel);
@@ -634,6 +675,8 @@ std::string Song::get_error_message(Parsed_Song parsed_song) const {
 
 const char *Song::get_action_message(Song_State::Action action) const {
 	switch (action) {
+	case Song_State::Action::PUT_NOTE:
+		return "Put note";
 	case Song_State::Action::PITCH_UP:
 		return "Pitch up";
 	case Song_State::Action::PITCH_DOWN:

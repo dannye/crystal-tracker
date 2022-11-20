@@ -430,6 +430,21 @@ void Piano_Timeline::highlight_tick(std::vector<Note_Box *> &notes, int32_t tick
 	}
 }
 
+void Piano_Timeline::select_note_at_tick(std::vector<Note_Box *> &notes, int32_t tick) {
+	int x_pos = tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+	for (Note_Box *note : notes) {
+		int note_left = note->x() - x();
+		int note_right = note_left + note->w();
+		if (note_left > x_pos) {
+			return;
+		}
+		if (note_right > x_pos) {
+			note->selected(true);
+			return;
+		}
+	}
+}
+
 #define BASE_X (x())
 #define BASE_Y (y())
 
@@ -1239,6 +1254,54 @@ void Piano_Roll::highlight_tick(int32_t t) {
 	redraw();
 }
 
+bool Piano_Roll::put_note(Song &song, Pitch pitch) {
+	auto channel = _piano_timeline->active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	if (_tick == -1) return false;
+
+	int32_t tick_offset = 0;
+
+	const auto find_note_view_at_tick = [&tick_offset](const std::vector<Note_View> &view, int32_t tick) {
+		int32_t t_left = 0;
+		for (const Note_View &note : view) {
+			int32_t t_right = t_left + note.length * note.speed;
+			if (t_right > tick && !note.ghost) {
+				tick_offset = tick - t_left;
+				return &note;
+			}
+			t_left = t_right;
+		}
+		return (const Note_View *)nullptr;
+	};
+
+	const Note_View *note_view = find_note_view_at_tick(*view, _tick);
+
+	if (!note_view) return false;
+
+	int32_t index = note_view->index;
+	int32_t speed = note_view->speed;
+
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+
+	song.put_note(selected_channel(), selected_boxes, pitch, index, tick_offset / speed);
+	set_active_channel_timeline(song);
+	_piano_timeline->select_note_at_tick(*channel, _tick);
+
+	_tick += speed;
+
+	return true;
+}
+
 bool Piano_Roll::pitch_up(Song &song) {
 	auto channel = _piano_timeline->active_channel_boxes();
 	if (!channel) return false;
@@ -1603,7 +1666,7 @@ int32_t Piano_Roll::quantize_tick(int32_t tick, bool round) {
 		for (const Note_View &note : *view) {
 			int32_t t_right = t_left + note.length * note.speed;
 			if (t_right > tick) {
-				return t_left + (tick - t_left + (round ? note.speed / 2 : 0)) / note.speed * note.speed;
+				return t_left + (tick - t_left + (round ? note.speed / 2 - 1 : 0)) / note.speed * note.speed;
 			}
 			t_left = t_right;
 		}

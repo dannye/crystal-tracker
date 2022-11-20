@@ -194,6 +194,7 @@ public:
 	void reset_note_colors();
 private:
 	void highlight_tick(std::vector<Note_Box *> &notes, int32_t tick, Fl_Color color);
+	void select_note_at_tick(std::vector<Note_Box *> &notes, int32_t tick);
 	void set_channel(std::vector<Note_Box *> &channel, const std::vector<Note_View> &notes, Fl_Color color);
 	void set_channel_detailed(std::vector<Note_Box *> &notes, std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, bool detailed);
 
@@ -285,6 +286,7 @@ public:
 	void pause_following();
 	void highlight_tick(int32_t t);
 
+	bool put_note(Song &song, Pitch pitch);
 	bool pitch_up(Song &song);
 	bool pitch_down(Song &song);
 	bool octave_up(Song &song);

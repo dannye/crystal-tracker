@@ -14,6 +14,7 @@ class Song {
 public:
 	struct Song_State {
 		enum class Action {
+			PUT_NOTE,
 			PITCH_UP,
 			PITCH_DOWN,
 			OCTAVE_UP,
@@ -78,6 +79,7 @@ public:
 	const std::vector<Command> &channel_3_commands() const { return _channel_3_commands; }
 	const std::vector<Command> &channel_4_commands() const { return _channel_4_commands; }
 
+	void put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t index, int32_t tick_offset);
 	void pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void octave_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
