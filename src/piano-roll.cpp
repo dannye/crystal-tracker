@@ -785,6 +785,8 @@ bool Piano_Roll::set_timeline(const Song &song) {
 
 	_song_length = get_song_length();
 
+	_piano_timeline->w(WHITE_KEY_WIDTH + _song_length * TICK_WIDTH);
+
 	bool success = true;
 	success = success && build_note_view(_piano_timeline->_channel_1_loops, _piano_timeline->_channel_1_calls, _channel_1_notes, song.channel_1_commands(), _song_length, NOTE_RED);
 	success = success && build_note_view(_piano_timeline->_channel_2_loops, _piano_timeline->_channel_2_calls, _channel_2_notes, song.channel_2_commands(), _song_length, NOTE_BLUE);
