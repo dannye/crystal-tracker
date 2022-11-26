@@ -35,39 +35,36 @@ constexpr size_t NUM_NOTES_PER_OCTAVE = NUM_WHITE_NOTES + NUM_BLACK_NOTES;
 constexpr size_t NUM_OCTAVES = 8;
 
 constexpr int WHITE_KEY_WIDTH  = 150;
-constexpr int WHITE_KEY_HEIGHT = 36;
+constexpr int WHITE_KEY_HEIGHT_ZOOMED = 36;
+constexpr int WHITE_KEY_HEIGHT_UNZOOMED = 24;
 
 constexpr int BLACK_KEY_WIDTH  = 100;
-constexpr int BLACK_KEY_HEIGHT = 30;
+constexpr int BLACK_KEY_HEIGHT_ZOOMED = 30;
+constexpr int BLACK_KEY_HEIGHT_UNZOOMED = 20;
 
-constexpr int OCTAVE_HEIGHT = WHITE_KEY_HEIGHT * NUM_WHITE_NOTES;
-constexpr int NOTE_ROW_HEIGHT = OCTAVE_HEIGHT / NUM_NOTES_PER_OCTAVE;
-
-constexpr int BLACK_KEY_OFFSET = NOTE_ROW_HEIGHT / 2 - BLACK_KEY_HEIGHT / 2;
-
-constexpr int TICK_WIDTH = 4;
+constexpr int TICK_WIDTH_ZOOMED = 4;
+constexpr int TICK_WIDTH_UNZOOMED = 2;
 constexpr int TICKS_PER_STEP = 12;
-constexpr int TIME_STEP_WIDTH = TICK_WIDTH * TICKS_PER_STEP;
 
 struct Note_Key {
-	int x, y, w, h, delta;
+	int y, delta1, delta2;
 	const char *label;
 	bool white;
 };
 
 constexpr Note_Key NOTE_KEYS[NUM_NOTES_PER_OCTAVE] {
-	{ 0, WHITE_KEY_HEIGHT * 0, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT,  0, "B", true },
-	{ 0, WHITE_KEY_HEIGHT * 1, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT, +1, "A", true },
-	{ 0, WHITE_KEY_HEIGHT * 2, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT, +1, "G", true },
-	{ 0, WHITE_KEY_HEIGHT * 3, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT, +1, "F", true },
-	{ 0, WHITE_KEY_HEIGHT * 4, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT, -1, "E", true },
-	{ 0, WHITE_KEY_HEIGHT * 5, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT, -1, "D", true },
-	{ 0, WHITE_KEY_HEIGHT * 6, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT, -1, "C", true },
-	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT *  1, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, 0, "B♭/A♯", false },
-	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT *  3, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, 0, "A♭/G♯", false },
-	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT *  5, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, 0, "G♭/F♯", false },
-	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT *  8, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, 0, "E♭/D♯", false },
-	{ 0, BLACK_KEY_OFFSET + NOTE_ROW_HEIGHT * 10, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, 0, "D♭/C♯", false },
+	{  0,  0,  0, "B",     true },
+	{  1, +1,  0, "A",     true },
+	{  2, +1, +1, "G",     true },
+	{  3, +1, +1, "F",     true },
+	{  4, -1, -1, "E",     true },
+	{  5, -1, -1, "D",     true },
+	{  6, -1,  0, "C",     true },
+	{  1,  0,  0, "B♭/A♯", false },
+	{  3,  0,  0, "A♭/G♯", false },
+	{  5,  0,  0, "G♭/F♯", false },
+	{  8,  0,  0, "E♭/D♯", false },
+	{ 10,  0,  0, "D♭/C♯", false },
 };
 constexpr size_t PITCH_TO_KEY_INDEX[NUM_NOTES_PER_OCTAVE] {
 	6,  // C
@@ -87,13 +84,15 @@ constexpr size_t PITCH_TO_KEY_INDEX[NUM_NOTES_PER_OCTAVE] {
 class Note_Box : public Fl_Box {
 private:
 	const Note_View &_note_view;
+	int32_t _tick = 0;
 	bool _selected = false;
 	bool _ghost = false;
 public:
-	Note_Box(const Note_View &n, int X, int Y, int W, int H, const char *l=0)
-		: Fl_Box(X, Y, W, H, l), _note_view(n) {}
+	Note_Box(const Note_View &n, int32_t t, int X, int Y, int W, int H, const char *l=0)
+		: Fl_Box(X, Y, W, H, l), _note_view(n), _tick(t) {}
 
 	inline const Note_View &note_view(void) const { return _note_view; }
+	inline int32_t tick(void) const { return _tick; }
 	inline bool selected(void) const { return _selected; }
 	inline void selected(bool s) { _selected = s; }
 	inline bool ghost(void) const { return _ghost; }
@@ -102,16 +101,42 @@ protected:
 	void draw() override;
 };
 
-class Loop_Box : public Fl_Box {
+class Wrapper_Box : public Fl_Box {
+private:
+	int32_t _start_tick = 0;
+	int32_t _end_tick = 0;
+	Pitch _min_pitch = Pitch::B_NAT;
+	int32_t _min_octave = 8;
+	Pitch _max_pitch = Pitch::C_NAT;
+	int32_t _max_octave = 0;
 public:
 	using Fl_Box::Fl_Box;
+
+	inline int32_t start_tick(void) const { return _start_tick; }
+	inline int32_t end_tick(void) const { return _end_tick; }
+	inline Pitch min_pitch(void) const { return _min_pitch; }
+	inline int32_t min_octave(void) const { return _min_octave; }
+	inline Pitch max_pitch(void) const { return _max_pitch; }
+	inline int32_t max_octave(void) const { return _max_octave; }
+
+	inline void set_start_tick(int32_t t) { _start_tick = t; }
+	inline void set_end_tick(int32_t t) { _end_tick = t; }
+	inline void set_min_pitch(Pitch p, int32_t o) { _min_pitch = p; _min_octave = o; }
+	inline void set_max_pitch(Pitch p, int32_t o) { _max_pitch = p; _max_octave = o; }
+
+	void calc_sizes();
+};
+
+class Loop_Box : public Wrapper_Box {
+public:
+	using Wrapper_Box::Wrapper_Box;
 protected:
 	void draw() override;
 };
 
-class Call_Box : public Fl_Box {
+class Call_Box : public Wrapper_Box {
 public:
-	using Fl_Box::Fl_Box;
+	using Wrapper_Box::Wrapper_Box;
 protected:
 	void draw() override;
 };
@@ -123,6 +148,8 @@ protected:
 	void draw() override;
 };
 
+class Piano_Timeline;
+
 class Piano_Keys : public Fl_Group {
 private:
 	std::array<Fl_Box *, NUM_NOTES_PER_OCTAVE * NUM_OCTAVES> _notes;
@@ -132,6 +159,10 @@ public:
 
 	Piano_Keys(const Piano_Keys&) = delete;
 	Piano_Keys& operator=(const Piano_Keys&) = delete;
+
+	Piano_Timeline *parent() const { return (Piano_Timeline *)Fl_Group::parent(); }
+
+	void calc_sizes();
 
 	void highlight_key(Pitch pitch, int32_t octave, Fl_Color color);
 	void reset_key_colors();
@@ -170,6 +201,8 @@ public:
 
 	Piano_Roll *parent() const { return (Piano_Roll *)Fl_Group::parent(); }
 	inline int selected_channel() const;
+
+	void calc_sizes();
 
 	int handle(int event) override;
 	bool handle_note_selection(int event);
@@ -212,6 +245,7 @@ private:
 	bool _following = false;
 	bool _realtime = true;
 	bool _paused = false;
+	bool _zoomed = true;
 
 	std::vector<Note_View> _channel_1_notes;
 	std::vector<Note_View> _channel_2_notes;
@@ -240,6 +274,14 @@ public:
 	inline int32_t tick(void) const { return _tick; }
 	inline bool following(void) const { return _following; }
 	inline bool paused(void) const { return _paused; }
+	inline bool zoomed(void) const { return _zoomed; }
+
+	int white_key_height() const;
+	int black_key_height() const;
+	int octave_height() const;
+	int note_row_height() const;
+	int black_key_offset() const;
+	int tick_width() const;
 
 	inline const std::vector<Note_View> &channel_1_notes() const { return _channel_1_notes; }
 	inline const std::vector<Note_View> &channel_2_notes() const { return _channel_2_notes; }
@@ -260,7 +302,10 @@ public:
 
 	void toggle_follow_mode() { _realtime = !_realtime; }
 
+	void zoom(bool z);
+
 	void set_size(int W, int H);
+	void set_timeline_width();
 
 	bool set_timeline(const Song &song);
 	void set_active_channel_timeline(const Song &song);
@@ -270,6 +315,7 @@ public:
 
 	int32_t get_song_length() const;
 	int32_t get_loop_tick() const;
+	int32_t get_last_note_x() const;
 
 	void set_channel_1_detailed(bool detailed) { _piano_timeline->set_channel_1_detailed(detailed); }
 	void set_channel_2_detailed(bool detailed) { _piano_timeline->set_channel_2_detailed(detailed); }
@@ -285,6 +331,11 @@ public:
 	void stop_following();
 	void pause_following();
 	void highlight_tick(int32_t t);
+	void focus_cursor();
+	void sticky_keys();
+
+	int scroll_x_max() const;
+	int scroll_y_max() const;
 
 	bool put_note(Song &song, Pitch pitch);
 	bool pitch_up(Song &song);

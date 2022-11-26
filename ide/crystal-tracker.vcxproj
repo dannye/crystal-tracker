@@ -171,6 +171,7 @@
     <None Include="..\res\two.xpm" />
     <None Include="..\res\undo.xpm" />
     <None Include="..\res\warning.xpm" />
+    <None Include="..\res\zoom.xpm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

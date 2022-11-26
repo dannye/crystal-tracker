@@ -44,6 +44,7 @@ private:
 		*_brushed_metal_theme_mi = NULL,
 		*_high_contrast_theme_mi = NULL;
 	Fl_Menu_Item
+		*_zoom_mi = NULL,
 		*_full_screen_mi = NULL;
 	Toolbar_Button
 		*_new_tb = NULL,
@@ -53,7 +54,8 @@ private:
 		*_play_pause_tb = NULL,
 		*_stop_tb = NULL;
 	Toolbar_Toggle_Button
-		*_loop_tb = NULL;
+		*_loop_tb = NULL,
+		*_zoom_tb = NULL;
 	Toolbar_Button
 		*_undo_tb = NULL,
 		*_redo_tb = NULL;
@@ -126,6 +128,7 @@ public:
 	void resize(int X, int Y, int W, int H) override;
 	bool maximized(void) const;
 	void maximize(void);
+	inline bool zoom(void) const { return _zoom_mi && !!_zoom_mi->value(); }
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
 	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
 	inline int selected_channel(void) const { return _selected_channel; }
@@ -148,6 +151,7 @@ private:
 	void start_audio_thread();
 	void stop_audio_thread();
 	void update_icons(void);
+	void update_zoom(void);
 	// File menu
 	static void new_cb(Fl_Widget *w, Main_Window *mw);
 	static void open_cb(Fl_Widget *w, Main_Window *mw);
@@ -198,6 +202,7 @@ private:
 	static void dark_theme_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void brushed_metal_theme_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void high_contrast_theme_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void zoom_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void full_screen_cb(Fl_Menu_ *m, Main_Window *mw);
 	// Toolbar buttons
 	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
@@ -205,6 +210,7 @@ private:
 	static void channel_two_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
 	static void channel_three_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
 	static void channel_four_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
+	static void zoom_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	// Help menu
 	static void help_cb(Fl_Widget *w, Main_Window *mw);
 	static void about_cb(Fl_Widget *w, Main_Window *mw);

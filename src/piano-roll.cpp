@@ -143,28 +143,25 @@ void White_Key_Box::draw() {
 }
 
 Piano_Keys::Piano_Keys(int x, int y, int w, int h, const char *l) : Fl_Group(x, y, w, h, l) {
-	int white_delta = 0, black_delta = 0;
 	for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
-		int y_pos = OCTAVE_HEIGHT * _y;
 		for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
 			size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
 			if (NOTE_KEYS[_x].white) {
-				_notes[i] = new White_Key_Box(NOTE_KEYS[_x].x + x, y_pos + NOTE_KEYS[_x].y + y + white_delta, NOTE_KEYS[_x].w, NOTE_KEYS[_x].h + NOTE_KEYS[_x].delta, NOTE_KEYS[_x].label);
+				_notes[i] = new White_Key_Box(x, y, 0, 0, NOTE_KEYS[_x].label);
 				_notes[i]->box(FL_BORDER_BOX);
 				_notes[i]->color(FL_BACKGROUND2_COLOR);
 				_notes[i]->labelcolor(FL_FOREGROUND_COLOR);
-				white_delta += NOTE_KEYS[_x].delta;
 			}
 			else {
-				_notes[i] = new Fl_Box(NOTE_KEYS[_x].x + x, y_pos + NOTE_KEYS[_x].y + y + black_delta, NOTE_KEYS[_x].w, NOTE_KEYS[_x].h + NOTE_KEYS[_x].delta, NOTE_KEYS[_x].label);
+				_notes[i] = new Fl_Box(x, y, 0, 0, NOTE_KEYS[_x].label);
 				_notes[i]->box(FL_BORDER_BOX);
 				_notes[i]->color(FL_FOREGROUND_COLOR);
 				_notes[i]->labelcolor(FL_BACKGROUND2_COLOR);
-				black_delta += NOTE_KEYS[_x].delta;
 			}
 		}
 	}
 	end();
+	calc_sizes();
 }
 
 Piano_Keys::~Piano_Keys() noexcept {
@@ -174,6 +171,48 @@ Piano_Keys::~Piano_Keys() noexcept {
 			_notes[i] = nullptr;
 		}
 	}
+}
+
+void Piano_Keys::calc_sizes() {
+	const Piano_Roll *piano_roll = parent()->parent();
+	const bool zoomed = piano_roll->zoomed();
+	const int white_key_height = piano_roll->white_key_height();
+	const int black_key_height = piano_roll->black_key_height();
+	const int octave_height = piano_roll->octave_height();
+	const int note_row_height = piano_roll->note_row_height();
+	const int black_key_offset = piano_roll->black_key_offset();
+
+	int white_delta = 0, black_delta = 0;
+
+	int y_top = _notes[0]->y();
+
+	for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
+		int y_pos = octave_height * _y;
+		for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
+			size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
+			int delta = zoomed ? NOTE_KEYS[_x].delta1 : NOTE_KEYS[_x].delta2;
+			if (NOTE_KEYS[_x].white) {
+				_notes[i]->resize(
+					_notes[i]->x(),
+					y_top + y_pos + NOTE_KEYS[_x].y * white_key_height + white_delta,
+					WHITE_KEY_WIDTH,
+					white_key_height + delta
+				);
+				white_delta += delta;
+			}
+			else {
+				_notes[i]->resize(
+					_notes[i]->x(),
+					y_top + y_pos + NOTE_KEYS[_x].y * note_row_height + black_key_offset + black_delta,
+					BLACK_KEY_WIDTH,
+					black_key_height + delta
+				);
+				black_delta += delta;
+			}
+		}
+	}
+
+	size(w(), NUM_OCTAVES * octave_height);
 }
 
 void Piano_Keys::highlight_key(Pitch pitch, int32_t octave, Fl_Color color) {
@@ -198,7 +237,7 @@ void Piano_Keys::reset_key_colors() {
 }
 
 Piano_Timeline::Piano_Timeline(int x, int y, int w, int h, const char *l) : Fl_Group(x, y, w, h, l) {
-	_keys = new Piano_Keys(x, y, WHITE_KEY_WIDTH, OCTAVE_HEIGHT * NUM_OCTAVES);
+	_keys = new Piano_Keys(x, y, WHITE_KEY_WIDTH, NUM_OCTAVES * parent()->octave_height());
 	end();
 }
 
@@ -287,6 +326,62 @@ void Piano_Timeline::clear_channel_4() {
 
 inline int Piano_Timeline::selected_channel() const {
 	return parent()->selected_channel();
+}
+
+void Piano_Timeline::calc_sizes() {
+	const int octave_height = parent()->octave_height();
+	const int note_row_height = parent()->note_row_height();
+	const int tick_width = parent()->tick_width();
+
+	const auto tick_to_x_pos = [&](int32_t tick) {
+		return x() + WHITE_KEY_WIDTH + tick * tick_width;
+	};
+	const auto pitch_to_y_pos = [&](Pitch pitch, int32_t octave) {
+		return y() + (NUM_OCTAVES - octave) * octave_height + (NUM_PITCHES - (size_t)(pitch)) * note_row_height;
+	};
+
+	const auto resize_notes = [&](std::vector<Note_Box *> &notes) {
+		for (Note_Box *note : notes) {
+			note->resize(
+				tick_to_x_pos(note->tick()),
+				pitch_to_y_pos(note->note_view().pitch, note->note_view().octave),
+				note->note_view().length * note->note_view().speed * tick_width,
+				note_row_height
+			);
+		}
+	};
+
+	resize_notes(_channel_1_notes);
+	resize_notes(_channel_2_notes);
+	resize_notes(_channel_3_notes);
+	resize_notes(_channel_4_notes);
+
+	const auto resize_wrappers = [&](auto &wrappers) {
+		for (Wrapper_Box *wrapper : wrappers) {
+			int x_left =   tick_to_x_pos(wrapper->start_tick());
+			int x_right =  tick_to_x_pos(wrapper->end_tick());
+			int y_top =    pitch_to_y_pos(wrapper->max_pitch(), wrapper->max_octave());
+			int y_bottom = pitch_to_y_pos(wrapper->min_pitch(), wrapper->min_octave());
+			wrapper->resize(
+				x_left,
+				y_top,
+				x_right - x_left,
+				y_bottom + note_row_height - y_top
+			);
+		}
+	};
+
+	resize_wrappers(_channel_1_loops);
+	resize_wrappers(_channel_2_loops);
+	resize_wrappers(_channel_3_loops);
+	resize_wrappers(_channel_4_loops);
+
+	resize_wrappers(_channel_1_calls);
+	resize_wrappers(_channel_2_calls);
+	resize_wrappers(_channel_3_calls);
+	resize_wrappers(_channel_4_calls);
+
+	redraw();
 }
 
 int Piano_Timeline::handle(int event) {
@@ -415,7 +510,7 @@ void Piano_Timeline::reset_note_colors() {
 }
 
 void Piano_Timeline::highlight_tick(std::vector<Note_Box *> &notes, int32_t tick, Fl_Color color) {
-	int x_pos = tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+	int x_pos = tick * parent()->tick_width() + WHITE_KEY_WIDTH;
 	for (Note_Box *note : notes) {
 		int note_left = note->x() - x();
 		int note_right = note_left + note->w();
@@ -431,7 +526,7 @@ void Piano_Timeline::highlight_tick(std::vector<Note_Box *> &notes, int32_t tick
 }
 
 void Piano_Timeline::select_note_at_tick(std::vector<Note_Box *> &notes, int32_t tick) {
-	int x_pos = tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+	int x_pos = tick * parent()->tick_width() + WHITE_KEY_WIDTH;
 	for (Note_Box *note : notes) {
 		int note_left = note->x() - x();
 		int note_right = note_left + note->w();
@@ -445,26 +540,36 @@ void Piano_Timeline::select_note_at_tick(std::vector<Note_Box *> &notes, int32_t
 	}
 }
 
-#define BASE_X (x())
-#define BASE_Y (y())
-
-#define TICK_TO_X_POS(tick) (BASE_X + WHITE_KEY_WIDTH + TICK_WIDTH * (tick))
-#define PITCH_TO_Y_POS(pitch, octave) (BASE_Y + (NUM_OCTAVES - (octave)) * OCTAVE_HEIGHT + (NUM_PITCHES - (size_t)(pitch)) * NOTE_ROW_HEIGHT)
-
 void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, const std::vector<Note_View> &notes, Fl_Color color) {
+	const int octave_height = parent()->octave_height();
+	const int note_row_height = parent()->note_row_height();
+	const int tick_width = parent()->tick_width();
+
+	const auto tick_to_x_pos = [&](int32_t tick) {
+		return x() + WHITE_KEY_WIDTH + tick * tick_width;
+	};
+	const auto pitch_to_y_pos = [&](Pitch pitch, int32_t octave) {
+		return y() + (NUM_OCTAVES - octave) * octave_height + (NUM_PITCHES - (size_t)(pitch)) * note_row_height;
+	};
+
 	begin();
-	int x_pos = x() + WHITE_KEY_WIDTH;
+	int32_t tick = 0;
 	for (const Note_View &note : notes) {
-		int width = TICK_WIDTH * note.length * note.speed;
 		if (note.pitch != Pitch::REST) {
-			int y_pos = PITCH_TO_Y_POS(note.pitch, note.octave);
-			Note_Box *box = new Note_Box(note, x_pos, y_pos, width, NOTE_ROW_HEIGHT);
+			Note_Box *box = new Note_Box(
+				note,
+				tick,
+				tick_to_x_pos(tick),
+				pitch_to_y_pos(note.pitch, note.octave),
+				note.length * note.speed * tick_width,
+				note_row_height
+			);
 			box->box(FL_BORDER_BOX);
 			box->color(color);
 			box->ghost(note.ghost);
 			channel.push_back(box);
 		}
-		x_pos += width;
+		tick += note.length * note.speed;
 	}
 	end();
 
@@ -526,33 +631,37 @@ void Piano_Timeline::draw() {
 	Fl_Color row_divider = hc ? FL_BACKGROUND2_COLOR : FL_DARK2;
 	Fl_Color cursor_color = dark ? FL_YELLOW : FL_MAGENTA;
 	if (damage() & ~FL_DAMAGE_CHILD) {
+		Piano_Roll *p = parent();
+		const int note_row_height = p->note_row_height();
+		const int tick_width = p->tick_width();
+
 		int y_pos = y();
 		for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
 			for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
 				if (is_white_key(_x)) {
-					fl_rectf(x(), y_pos, w(), NOTE_ROW_HEIGHT, light_row);
+					fl_rectf(x(), y_pos, w(), note_row_height, light_row);
 				}
 				else {
-					fl_rectf(x(), y_pos, w(), NOTE_ROW_HEIGHT, dark_row);
+					fl_rectf(x(), y_pos, w(), note_row_height, dark_row);
 				}
 				if (_x == 0 || _x == 7) {
 					fl_color(row_divider);
 					fl_xyline(x(), y_pos - 1, x() + w());
 					fl_xyline(x(), y_pos, x() + w());
 				}
-				y_pos += NOTE_ROW_HEIGHT;
+				y_pos += note_row_height;
 			}
 		}
 
 		int x_pos = x() + WHITE_KEY_WIDTH;
-		const size_t num_dividers = (w() - WHITE_KEY_WIDTH) / TIME_STEP_WIDTH + 1;
+		int time_step_width = tick_width * TICKS_PER_STEP;
+		const size_t num_dividers = (w() - WHITE_KEY_WIDTH) / time_step_width + 1;
 		for (size_t i = 0; i < num_dividers; ++i) {
 			fl_color(FL_DARK3);
 			fl_yxline(x_pos - 1, y(), y() + h());
-			x_pos += TIME_STEP_WIDTH;
+			x_pos += time_step_width;
 		}
 
-		Piano_Roll *p = parent();
 		int active_channel = selected_channel();
 
 		int32_t loop_tick = p->get_loop_tick();
@@ -567,32 +676,32 @@ void Piano_Timeline::draw() {
 			(channel_3_loop_tick == -1 || channel_3_loop_tick == loop_tick) &&
 			(channel_4_loop_tick == -1 || channel_4_loop_tick == loop_tick)
 		) {
-			x_pos = x() + loop_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+			x_pos = x() + loop_tick * tick_width + WHITE_KEY_WIDTH;
 			fl_color(FL_FOREGROUND_COLOR);
 			fl_yxline(x_pos - 1, y(), y() + h());
 			fl_yxline(x_pos, y(), y() + h());
 		}
 		else {
 			if (channel_1_loop_tick != -1 && (active_channel == 0 || active_channel == 1)) {
-				x_pos = x() + channel_1_loop_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				x_pos = x() + channel_1_loop_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_RED);
 				fl_yxline(x_pos - 1, y(), y() + h());
 				fl_yxline(x_pos, y(), y() + h());
 			}
 			if (channel_2_loop_tick != -1 && (active_channel == 0 || active_channel == 2)) {
-				x_pos = x() + channel_2_loop_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				x_pos = x() + channel_2_loop_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_BLUE);
 				fl_yxline(x_pos - 1, y(), y() + h());
 				fl_yxline(x_pos, y(), y() + h());
 			}
 			if (channel_3_loop_tick != -1 && (active_channel == 0 || active_channel == 3)) {
-				x_pos = x() + channel_3_loop_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				x_pos = x() + channel_3_loop_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_GREEN);
 				fl_yxline(x_pos - 1, y(), y() + h());
 				fl_yxline(x_pos, y(), y() + h());
 			}
 			if (channel_4_loop_tick != -1 && (active_channel == 0 || active_channel == 4)) {
-				x_pos = x() + channel_4_loop_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				x_pos = x() + channel_4_loop_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_BROWN);
 				fl_yxline(x_pos - 1, y(), y() + h());
 				fl_yxline(x_pos, y(), y() + h());
@@ -611,32 +720,32 @@ void Piano_Timeline::draw() {
 			(channel_3_end_tick == -1 || channel_3_end_tick == end_tick) &&
 			(channel_4_end_tick == -1 || channel_4_end_tick == end_tick)
 		) {
-			x_pos = x() + end_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+			x_pos = x() + end_tick * tick_width + WHITE_KEY_WIDTH;
 			fl_color(FL_FOREGROUND_COLOR);
 			fl_yxline(x_pos - 1, y(), y() + h());
 			fl_yxline(x_pos, y(), y() + h());
 		}
 		else {
 			if (channel_1_end_tick != -1 && (active_channel == 0 || active_channel == 1)) {
-				x_pos = x() + channel_1_end_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				x_pos = x() + channel_1_end_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_RED);
 				fl_yxline(x_pos - 1, y(), y() + h());
 				fl_yxline(x_pos, y(), y() + h());
 			}
 			if (channel_2_end_tick != -1 && (active_channel == 0 || active_channel == 2)) {
-				x_pos = x() + channel_2_end_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				x_pos = x() + channel_2_end_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_BLUE);
 				fl_yxline(x_pos - 1, y(), y() + h());
 				fl_yxline(x_pos, y(), y() + h());
 			}
 			if (channel_3_end_tick != -1 && (active_channel == 0 || active_channel == 3)) {
-				x_pos = x() + channel_3_end_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				x_pos = x() + channel_3_end_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_GREEN);
 				fl_yxline(x_pos - 1, y(), y() + h());
 				fl_yxline(x_pos, y(), y() + h());
 			}
 			if (channel_4_end_tick != -1 && (active_channel == 0 || active_channel == 4)) {
-				x_pos = x() + channel_4_end_tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+				x_pos = x() + channel_4_end_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_BROWN);
 				fl_yxline(x_pos - 1, y(), y() + h());
 				fl_yxline(x_pos, y(), y() + h());
@@ -647,7 +756,7 @@ void Piano_Timeline::draw() {
 		if (tick != -1 && (parent()->following() || parent()->paused())) {
 			tick = tick / TICKS_PER_STEP * TICKS_PER_STEP;
 		}
-		x_pos = x() + tick * TICK_WIDTH + WHITE_KEY_WIDTH;
+		x_pos = x() + tick * tick_width + WHITE_KEY_WIDTH;
 		fl_color(cursor_color);
 		fl_yxline(x_pos - 1, y(), y() + h());
 		fl_yxline(x_pos, y(), y() + h());
@@ -657,7 +766,7 @@ void Piano_Timeline::draw() {
 
 Piano_Roll::Piano_Roll(int x, int y, int w, int h, const char *l) : Fl_Scroll(x, y, w, h, l) {
 	type(BOTH_ALWAYS);
-	_piano_timeline = new Piano_Timeline(x, y, (w - scrollbar.w()) * 2, OCTAVE_HEIGHT * NUM_OCTAVES);
+	_piano_timeline = new Piano_Timeline(x, y, w - scrollbar.w(), NUM_OCTAVES * octave_height());
 	end();
 
 	hscrollbar.callback((Fl_Callback *)hscrollbar_cb);
@@ -672,6 +781,30 @@ Piano_Roll::~Piano_Roll() noexcept {
 
 inline int Piano_Roll::selected_channel() const {
 	return parent()->selected_channel();
+}
+
+int Piano_Roll::white_key_height() const {
+	return _zoomed ? WHITE_KEY_HEIGHT_ZOOMED : WHITE_KEY_HEIGHT_UNZOOMED;
+}
+
+int Piano_Roll::black_key_height() const {
+	return _zoomed ? BLACK_KEY_HEIGHT_ZOOMED : BLACK_KEY_HEIGHT_UNZOOMED;
+}
+
+int Piano_Roll::octave_height() const {
+	return white_key_height() * NUM_WHITE_NOTES;
+}
+
+int Piano_Roll::note_row_height() const {
+	return octave_height() / NUM_NOTES_PER_OCTAVE;
+}
+
+int Piano_Roll::black_key_offset() const {
+	return note_row_height() / 2 - black_key_height() / 2;
+}
+
+int Piano_Roll::tick_width() const {
+	return _zoomed ? TICK_WIDTH_ZOOMED : TICK_WIDTH_UNZOOMED;
 }
 
 int Piano_Roll::handle(int event) {
@@ -702,31 +835,31 @@ int Piano_Roll::handle(int event) {
 			else {
 				scroll_to(x_pos, yposition());
 			}
-			_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+			sticky_keys();
 			redraw();
 			return 1;
 		}
 		else if (Fl::event_key() == FL_Page_Down) {
 			int x_pos = xposition() + (w() - WHITE_KEY_WIDTH * 2);
-			if (x_pos > _piano_timeline->w() - (w() - scrollbar.w())) {
-				scroll_to(_piano_timeline->w() - (w() - scrollbar.w()), yposition());
+			if (x_pos > scroll_x_max()) {
+				scroll_to(scroll_x_max(), yposition());
 			}
 			else {
 				scroll_to(x_pos, yposition());
 			}
-			_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+			sticky_keys();
 			redraw();
 			return 1;
 		}
 		else if (Fl::event_key() == FL_Home) {
 			scroll_to(0, yposition());
-			_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+			sticky_keys();
 			redraw();
 			return 1;
 		}
 		else if (Fl::event_key() == FL_End) {
-			scroll_to(_piano_timeline->w() - (w() - scrollbar.w()), yposition());
-			_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+			scroll_to(scroll_x_max(), yposition());
+			sticky_keys();
 			redraw();
 			return 1;
 		}
@@ -745,7 +878,7 @@ bool Piano_Roll::handle_mouse_click(int event) {
 		(Fl::event_button() == FL_MIDDLE_MOUSE || (Fl::event_command() && Fl::event_button() == FL_RIGHT_MOUSE)) &&
 		(!_following || event == FL_PUSH)
 	) {
-		int32_t t = (Fl::event_x() - _piano_timeline->x() - WHITE_KEY_WIDTH) / TICK_WIDTH;
+		int32_t t = (Fl::event_x() - _piano_timeline->x() - WHITE_KEY_WIDTH) / tick_width();
 		t = quantize_tick(t);
 
 		if (_tick != t && 0 <= t && t < _song_length) {
@@ -763,16 +896,53 @@ bool Piano_Roll::handle_mouse_click(int event) {
 	return false;
 }
 
+void Piano_Roll::zoom(bool z) {
+	if (_zoomed == z) return;
+	_zoomed = z;
+
+	float scroll_x = scroll_x_max() > 0 ? hscrollbar.value() / (float) scroll_x_max() : 0.0f;
+	float scroll_y = scroll_y_max() > 0 ? scrollbar.value() / (float) scroll_y_max() : 0.0f;
+
+	_piano_timeline->calc_sizes();
+	_piano_timeline->_keys->calc_sizes();
+
+	set_timeline_width();
+	_piano_timeline->h(NUM_OCTAVES * octave_height());
+
+	scroll_to(scroll_x * scroll_x_max(), scroll_y * scroll_y_max());
+	sticky_keys();
+
+	if (_following) {
+		focus_cursor();
+	}
+}
+
 void Piano_Roll::set_size(int W, int H) {
 	if (W != w() || H != h()) {
 		size(W, H);
-		// if window is too wide, increase the width of the timeline
-		if (hscrollbar.value() > _piano_timeline->w() - (W - scrollbar.w())) {
-			_piano_timeline->w(hscrollbar.value() + (W - scrollbar.w()));
+		set_timeline_width();
+		if (hscrollbar.value() > scroll_x_max()) {
+			scroll_to(scroll_x_max(), yposition());
+			sticky_keys();
 		}
-		// if window is too tall, clamp the vertical scroll position
-		if (scrollbar.value() > _piano_timeline->h() - (H - hscrollbar.h())) {
-			scroll_to(xposition(), _piano_timeline->h() - (H - hscrollbar.h()));
+		if (scrollbar.value() > scroll_y_max()) {
+			scroll_to(xposition(), scroll_y_max());
+		}
+	}
+}
+
+void Piano_Roll::set_timeline_width() {
+	if (_song_length == -1) {
+		_piano_timeline->w(w() - scrollbar.w());
+	}
+	else {
+		_piano_timeline->w(WHITE_KEY_WIDTH + _song_length * tick_width());
+		int32_t last_note_x = get_last_note_x();
+		if (last_note_x != -1) {
+			int width = last_note_x + w() - scrollbar.w() - WHITE_KEY_WIDTH;
+			if (width > _piano_timeline->w()) {
+				_piano_timeline->w(width);
+			}
 		}
 	}
 }
@@ -785,7 +955,7 @@ bool Piano_Roll::set_timeline(const Song &song) {
 
 	_song_length = get_song_length();
 
-	_piano_timeline->w(WHITE_KEY_WIDTH + _song_length * TICK_WIDTH);
+	_piano_timeline->w(WHITE_KEY_WIDTH + _song_length * tick_width());
 
 	bool success = true;
 	success = success && build_note_view(_piano_timeline->_channel_1_loops, _piano_timeline->_channel_1_calls, _channel_1_notes, song.channel_1_commands(), _song_length, NOTE_RED);
@@ -845,10 +1015,8 @@ void Piano_Roll::set_active_channel_selection(const std::set<int32_t> &selection
 	}
 }
 
-#undef BASE_X
-#undef BASE_Y
-#define BASE_X (_piano_timeline->x())
-#define BASE_Y (_piano_timeline->y())
+#define TICK_TO_X_POS(tick) (_piano_timeline->x() + WHITE_KEY_WIDTH + (tick) * tick_width())
+#define PITCH_TO_Y_POS(pitch, octave) (_piano_timeline->y() + (NUM_OCTAVES - (octave)) * octave_height() + (NUM_PITCHES - (size_t)(pitch)) * note_row_height())
 
 bool Piano_Roll::build_note_view(
 	std::vector<Loop_Box *> &loops,
@@ -899,25 +1067,31 @@ bool Piano_Roll::build_note_view(
 
 			int note_x2 = TICK_TO_X_POS(tick);
 			int note_y1 = PITCH_TO_Y_POS(note.pitch, note.octave);
-			int note_y2 = note_y1 + NOTE_ROW_HEIGHT;
+			int note_y2 = note_y1 + note_row_height();
 			if (loop) {
 				loop->size(note_x2 - loop->x(), loop->h());
+				loop->set_end_tick(tick);
 				if (note_y1 < loop->y()) {
 					int loop_y2 = loop->y() + loop->h();
 					loop->resize(loop->x(), note_y1, loop->w(), loop_y2 - note_y1);
+					loop->set_max_pitch(note.pitch, note.octave);
 				}
 				if (note_y2 - loop->y() > loop->h()) {
 					loop->size(loop->w(), note_y2 - loop->y());
+					loop->set_min_pitch(note.pitch, note.octave);
 				}
 			}
 			if (call) {
 				call->size(note_x2 - call->x(), call->h());
+				call->set_end_tick(tick);
 				if (note_y1 < call->y()) {
 					int call_y2 = call->y() + call->h();
 					call->resize(call->x(), note_y1, call->w(), call_y2 - note_y1);
+					call->set_max_pitch(note.pitch, note.octave);
 				}
 				if (note_y2 - call->y() > call->h()) {
 					call->size(call->w(), note_y2 - call->y());
+					call->set_min_pitch(note.pitch, note.octave);
 				}
 			}
 		}
@@ -934,25 +1108,31 @@ bool Piano_Roll::build_note_view(
 
 			int note_x2 = TICK_TO_X_POS(tick);
 			int note_y1 = PITCH_TO_Y_POS(note.pitch, note.octave);
-			int note_y2 = note_y1 + NOTE_ROW_HEIGHT;
+			int note_y2 = note_y1 + note_row_height();
 			if (loop) {
 				loop->size(note_x2 - loop->x(), loop->h());
+				loop->set_end_tick(tick);
 				if (note_y1 < loop->y()) {
 					int loop_y2 = loop->y() + loop->h();
 					loop->resize(loop->x(), note_y1, loop->w(), loop_y2 - note_y1);
+					loop->set_max_pitch(note.pitch, note.octave);
 				}
 				if (note_y2 - loop->y() > loop->h()) {
 					loop->size(loop->w(), note_y2 - loop->y());
+					loop->set_min_pitch(note.pitch, note.octave);
 				}
 			}
 			if (call) {
 				call->size(note_x2 - call->x(), call->h());
+				call->set_end_tick(tick);
 				if (note_y1 < call->y()) {
 					int call_y2 = call->y() + call->h();
 					call->resize(call->x(), note_y1, call->w(), call_y2 - note_y1);
+					call->set_max_pitch(note.pitch, note.octave);
 				}
 				if (note_y2 - call->y() > call->h()) {
 					call->size(call->w(), note_y2 - call->y());
+					call->set_min_pitch(note.pitch, note.octave);
 				}
 			}
 		}
@@ -970,9 +1150,11 @@ bool Piano_Roll::build_note_view(
 			int note_x2 = TICK_TO_X_POS(tick);
 			if (loop) {
 				loop->size(note_x2 - loop->x(), loop->h());
+				loop->set_end_tick(tick);
 			}
 			if (call) {
 				call->size(note_x2 - call->x(), call->h());
+				call->set_end_tick(tick);
 			}
 		}
 		else if (command_itr->type == Command_Type::OCTAVE) {
@@ -1010,7 +1192,14 @@ bool Piano_Roll::build_note_view(
 				if (loop_pending) {
 					loop->position(loop->x() - loop->w(), loop->y());
 					_piano_timeline->begin();
+					Loop_Box *first_loop = loop;
 					loop = new Loop_Box(loop->x() + loop->w(), loop->y(), loop->w(), loop->h());
+					loop->set_start_tick(first_loop->start_tick());
+					loop->set_end_tick(first_loop->end_tick());
+					first_loop->set_start_tick(first_loop->start_tick() - (loop->end_tick() - loop->start_tick()));
+					first_loop->set_end_tick(first_loop->end_tick() - (loop->end_tick() - loop->start_tick()));
+					loop->set_min_pitch(first_loop->min_pitch(), first_loop->min_octave());
+					loop->set_max_pitch(first_loop->max_pitch(), first_loop->max_octave());
 					loop->box(FL_BORDER_FRAME);
 					loop->color(fl_lighter(color));
 					loops.push_back(loop);
@@ -1030,6 +1219,7 @@ bool Piano_Roll::build_note_view(
 						int loop_y1 = PITCH_TO_Y_POS(Pitch::C_NAT, 1);
 						int loop_y2 = PITCH_TO_Y_POS(Pitch::B_NAT, 8);
 						loop = new Loop_Box(loop_x1, loop_y1, 0, loop_y2 - loop_y1);
+						loop->set_start_tick(tick);
 						loop->box(FL_BORDER_FRAME);
 						loop->color(fl_lighter(color));
 						loops.push_back(loop);
@@ -1067,6 +1257,7 @@ bool Piano_Roll::build_note_view(
 						int loop_y1 = PITCH_TO_Y_POS(Pitch::C_NAT, 1);
 						int loop_y2 = PITCH_TO_Y_POS(Pitch::B_NAT, 8);
 						loop = new Loop_Box(loop_x1, loop_y1, 0, loop_y2 - loop_y1);
+						loop->set_start_tick(tick);
 						loop->box(FL_BORDER_FRAME);
 						loop->color(fl_lighter(color));
 						loops.push_back(loop);
@@ -1091,6 +1282,7 @@ bool Piano_Roll::build_note_view(
 				int call_y1 = PITCH_TO_Y_POS(Pitch::C_NAT, 1);
 				int call_y2 = PITCH_TO_Y_POS(Pitch::B_NAT, 8);
 				call = new Call_Box(call_x1, call_y1, 0, call_y2 - call_y1);
+				call->set_start_tick(tick);
 				call->box(FL_BORDER_FRAME);
 				call->color(fl_darker(color));
 				calls.push_back(call);
@@ -1117,7 +1309,14 @@ bool Piano_Roll::build_note_view(
 	if (loop_pending) {
 		loop->position(loop->x() - loop->w(), loop->y());
 		_piano_timeline->begin();
+		Loop_Box *first_loop = loop;
 		loop = new Loop_Box(loop->x() + loop->w(), loop->y(), loop->w(), loop->h());
+		loop->set_start_tick(first_loop->start_tick());
+		loop->set_end_tick(first_loop->end_tick());
+		first_loop->set_start_tick(first_loop->start_tick() - (loop->end_tick() - loop->start_tick()));
+		first_loop->set_end_tick(first_loop->end_tick() - (loop->end_tick() - loop->start_tick()));
+		loop->set_min_pitch(first_loop->min_pitch(), first_loop->min_octave());
+		loop->set_max_pitch(first_loop->max_pitch(), first_loop->max_octave());
 		loop->box(FL_BORDER_FRAME);
 		loop->color(fl_lighter(color));
 		loops.push_back(loop);
@@ -1171,16 +1370,32 @@ int32_t Piano_Roll::get_loop_tick() const {
 	return loop_tick;
 }
 
+int32_t Piano_Roll::get_last_note_x() const {
+	const auto get_channel_last_note_x = [this](std::vector<Note_Box *> &notes) {
+		if (notes.size() > 0) {
+			return notes.back()->x() - _piano_timeline->x();
+		}
+		return -1;
+	};
+	int32_t last_note_x = std::max({
+		get_channel_last_note_x(_piano_timeline->_channel_1_notes),
+		get_channel_last_note_x(_piano_timeline->_channel_2_notes),
+		get_channel_last_note_x(_piano_timeline->_channel_3_notes),
+		get_channel_last_note_x(_piano_timeline->_channel_4_notes),
+	});
+	return last_note_x;
+}
+
 void Piano_Roll::align_cursor() {
 	_tick = quantize_tick(_tick, true);
 }
 
 void Piano_Roll::clear() {
 	_piano_timeline->clear();
-	_piano_timeline->w((w() - scrollbar.w()) * 2);
+	_piano_timeline->w(w() - scrollbar.w());
 	_piano_timeline->_keys->reset_key_colors();
 	scroll_to(0, yposition());
-	_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+	sticky_keys();
 	_following = false;
 	_paused = false;
 	_tick = -1;
@@ -1208,7 +1423,7 @@ void Piano_Roll::start_following() {
 	_piano_timeline->_keys->reset_key_colors();
 	if (_tick == -1) {
 		scroll_to(0, yposition());
-		_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+		sticky_keys();
 	}
 	redraw();
 }
@@ -1243,17 +1458,33 @@ void Piano_Roll::highlight_tick(int32_t t) {
 	_piano_timeline->highlight_channel_3_tick(_tick);
 	_piano_timeline->highlight_channel_4_tick(_tick);
 
-	int x_pos = (_tick / TICKS_PER_STEP * TICKS_PER_STEP) * TICK_WIDTH;
-	if (_realtime || x_pos > xposition() + w() - WHITE_KEY_WIDTH * 2 || x_pos < xposition()) {
-		if (x_pos > _piano_timeline->w() - (w() - scrollbar.w())) {
-			scroll_to(_piano_timeline->w() - (w() - scrollbar.w()), yposition());
+	focus_cursor();
+	redraw();
+}
+
+void Piano_Roll::focus_cursor() {
+	int x_pos = (_tick / TICKS_PER_STEP * TICKS_PER_STEP) * tick_width();
+	if ((_following && _realtime) || x_pos > xposition() + w() - WHITE_KEY_WIDTH * 2 || x_pos < xposition()) {
+		if (x_pos > scroll_x_max()) {
+			scroll_to(scroll_x_max(), yposition());
 		}
 		else {
 			scroll_to(x_pos, yposition());
 		}
-		_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+		sticky_keys();
 	}
-	redraw();
+}
+
+void Piano_Roll::sticky_keys() {
+	_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+}
+
+int Piano_Roll::scroll_x_max() const {
+	return _piano_timeline->w() - (w() - scrollbar.w());
+}
+
+int Piano_Roll::scroll_y_max() const {
+	return _piano_timeline->h() - (h() - hscrollbar.h());
 }
 
 bool Piano_Roll::put_note(Song &song, Pitch pitch) {
@@ -1300,6 +1531,7 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch) {
 	_piano_timeline->select_note_at_tick(*channel, _tick);
 
 	_tick += speed;
+	focus_cursor();
 
 	return true;
 }
@@ -1688,6 +1920,6 @@ std::vector<Note_View> *Piano_Roll::active_channel_view() {
 void Piano_Roll::hscrollbar_cb(Fl_Scrollbar *sb, void *) {
 	Piano_Roll *scroll = (Piano_Roll *)(sb->parent());
 	scroll->scroll_to(sb->value(), scroll->yposition());
-	scroll->_piano_timeline->_keys->position(0, scroll->_piano_timeline->_keys->y());
+	scroll->sticky_keys();
 	scroll->redraw();
 }

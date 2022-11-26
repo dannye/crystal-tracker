@@ -35,7 +35,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_wx(x), _wy(y), _ww(w), _wh(h) {
 
 	// Get global configs
-	int loop_config = Preferences::get("loop", 0);
+	int loop_config = Preferences::get("loop", 1);
+	int zoom_config = Preferences::get("zoom", 1);
 
 	for (int i = 0; i < NUM_RECENT; i++) {
 		_recent[i] = Preferences::get_string(Fl_Preferences::Name("recent%d", i));
@@ -82,6 +83,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_three_tb->when(FL_WHEN_RELEASE_ALWAYS);
 	_channel_four_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_channel_four_tb->when(FL_WHEN_RELEASE_ALWAYS);
+	SEPARATE_TOOLBAR_BUTTONS;
+	_zoom_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_toolbar->end();
 	begin();
 
@@ -108,12 +111,6 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	// Configure window
 	box(OS_BG_BOX);
-	size_range(
-		WHITE_KEY_WIDTH * 3 + 15,
-		OCTAVE_HEIGHT + MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + STATUS_BAR_HEIGHT + 15,
-		0,
-		OCTAVE_HEIGHT * NUM_OCTAVES + MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + STATUS_BAR_HEIGHT + 15
-	);
 	callback((Fl_Callback *)exit_cb, this);
 	xclass(PROGRAM_NAME);
 
@@ -219,6 +216,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("&High Contrast", 0, (Fl_Callback *)high_contrast_theme_cb, this,
 			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::HIGH_CONTRAST ? FL_MENU_VALUE : 0)),
 		{},
+		OS_MENU_ITEM("&Zoom", FL_COMMAND + '=', (Fl_Callback *)zoom_cb, this,
+			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (zoom_config ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Full &Screen", FULLSCREEN_KEY, (Fl_Callback *)full_screen_cb, this,
 			FL_MENU_TOGGLE | (fullscreen ? FL_MENU_VALUE : 0)),
 		{},
@@ -262,6 +261,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_dark_theme_mi = CT_FIND_MENU_ITEM_CB(dark_theme_cb);
 	_brushed_metal_theme_mi = CT_FIND_MENU_ITEM_CB(brushed_metal_theme_cb);
 	_high_contrast_theme_mi = CT_FIND_MENU_ITEM_CB(high_contrast_theme_cb);
+	_zoom_mi = CT_FIND_MENU_ITEM_CB(zoom_cb);
 	_full_screen_mi = CT_FIND_MENU_ITEM_CB(full_screen_cb);
 	// Conditional menu items
 	_close_mi = CT_FIND_MENU_ITEM_CB(close_cb);
@@ -373,6 +373,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_four_tb->image(FOUR_ICON);
 	_channel_four_tb->value(selected_channel() == 4);
 
+	_zoom_tb->tooltip("Zoom (" COMMAND_KEY_PLUS "=)");
+	_zoom_tb->callback((Fl_Callback *)zoom_tb_cb, this);
+	_zoom_tb->image(ZOOM_ICON);
+	_zoom_tb->value(zoom());
+
 	// Configure dialogs
 
 	_new_dir_chooser->title("Choose Project Directory");
@@ -407,6 +412,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	update_icons();
 	update_recent_songs();
 	update_active_controls();
+	update_zoom();
 }
 
 Main_Window::~Main_Window() {
@@ -989,6 +995,17 @@ void Main_Window::update_icons() {
 	make_deimage(_channel_two_tb);
 	make_deimage(_channel_three_tb);
 	make_deimage(_channel_four_tb);
+	make_deimage(_zoom_tb);
+}
+
+void Main_Window::update_zoom() {
+	_piano_roll->zoom(zoom());
+	size_range(
+		WHITE_KEY_WIDTH * 3 + 15,
+		_piano_roll->octave_height() + MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + STATUS_BAR_HEIGHT + 15,
+		0,
+		_piano_roll->octave_height() * NUM_OCTAVES + MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + STATUS_BAR_HEIGHT + 15
+	);
 }
 
 void Main_Window::new_cb(Fl_Widget *, Main_Window *mw) {
@@ -1235,6 +1252,7 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 	}
 	Preferences::set("maximized", mw->maximized());
 	Preferences::set("loop", mw->loop());
+	Preferences::set("zoom", mw->zoom());
 	for (int i = 0; i < NUM_RECENT; i++) {
 		Preferences::set_string(Fl_Preferences::Name("recent%d", i), mw->_recent[i]);
 	}
@@ -1259,12 +1277,25 @@ void Main_Window::loop_cb(Fl_Menu_ *m, Main_Window *mw) {
 	mw->redraw();
 }
 
+void Main_Window::zoom_cb(Fl_Menu_ *m, Main_Window *mw) {
+	SYNC_TB_WITH_M(mw->_zoom_tb, m);
+	mw->update_zoom();
+	mw->redraw();
+}
+
 #undef SYNC_TB_WITH_M
 
 #define SYNC_MI_WITH_TB(tb, mi) if (tb->value()) mi->set(); else mi->clear()
 
 void Main_Window::loop_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 	SYNC_MI_WITH_TB(mw->_loop_tb, mw->_loop_mi);
+	mw->_menu_bar->update();
+	mw->redraw();
+}
+
+void Main_Window::zoom_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
+	SYNC_MI_WITH_TB(mw->_zoom_tb, mw->_zoom_mi);
+	mw->update_zoom();
 	mw->_menu_bar->update();
 	mw->redraw();
 }
