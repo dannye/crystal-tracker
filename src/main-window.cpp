@@ -75,14 +75,14 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_undo_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_redo_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	SEPARATE_TOOLBAR_BUTTONS;
-	_channel_one_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_channel_one_tb->when(FL_WHEN_RELEASE_ALWAYS);
-	_channel_two_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_channel_two_tb->when(FL_WHEN_RELEASE_ALWAYS);
-	_channel_three_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_channel_three_tb->when(FL_WHEN_RELEASE_ALWAYS);
-	_channel_four_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_channel_four_tb->when(FL_WHEN_RELEASE_ALWAYS);
+	_channel_1_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_channel_1_tb->when(FL_WHEN_RELEASE_ALWAYS);
+	_channel_2_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_channel_2_tb->when(FL_WHEN_RELEASE_ALWAYS);
+	_channel_3_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_channel_3_tb->when(FL_WHEN_RELEASE_ALWAYS);
+	_channel_4_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_channel_4_tb->when(FL_WHEN_RELEASE_ALWAYS);
 	SEPARATE_TOOLBAR_BUTTONS;
 	_zoom_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_toolbar->end();
@@ -161,6 +161,10 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("&Stop", ESCAPE_KEY, (Fl_Callback *)stop_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("&Loop", FL_COMMAND + 'l', (Fl_Callback *)loop_cb, this,
 			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (loop_config ? FL_MENU_VALUE : 0)),
+		OS_MENU_ITEM("Mute Channel 1", FL_F + 5, (Fl_Callback *)channel_1_mute_cb, this, FL_MENU_TOGGLE),
+		OS_MENU_ITEM("Mute Channel 2", FL_F + 6, (Fl_Callback *)channel_2_mute_cb, this, FL_MENU_TOGGLE),
+		OS_MENU_ITEM("Mute Channel 3", FL_F + 7, (Fl_Callback *)channel_3_mute_cb, this, FL_MENU_TOGGLE),
+		OS_MENU_ITEM("Mute Channel 4", FL_F + 8, (Fl_Callback *)channel_4_mute_cb, this, FL_MENU_TOGGLE | FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Toggle &Follow Mode", '\\', (Fl_Callback *)follow_cb, this, 0),
 		{},
 		OS_SUBMENU("&Edit"),
@@ -178,13 +182,13 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("&Snip Selection", FL_SHIFT + DELETE_KEY, (Fl_Callback *)snip_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Select &All", FL_COMMAND + 'a', (Fl_Callback *)select_all_cb, this, 0),
 		OS_MENU_ITEM("Select N&one", FL_COMMAND + 'A', (Fl_Callback *)select_none_cb, this, FL_MENU_DIVIDER),
-		OS_MENU_ITEM("Channel &1", '1', (Fl_Callback *)channel_one_cb, this,
+		OS_MENU_ITEM("Channel &1", '1', (Fl_Callback *)channel_1_cb, this,
 			FL_MENU_RADIO | (selected_channel() == 1 ? FL_MENU_VALUE : 0)),
-		OS_MENU_ITEM("Channel &2", '2', (Fl_Callback *)channel_two_cb, this,
+		OS_MENU_ITEM("Channel &2", '2', (Fl_Callback *)channel_2_cb, this,
 			FL_MENU_RADIO | (selected_channel() == 2 ? FL_MENU_VALUE : 0)),
-		OS_MENU_ITEM("Channel &3", '3', (Fl_Callback *)channel_three_cb, this,
+		OS_MENU_ITEM("Channel &3", '3', (Fl_Callback *)channel_3_cb, this,
 			FL_MENU_RADIO | (selected_channel() == 3 ? FL_MENU_VALUE : 0)),
-		OS_MENU_ITEM("Channel &4", '4', (Fl_Callback *)channel_four_cb, this,
+		OS_MENU_ITEM("Channel &4", '4', (Fl_Callback *)channel_4_cb, this,
 			FL_MENU_RADIO | (selected_channel() == 4 ? FL_MENU_VALUE : 0) | FL_MENU_DIVIDER),
 		OS_MENU_ITEM("&Next Channel", TAB_KEY, (Fl_Callback *)next_channel_cb, this, 0),
 		OS_MENU_ITEM("&Previous Channel", FL_SHIFT + TAB_KEY, (Fl_Callback *)previous_channel_cb, this, 0),
@@ -261,6 +265,10 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_dark_theme_mi = CT_FIND_MENU_ITEM_CB(dark_theme_cb);
 	_brushed_metal_theme_mi = CT_FIND_MENU_ITEM_CB(brushed_metal_theme_cb);
 	_high_contrast_theme_mi = CT_FIND_MENU_ITEM_CB(high_contrast_theme_cb);
+	_channel_1_mute_mi = CT_FIND_MENU_ITEM_CB(channel_1_mute_cb);
+	_channel_2_mute_mi = CT_FIND_MENU_ITEM_CB(channel_2_mute_cb);
+	_channel_3_mute_mi = CT_FIND_MENU_ITEM_CB(channel_3_mute_cb);
+	_channel_4_mute_mi = CT_FIND_MENU_ITEM_CB(channel_4_mute_cb);
 	_zoom_mi = CT_FIND_MENU_ITEM_CB(zoom_cb);
 	_full_screen_mi = CT_FIND_MENU_ITEM_CB(full_screen_cb);
 	// Conditional menu items
@@ -285,10 +293,10 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_snip_mi = CT_FIND_MENU_ITEM_CB(snip_cb);
 	_select_all_mi = CT_FIND_MENU_ITEM_CB(select_all_cb);
 	_select_none_mi = CT_FIND_MENU_ITEM_CB(select_none_cb);
-	_channel_one_mi = CT_FIND_MENU_ITEM_CB(channel_one_cb);
-	_channel_two_mi = CT_FIND_MENU_ITEM_CB(channel_two_cb);
-	_channel_three_mi = CT_FIND_MENU_ITEM_CB(channel_three_cb);
-	_channel_four_mi = CT_FIND_MENU_ITEM_CB(channel_four_cb);
+	_channel_1_mi = CT_FIND_MENU_ITEM_CB(channel_1_cb);
+	_channel_2_mi = CT_FIND_MENU_ITEM_CB(channel_2_cb);
+	_channel_3_mi = CT_FIND_MENU_ITEM_CB(channel_3_cb);
+	_channel_4_mi = CT_FIND_MENU_ITEM_CB(channel_4_cb);
 	_next_channel_mi = CT_FIND_MENU_ITEM_CB(next_channel_cb);
 	_previous_channel_mi = CT_FIND_MENU_ITEM_CB(previous_channel_cb);
 #undef CT_FIND_MENU_ITEM_CB
@@ -353,25 +361,25 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_redo_tb->callback((Fl_Callback *)redo_cb, this);
 	_redo_tb->image(REDO_ICON);
 
-	_channel_one_tb->tooltip("Channel 1 (1)");
-	_channel_one_tb->callback((Fl_Callback *)channel_one_tb_cb, this);
-	_channel_one_tb->image(ONE_ICON);
-	_channel_one_tb->value(selected_channel() == 1);
+	_channel_1_tb->tooltip("Channel 1 (1)");
+	_channel_1_tb->callback((Fl_Callback *)channel_1_tb_cb, this);
+	_channel_1_tb->image(ONE_ICON);
+	_channel_1_tb->value(selected_channel() == 1);
 
-	_channel_two_tb->tooltip("Channel 2 (2)");
-	_channel_two_tb->callback((Fl_Callback *)channel_two_tb_cb, this);
-	_channel_two_tb->image(TWO_ICON);
-	_channel_two_tb->value(selected_channel() == 2);
+	_channel_2_tb->tooltip("Channel 2 (2)");
+	_channel_2_tb->callback((Fl_Callback *)channel_2_tb_cb, this);
+	_channel_2_tb->image(TWO_ICON);
+	_channel_2_tb->value(selected_channel() == 2);
 
-	_channel_three_tb->tooltip("Channel 3 (3)");
-	_channel_three_tb->callback((Fl_Callback *)channel_three_tb_cb, this);
-	_channel_three_tb->image(THREE_ICON);
-	_channel_three_tb->value(selected_channel() == 3);
+	_channel_3_tb->tooltip("Channel 3 (3)");
+	_channel_3_tb->callback((Fl_Callback *)channel_3_tb_cb, this);
+	_channel_3_tb->image(THREE_ICON);
+	_channel_3_tb->value(selected_channel() == 3);
 
-	_channel_four_tb->tooltip("Channel 4 (4)");
-	_channel_four_tb->callback((Fl_Callback *)channel_four_tb_cb, this);
-	_channel_four_tb->image(FOUR_ICON);
-	_channel_four_tb->value(selected_channel() == 4);
+	_channel_4_tb->tooltip("Channel 4 (4)");
+	_channel_4_tb->callback((Fl_Callback *)channel_4_tb_cb, this);
+	_channel_4_tb->image(FOUR_ICON);
+	_channel_4_tb->value(selected_channel() == 4);
 
 	_zoom_tb->tooltip("Zoom (" COMMAND_KEY_PLUS "=)");
 	_zoom_tb->callback((Fl_Callback *)zoom_tb_cb, this);
@@ -653,14 +661,14 @@ void Main_Window::update_active_controls() {
 			_select_all_mi->deactivate();
 			_select_none_mi->deactivate();
 		}
-		_channel_one_mi->activate();
-		_channel_one_tb->activate();
-		_channel_two_mi->activate();
-		_channel_two_tb->activate();
-		_channel_three_mi->activate();
-		_channel_three_tb->activate();
-		_channel_four_mi->activate();
-		_channel_four_tb->activate();
+		_channel_1_mi->activate();
+		_channel_1_tb->activate();
+		_channel_2_mi->activate();
+		_channel_2_tb->activate();
+		_channel_3_mi->activate();
+		_channel_3_tb->activate();
+		_channel_4_mi->activate();
+		_channel_4_tb->activate();
 		_next_channel_mi->activate();
 		_previous_channel_mi->activate();
 	}
@@ -695,14 +703,14 @@ void Main_Window::update_active_controls() {
 		_snip_mi->deactivate();
 		_select_all_mi->deactivate();
 		_select_none_mi->deactivate();
-		_channel_one_mi->deactivate();
-		_channel_one_tb->deactivate();
-		_channel_two_mi->deactivate();
-		_channel_two_tb->deactivate();
-		_channel_three_mi->deactivate();
-		_channel_three_tb->deactivate();
-		_channel_four_mi->deactivate();
-		_channel_four_tb->deactivate();
+		_channel_1_mi->deactivate();
+		_channel_1_tb->deactivate();
+		_channel_2_mi->deactivate();
+		_channel_2_tb->deactivate();
+		_channel_3_mi->deactivate();
+		_channel_3_tb->deactivate();
+		_channel_4_mi->deactivate();
+		_channel_4_tb->deactivate();
 		_next_channel_mi->deactivate();
 		_previous_channel_mi->deactivate();
 	}
@@ -919,6 +927,10 @@ void Main_Window::toggle_playback() {
 		}
 		int32_t loop_tick = loop() ? _piano_roll->get_loop_tick() : -1;
 		_it_module = new IT_Module(*_piano_roll, _waves, loop_tick);
+		_it_module->mute_channel(1, channel_1_muted());
+		_it_module->mute_channel(2, channel_2_muted());
+		_it_module->mute_channel(3, channel_3_muted());
+		_it_module->mute_channel(4, channel_4_muted());
 		if (_it_module->ready() && _it_module->start()) {
 			_tick = _piano_roll->tick();
 			if (_tick != -1) {
@@ -991,10 +1003,10 @@ void Main_Window::update_icons() {
 	make_deimage(_loop_tb);
 	make_deimage(_undo_tb);
 	make_deimage(_redo_tb);
-	make_deimage(_channel_one_tb);
-	make_deimage(_channel_two_tb);
-	make_deimage(_channel_three_tb);
-	make_deimage(_channel_four_tb);
+	make_deimage(_channel_1_tb);
+	make_deimage(_channel_2_tb);
+	make_deimage(_channel_3_tb);
+	make_deimage(_channel_4_tb);
 	make_deimage(_zoom_tb);
 }
 
@@ -1074,7 +1086,7 @@ void Main_Window::open_recent_cb(Fl_Menu_ *m, Main_Window *mw) {
 	mw->open_recent(i);
 }
 
-void Main_Window::clear_recent_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::clear_recent_cb(Fl_Widget *, Main_Window *mw) {
 	for (int i = 0; i < NUM_RECENT; i++) {
 		mw->_recent[i].clear();
 		mw->_recent_mis[i]->hide();
@@ -1119,14 +1131,14 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_asm_file.clear();
 
 	mw->selected_channel(0);
-	mw->_channel_one_mi->clear();
-	mw->_channel_one_tb->clear();
-	mw->_channel_two_mi->clear();
-	mw->_channel_two_tb->clear();
-	mw->_channel_three_mi->clear();
-	mw->_channel_three_tb->clear();
-	mw->_channel_four_mi->clear();
-	mw->_channel_four_tb->clear();
+	mw->_channel_1_mi->clear();
+	mw->_channel_1_tb->clear();
+	mw->_channel_2_mi->clear();
+	mw->_channel_2_tb->clear();
+	mw->_channel_3_mi->clear();
+	mw->_channel_3_tb->clear();
+	mw->_channel_4_mi->clear();
+	mw->_channel_4_tb->clear();
 
 	mw->update_active_controls();
 	mw->_status_label->label(mw->_status_message.c_str());
@@ -1302,7 +1314,35 @@ void Main_Window::zoom_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 
 #undef SYNC_MI_WITH_TB
 
-void Main_Window::follow_cb(Fl_Menu_ *m, Main_Window *mw) {
+void Main_Window::channel_1_mute_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_piano_roll->channel_1_muted(mw->channel_1_muted());
+	if (mw->_it_module) {
+		mw->_it_module->mute_channel(1, mw->channel_1_muted());
+	}
+}
+
+void Main_Window::channel_2_mute_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_piano_roll->channel_2_muted(mw->channel_2_muted());
+	if (mw->_it_module) {
+		mw->_it_module->mute_channel(2, mw->channel_2_muted());
+	}
+}
+
+void Main_Window::channel_3_mute_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_piano_roll->channel_3_muted(mw->channel_3_muted());
+	if (mw->_it_module) {
+		mw->_it_module->mute_channel(3, mw->channel_3_muted());
+	}
+}
+
+void Main_Window::channel_4_mute_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_piano_roll->channel_4_muted(mw->channel_4_muted());
+	if (mw->_it_module) {
+		mw->_it_module->mute_channel(4, mw->channel_4_muted());
+	}
+}
+
+void Main_Window::follow_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->toggle_follow_mode();
 }
 
@@ -1482,14 +1522,14 @@ void Main_Window::select_none_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->select_none();
 }
 
-void Main_Window::channel_one_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::channel_1_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->selected_channel() == 1) {
-		mw->_channel_one_mi->clear();
-		mw->_channel_one_tb->clear();
+		mw->_channel_1_mi->clear();
+		mw->_channel_1_tb->clear();
 		mw->selected_channel(0);
 	}
 	else {
-		mw->_channel_one_tb->setonly();
+		mw->_channel_1_tb->setonly();
 		mw->selected_channel(1);
 	}
 	mw->update_channel_detail();
@@ -1497,14 +1537,14 @@ void Main_Window::channel_one_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::channel_two_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::channel_2_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->selected_channel() == 2) {
-		mw->_channel_two_mi->clear();
-		mw->_channel_two_tb->clear();
+		mw->_channel_2_mi->clear();
+		mw->_channel_2_tb->clear();
 		mw->selected_channel(0);
 	}
 	else {
-		mw->_channel_two_tb->setonly();
+		mw->_channel_2_tb->setonly();
 		mw->selected_channel(2);
 	}
 	mw->update_channel_detail();
@@ -1512,14 +1552,14 @@ void Main_Window::channel_two_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::channel_three_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::channel_3_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->selected_channel() == 3) {
-		mw->_channel_three_mi->clear();
-		mw->_channel_three_tb->clear();
+		mw->_channel_3_mi->clear();
+		mw->_channel_3_tb->clear();
 		mw->selected_channel(0);
 	}
 	else {
-		mw->_channel_three_tb->setonly();
+		mw->_channel_3_tb->setonly();
 		mw->selected_channel(3);
 	}
 	mw->update_channel_detail();
@@ -1527,14 +1567,14 @@ void Main_Window::channel_three_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::channel_four_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::channel_4_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->selected_channel() == 4) {
-		mw->_channel_four_mi->clear();
-		mw->_channel_four_tb->clear();
+		mw->_channel_4_mi->clear();
+		mw->_channel_4_tb->clear();
 		mw->selected_channel(0);
 	}
 	else {
-		mw->_channel_four_tb->setonly();
+		mw->_channel_4_tb->setonly();
 		mw->selected_channel(4);
 	}
 	mw->update_channel_detail();
@@ -1542,12 +1582,12 @@ void Main_Window::channel_four_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::next_channel_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::next_channel_cb(Fl_Widget *, Main_Window *mw) {
 	mw->selected_channel(mw->selected_channel() % 4 + 1);
 	mw->sync_channel_buttons();
 }
 
-void Main_Window::previous_channel_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::previous_channel_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->selected_channel() == 0) {
 		mw->selected_channel(4);
 	}
@@ -1559,34 +1599,34 @@ void Main_Window::previous_channel_cb(Fl_Menu_ *, Main_Window *mw) {
 
 void Main_Window::sync_channel_buttons() {
 	if (selected_channel() == 1) {
-		_channel_one_mi->setonly();
-		_channel_one_tb->setonly();
+		_channel_1_mi->setonly();
+		_channel_1_tb->setonly();
 	}
 	else if (selected_channel() == 2) {
-		_channel_two_mi->setonly();
-		_channel_two_tb->setonly();
+		_channel_2_mi->setonly();
+		_channel_2_tb->setonly();
 	}
 	else if (selected_channel() == 3) {
-		_channel_three_mi->setonly();
-		_channel_three_tb->setonly();
+		_channel_3_mi->setonly();
+		_channel_3_tb->setonly();
 	}
 	else if (selected_channel() == 4) {
-		_channel_four_mi->setonly();
-		_channel_four_tb->setonly();
+		_channel_4_mi->setonly();
+		_channel_4_tb->setonly();
 	}
 	update_channel_detail();
 	_menu_bar->update();
 	redraw();
 }
 
-void Main_Window::channel_one_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
+void Main_Window::channel_1_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 	if (mw->selected_channel() == 1) {
-		mw->_channel_one_mi->clear();
-		mw->_channel_one_tb->clear();
+		mw->_channel_1_mi->clear();
+		mw->_channel_1_tb->clear();
 		mw->selected_channel(0);
 	}
 	else {
-		mw->_channel_one_mi->setonly();
+		mw->_channel_1_mi->setonly();
 		mw->selected_channel(1);
 	}
 	mw->update_channel_detail();
@@ -1594,14 +1634,14 @@ void Main_Window::channel_one_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::channel_two_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
+void Main_Window::channel_2_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 	if (mw->selected_channel() == 2) {
-		mw->_channel_two_mi->clear();
-		mw->_channel_two_tb->clear();
+		mw->_channel_2_mi->clear();
+		mw->_channel_2_tb->clear();
 		mw->selected_channel(0);
 	}
 	else {
-		mw->_channel_two_mi->setonly();
+		mw->_channel_2_mi->setonly();
 		mw->selected_channel(2);
 	}
 	mw->update_channel_detail();
@@ -1609,14 +1649,14 @@ void Main_Window::channel_two_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::channel_three_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
+void Main_Window::channel_3_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 	if (mw->selected_channel() == 3) {
-		mw->_channel_three_mi->clear();
-		mw->_channel_three_tb->clear();
+		mw->_channel_3_mi->clear();
+		mw->_channel_3_tb->clear();
 		mw->selected_channel(0);
 	}
 	else {
-		mw->_channel_three_mi->setonly();
+		mw->_channel_3_mi->setonly();
 		mw->selected_channel(3);
 	}
 	mw->update_channel_detail();
@@ -1624,14 +1664,14 @@ void Main_Window::channel_three_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::channel_four_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
+void Main_Window::channel_4_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 	if (mw->selected_channel() == 4) {
-		mw->_channel_four_mi->clear();
-		mw->_channel_four_tb->clear();
+		mw->_channel_4_mi->clear();
+		mw->_channel_4_tb->clear();
 		mw->selected_channel(0);
 	}
 	else {
-		mw->_channel_four_mi->setonly();
+		mw->_channel_4_mi->setonly();
 		mw->selected_channel(4);
 	}
 	mw->update_channel_detail();
@@ -1639,7 +1679,7 @@ void Main_Window::channel_four_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::classic_theme_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::classic_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::use_classic_theme();
 	OS::update_macos_appearance(mw);
 	mw->_classic_theme_mi->setonly();
@@ -1647,7 +1687,7 @@ void Main_Window::classic_theme_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::aero_theme_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::aero_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::use_aero_theme();
 	OS::update_macos_appearance(mw);
 	mw->_aero_theme_mi->setonly();
@@ -1655,7 +1695,7 @@ void Main_Window::aero_theme_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::metro_theme_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::metro_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::use_metro_theme();
 	OS::update_macos_appearance(mw);
 	mw->_metro_theme_mi->setonly();
@@ -1663,7 +1703,7 @@ void Main_Window::metro_theme_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::aqua_theme_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::aqua_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::use_aqua_theme();
 	OS::update_macos_appearance(mw);
 	mw->_aqua_theme_mi->setonly();
@@ -1671,7 +1711,7 @@ void Main_Window::aqua_theme_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::greybird_theme_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::greybird_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::use_greybird_theme();
 	OS::update_macos_appearance(mw);
 	mw->_greybird_theme_mi->setonly();
@@ -1679,7 +1719,7 @@ void Main_Window::greybird_theme_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::ocean_theme_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::ocean_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::use_ocean_theme();
 	OS::update_macos_appearance(mw);
 	mw->_ocean_theme_mi->setonly();
@@ -1687,7 +1727,7 @@ void Main_Window::ocean_theme_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::blue_theme_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::blue_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::use_blue_theme();
 	OS::update_macos_appearance(mw);
 	mw->_blue_theme_mi->setonly();
@@ -1695,7 +1735,7 @@ void Main_Window::blue_theme_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::olive_theme_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::olive_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::use_olive_theme();
 	OS::update_macos_appearance(mw);
 	mw->_olive_theme_mi->setonly();
@@ -1703,7 +1743,7 @@ void Main_Window::olive_theme_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::rose_gold_theme_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::rose_gold_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::use_rose_gold_theme();
 	OS::update_macos_appearance(mw);
 	mw->_rose_gold_theme_mi->setonly();
@@ -1711,7 +1751,7 @@ void Main_Window::rose_gold_theme_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::dark_theme_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::dark_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::use_dark_theme();
 	OS::update_macos_appearance(mw);
 	mw->_dark_theme_mi->setonly();
@@ -1719,7 +1759,7 @@ void Main_Window::dark_theme_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::brushed_metal_theme_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::brushed_metal_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::use_brushed_metal_theme();
 	OS::update_macos_appearance(mw);
 	mw->_brushed_metal_theme_mi->setonly();
@@ -1727,7 +1767,7 @@ void Main_Window::brushed_metal_theme_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::high_contrast_theme_cb(Fl_Menu_ *, Main_Window *mw) {
+void Main_Window::high_contrast_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::use_high_contrast_theme();
 	OS::update_macos_appearance(mw);
 	mw->_high_contrast_theme_mi->setonly();
@@ -1735,7 +1775,7 @@ void Main_Window::high_contrast_theme_cb(Fl_Menu_ *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::full_screen_cb(Fl_Menu_ *m, Main_Window *mw) {
+void Main_Window::full_screen_cb(Fl_Widget *, Main_Window *mw) {
 #ifdef __APPLE__
 	if (!cocoa_is_fullscreen(mw)) {
 		if (!mw->maximized()) {
@@ -1750,7 +1790,7 @@ void Main_Window::full_screen_cb(Fl_Menu_ *m, Main_Window *mw) {
 		mw->_full_screen_mi->clear();
 	}
 #else
-	if (m->mvalue()->value()) {
+	if (mw->full_screen()) {
 		if (!mw->maximized()) {
 			mw->_wx = mw->x(); mw->_wy = mw->y();
 			mw->_ww = mw->w(); mw->_wh = mw->h();

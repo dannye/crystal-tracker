@@ -27,7 +27,7 @@ bindir = bin
 fltk-config = $(bindir)/fltk-config
 
 CXXFLAGS := -std=c++17 -I$(srcdir) -I$(resdir) $(shell $(fltk-config) --use-images --cxxflags) $(CXXFLAGS)
-LDFLAGS := lib/libportaudio.a lib/libportaudiocpp.a -lopenmpt $(shell pkg-config --libs portaudiocpp) $(shell $(fltk-config) --use-images --ldflags) $(LDFLAGS)
+LDFLAGS := lib/libportaudio.a lib/libportaudiocpp.a lib/libopenmpt.a $(shell pkg-config --libs portaudiocpp) $(shell $(fltk-config) --use-images --ldflags) $(LDFLAGS)
 ifndef OS_MAC
 LDFLAGS += $(shell pkg-config --libs libpng xpm)
 endif

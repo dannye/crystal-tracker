@@ -509,7 +509,7 @@ void Piano_Timeline::reset_note_colors() {
 	}
 }
 
-void Piano_Timeline::highlight_tick(std::vector<Note_Box *> &notes, int32_t tick, Fl_Color color) {
+void Piano_Timeline::highlight_tick(std::vector<Note_Box *> &notes, int32_t tick, bool muted, Fl_Color color) {
 	int x_pos = tick * parent()->tick_width() + WHITE_KEY_WIDTH;
 	for (Note_Box *note : notes) {
 		int note_left = note->x() - x();
@@ -517,7 +517,7 @@ void Piano_Timeline::highlight_tick(std::vector<Note_Box *> &notes, int32_t tick
 		if (note_left > x_pos) {
 			return;
 		}
-		if (note_right > x_pos) {
+		if (note_right > x_pos && !muted) {
 			const Note_View &view = note->note_view();
 			_keys->highlight_key(view.pitch, view.octave, color);
 		}
@@ -1453,10 +1453,10 @@ void Piano_Roll::highlight_tick(int32_t t) {
 
 	_piano_timeline->_keys->reset_key_colors();
 
-	_piano_timeline->highlight_channel_1_tick(_tick);
-	_piano_timeline->highlight_channel_2_tick(_tick);
-	_piano_timeline->highlight_channel_3_tick(_tick);
-	_piano_timeline->highlight_channel_4_tick(_tick);
+	_piano_timeline->highlight_channel_1_tick(_tick, _channel_1_muted);
+	_piano_timeline->highlight_channel_2_tick(_tick, _channel_2_muted);
+	_piano_timeline->highlight_channel_3_tick(_tick, _channel_3_muted);
+	_piano_timeline->highlight_channel_4_tick(_tick, _channel_4_muted);
 
 	focus_cursor();
 	redraw();

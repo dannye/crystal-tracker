@@ -8,7 +8,7 @@ constexpr std::int32_t SAMPLE_RATE = 48000;
 IT_Module::IT_Module(const Piano_Roll &song, const std::vector<Wave> &waves, int32_t loop_tick) : _buffer(BUFFER_SIZE * 2) {
 	generate_it_module(song, waves, loop_tick);
 
-	_mod = new openmpt::module(_data);
+	_mod = new openmpt::module_ext(_data);
 	if (loop_tick != -1) {
 		_mod->set_repeat_count(-1);
 	}
@@ -50,6 +50,11 @@ void IT_Module::play() {
 		}
 	}
 	catch (...) {}
+}
+
+void IT_Module::mute_channel(int32_t channel, bool mute) {
+	openmpt::ext::interactive *interactive = static_cast<openmpt::ext::interactive *>(_mod->get_interface(openmpt::ext::interactive_id));
+	interactive->set_channel_mute_status(channel - 1, mute);
 }
 
 void IT_Module::set_tick(int32_t tick) {

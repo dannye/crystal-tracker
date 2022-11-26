@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <vector>
 
-#include <libopenmpt/libopenmpt.hpp>
+#include <libopenmpt/libopenmpt_ext.hpp>
 #include <portaudiocpp/PortAudioCpp.hxx>
 
 #include "parse-waves.h"
@@ -16,7 +16,7 @@ class IT_Module {
 private:
 	std::vector<uint8_t> _data;
 
-	openmpt::module *_mod = nullptr;
+	openmpt::module_ext *_mod = nullptr;
 
 	portaudio::BlockingStream _stream;
 	std::vector<float> _buffer;
@@ -43,6 +43,8 @@ public:
 	bool stop()    { _paused = false; return Pa_StopStream(_stream.paStream())  == paNoError; }
 	bool pause()   { _paused = true;  return Pa_StopStream(_stream.paStream())  == paNoError; }
 	void play();
+
+	void mute_channel(int32_t channel, bool mute);
 
 	int32_t current_tick() const { return (_current_pattern * ROWS_PER_PATTERN + _current_row) * 2; }
 	void set_tick(int32_t tick);

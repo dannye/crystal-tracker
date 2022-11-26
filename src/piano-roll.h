@@ -209,10 +209,10 @@ public:
 	bool select_all();
 	bool select_none();
 
-	void highlight_channel_1_tick(int32_t tick) { highlight_tick(_channel_1_notes, tick, NOTE_RED_LIGHT); }
-	void highlight_channel_2_tick(int32_t tick) { highlight_tick(_channel_2_notes, tick, NOTE_BLUE_LIGHT); }
-	void highlight_channel_3_tick(int32_t tick) { highlight_tick(_channel_3_notes, tick, NOTE_GREEN_LIGHT); }
-	void highlight_channel_4_tick(int32_t tick) { highlight_tick(_channel_4_notes, tick, NOTE_BROWN_LIGHT); }
+	void highlight_channel_1_tick(int32_t tick, bool muted) { highlight_tick(_channel_1_notes, tick, muted, NOTE_RED_LIGHT); }
+	void highlight_channel_2_tick(int32_t tick, bool muted) { highlight_tick(_channel_2_notes, tick, muted, NOTE_BLUE_LIGHT); }
+	void highlight_channel_3_tick(int32_t tick, bool muted) { highlight_tick(_channel_3_notes, tick, muted, NOTE_GREEN_LIGHT); }
+	void highlight_channel_4_tick(int32_t tick, bool muted) { highlight_tick(_channel_4_notes, tick, muted, NOTE_BROWN_LIGHT); }
 
 	void set_channel_1(const std::vector<Note_View> &notes) { set_channel(_channel_1_notes, notes, NOTE_RED); }
 	void set_channel_2(const std::vector<Note_View> &notes) { set_channel(_channel_2_notes, notes, NOTE_BLUE); }
@@ -226,7 +226,7 @@ public:
 
 	void reset_note_colors();
 private:
-	void highlight_tick(std::vector<Note_Box *> &notes, int32_t tick, Fl_Color color);
+	void highlight_tick(std::vector<Note_Box *> &notes, int32_t tick, bool muted, Fl_Color color);
 	void select_note_at_tick(std::vector<Note_Box *> &notes, int32_t tick);
 	void set_channel(std::vector<Note_Box *> &channel, const std::vector<Note_View> &notes, Fl_Color color);
 	void set_channel_detailed(std::vector<Note_Box *> &notes, std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, bool detailed);
@@ -246,6 +246,11 @@ private:
 	bool _realtime = true;
 	bool _paused = false;
 	bool _zoomed = true;
+
+	bool _channel_1_muted = false;
+	bool _channel_2_muted = false;
+	bool _channel_3_muted = false;
+	bool _channel_4_muted = false;
 
 	std::vector<Note_View> _channel_1_notes;
 	std::vector<Note_View> _channel_2_notes;
@@ -275,6 +280,11 @@ public:
 	inline bool following(void) const { return _following; }
 	inline bool paused(void) const { return _paused; }
 	inline bool zoomed(void) const { return _zoomed; }
+
+	void channel_1_muted(bool m) { _channel_1_muted = m; }
+	void channel_2_muted(bool m) { _channel_2_muted = m; }
+	void channel_3_muted(bool m) { _channel_3_muted = m; }
+	void channel_4_muted(bool m) { _channel_4_muted = m; }
 
 	int white_key_height() const;
 	int black_key_height() const;

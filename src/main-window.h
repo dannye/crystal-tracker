@@ -44,6 +44,10 @@ private:
 		*_brushed_metal_theme_mi = NULL,
 		*_high_contrast_theme_mi = NULL;
 	Fl_Menu_Item
+		*_channel_1_mute_mi = NULL,
+		*_channel_2_mute_mi = NULL,
+		*_channel_3_mute_mi = NULL,
+		*_channel_4_mute_mi = NULL,
 		*_zoom_mi = NULL,
 		*_full_screen_mi = NULL;
 	Toolbar_Button
@@ -54,16 +58,17 @@ private:
 		*_play_pause_tb = NULL,
 		*_stop_tb = NULL;
 	Toolbar_Toggle_Button
-		*_loop_tb = NULL,
-		*_zoom_tb = NULL;
+		*_loop_tb = NULL;
 	Toolbar_Button
 		*_undo_tb = NULL,
 		*_redo_tb = NULL;
 	Toolbar_Radio_Button
-		*_channel_one_tb = NULL,
-		*_channel_two_tb = NULL,
-		*_channel_three_tb = NULL,
-		*_channel_four_tb = NULL;
+		*_channel_1_tb = NULL,
+		*_channel_2_tb = NULL,
+		*_channel_3_tb = NULL,
+		*_channel_4_tb = NULL;
+	Toolbar_Toggle_Button
+		*_zoom_tb = NULL;
 	// GUI outputs
 	Piano_Roll *_piano_roll = NULL;
 	Label *_status_label;
@@ -90,10 +95,10 @@ private:
 		*_snip_mi = NULL,
 		*_select_all_mi = NULL,
 		*_select_none_mi = NULL,
-		*_channel_one_mi = NULL,
-		*_channel_two_mi = NULL,
-		*_channel_three_mi = NULL,
-		*_channel_four_mi = NULL,
+		*_channel_1_mi = NULL,
+		*_channel_2_mi = NULL,
+		*_channel_3_mi = NULL,
+		*_channel_4_mi = NULL,
 		*_next_channel_mi = NULL,
 		*_previous_channel_mi = NULL;
 	// Dialogs
@@ -128,6 +133,10 @@ public:
 	void resize(int X, int Y, int W, int H) override;
 	bool maximized(void) const;
 	void maximize(void);
+	inline bool channel_1_muted(void) const { return _channel_1_mute_mi && !!_channel_1_mute_mi->value(); }
+	inline bool channel_2_muted(void) const { return _channel_2_mute_mi && !!_channel_2_mute_mi->value(); }
+	inline bool channel_3_muted(void) const { return _channel_3_mute_mi && !!_channel_3_mute_mi->value(); }
+	inline bool channel_4_muted(void) const { return _channel_4_mute_mi && !!_channel_4_mute_mi->value(); }
 	inline bool zoom(void) const { return _zoom_mi && !!_zoom_mi->value(); }
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
 	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
@@ -156,7 +165,7 @@ private:
 	static void new_cb(Fl_Widget *w, Main_Window *mw);
 	static void open_cb(Fl_Widget *w, Main_Window *mw);
 	static void open_recent_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void clear_recent_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void clear_recent_cb(Fl_Widget *w, Main_Window *mw);
 	static void close_cb(Fl_Widget *w, Main_Window *mw);
 	static void save_cb(Fl_Widget *w, Main_Window *mw);
 	static void save_as_cb(Fl_Widget *w, Main_Window *mw);
@@ -165,7 +174,11 @@ private:
 	static void play_pause_cb(Fl_Widget *w, Main_Window *mw);
 	static void stop_cb(Fl_Widget *w, Main_Window *mw);
 	static void loop_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void follow_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void channel_1_mute_cb(Fl_Widget *w, Main_Window *mw);
+	static void channel_2_mute_cb(Fl_Widget *w, Main_Window *mw);
+	static void channel_3_mute_cb(Fl_Widget *w, Main_Window *mw);
+	static void channel_4_mute_cb(Fl_Widget *w, Main_Window *mw);
+	static void follow_cb(Fl_Widget *w, Main_Window *mw);
 	// Edit menu
 	void put_note(Pitch pitch);
 	static void undo_cb(Fl_Widget *w, Main_Window *mw);
@@ -182,34 +195,34 @@ private:
 	static void snip_cb(Fl_Widget *w, Main_Window *mw);
 	static void select_all_cb(Fl_Widget *w, Main_Window *mw);
 	static void select_none_cb(Fl_Widget *w, Main_Window *mw);
-	static void channel_one_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void channel_two_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void channel_three_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void channel_four_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void next_channel_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void previous_channel_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void channel_1_cb(Fl_Widget *w, Main_Window *mw);
+	static void channel_2_cb(Fl_Widget *w, Main_Window *mw);
+	static void channel_3_cb(Fl_Widget *w, Main_Window *mw);
+	static void channel_4_cb(Fl_Widget *w, Main_Window *mw);
+	static void next_channel_cb(Fl_Widget *w, Main_Window *mw);
+	static void previous_channel_cb(Fl_Widget *w, Main_Window *mw);
 	void sync_channel_buttons();
 	// View menu
-	static void classic_theme_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void aero_theme_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void metro_theme_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void aqua_theme_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void greybird_theme_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void ocean_theme_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void blue_theme_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void olive_theme_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void rose_gold_theme_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void dark_theme_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void brushed_metal_theme_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void high_contrast_theme_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void classic_theme_cb(Fl_Widget *w, Main_Window *mw);
+	static void aero_theme_cb(Fl_Widget *w, Main_Window *mw);
+	static void metro_theme_cb(Fl_Widget *w, Main_Window *mw);
+	static void aqua_theme_cb(Fl_Widget *w, Main_Window *mw);
+	static void greybird_theme_cb(Fl_Widget *w, Main_Window *mw);
+	static void ocean_theme_cb(Fl_Widget *w, Main_Window *mw);
+	static void blue_theme_cb(Fl_Widget *w, Main_Window *mw);
+	static void olive_theme_cb(Fl_Widget *w, Main_Window *mw);
+	static void rose_gold_theme_cb(Fl_Widget *w, Main_Window *mw);
+	static void dark_theme_cb(Fl_Widget *w, Main_Window *mw);
+	static void brushed_metal_theme_cb(Fl_Widget *w, Main_Window *mw);
+	static void high_contrast_theme_cb(Fl_Widget *w, Main_Window *mw);
 	static void zoom_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void full_screen_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void full_screen_cb(Fl_Widget *w, Main_Window *mw);
 	// Toolbar buttons
 	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
-	static void channel_one_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
-	static void channel_two_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
-	static void channel_three_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
-	static void channel_four_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
+	static void channel_1_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
+	static void channel_2_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
+	static void channel_3_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
+	static void channel_4_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
 	static void zoom_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	// Help menu
 	static void help_cb(Fl_Widget *w, Main_Window *mw);
