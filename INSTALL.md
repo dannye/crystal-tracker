@@ -46,7 +46,7 @@ You will need [Microsoft Visual Studio](https://visualstudio.microsoft.com/vs/);
 26. Retarget the 4 projects to your installed version of the Windows 10 SDK if necessary.
 27. Set the Solution Configuration to Release and set the Solution Platform to Win32 then press **Build → Build Solution**. You may also build Debug|Win32 if desired.
 28. Move the 4 .lib files from lib\openmpt\build\lib\vs2022win10\x86\Release to lib (or from lib\openmpt\build\lib\vs2022win10\x86\Debug to lib\Debug if Debug build).
-29. Copy the public interface header files from lib\openmpt\libopenmpt into a new include\\**libopenmpt** folder. (Only libopenmpt.hpp, libopenmpt_config.h, and libopenmpt_version.h are required.)
+29. Copy the public interface header files from lib\openmpt\libopenmpt into a new include\\**libopenmpt** folder. (Only libopenmpt.hpp, libopenmpt_ext.hpp, libopenmpt_config.h, and libopenmpt_version.h are required.)
 
 #### Building Crystal Tracker
 
