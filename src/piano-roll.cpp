@@ -573,13 +573,6 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, const std::ve
 	}
 	end();
 
-	if (channel.size() > 0) {
-		const int width = channel.back()->x() + parent()->w() - parent()->scrollbar.w() - WHITE_KEY_WIDTH;
-		if (width > w()) {
-			w(width);
-		}
-	}
-
 	// fix the keys as the last child
 	Fl_Widget **a = (Fl_Widget **)array();
 	if (a[children() - 1] != (Fl_Widget *)_keys) {
@@ -932,18 +925,11 @@ void Piano_Roll::set_size(int W, int H) {
 }
 
 void Piano_Roll::set_timeline_width() {
-	if (_song_length == -1) {
-		_piano_timeline->w(w() - scrollbar.w());
-	}
-	else {
-		_piano_timeline->w(WHITE_KEY_WIDTH + _song_length * tick_width());
-		int32_t last_note_x = get_last_note_x();
-		if (last_note_x != -1) {
-			int width = last_note_x + w() - scrollbar.w() - WHITE_KEY_WIDTH;
-			if (width > _piano_timeline->w()) {
-				_piano_timeline->w(width);
-			}
-		}
+	_piano_timeline->w(std::max(WHITE_KEY_WIDTH + _song_length * tick_width(), w() - scrollbar.w()));
+	int32_t last_note_x = get_last_note_x();
+	int width = last_note_x + w() - scrollbar.w() - WHITE_KEY_WIDTH;
+	if (width > _piano_timeline->w()) {
+		_piano_timeline->w(width);
 	}
 }
 
@@ -954,8 +940,6 @@ bool Piano_Roll::set_timeline(const Song &song) {
 	calc_channel_length(song.channel_4_commands(), _channel_4_loop_tick, _channel_4_end_tick);
 
 	_song_length = get_song_length();
-
-	_piano_timeline->w(WHITE_KEY_WIDTH + _song_length * tick_width());
 
 	bool success = true;
 	success = success && build_note_view(_piano_timeline->_channel_1_loops, _piano_timeline->_channel_1_calls, _channel_1_notes, song.channel_1_commands(), _song_length, NOTE_RED);
@@ -972,6 +956,8 @@ bool Piano_Roll::set_timeline(const Song &song) {
 	_piano_timeline->set_channel_2(_channel_2_notes);
 	_piano_timeline->set_channel_3(_channel_3_notes);
 	_piano_timeline->set_channel_4(_channel_4_notes);
+
+	set_timeline_width();
 
 	return true;
 }
@@ -1375,7 +1361,7 @@ int32_t Piano_Roll::get_last_note_x() const {
 		if (notes.size() > 0) {
 			return notes.back()->x() - _piano_timeline->x();
 		}
-		return -1;
+		return 0;
 	};
 	int32_t last_note_x = std::max({
 		get_channel_last_note_x(_piano_timeline->_channel_1_notes),
