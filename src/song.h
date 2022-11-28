@@ -26,6 +26,7 @@ public:
 			DELETE_SELECTION,
 			SNIP_SELECTION
 		};
+		int tick = -1;
 		int channel_number = 0;
 		std::vector<Command> commands;
 		std::set<int32_t> selection;
@@ -58,17 +59,21 @@ public:
 	inline bool other_modified(const char *f) const { return file_modified(f) > _mod_time; }
 	inline bool can_undo(void) const { return !_history.empty(); }
 	inline bool can_redo(void) const { return !_future.empty(); }
-	inline const char *undo_action_message(void) const { return get_action_message(_history.back().action); }
-	inline const char *redo_action_message(void) const { return get_action_message(_future.back().action); }
-	inline Song_State::Action undo_action(void) const { return _history.back().action; }
-	inline Song_State::Action redo_action(void) const { return _future.back().action; }
+	inline int undo_tick(void) const { return _history.back().tick; }
+	inline int redo_tick(void) const { return _future.back().tick; }
+	inline int undo_channel_number(void) const { return _history.back().channel_number; }
+	inline int redo_channel_number(void) const { return _future.back().channel_number; }
 	inline std::set<int32_t> undo_selection(void) const { return _history.back().selection; }
 	inline std::set<int32_t> redo_selection(void) const { return _future.back().selection; }
+	inline Song_State::Action undo_action(void) const { return _history.back().action; }
+	inline Song_State::Action redo_action(void) const { return _future.back().action; }
+	inline const char *undo_action_message(void) const { return get_action_message(_history.back().action); }
+	inline const char *redo_action_message(void) const { return get_action_message(_future.back().action); }
 	inline bool loaded(void) const { return _loaded; }
 	void clear();
-	void remember(int channel_number, const std::set<int32_t> &selection, Song_State::Action action);
-	int undo();
-	int redo();
+	void remember(int channel_number, const std::set<int32_t> &selection, Song_State::Action action, int tick = -1);
+	void undo();
+	void redo();
 	Parsed_Song::Result read_song(const char *f);
 	void new_song();
 	bool write_song(const char *f);
@@ -79,7 +84,7 @@ public:
 	const std::vector<Command> &channel_3_commands() const { return _channel_3_commands; }
 	const std::vector<Command> &channel_4_commands() const { return _channel_4_commands; }
 
-	void put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t index, int32_t tick_offset);
+	void put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t index, int32_t tick, int32_t tick_offset);
 	void pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void octave_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);

@@ -29,13 +29,14 @@ void Song::clear() {
 	_loaded = false;
 }
 
-void Song::remember(int channel_number, const std::set<int32_t> &selection, Song_State::Action action) {
+void Song::remember(int channel_number, const std::set<int32_t> &selection, Song_State::Action action, int tick) {
 	_future.clear();
 	while (_history.size() >= MAX_HISTORY_SIZE) { _history.pop_front(); }
 
 	std::vector<Command> &commands = channel_commands(channel_number);
 
 	Song_State ss;
+	ss.tick = tick;
 	ss.channel_number = channel_number;
 	ss.commands = commands;
 	ss.selection = selection;
@@ -43,14 +44,15 @@ void Song::remember(int channel_number, const std::set<int32_t> &selection, Song
 	_history.push_back(ss);
 }
 
-int Song::undo() {
-	if (_history.empty()) { return 0; }
+void Song::undo() {
+	if (_history.empty()) { return; }
 	while (_future.size() >= MAX_HISTORY_SIZE) { _future.pop_front(); }
 
 	Song_State &prev = _history.back();
 	std::vector<Command> &commands = channel_commands(prev.channel_number);
 
 	Song_State ss;
+	ss.tick = prev.tick;
 	ss.channel_number = prev.channel_number;
 	ss.commands = std::move(commands);
 	ss.selection = std::move(prev.selection);
@@ -61,18 +63,17 @@ int Song::undo() {
 	_history.pop_back();
 
 	_modified = true;
-
-	return prev.channel_number;
 }
 
-int Song::redo() {
-	if (_future.empty()) { return 0; }
+void Song::redo() {
+	if (_future.empty()) { return; }
 	while (_history.size() >= MAX_HISTORY_SIZE) { _history.pop_front(); }
 
 	Song_State &next = _future.back();
 	std::vector<Command> &commands = channel_commands(next.channel_number);
 
 	Song_State ss;
+	ss.tick = next.tick;
 	ss.channel_number = next.channel_number;
 	ss.commands = std::move(commands);
 	ss.selection = std::move(next.selection);
@@ -83,8 +84,6 @@ int Song::redo() {
 	_future.pop_back();
 
 	_modified = true;
-
-	return next.channel_number;
 }
 
 Parsed_Song::Result Song::read_song(const char *f) {
@@ -249,8 +248,8 @@ void postprocess(std::vector<Command> &commands) {
 	} while (deleted);
 }
 
-void Song::put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t index, int32_t tick_offset) {
-	remember(selected_channel, selected_boxes, Song_State::Action::PUT_NOTE);
+void Song::put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t index, int32_t tick, int32_t tick_offset) {
+	remember(selected_channel, selected_boxes, Song_State::Action::PUT_NOTE, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	Command_Type new_type = pitch == Pitch::REST ? Command_Type::REST : Command_Type::NOTE;

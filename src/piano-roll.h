@@ -281,6 +281,8 @@ public:
 	inline bool paused(void) const { return _paused; }
 	inline bool zoomed(void) const { return _zoomed; }
 
+	void tick(int32_t t) { _tick = t; }
+
 	void channel_1_muted(bool m) { _channel_1_muted = m; }
 	void channel_2_muted(bool m) { _channel_2_muted = m; }
 	void channel_3_muted(bool m) { _channel_3_muted = m; }
@@ -312,6 +314,7 @@ public:
 
 	void toggle_follow_mode() { _realtime = !_realtime; }
 
+	void step();
 	void zoom(bool z);
 
 	void set_size(int W, int H);
@@ -320,6 +323,7 @@ public:
 	bool set_timeline(const Song &song);
 	void set_active_channel_timeline(const Song &song);
 	void set_active_channel_selection(const std::set<int32_t> &selection);
+	void select_note_at_tick();
 
 	bool build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Note_View> &notes, const std::vector<Command> &commands, int32_t end_tick, Fl_Color color);
 
@@ -341,7 +345,7 @@ public:
 	void stop_following();
 	void pause_following();
 	void highlight_tick(int32_t t);
-	void focus_cursor();
+	void focus_cursor(bool center = false);
 	void sticky_keys();
 
 	int scroll_x_max() const;
@@ -362,6 +366,8 @@ public:
 	bool select_none() { return _piano_timeline->select_none(); }
 private:
 	int32_t quantize_tick(int32_t tick, bool round = false);
+
+	const Note_View *find_note_view_at_tick(const std::vector<Note_View> &view, int32_t tick, int32_t *tick_offset = nullptr);
 
 	std::vector<Note_View> *active_channel_view();
 

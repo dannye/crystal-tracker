@@ -822,37 +822,39 @@ int Piano_Roll::handle(int event) {
 		// hack to reverse scrollbar priority
 		if (Fl::event_key() == FL_Page_Up) {
 			int x_pos = xposition() - (w() - WHITE_KEY_WIDTH * 2);
-			if (x_pos < 0) {
-				scroll_to(0, yposition());
-			}
-			else {
-				scroll_to(x_pos, yposition());
-			}
+			scroll_to(std::max(x_pos, 0), yposition());
 			sticky_keys();
+			if (_following) {
+				focus_cursor();
+			}
 			redraw();
 			return 1;
 		}
 		else if (Fl::event_key() == FL_Page_Down) {
 			int x_pos = xposition() + (w() - WHITE_KEY_WIDTH * 2);
-			if (x_pos > scroll_x_max()) {
-				scroll_to(scroll_x_max(), yposition());
-			}
-			else {
-				scroll_to(x_pos, yposition());
-			}
+			scroll_to(std::min(x_pos, scroll_x_max()), yposition());
 			sticky_keys();
+			if (_following) {
+				focus_cursor();
+			}
 			redraw();
 			return 1;
 		}
 		else if (Fl::event_key() == FL_Home) {
 			scroll_to(0, yposition());
 			sticky_keys();
+			if (_following) {
+				focus_cursor();
+			}
 			redraw();
 			return 1;
 		}
 		else if (Fl::event_key() == FL_End) {
 			scroll_to(scroll_x_max(), yposition());
 			sticky_keys();
+			if (_following) {
+				focus_cursor();
+			}
 			redraw();
 			return 1;
 		}
@@ -889,6 +891,16 @@ bool Piano_Roll::handle_mouse_click(int event) {
 	return false;
 }
 
+void Piano_Roll::step() {
+	const auto view = active_channel_view();
+	if (view) {
+		const Note_View *note = find_note_view_at_tick(*view, _tick);
+		if (note) {
+			_tick += note->speed;
+		}
+	}
+}
+
 void Piano_Roll::zoom(bool z) {
 	if (_zoomed == z) return;
 	_zoomed = z;
@@ -902,7 +914,7 @@ void Piano_Roll::zoom(bool z) {
 	set_timeline_width();
 	_piano_timeline->h(NUM_OCTAVES * octave_height());
 
-	scroll_to(scroll_x * scroll_x_max(), scroll_y * scroll_y_max());
+	scroll_to((int)(scroll_x * scroll_x_max()), (int)(scroll_y * scroll_y_max()));
 	sticky_keys();
 
 	if (_following) {
@@ -999,6 +1011,10 @@ void Piano_Roll::set_active_channel_selection(const std::set<int32_t> &selection
 	for (int32_t index : selection) {
 		channel->at(index)->selected(true);
 	}
+}
+
+void Piano_Roll::select_note_at_tick() {
+	_piano_timeline->select_note_at_tick(*_piano_timeline->active_channel_boxes(), _tick);
 }
 
 #define TICK_TO_X_POS(tick) (_piano_timeline->x() + WHITE_KEY_WIDTH + (tick) * tick_width())
@@ -1448,15 +1464,11 @@ void Piano_Roll::highlight_tick(int32_t t) {
 	redraw();
 }
 
-void Piano_Roll::focus_cursor() {
+void Piano_Roll::focus_cursor(bool center) {
 	int x_pos = (_tick / TICKS_PER_STEP * TICKS_PER_STEP) * tick_width();
 	if ((_following && _realtime) || x_pos > xposition() + w() - WHITE_KEY_WIDTH * 2 || x_pos < xposition()) {
-		if (x_pos > scroll_x_max()) {
-			scroll_to(scroll_x_max(), yposition());
-		}
-		else {
-			scroll_to(x_pos, yposition());
-		}
+		int scroll_pos = center ? x_pos + WHITE_KEY_WIDTH - w() / 2 : x_pos;
+		scroll_to(std::min(std::max(scroll_pos, 0), scroll_x_max()), yposition());
 		sticky_keys();
 	}
 }
@@ -1483,22 +1495,9 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch) {
 
 	int32_t tick_offset = 0;
 
-	const auto find_note_view_at_tick = [&tick_offset](const std::vector<Note_View> &view, int32_t tick) {
-		int32_t t_left = 0;
-		for (const Note_View &note : view) {
-			int32_t t_right = t_left + note.length * note.speed;
-			if (t_right > tick && !note.ghost) {
-				tick_offset = tick - t_left;
-				return &note;
-			}
-			t_left = t_right;
-		}
-		return (const Note_View *)nullptr;
-	};
+	const Note_View *note_view = find_note_view_at_tick(*view, _tick, &tick_offset);
 
-	const Note_View *note_view = find_note_view_at_tick(*view, _tick);
-
-	if (!note_view) return false;
+	if (!note_view || note_view->ghost) return false;
 
 	int32_t index = note_view->index;
 	int32_t speed = note_view->speed;
@@ -1512,12 +1511,12 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch) {
 		}
 	}
 
-	song.put_note(selected_channel(), selected_boxes, pitch, index, tick_offset / speed);
+	song.put_note(selected_channel(), selected_boxes, pitch, index, _tick, tick_offset / speed);
 	set_active_channel_timeline(song);
 	_piano_timeline->select_note_at_tick(*channel, _tick);
 
 	_tick += speed;
-	focus_cursor();
+	focus_cursor(true);
 
 	return true;
 }
@@ -1894,6 +1893,19 @@ int32_t Piano_Roll::quantize_tick(int32_t tick, bool round) {
 	return tick / TICKS_PER_STEP * TICKS_PER_STEP;
 }
 
+const Note_View *Piano_Roll::find_note_view_at_tick(const std::vector<Note_View> &view, int32_t tick, int32_t *tick_offset) {
+	int32_t t_left = 0;
+	for (const Note_View &note : view) {
+		int32_t t_right = t_left + note.length * note.speed;
+		if (t_right > tick) {
+			if (tick_offset) *tick_offset = tick - t_left;
+			return &note;
+		}
+		t_left = t_right;
+	}
+	return (const Note_View *)nullptr;
+}
+
 std::vector<Note_View> *Piano_Roll::active_channel_view() {
 	int active_channel = selected_channel();
 	if (active_channel == 1) return &_channel_1_notes;
@@ -1907,5 +1919,8 @@ void Piano_Roll::hscrollbar_cb(Fl_Scrollbar *sb, void *) {
 	Piano_Roll *scroll = (Piano_Roll *)(sb->parent());
 	scroll->scroll_to(sb->value(), scroll->yposition());
 	scroll->sticky_keys();
+	if (scroll->_following) {
+		scroll->focus_cursor();
+	}
 	scroll->redraw();
 }

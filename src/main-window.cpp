@@ -1364,15 +1364,25 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_status_message += mw->_song.undo_action_message();
 	mw->_status_label->label(mw->_status_message.c_str());
 
+	int tick = mw->_song.undo_tick();
+	int channel_number = mw->_song.undo_channel_number();
 	std::set<int32_t> selection = mw->_song.undo_selection();
+	Song::Song_State::Action action = mw->_song.undo_action();
 
-	int channel = mw->_song.undo();
-	if (channel != mw->selected_channel()) {
-		mw->selected_channel(channel);
+	mw->_song.undo();
+	if (channel_number != mw->selected_channel()) {
+		mw->selected_channel(channel_number);
 		mw->sync_channel_buttons();
 	}
 	mw->_piano_roll->set_active_channel_timeline(mw->_song);
-	mw->_piano_roll->set_active_channel_selection(selection);
+	if (action == Song::Song_State::Action::PUT_NOTE) {
+		mw->_piano_roll->tick(tick);
+		mw->_piano_roll->select_note_at_tick();
+		mw->_piano_roll->focus_cursor(true);
+	}
+	else {
+		mw->_piano_roll->set_active_channel_selection(selection);
+	}
 
 	mw->update_active_controls();
 	mw->redraw();
@@ -1385,16 +1395,27 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_status_message += mw->_song.redo_action_message();
 	mw->_status_label->label(mw->_status_message.c_str());
 
-	Song::Song_State::Action action = mw->_song.redo_action();
+	int tick = mw->_song.redo_tick();
+	int channel_number = mw->_song.redo_channel_number();
 	std::set<int32_t> selection = mw->_song.redo_selection();
+	Song::Song_State::Action action = mw->_song.redo_action();
 
-	int channel = mw->_song.redo();
-	if (channel != mw->selected_channel()) {
-		mw->selected_channel(channel);
+	mw->_song.redo();
+	if (channel_number != mw->selected_channel()) {
+		mw->selected_channel(channel_number);
 		mw->sync_channel_buttons();
 	}
 	mw->_piano_roll->set_active_channel_timeline(mw->_song);
-	if (action != Song::Song_State::Action::DELETE_SELECTION && action != Song::Song_State::Action::SNIP_SELECTION) {
+	if (action == Song::Song_State::Action::PUT_NOTE) {
+		mw->_piano_roll->tick(tick);
+		mw->_piano_roll->select_note_at_tick();
+		mw->_piano_roll->step();
+		mw->_piano_roll->focus_cursor(true);
+	}
+	else if (
+		action != Song::Song_State::Action::DELETE_SELECTION &&
+		action != Song::Song_State::Action::SNIP_SELECTION
+	) {
 		mw->_piano_roll->set_active_channel_selection(selection);
 	}
 
