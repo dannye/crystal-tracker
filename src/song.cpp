@@ -252,9 +252,16 @@ void Song::put_note(const int selected_channel, const std::set<int32_t> &selecte
 	remember(selected_channel, selected_boxes, Song_State::Action::PUT_NOTE, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
-	Command_Type new_type = pitch == Pitch::REST ? Command_Type::REST : Command_Type::NOTE;
+	Command_Type new_type =
+		pitch == Pitch::REST ? Command_Type::REST :
+		selected_channel == 4 ? Command_Type::DRUM_NOTE :
+		Command_Type::NOTE;
 
-	assert(commands[index].type == Command_Type::NOTE || commands[index].type == Command_Type::REST);
+	assert(
+		commands[index].type == Command_Type::NOTE ||
+		commands[index].type == Command_Type::DRUM_NOTE ||
+		commands[index].type == Command_Type::REST
+	);
 
 	Command_Type old_type = commands[index].type;
 	int32_t old_length = commands[index].note.length;
