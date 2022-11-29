@@ -53,8 +53,10 @@ void IT_Module::play() {
 }
 
 void IT_Module::mute_channel(int32_t channel, bool mute) {
-	openmpt::ext::interactive *interactive = static_cast<openmpt::ext::interactive *>(_mod->get_interface(openmpt::ext::interactive_id));
-	interactive->set_channel_mute_status(channel - 1, mute);
+	if (channel - 1 < _mod->get_num_channels()) {
+		openmpt::ext::interactive *interactive = static_cast<openmpt::ext::interactive *>(_mod->get_interface(openmpt::ext::interactive_id));
+		interactive->set_channel_mute_status(channel - 1, mute);
+	}
 }
 
 void IT_Module::set_tick(int32_t tick) {
