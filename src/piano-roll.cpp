@@ -956,8 +956,8 @@ void Piano_Roll::zoom(bool z) {
 	if (_zoomed == z) return;
 	_zoomed = z;
 
-	float scroll_x = scroll_x_max() > 0 ? hscrollbar.value() / (float) scroll_x_max() : 0.0f;
-	float scroll_y = scroll_y_max() > 0 ? scrollbar.value() / (float) scroll_y_max() : 0.0f;
+	float scroll_x = scroll_x_max() > 0 ? xposition() / (float) scroll_x_max() : 0.0f;
+	float scroll_y = scroll_y_max() > 0 ? yposition() / (float) scroll_y_max() : 0.0f;
 
 	_piano_timeline->calc_sizes();
 	_piano_timeline->_keys->calc_sizes();
@@ -977,11 +977,11 @@ void Piano_Roll::set_size(int W, int H) {
 	if (W != w() || H != h()) {
 		size(W, H);
 		set_timeline_width();
-		if (hscrollbar.value() > scroll_x_max()) {
+		if (xposition() > scroll_x_max()) {
 			scroll_to(scroll_x_max(), yposition());
 			sticky_keys();
 		}
-		if (scrollbar.value() > scroll_y_max()) {
+		if (yposition() > scroll_y_max()) {
 			scroll_to(xposition(), scroll_y_max());
 		}
 	}
@@ -1526,6 +1526,10 @@ void Piano_Roll::focus_cursor(bool center) {
 
 void Piano_Roll::sticky_keys() {
 	_piano_timeline->_keys->position(0, _piano_timeline->_keys->y());
+}
+
+void Piano_Roll::scroll_to_y_max() {
+	scroll_to(xposition(), scroll_y_max());
 }
 
 int Piano_Roll::scroll_x_max() const {

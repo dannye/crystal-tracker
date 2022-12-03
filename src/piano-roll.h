@@ -369,6 +369,8 @@ public:
 	void focus_cursor(bool center = false);
 	void sticky_keys();
 
+	void scroll_to_y_max();
+
 	int scroll_x_max() const;
 	int scroll_y_max() const;
 
