@@ -2,11 +2,28 @@
 
 #include <cmath>
 
-constexpr std::size_t BUFFER_SIZE = 2048;
-constexpr std::int32_t SAMPLE_RATE = 48000;
+IT_Module::IT_Module() {
+	generate_it_module();
 
-IT_Module::IT_Module(const Piano_Roll &song, const std::vector<Wave> &waves, int32_t loop_tick) : _buffer(BUFFER_SIZE * 2) {
-	generate_it_module(song, waves, loop_tick);
+	_mod = new openmpt::module_ext(_data);
+	_mod->set_repeat_count(-1);
+
+	_is_interleaved = false;
+	if (!try_open()) {
+		_is_interleaved = true;
+		try_open();
+	}
+}
+
+IT_Module::IT_Module(
+	const std::vector<Note_View> &channel_1_notes,
+	const std::vector<Note_View> &channel_2_notes,
+	const std::vector<Note_View> &channel_3_notes,
+	const std::vector<Note_View> &channel_4_notes,
+	const std::vector<Wave> &waves,
+	int32_t loop_tick
+) {
+	generate_it_module(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, waves, loop_tick);
 
 	_mod = new openmpt::module_ext(_data);
 	if (loop_tick != -1) {
@@ -57,6 +74,16 @@ void IT_Module::mute_channel(int32_t channel, bool mute) {
 		openmpt::ext::interactive *interactive = static_cast<openmpt::ext::interactive *>(_mod->get_interface(openmpt::ext::interactive_id));
 		interactive->set_channel_mute_status(channel - 1, mute);
 	}
+}
+
+int32_t IT_Module::play_note(Pitch pitch, int32_t octave) {
+	openmpt::ext::interactive *interactive = static_cast<openmpt::ext::interactive *>(_mod->get_interface(openmpt::ext::interactive_id));
+	return interactive->play_note(2, octave * NUM_PITCHES + (int32_t)pitch - 1, 1.0, 0.0);
+}
+
+void IT_Module::stop_note(int32_t channel) {
+	openmpt::ext::interactive *interactive = static_cast<openmpt::ext::interactive *>(_mod->get_interface(openmpt::ext::interactive_id));
+	interactive->stop_note(channel);
 }
 
 void IT_Module::set_tick(int32_t tick) {
@@ -273,13 +300,19 @@ static std::vector<std::vector<uint8_t>> get_samples(const std::vector<Wave> &wa
 	return samples;
 }
 
-static std::vector<std::vector<uint8_t>> get_patterns(const Piano_Roll &song, int32_t loop_tick) {
+static std::vector<std::vector<uint8_t>> get_patterns(
+	const std::vector<Note_View> &channel_1_notes,
+	const std::vector<Note_View> &channel_2_notes,
+	const std::vector<Note_View> &channel_3_notes,
+	const std::vector<Note_View> &channel_4_notes,
+	int32_t loop_tick
+) {
 	std::vector<std::vector<uint8_t>> patterns;
 
-	auto channel_1_itr = song.channel_1_notes().begin();
-	auto channel_2_itr = song.channel_2_notes().begin();
-	auto channel_3_itr = song.channel_3_notes().begin();
-	auto channel_4_itr = song.channel_4_notes().begin();
+	auto channel_1_itr = channel_1_notes.begin();
+	auto channel_2_itr = channel_2_notes.begin();
+	auto channel_3_itr = channel_3_notes.begin();
+	auto channel_4_itr = channel_4_notes.begin();
 	int32_t channel_1_note_length = 0;
 	int32_t channel_2_note_length = 0;
 	int32_t channel_3_note_length = 0;
@@ -295,10 +328,10 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Piano_Roll &song, in
 
 	auto song_finished = [&]() {
 		return
-			channel_1_itr == song.channel_1_notes().end() &&
-			channel_2_itr == song.channel_2_notes().end() &&
-			channel_3_itr == song.channel_3_notes().end() &&
-			channel_4_itr == song.channel_4_notes().end() &&
+			channel_1_itr == channel_1_notes.end() &&
+			channel_2_itr == channel_2_notes.end() &&
+			channel_3_itr == channel_3_notes.end() &&
+			channel_4_itr == channel_4_notes.end() &&
 			channel_1_note_length == 0 &&
 			channel_2_note_length == 0 &&
 			channel_3_note_length == 0 &&
@@ -328,9 +361,9 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Piano_Roll &song, in
 
 		std::vector<uint8_t> pattern_data;
 		uint32_t row = 0;
-		while (row < ROWS_PER_PATTERN && !song_finished()) {
+		do {
 			// NOTE: only even speeds are allowed for now to avoid complex time dilation
-			if (channel_1_note_length == 0 && channel_1_itr != song.channel_1_notes().end()) {
+			if (channel_1_note_length == 0 && channel_1_itr != channel_1_notes.end()) {
 				channel_1_note_length = channel_1_itr->length * channel_1_itr->speed / 2 - 1;
 				channel_1_note_duration = 0;
 				if (channel_1_itr->tempo != channel_1_prev_note.tempo) {
@@ -389,7 +422,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Piano_Roll &song, in
 				channel_1_note_duration += 1;
 			}
 
-			if (channel_2_note_length == 0 && channel_2_itr != song.channel_2_notes().end()) {
+			if (channel_2_note_length == 0 && channel_2_itr != channel_2_notes.end()) {
 				channel_2_note_length = channel_2_itr->length * channel_2_itr->speed / 2 - 1;
 				channel_2_note_duration = 0;
 				if (channel_2_itr->tempo != channel_2_prev_note.tempo) {
@@ -448,7 +481,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Piano_Roll &song, in
 				channel_2_note_duration += 1;
 			}
 
-			if (channel_3_note_length == 0 && channel_3_itr != song.channel_3_notes().end()) {
+			if (channel_3_note_length == 0 && channel_3_itr != channel_3_notes.end()) {
 				channel_3_note_length = channel_3_itr->length * channel_3_itr->speed / 2 - 1;
 				channel_3_note_duration = 0;
 				if (channel_3_itr->tempo != channel_3_prev_note.tempo) {
@@ -487,7 +520,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Piano_Roll &song, in
 				channel_3_note_duration += 1;
 			}
 
-			if (channel_4_note_length == 0 && channel_4_itr != song.channel_4_notes().end()) {
+			if (channel_4_note_length == 0 && channel_4_itr != channel_4_notes.end()) {
 				channel_4_note_length = channel_4_itr->length * channel_4_itr->speed / 2 - 1;
 				if (channel_4_itr->tempo != channel_4_prev_note.tempo) {
 					pattern_data.push_back(0x85);
@@ -519,7 +552,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(const Piano_Roll &song, in
 
 			pattern_data.push_back(0);
 			row += 1;
-		}
+		} while (row < ROWS_PER_PATTERN && !song_finished());
 
 		put_short(pattern, pattern_data.size());
 		put_short(pattern, row);
@@ -541,7 +574,14 @@ static std::size_t get_total_size(const std::vector<std::vector<uint8_t>> &data)
 	return size;
 }
 
-void IT_Module::generate_it_module(const Piano_Roll &song, const std::vector<Wave> &waves, int32_t loop_tick) {
+void IT_Module::generate_it_module(
+	const std::vector<Note_View> &channel_1_notes,
+	const std::vector<Note_View> &channel_2_notes,
+	const std::vector<Note_View> &channel_3_notes,
+	const std::vector<Note_View> &channel_4_notes,
+	const std::vector<Wave> &waves,
+	int32_t loop_tick
+) {
 	const uint32_t song_name_length = 26;
 	const uint32_t pattern_row_highlight = 0x1004; // ???
 	const uint32_t tracker_version = 0x5130;
@@ -564,7 +604,7 @@ void IT_Module::generate_it_module(const Piano_Roll &song, const std::vector<Wav
 
 	std::vector<std::vector<uint8_t>> instruments = get_instruments();
 	std::vector<std::vector<uint8_t>> samples = get_samples(waves);
-	std::vector<std::vector<uint8_t>> patterns = get_patterns(song, loop_tick);
+	std::vector<std::vector<uint8_t>> patterns = get_patterns(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, loop_tick);
 
 	const uint32_t number_of_orders = patterns.size() + 1;
 	const uint32_t number_of_instruments = instruments.size();

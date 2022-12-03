@@ -585,6 +585,24 @@ void Main_Window::set_song_position(int32_t tick) {
 	_audio_mutex.unlock();
 }
 
+void Main_Window::play_note(Pitch pitch, int32_t octave) {
+	if (_interactive_thread.joinable()) {
+		_interactive_mutex.lock();
+		_playing_pitch = pitch;
+		_playing_octave = octave;
+		_interactive_mutex.unlock();
+	}
+	else {
+		_playing_pitch = pitch;
+		_playing_octave = octave;
+		start_interactive_thread(pitch, octave);
+	}
+}
+
+void Main_Window::stop_note() {
+	stop_interactive_thread();
+}
+
 void Main_Window::update_active_controls() {
 	if (_song.loaded()) {
 		bool playing = _it_module && _it_module->playing();
@@ -926,7 +944,14 @@ void Main_Window::toggle_playback() {
 			delete _it_module;
 		}
 		int32_t loop_tick = loop() ? _piano_roll->get_loop_tick() : -1;
-		_it_module = new IT_Module(*_piano_roll, _waves, loop_tick);
+		_it_module = new IT_Module(
+			_piano_roll->channel_1_notes(),
+			_piano_roll->channel_2_notes(),
+			_piano_roll->channel_3_notes(),
+			_piano_roll->channel_4_notes(),
+			_waves,
+			loop_tick
+		);
 		_it_module->mute_channel(1, channel_1_muted());
 		_it_module->mute_channel(2, channel_2_muted());
 		_it_module->mute_channel(3, channel_3_muted());
@@ -937,6 +962,7 @@ void Main_Window::toggle_playback() {
 				_it_module->set_tick(_tick);
 			}
 			_piano_roll->start_following();
+			stop_interactive_thread();
 			start_audio_thread();
 			update_active_controls();
 		}
@@ -950,6 +976,7 @@ void Main_Window::toggle_playback() {
 	else if (_it_module->paused()) {
 		if (_it_module->ready() && _it_module->start()) {
 			_piano_roll->unpause_following();
+			stop_interactive_thread();
 			start_audio_thread();
 			update_active_controls();
 		}
@@ -979,17 +1006,32 @@ void Main_Window::stop_playback() {
 }
 
 void Main_Window::start_audio_thread() {
-	_kill_signal = std::promise<void>();
-	std::future<void> kill_future = _kill_signal.get_future();
+	_audio_kill_signal = std::promise<void>();
+	std::future<void> kill_future = _audio_kill_signal.get_future();
 	_audio_thread = std::thread(&playback_thread, this, std::move(kill_future));
 }
 
 void Main_Window::stop_audio_thread() {
 	if (_audio_thread.joinable()) {
 		_audio_mutex.lock();
-		_kill_signal.set_value();
+		_audio_kill_signal.set_value();
 		_audio_thread.join();
 		_audio_mutex.unlock();
+	}
+}
+
+void Main_Window::start_interactive_thread(Pitch pitch, int32_t octave) {
+	_interactive_kill_signal = std::promise<void>();
+	std::future<void> kill_future = _interactive_kill_signal.get_future();
+	_interactive_thread = std::thread(&interactive_thread, this, std::move(kill_future), pitch, octave);
+}
+
+void Main_Window::stop_interactive_thread() {
+	if (_interactive_thread.joinable()) {
+		_interactive_mutex.lock();
+		_interactive_kill_signal.set_value();
+		_interactive_thread.join();
+		_interactive_mutex.unlock();
 	}
 }
 
@@ -1869,4 +1911,23 @@ void Main_Window::sync_cb(Main_Window *mw) {
 		mw->update_active_controls();
 	}
 	mw->_audio_mutex.unlock();
+}
+
+void Main_Window::interactive_thread(Main_Window *mw, std::future<void> kill_signal, Pitch pitch, int32_t octave) {
+	IT_Module mod;
+	mod.start();
+	int32_t channel = mod.play_note(pitch, octave);
+	while (kill_signal.wait_for(std::chrono::milliseconds(8)) == std::future_status::timeout) {
+		if (mw->_interactive_mutex.try_lock()) {
+			if (pitch != mw->_playing_pitch || octave != mw->_playing_octave) {
+				pitch = mw->_playing_pitch;
+				octave = mw->_playing_octave;
+				mod.stop_note(channel);
+				channel = mod.play_note(pitch, octave);
+			}
+			mod.play();
+			mw->_interactive_mutex.unlock();
+		}
+	}
+	mod.stop_note(channel);
 }

@@ -116,10 +116,15 @@ private:
 	int32_t _tick = -1;
 	// Work properties
 	int _selected_channel = 0;
+	Pitch _playing_pitch = Pitch::REST;
+	int32_t _playing_octave = 0;
 	// Threads
 	std::thread _audio_thread;
 	std::mutex _audio_mutex;
-	std::promise<void> _kill_signal;
+	std::promise<void> _audio_kill_signal;
+	std::thread _interactive_thread;
+	std::mutex _interactive_mutex;
+	std::promise<void> _interactive_kill_signal;
 	// Window size cache
 	int _wx, _wy, _ww, _wh;
 #ifdef __X11__
@@ -146,6 +151,10 @@ public:
 	int handle(int event) override;
 	void set_song_position(int32_t tick);
 	void open_song(const char *filename);
+
+	void play_note(Pitch pitch, int32_t octave);
+	void stop_note();
+	bool playing_note() { return _interactive_thread.joinable(); }
 private:
 	inline void selected_channel(int i) { _selected_channel = i; }
 	void update_active_controls(void);
@@ -159,6 +168,8 @@ private:
 	void stop_playback();
 	void start_audio_thread();
 	void stop_audio_thread();
+	void start_interactive_thread(Pitch pitch, int32_t octave);
+	void stop_interactive_thread();
 	void update_icons(void);
 	void update_zoom(void);
 	// File menu
@@ -230,6 +241,7 @@ private:
 	// Audio playback
 	static void playback_thread(Main_Window *mw, std::future<void> kill_signal);
 	static void sync_cb(Main_Window *mw);
+	static void interactive_thread(Main_Window *mw, std::future<void> kill_signal, Pitch pitch, int32_t octave);
 };
 
 #endif

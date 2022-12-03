@@ -137,6 +137,40 @@ void Call_Box::draw() {
 	draw_label();
 }
 
+int Key_Box::handle(int event) {
+	Piano_Roll *piano_roll = parent()->parent()->parent();
+	Main_Window *mw = parent()->parent()->parent()->parent();
+	Key_Box *key_below_mouse = nullptr;
+	switch (event) {
+	case FL_PUSH:
+		if (Fl::event_button() == FL_LEFT_MOUSE && !piano_roll->following() && !piano_roll->paused()) {
+			mw->play_note(_pitch, _octave);
+			color(fl_color_average(FL_FOREGROUND_COLOR, FL_BACKGROUND2_COLOR, .5f));
+			parent()->redraw();
+			return 1;
+		}
+		break;
+	case FL_RELEASE:
+		if (mw->playing_note()) {
+			mw->stop_note();
+			parent()->reset_key_colors();
+			parent()->redraw();
+			return 1;
+		}
+		break;
+	case FL_DRAG:
+		if (mw->playing_note() && parent()->find_key_below_mouse(key_below_mouse)) {
+			mw->play_note(key_below_mouse->_pitch, key_below_mouse->_octave);
+			parent()->reset_key_colors();
+			key_below_mouse->color(fl_color_average(FL_FOREGROUND_COLOR, FL_BACKGROUND2_COLOR, .5f));
+			parent()->redraw();
+			return 1;
+		}
+		break;
+	}
+	return Fl_Box::handle(event);
+}
+
 void White_Key_Box::draw() {
 	draw_box();
 	draw_label(x() + BLACK_KEY_WIDTH, y(), w() - BLACK_KEY_WIDTH, h());
@@ -147,16 +181,20 @@ Piano_Keys::Piano_Keys(int x, int y, int w, int h, const char *l) : Fl_Group(x, 
 		for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
 			size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
 			if (NOTE_KEYS[_x].white) {
-				_notes[i] = new White_Key_Box(x, y, 0, 0, NOTE_KEYS[_x].label);
-				_notes[i]->box(FL_BORDER_BOX);
-				_notes[i]->color(FL_BACKGROUND2_COLOR);
-				_notes[i]->labelcolor(FL_FOREGROUND_COLOR);
+				_keys[i] = new White_Key_Box(x, y, 0, 0, NOTE_KEYS[_x].label);
+				_keys[i]->pitch(NOTE_KEYS[_x].pitch);
+				_keys[i]->octave(NUM_OCTAVES - _y);
+				_keys[i]->box(FL_BORDER_BOX);
+				_keys[i]->color(FL_BACKGROUND2_COLOR);
+				_keys[i]->labelcolor(FL_FOREGROUND_COLOR);
 			}
 			else {
-				_notes[i] = new Fl_Box(x, y, 0, 0, NOTE_KEYS[_x].label);
-				_notes[i]->box(FL_BORDER_BOX);
-				_notes[i]->color(FL_FOREGROUND_COLOR);
-				_notes[i]->labelcolor(FL_BACKGROUND2_COLOR);
+				_keys[i] = new Key_Box(x, y, 0, 0, NOTE_KEYS[_x].label);
+				_keys[i]->pitch(NOTE_KEYS[_x].pitch);
+				_keys[i]->octave(NUM_OCTAVES - _y);
+				_keys[i]->box(FL_BORDER_BOX);
+				_keys[i]->color(FL_FOREGROUND_COLOR);
+				_keys[i]->labelcolor(FL_BACKGROUND2_COLOR);
 			}
 		}
 	}
@@ -166,9 +204,9 @@ Piano_Keys::Piano_Keys(int x, int y, int w, int h, const char *l) : Fl_Group(x, 
 
 Piano_Keys::~Piano_Keys() noexcept {
 	for (size_t i = 0; i < NUM_NOTES_PER_OCTAVE * NUM_OCTAVES; ++i) {
-		if (_notes[i]) {
-			delete _notes[i];
-			_notes[i] = nullptr;
+		if (_keys[i]) {
+			delete _keys[i];
+			_keys[i] = nullptr;
 		}
 	}
 }
@@ -184,7 +222,7 @@ void Piano_Keys::calc_sizes() {
 
 	int white_delta = 0, black_delta = 0;
 
-	int y_top = _notes[0]->y();
+	int y_top = _keys[0]->y();
 
 	for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
 		int y_pos = octave_height * _y;
@@ -192,8 +230,8 @@ void Piano_Keys::calc_sizes() {
 			size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
 			int delta = zoomed ? NOTE_KEYS[_x].delta1 : NOTE_KEYS[_x].delta2;
 			if (NOTE_KEYS[_x].white) {
-				_notes[i]->resize(
-					_notes[i]->x(),
+				_keys[i]->resize(
+					_keys[i]->x(),
 					y_top + y_pos + NOTE_KEYS[_x].y * white_key_height + white_delta,
 					WHITE_KEY_WIDTH,
 					white_key_height + delta
@@ -201,8 +239,8 @@ void Piano_Keys::calc_sizes() {
 				white_delta += delta;
 			}
 			else {
-				_notes[i]->resize(
-					_notes[i]->x(),
+				_keys[i]->resize(
+					_keys[i]->x(),
 					y_top + y_pos + NOTE_KEYS[_x].y * note_row_height + black_key_offset + black_delta,
 					BLACK_KEY_WIDTH,
 					black_key_height + delta
@@ -219,7 +257,7 @@ void Piano_Keys::highlight_key(Pitch pitch, int32_t octave, Fl_Color color) {
 	size_t _y = NUM_OCTAVES - octave;
 	size_t _x = PITCH_TO_KEY_INDEX[(size_t)pitch - 1];
 	size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
-	_notes[i]->color(color);
+	_keys[i]->color(color);
 }
 
 void Piano_Keys::reset_key_colors() {
@@ -227,13 +265,26 @@ void Piano_Keys::reset_key_colors() {
 		for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
 			size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
 			if (NOTE_KEYS[_x].white) {
-				_notes[i]->color(FL_BACKGROUND2_COLOR);
+				_keys[i]->color(FL_BACKGROUND2_COLOR);
 			}
 			else {
-				_notes[i]->color(FL_FOREGROUND_COLOR);
+				_keys[i]->color(FL_FOREGROUND_COLOR);
 			}
 		}
 	}
+}
+
+bool Piano_Keys::find_key_below_mouse(Key_Box *&key) {
+	for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
+		for (size_t _x = NUM_NOTES_PER_OCTAVE - 1; _x < NUM_NOTES_PER_OCTAVE; --_x) {
+			size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
+			if (Fl::event_inside(_keys[i])) {
+				key = _keys[i];
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 Piano_Timeline::Piano_Timeline(int x, int y, int w, int h, const char *l) : Fl_Group(x, y, w, h, l) {
@@ -390,7 +441,7 @@ int Piano_Timeline::handle(int event) {
 		if (parent()->handle_mouse_click(event)) {
 			return 1;
 		}
-		if (Fl::event_button() == FL_LEFT_MOUSE) {
+		if (Fl::event_button() == FL_LEFT_MOUSE && !Fl::event_inside(_keys)) {
 			if (handle_note_selection(event)) {
 				return 1;
 			}
@@ -874,9 +925,9 @@ bool Piano_Roll::handle_mouse_click(int event) {
 		(!_following || event == FL_PUSH)
 	) {
 		int32_t t = (Fl::event_x() - _piano_timeline->x() - WHITE_KEY_WIDTH) / tick_width();
-		t = quantize_tick(t);
+		t = std::max(quantize_tick(t), 0);
 
-		if (_tick != t && 0 <= t && t < _song_length) {
+		if (_tick != t && t < _song_length) {
 			_tick = t;
 			parent()->set_song_position(_tick);
 			redraw();

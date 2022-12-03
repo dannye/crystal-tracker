@@ -2,13 +2,17 @@
 #define IT_MODULE_H
 
 #include <cstdint>
+#include <array>
 #include <vector>
 
 #include <libopenmpt/libopenmpt_ext.hpp>
 #include <portaudiocpp/PortAudioCpp.hxx>
 
+#include "command.h"
 #include "parse-waves.h"
-#include "piano-roll.h"
+
+constexpr std::size_t BUFFER_SIZE = 2048;
+constexpr std::int32_t SAMPLE_RATE = 48000;
 
 constexpr uint32_t ROWS_PER_PATTERN = 192;
 
@@ -19,7 +23,7 @@ private:
 	openmpt::module_ext *_mod = nullptr;
 
 	portaudio::BlockingStream _stream;
-	std::vector<float> _buffer;
+	std::array<float, BUFFER_SIZE * 2> _buffer;
 	bool _is_interleaved = false;
 
 	int32_t _current_pattern = 0;
@@ -27,7 +31,15 @@ private:
 
 	bool _paused = false;
 public:
-	IT_Module(const Piano_Roll &song, const std::vector<Wave> &waves, int32_t loop_tick = -1);
+	IT_Module();
+	IT_Module(
+		const std::vector<Note_View> &channel_1_notes,
+		const std::vector<Note_View> &channel_2_notes,
+		const std::vector<Note_View> &channel_3_notes,
+		const std::vector<Note_View> &channel_4_notes,
+		const std::vector<Wave> &waves,
+		int32_t loop_tick = -1
+	);
 	~IT_Module() noexcept;
 
 	IT_Module(const IT_Module&) = delete;
@@ -46,11 +58,21 @@ public:
 
 	void mute_channel(int32_t channel, bool mute);
 
+	int32_t play_note(Pitch pitch, int32_t octave);
+	void stop_note(int32_t channel);
+
 	int32_t current_tick() const { return (_current_pattern * ROWS_PER_PATTERN + _current_row) * 2; }
 	void set_tick(int32_t tick);
 private:
 	bool try_open();
-	void generate_it_module(const Piano_Roll &song, const std::vector<Wave> &waves, int32_t loop_tick = -1);
+	void generate_it_module(
+		const std::vector<Note_View> &channel_1_notes = {},
+		const std::vector<Note_View> &channel_2_notes = {},
+		const std::vector<Note_View> &channel_3_notes = {},
+		const std::vector<Note_View> &channel_4_notes = {},
+		const std::vector<Wave> &waves = {},
+		int32_t loop_tick = -1
+	);
 };
 
 #endif

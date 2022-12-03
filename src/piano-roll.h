@@ -49,22 +49,23 @@ constexpr int TICKS_PER_STEP = 12;
 struct Note_Key {
 	int y, delta1, delta2;
 	const char *label;
+	Pitch pitch;
 	bool white;
 };
 
 constexpr Note_Key NOTE_KEYS[NUM_NOTES_PER_OCTAVE] {
-	{  0,  0,  0, "B",     true },
-	{  1, +1,  0, "A",     true },
-	{  2, +1, +1, "G",     true },
-	{  3, +1, +1, "F",     true },
-	{  4, -1, -1, "E",     true },
-	{  5, -1, -1, "D",     true },
-	{  6, -1,  0, "C",     true },
-	{  1,  0,  0, "B♭/A♯", false },
-	{  3,  0,  0, "A♭/G♯", false },
-	{  5,  0,  0, "G♭/F♯", false },
-	{  8,  0,  0, "E♭/D♯", false },
-	{ 10,  0,  0, "D♭/C♯", false },
+	{  0,  0,  0, "B",     Pitch::B_NAT,   true },
+	{  1, +1,  0, "A",     Pitch::A_NAT,   true },
+	{  2, +1, +1, "G",     Pitch::G_NAT,   true },
+	{  3, +1, +1, "F",     Pitch::F_NAT,   true },
+	{  4, -1, -1, "E",     Pitch::E_NAT,   true },
+	{  5, -1, -1, "D",     Pitch::D_NAT,   true },
+	{  6, -1,  0, "C",     Pitch::C_NAT,   true },
+	{  1,  0,  0, "B♭/A♯", Pitch::A_SHARP, false },
+	{  3,  0,  0, "A♭/G♯", Pitch::G_SHARP, false },
+	{  5,  0,  0, "G♭/F♯", Pitch::F_SHARP, false },
+	{  8,  0,  0, "E♭/D♯", Pitch::D_SHARP, false },
+	{ 10,  0,  0, "D♭/C♯", Pitch::C_SHARP, false },
 };
 constexpr size_t PITCH_TO_KEY_INDEX[NUM_NOTES_PER_OCTAVE] {
 	6,  // C
@@ -123,8 +124,6 @@ public:
 	inline void set_end_tick(int32_t t) { _end_tick = t; }
 	inline void set_min_pitch(Pitch p, int32_t o) { _min_pitch = p; _min_octave = o; }
 	inline void set_max_pitch(Pitch p, int32_t o) { _max_pitch = p; _max_octave = o; }
-
-	void calc_sizes();
 };
 
 class Loop_Box : public Wrapper_Box {
@@ -141,9 +140,29 @@ protected:
 	void draw() override;
 };
 
-class White_Key_Box : public Fl_Box {
+class Piano_Keys;
+
+class Key_Box : public Fl_Box {
+private:
+	Pitch _pitch;
+	int32_t _octave;
 public:
 	using Fl_Box::Fl_Box;
+
+	Piano_Keys *parent() const { return (Piano_Keys *)Fl_Box::parent(); }
+
+	inline Pitch pitch(void) const { return _pitch; }
+	inline int32_t octave(void) const { return _octave; }
+
+	inline void pitch(Pitch p) { _pitch = p; }
+	inline void octave(int32_t o) { _octave = o; }
+
+	int handle(int event) override;
+};
+
+class White_Key_Box : public Key_Box {
+public:
+	using Key_Box::Key_Box;
 protected:
 	void draw() override;
 };
@@ -152,7 +171,7 @@ class Piano_Timeline;
 
 class Piano_Keys : public Fl_Group {
 private:
-	std::array<Fl_Box *, NUM_NOTES_PER_OCTAVE * NUM_OCTAVES> _notes;
+	std::array<Key_Box *, NUM_NOTES_PER_OCTAVE * NUM_OCTAVES> _keys;
 public:
 	Piano_Keys(int x, int y, int w, int h, const char *l = nullptr);
 	~Piano_Keys() noexcept;
@@ -166,6 +185,8 @@ public:
 
 	void highlight_key(Pitch pitch, int32_t octave, Fl_Color color);
 	void reset_key_colors();
+
+	bool find_key_below_mouse(Key_Box *&key);
 };
 
 class Piano_Roll;
