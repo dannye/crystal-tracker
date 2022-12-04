@@ -109,7 +109,7 @@ private:
 	Pitch _min_pitch = Pitch::B_NAT;
 	int32_t _min_octave = 8;
 	Pitch _max_pitch = Pitch::C_NAT;
-	int32_t _max_octave = 0;
+	int32_t _max_octave = 1;
 public:
 	using Fl_Box::Fl_Box;
 
@@ -183,7 +183,7 @@ public:
 
 	void calc_sizes();
 
-	void highlight_key(Pitch pitch, int32_t octave, Fl_Color color);
+	void set_key_color(Pitch pitch, int32_t octave, Fl_Color color);
 	void reset_key_colors();
 
 	bool find_key_below_mouse(Key_Box *&key);

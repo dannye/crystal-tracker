@@ -131,6 +131,12 @@ static inline bool is_control_command(Command_Type type) {
 	);
 }
 
+static inline int compare_pitch(Pitch p1, int32_t o1, Pitch p2, int32_t o2) {
+	if (o1 < o2 || (o1 == o2 && p1 < p2)) return -1;
+	if (o1 > o2 || (o1 == o2 && p1 > p2)) return 1;
+	return 0;
+}
+
 struct Command {
 
 	struct Note {
