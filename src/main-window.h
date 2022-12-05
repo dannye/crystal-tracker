@@ -154,7 +154,7 @@ public:
 
 	void play_note(Pitch pitch, int32_t octave);
 	void stop_note();
-	bool playing_note() { return _interactive_thread.joinable(); }
+	bool playing_note() { return _playing_pitch != Pitch::REST; }
 private:
 	inline void selected_channel(int i) { _selected_channel = i; }
 	void update_active_controls(void);
@@ -168,7 +168,7 @@ private:
 	void stop_playback();
 	void start_audio_thread();
 	void stop_audio_thread();
-	void start_interactive_thread(Pitch pitch, int32_t octave);
+	void start_interactive_thread();
 	void stop_interactive_thread();
 	void update_icons(void);
 	void update_zoom(void);
@@ -241,7 +241,7 @@ private:
 	// Audio playback
 	static void playback_thread(Main_Window *mw, std::future<void> kill_signal);
 	static void sync_cb(Main_Window *mw);
-	static void interactive_thread(Main_Window *mw, std::future<void> kill_signal, Pitch pitch, int32_t octave);
+	static void interactive_thread(Main_Window *mw, std::future<void> kill_signal);
 };
 
 #endif
