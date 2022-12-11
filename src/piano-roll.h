@@ -207,6 +207,8 @@ private:
 	std::vector<Call_Box *> _channel_2_calls;
 	std::vector<Call_Box *> _channel_3_calls;
 	std::vector<Call_Box *> _channel_4_calls;
+
+	int32_t _cursor_tick = -1;
 public:
 	Piano_Timeline(int x, int y, int w, int h, const char *l = nullptr);
 	~Piano_Timeline() noexcept;
@@ -394,6 +396,7 @@ private:
 
 	std::vector<Note_View> *active_channel_view();
 
+	static void scrollbar_cb(Fl_Scrollbar *sb, void *);
 	static void hscrollbar_cb(Fl_Scrollbar *sb, void *);
 };
 

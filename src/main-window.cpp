@@ -590,22 +590,26 @@ void Main_Window::set_song_position(int32_t tick) {
 	_audio_mutex.unlock();
 }
 
-void Main_Window::play_note(Pitch pitch, int32_t octave) {
+bool Main_Window::play_note(Pitch pitch, int32_t octave) {
 	if (pitch != _playing_pitch || octave != _playing_octave) {
 		_interactive_mutex.lock();
 		_playing_pitch = pitch;
 		_playing_octave = octave;
 		_interactive_mutex.unlock();
+		return true;
 	}
+	return false;
 }
 
-void Main_Window::stop_note() {
+bool Main_Window::stop_note() {
 	if (_playing_pitch != Pitch::REST) {
 		_interactive_mutex.lock();
 		_playing_pitch = Pitch::REST;
 		_playing_octave = 0;
 		_interactive_mutex.unlock();
+		return true;
 	}
+	return false;
 }
 
 void Main_Window::update_active_controls() {
@@ -1890,13 +1894,19 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 				if (tick != t) {
 					tick = t;
 					mw->_tick = t;
-					Fl::awake((Fl_Awake_Handler)sync_cb, mw);
+					if (!mw->_sync_requested) {
+						Fl::awake((Fl_Awake_Handler)sync_cb, mw);
+						mw->_sync_requested = true;
+					}
 				}
 				mw->_audio_mutex.unlock();
 			}
 			else {
 				mw->_tick = -1;
-				Fl::awake((Fl_Awake_Handler)sync_cb, mw);
+				if (!mw->_sync_requested) {
+					Fl::awake((Fl_Awake_Handler)sync_cb, mw);
+					mw->_sync_requested = true;
+				}
 				mw->_audio_mutex.unlock();
 				break;
 			}
@@ -1915,6 +1925,7 @@ void Main_Window::sync_cb(Main_Window *mw) {
 		mw->_piano_roll->stop_following();
 		mw->update_active_controls();
 	}
+	mw->_sync_requested = false;
 	mw->_audio_mutex.unlock();
 }
 

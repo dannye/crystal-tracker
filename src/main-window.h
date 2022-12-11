@@ -116,6 +116,7 @@ private:
 	int32_t _tick = -1;
 	// Work properties
 	int _selected_channel = 0;
+	bool _sync_requested = false;
 	Pitch _playing_pitch = Pitch::REST;
 	int32_t _playing_octave = 0;
 	// Threads
@@ -152,8 +153,8 @@ public:
 	void set_song_position(int32_t tick);
 	void open_song(const char *filename);
 
-	void play_note(Pitch pitch, int32_t octave);
-	void stop_note();
+	bool play_note(Pitch pitch, int32_t octave);
+	bool stop_note();
 	bool playing_note() { return _playing_pitch != Pitch::REST; }
 private:
 	inline void selected_channel(int i) { _selected_channel = i; }
