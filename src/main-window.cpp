@@ -165,6 +165,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("Mute Channel 2", FL_F + 6, (Fl_Callback *)channel_2_mute_cb, this, FL_MENU_TOGGLE),
 		OS_MENU_ITEM("Mute Channel 3", FL_F + 7, (Fl_Callback *)channel_3_mute_cb, this, FL_MENU_TOGGLE),
 		OS_MENU_ITEM("Mute Channel 4", FL_F + 8, (Fl_Callback *)channel_4_mute_cb, this, FL_MENU_TOGGLE | FL_MENU_DIVIDER),
+		OS_MENU_ITEM("Step Backward", '[', (Fl_Callback *)step_backward_cb, this, 0),
+		OS_MENU_ITEM("Step Forward", ']', (Fl_Callback *)step_forward_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Toggle &Follow Mode", '\\', (Fl_Callback *)follow_cb, this, 0),
 		{},
 		OS_SUBMENU("&Edit"),
@@ -278,6 +280,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_play_pause_mi = CT_FIND_MENU_ITEM_CB(play_pause_cb);
 	_stop_mi = CT_FIND_MENU_ITEM_CB(stop_cb);
 	_loop_mi = CT_FIND_MENU_ITEM_CB(loop_cb);
+	_step_backward_mi = CT_FIND_MENU_ITEM_CB(step_backward_cb);
+	_step_forward_mi = CT_FIND_MENU_ITEM_CB(step_forward_cb);
 	_follow_mi = CT_FIND_MENU_ITEM_CB(follow_cb);
 	_undo_mi = CT_FIND_MENU_ITEM_CB(undo_cb);
 	_redo_mi = CT_FIND_MENU_ITEM_CB(redo_cb);
@@ -635,6 +639,8 @@ void Main_Window::update_active_controls() {
 			_stop_tb->activate();
 			_loop_mi->deactivate();
 			_loop_tb->deactivate();
+			_step_backward_mi->deactivate();
+			_step_forward_mi->deactivate();
 			_follow_mi->activate();
 		}
 		else {
@@ -642,6 +648,8 @@ void Main_Window::update_active_controls() {
 			_stop_tb->deactivate();
 			_loop_mi->activate();
 			_loop_tb->activate();
+			_step_backward_mi->activate();
+			_step_forward_mi->activate();
 			_follow_mi->deactivate();
 		}
 		if (_song.can_undo() && stopped) {
@@ -713,6 +721,8 @@ void Main_Window::update_active_controls() {
 		_stop_tb->deactivate();
 		_loop_mi->activate();
 		_loop_tb->activate();
+		_step_backward_mi->deactivate();
+		_step_forward_mi->deactivate();
 		_follow_mi->deactivate();
 		_undo_mi->deactivate();
 		_undo_tb->deactivate();
@@ -1393,6 +1403,18 @@ void Main_Window::channel_4_mute_cb(Fl_Widget *, Main_Window *mw) {
 	}
 }
 
+void Main_Window::step_backward_cb(Fl_Widget *w, Main_Window *mw) {
+	mw->_piano_roll->step_backward();
+	mw->_piano_roll->focus_cursor(true);
+	mw->redraw();
+}
+
+void Main_Window::step_forward_cb(Fl_Widget *w, Main_Window *mw) {
+	mw->_piano_roll->step_forward();
+	mw->_piano_roll->focus_cursor(true);
+	mw->redraw();
+}
+
 void Main_Window::follow_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->toggle_follow_mode();
 }
@@ -1460,7 +1482,7 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 	if (action == Song::Song_State::Action::PUT_NOTE) {
 		mw->_piano_roll->tick(tick);
 		mw->_piano_roll->select_note_at_tick();
-		mw->_piano_roll->step();
+		mw->_piano_roll->step_forward();
 		mw->_piano_roll->focus_cursor(true);
 	}
 	else if (

@@ -80,6 +80,8 @@ private:
 		*_play_pause_mi = NULL,
 		*_stop_mi = NULL,
 		*_loop_mi = NULL,
+		*_step_backward_mi = NULL,
+		*_step_forward_mi = NULL,
 		*_follow_mi = NULL,
 		*_undo_mi = NULL,
 		*_redo_mi = NULL,
@@ -190,6 +192,8 @@ private:
 	static void channel_2_mute_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_3_mute_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_4_mute_cb(Fl_Widget *w, Main_Window *mw);
+	static void step_backward_cb(Fl_Widget *w, Main_Window *mw);
+	static void step_forward_cb(Fl_Widget *w, Main_Window *mw);
 	static void follow_cb(Fl_Widget *w, Main_Window *mw);
 	// Edit menu
 	void put_note(Pitch pitch);

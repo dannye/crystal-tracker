@@ -337,7 +337,8 @@ public:
 
 	void toggle_follow_mode() { _realtime = !_realtime; }
 
-	void step();
+	void step_backward();
+	void step_forward();
 	void zoom(bool z);
 
 	void set_size(int W, int H);
