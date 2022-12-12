@@ -87,17 +87,16 @@ private:
 	const Note_View &_note_view;
 	int32_t _tick = 0;
 	bool _selected = false;
-	bool _ghost = false;
 public:
-	Note_Box(const Note_View &n, int32_t t, int X, int Y, int W, int H, const char *l=0)
+	Note_Box(const Note_View &n, int32_t t, int X, int Y, int W, int H, const char *l = nullptr)
 		: Fl_Box(X, Y, W, H, l), _note_view(n), _tick(t) {}
 
 	inline const Note_View &note_view(void) const { return _note_view; }
 	inline int32_t tick(void) const { return _tick; }
 	inline bool selected(void) const { return _selected; }
 	inline void selected(bool s) { _selected = s; }
-	inline bool ghost(void) const { return _ghost; }
-	inline void ghost(bool g) { _ghost = g; }
+
+	inline bool ghost(void) const { return _note_view.ghost; }
 protected:
 	void draw() override;
 };
@@ -147,15 +146,13 @@ private:
 	Pitch _pitch;
 	int32_t _octave;
 public:
-	using Fl_Box::Fl_Box;
+	Key_Box(Pitch p, int32_t o, int X, int Y, int W, int H, const char *l = nullptr)
+		: Fl_Box(X, Y, W, H, l), _pitch(p), _octave(o) {}
 
 	Piano_Keys *parent() const { return (Piano_Keys *)Fl_Box::parent(); }
 
 	inline Pitch pitch(void) const { return _pitch; }
 	inline int32_t octave(void) const { return _octave; }
-
-	inline void pitch(Pitch p) { _pitch = p; }
-	inline void octave(int32_t o) { _octave = o; }
 
 	int handle(int event) override;
 };
@@ -173,8 +170,7 @@ class Piano_Keys : public Fl_Group {
 private:
 	std::array<Key_Box *, NUM_NOTES_PER_OCTAVE * NUM_OCTAVES> _keys;
 public:
-	Piano_Keys(int x, int y, int w, int h, const char *l = nullptr);
-	~Piano_Keys() noexcept;
+	Piano_Keys(int X, int Y, int W, int H, const char *l = nullptr);
 
 	Piano_Keys(const Piano_Keys&) = delete;
 	Piano_Keys& operator=(const Piano_Keys&) = delete;
@@ -194,7 +190,7 @@ class Piano_Roll;
 class Piano_Timeline : public Fl_Group {
 	friend class Piano_Roll;
 private:
-	Piano_Keys *_keys;
+	Piano_Keys _keys;
 	std::vector<Note_Box *> _channel_1_notes;
 	std::vector<Note_Box *> _channel_2_notes;
 	std::vector<Note_Box *> _channel_3_notes;
@@ -210,7 +206,7 @@ private:
 
 	int32_t _cursor_tick = -1;
 public:
-	Piano_Timeline(int x, int y, int w, int h, const char *l = nullptr);
+	Piano_Timeline(int X, int Y, int W, int H, const char *l = nullptr);
 	~Piano_Timeline() noexcept;
 
 	void clear();
@@ -263,7 +259,7 @@ class Main_Window;
 
 class Piano_Roll : public Fl_Scroll {
 private:
-	Piano_Timeline *_piano_timeline;
+	Piano_Timeline _piano_timeline;
 	int32_t _tick = -1;
 	bool _following = false;
 	bool _realtime = true;
@@ -290,7 +286,7 @@ private:
 
 	int32_t _song_length = -1;
 public:
-	Piano_Roll(int x, int y, int w, int h, const char *l = nullptr);
+	Piano_Roll(int X, int Y, int W, int H, const char *l = nullptr);
 	~Piano_Roll() noexcept;
 
 	Piano_Roll(const Piano_Roll&) = delete;
@@ -355,10 +351,10 @@ public:
 	int32_t get_loop_tick() const;
 	int32_t get_last_note_x() const;
 
-	void set_channel_1_detailed(bool detailed) { _piano_timeline->set_channel_1_detailed(detailed); }
-	void set_channel_2_detailed(bool detailed) { _piano_timeline->set_channel_2_detailed(detailed); }
-	void set_channel_3_detailed(bool detailed) { _piano_timeline->set_channel_3_detailed(detailed); }
-	void set_channel_4_detailed(bool detailed) { _piano_timeline->set_channel_4_detailed(detailed); }
+	void set_channel_1_detailed(bool detailed) { _piano_timeline.set_channel_1_detailed(detailed); }
+	void set_channel_2_detailed(bool detailed) { _piano_timeline.set_channel_2_detailed(detailed); }
+	void set_channel_3_detailed(bool detailed) { _piano_timeline.set_channel_3_detailed(detailed); }
+	void set_channel_4_detailed(bool detailed) { _piano_timeline.set_channel_4_detailed(detailed); }
 
 	void align_cursor();
 
@@ -388,8 +384,8 @@ public:
 	bool lengthen(Song &song);
 	bool delete_selection(Song &song);
 	bool snip_selection(Song &song);
-	bool select_all() { return _piano_timeline->select_all(); }
-	bool select_none() { return _piano_timeline->select_none(); }
+	bool select_all() { return _piano_timeline.select_all(); }
+	bool select_none() { return _piano_timeline.select_none(); }
 private:
 	int32_t quantize_tick(int32_t tick, bool round = false);
 
