@@ -1085,35 +1085,36 @@ bool Piano_Roll::set_timeline(const Song &song) {
 }
 
 void Piano_Roll::set_active_channel_timeline(const Song &song) {
-	int32_t song_length = get_song_length();
-	// TODO: if song length has changed, rebuild all channel timelines
-
 	_piano_timeline.begin();
 	if (selected_channel() == 1) {
 		_piano_timeline.clear_channel_1();
 		_channel_1_notes.clear();
-		build_note_view(_piano_timeline._channel_1_loops, _piano_timeline._channel_1_calls, _channel_1_notes, song.channel_1_commands(), song_length, NOTE_RED);
+		build_note_view(_piano_timeline._channel_1_loops, _piano_timeline._channel_1_calls, _channel_1_notes, song.channel_1_commands(), _song_length, NOTE_RED);
 		_piano_timeline.set_channel_1(_channel_1_notes);
 	}
 	else if (selected_channel() == 2) {
 		_piano_timeline.clear_channel_2();
 		_channel_2_notes.clear();
-		build_note_view(_piano_timeline._channel_2_loops, _piano_timeline._channel_2_calls, _channel_2_notes, song.channel_2_commands(), song_length, NOTE_BLUE);
+		build_note_view(_piano_timeline._channel_2_loops, _piano_timeline._channel_2_calls, _channel_2_notes, song.channel_2_commands(), _song_length, NOTE_BLUE);
 		_piano_timeline.set_channel_2(_channel_2_notes);
 	}
 	else if (selected_channel() == 3) {
 		_piano_timeline.clear_channel_3();
 		_channel_3_notes.clear();
-		build_note_view(_piano_timeline._channel_3_loops, _piano_timeline._channel_3_calls, _channel_3_notes, song.channel_3_commands(), song_length, NOTE_GREEN);
+		build_note_view(_piano_timeline._channel_3_loops, _piano_timeline._channel_3_calls, _channel_3_notes, song.channel_3_commands(), _song_length, NOTE_GREEN);
 		_piano_timeline.set_channel_3(_channel_3_notes);
 	}
 	else if (selected_channel() == 4) {
 		_piano_timeline.clear_channel_4();
 		_channel_4_notes.clear();
-		build_note_view(_piano_timeline._channel_4_loops, _piano_timeline._channel_4_calls, _channel_4_notes, song.channel_4_commands(), song_length, NOTE_BROWN);
+		build_note_view(_piano_timeline._channel_4_loops, _piano_timeline._channel_4_calls, _channel_4_notes, song.channel_4_commands(), _song_length, NOTE_BROWN);
 		_piano_timeline.set_channel_4(_channel_4_notes);
 	}
 	_piano_timeline.end();
+
+	set_timeline_width();
+	scroll_to(std::min(xposition(), scroll_x_max()), yposition());
+	sticky_keys();
 }
 
 void Piano_Roll::set_active_channel_selection(const std::set<int32_t> &selection) {
@@ -1987,6 +1988,8 @@ bool Piano_Roll::snip_selection(Song &song) {
 
 	song.snip_selection(selected_channel(), selected_notes, selected_boxes);
 	set_active_channel_timeline(song);
+
+	// TODO: pad end of channel with rests to maintain channel length
 
 	return true;
 }
