@@ -284,20 +284,26 @@ bool Piano_Keys::find_key_below_mouse(Key_Box *&key) {
 
 Piano_Timeline::Piano_Timeline(int X, int Y, int W, int H, const char *l) :
 	Fl_Group(X, Y, W, H, l),
+	_trashcan(0, 0, 0, 0),
+	_end(),
 	_keys(X, Y, WHITE_KEY_WIDTH, H)
 {
 	resizable(nullptr);
 	end();
+	_trashcan.hide();
 }
 
 Piano_Timeline::~Piano_Timeline() noexcept {
 	remove(_keys);
+	remove(_trashcan);
 	Fl_Group::clear();
 }
 
 void Piano_Timeline::clear() {
 	remove(_keys);
+	remove(_trashcan);
 	Fl_Group::clear();
+	add(_trashcan);
 	add(_keys);
 
 	_channel_1_notes.clear();
@@ -318,70 +324,78 @@ void Piano_Timeline::clear() {
 
 void Piano_Timeline::clear_channel_1() {
 	for (Note_Box *note : _channel_1_notes) {
-		delete note;
+		_trashcan.add(*note);
 	}
 	_channel_1_notes.clear();
 
 	for (Loop_Box *loop : _channel_1_loops) {
-		delete loop;
+		_trashcan.add(*loop);
 	}
 	_channel_1_loops.clear();
 
 	for (Call_Box *call : _channel_1_calls) {
-		delete call;
+		_trashcan.add(*call);
 	}
 	_channel_1_calls.clear();
+
+	_trashcan.clear();
 }
 
 void Piano_Timeline::clear_channel_2() {
 	for (Note_Box *note : _channel_2_notes) {
-		delete note;
+		_trashcan.add(*note);
 	}
 	_channel_2_notes.clear();
 
 	for (Loop_Box *loop : _channel_2_loops) {
-		delete loop;
+		_trashcan.add(*loop);
 	}
 	_channel_2_loops.clear();
 
 	for (Call_Box *call : _channel_2_calls) {
-		delete call;
+		_trashcan.add(*call);
 	}
 	_channel_2_calls.clear();
+
+	_trashcan.clear();
 }
 
 void Piano_Timeline::clear_channel_3() {
 	for (Note_Box *note : _channel_3_notes) {
-		delete note;
+		_trashcan.add(*note);
 	}
 	_channel_3_notes.clear();
 
 	for (Loop_Box *loop : _channel_3_loops) {
-		delete loop;
+		_trashcan.add(*loop);
 	}
 	_channel_3_loops.clear();
 
 	for (Call_Box *call : _channel_3_calls) {
-		delete call;
+		_trashcan.add(*call);
 	}
 	_channel_3_calls.clear();
+
+	_trashcan.clear();
 }
 
 void Piano_Timeline::clear_channel_4() {
 	for (Note_Box *note : _channel_4_notes) {
-		delete note;
+		_trashcan.add(*note);
 	}
 	_channel_4_notes.clear();
 
 	for (Loop_Box *loop : _channel_4_loops) {
-		delete loop;
+		_trashcan.add(*loop);
 	}
 	_channel_4_loops.clear();
 
 	for (Call_Box *call : _channel_4_calls) {
-		delete call;
+		_trashcan.add(*call);
 	}
 	_channel_4_calls.clear();
+
+	_trashcan.clear();
 }
 
 inline int Piano_Timeline::selected_channel() const {

@@ -190,6 +190,8 @@ class Piano_Roll;
 class Piano_Timeline : public Fl_Group {
 	friend class Piano_Roll;
 private:
+	Fl_Group _trashcan;
+	Fl_End _end;
 	Piano_Keys _keys;
 	std::vector<Note_Box *> _channel_1_notes;
 	std::vector<Note_Box *> _channel_2_notes;
