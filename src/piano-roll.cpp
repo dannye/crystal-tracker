@@ -1170,7 +1170,9 @@ bool Piano_Roll::build_note_view(
 			note.pitch = command_itr->note.pitch;
 			tick += note.length * note.speed;
 			if (tick > end_tick) {
-				note.length -= (tick - end_tick) / note.speed;
+				assert(restarted);
+				note.length = (note.length * note.speed - (tick - end_tick)) / 2;
+				note.speed = 2;
 			}
 			note.index = command_itr - commands.begin();
 			note.ghost = restarted;
@@ -1200,7 +1202,9 @@ bool Piano_Roll::build_note_view(
 			note.pitch = (Pitch)command_itr->drum_note.instrument;
 			tick += note.length * note.speed;
 			if (tick > end_tick) {
-				note.length -= (tick - end_tick) / note.speed;
+				assert(restarted);
+				note.length = (note.length * note.speed - (tick - end_tick)) / 2;
+				note.speed = 2;
 			}
 			note.index = command_itr - commands.begin();
 			note.ghost = restarted;
@@ -1230,7 +1234,9 @@ bool Piano_Roll::build_note_view(
 			note.pitch = Pitch::REST;
 			tick += note.length * note.speed;
 			if (tick > end_tick) {
-				note.length -= (tick - end_tick) / note.speed;
+				assert(restarted);
+				note.length = (note.length * note.speed - (tick - end_tick)) / 2;
+				note.speed = 2;
 			}
 			note.index = command_itr - commands.begin();
 			note.ghost = restarted;
