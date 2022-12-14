@@ -71,6 +71,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_play_pause_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_stop_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_loop_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_continuous_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	SEPARATE_TOOLBAR_BUTTONS;
 	_undo_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_redo_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
@@ -167,7 +168,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("Mute Channel 4", FL_F + 8, (Fl_Callback *)channel_4_mute_cb, this, FL_MENU_TOGGLE | FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Step Backward", '[', (Fl_Callback *)step_backward_cb, this, 0),
 		OS_MENU_ITEM("Step Forward", ']', (Fl_Callback *)step_forward_cb, this, FL_MENU_DIVIDER),
-		OS_MENU_ITEM("Toggle &Follow Mode", '\\', (Fl_Callback *)follow_cb, this, 0),
+		OS_MENU_ITEM("&Continuous Scroll", '\\', (Fl_Callback *)continuous_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE),
 		{},
 		OS_SUBMENU("&Edit"),
 		OS_MENU_ITEM("&Undo", FL_COMMAND + 'z', (Fl_Callback *)undo_cb, this, 0),
@@ -271,6 +272,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_2_mute_mi = CT_FIND_MENU_ITEM_CB(channel_2_mute_cb);
 	_channel_3_mute_mi = CT_FIND_MENU_ITEM_CB(channel_3_mute_cb);
 	_channel_4_mute_mi = CT_FIND_MENU_ITEM_CB(channel_4_mute_cb);
+	_continuous_mi = CT_FIND_MENU_ITEM_CB(continuous_cb);
 	_zoom_mi = CT_FIND_MENU_ITEM_CB(zoom_cb);
 	_full_screen_mi = CT_FIND_MENU_ITEM_CB(full_screen_cb);
 	// Conditional menu items
@@ -282,7 +284,6 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_loop_mi = CT_FIND_MENU_ITEM_CB(loop_cb);
 	_step_backward_mi = CT_FIND_MENU_ITEM_CB(step_backward_cb);
 	_step_forward_mi = CT_FIND_MENU_ITEM_CB(step_forward_cb);
-	_follow_mi = CT_FIND_MENU_ITEM_CB(follow_cb);
 	_undo_mi = CT_FIND_MENU_ITEM_CB(undo_cb);
 	_redo_mi = CT_FIND_MENU_ITEM_CB(redo_cb);
 	_pitch_up_mi = CT_FIND_MENU_ITEM_CB(pitch_up_cb);
@@ -340,7 +341,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_save_tb->callback((Fl_Callback *)save_cb, this);
 	_save_tb->image(SAVE_ICON);
 
-	_save_as_tb->tooltip("Save As (" COMMAND_SHIFT_KEYS_PLUS "S)");
+	_save_as_tb->tooltip("Save As... (" COMMAND_SHIFT_KEYS_PLUS "S)");
 	_save_as_tb->callback((Fl_Callback *)save_as_cb, this);
 	_save_as_tb->image(SAVE_AS_ICON);
 
@@ -356,6 +357,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_loop_tb->callback((Fl_Callback *)loop_tb_cb, this);
 	_loop_tb->image(LOOP_ICON);
 	_loop_tb->value(loop());
+
+	_continuous_tb->tooltip("Continuous Scroll (\\)");
+	_continuous_tb->callback((Fl_Callback *)continuous_tb_cb, this);
+	_continuous_tb->image(SCROLL_LIGHT_ICON);
+	_continuous_tb->value(continuous_scroll());
 
 	_undo_tb->tooltip("Undo (" COMMAND_KEY_PLUS "Z)");
 	_undo_tb->callback((Fl_Callback *)undo_cb, this);
@@ -641,7 +647,6 @@ void Main_Window::update_active_controls() {
 			_loop_tb->deactivate();
 			_step_backward_mi->deactivate();
 			_step_forward_mi->deactivate();
-			_follow_mi->activate();
 		}
 		else {
 			_stop_mi->deactivate();
@@ -650,7 +655,6 @@ void Main_Window::update_active_controls() {
 			_loop_tb->activate();
 			_step_backward_mi->activate();
 			_step_forward_mi->activate();
-			_follow_mi->deactivate();
 		}
 		if (_song.can_undo() && stopped) {
 			_undo_mi->activate();
@@ -723,7 +727,6 @@ void Main_Window::update_active_controls() {
 		_loop_tb->activate();
 		_step_backward_mi->deactivate();
 		_step_forward_mi->deactivate();
-		_follow_mi->deactivate();
 		_undo_mi->deactivate();
 		_undo_tb->deactivate();
 		_redo_mi->deactivate();
@@ -1055,6 +1058,8 @@ void Main_Window::stop_interactive_thread() {
 }
 
 void Main_Window::update_icons() {
+	bool dark = OS::is_dark_theme(OS::current_theme());
+	_continuous_tb->image(dark ? SCROLL_DARK_ICON : SCROLL_LIGHT_ICON);
 	make_deimage(_new_tb);
 	make_deimage(_open_tb);
 	make_deimage(_save_tb);
@@ -1062,6 +1067,7 @@ void Main_Window::update_icons() {
 	make_deimage(_play_pause_tb);
 	make_deimage(_stop_tb);
 	make_deimage(_loop_tb);
+	make_deimage(_continuous_tb);
 	make_deimage(_undo_tb);
 	make_deimage(_redo_tb);
 	make_deimage(_channel_1_tb);
@@ -1350,6 +1356,12 @@ void Main_Window::loop_cb(Fl_Menu_ *m, Main_Window *mw) {
 	mw->redraw();
 }
 
+void Main_Window::continuous_cb(Fl_Menu_ *m, Main_Window *mw) {
+	SYNC_TB_WITH_M(mw->_continuous_tb, m);
+	mw->_piano_roll->set_continuous_scroll(mw->continuous_scroll());
+	mw->redraw();
+}
+
 void Main_Window::zoom_cb(Fl_Menu_ *m, Main_Window *mw) {
 	SYNC_TB_WITH_M(mw->_zoom_tb, m);
 	mw->update_zoom();
@@ -1362,6 +1374,13 @@ void Main_Window::zoom_cb(Fl_Menu_ *m, Main_Window *mw) {
 
 void Main_Window::loop_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 	SYNC_MI_WITH_TB(mw->_loop_tb, mw->_loop_mi);
+	mw->_menu_bar->update();
+	mw->redraw();
+}
+
+void Main_Window::continuous_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
+	SYNC_MI_WITH_TB(mw->_continuous_tb, mw->_continuous_mi);
+	mw->_piano_roll->set_continuous_scroll(mw->continuous_scroll());
 	mw->_menu_bar->update();
 	mw->redraw();
 }
@@ -1403,20 +1422,16 @@ void Main_Window::channel_4_mute_cb(Fl_Widget *, Main_Window *mw) {
 	}
 }
 
-void Main_Window::step_backward_cb(Fl_Widget *w, Main_Window *mw) {
+void Main_Window::step_backward_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->step_backward();
 	mw->_piano_roll->focus_cursor(true);
 	mw->redraw();
 }
 
-void Main_Window::step_forward_cb(Fl_Widget *w, Main_Window *mw) {
+void Main_Window::step_forward_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->step_forward();
 	mw->_piano_roll->focus_cursor(true);
 	mw->redraw();
-}
-
-void Main_Window::follow_cb(Fl_Widget *, Main_Window *mw) {
-	mw->_piano_roll->toggle_follow_mode();
 }
 
 void Main_Window::put_note(Pitch pitch) {

@@ -48,6 +48,7 @@ private:
 		*_channel_2_mute_mi = NULL,
 		*_channel_3_mute_mi = NULL,
 		*_channel_4_mute_mi = NULL,
+		*_continuous_mi = NULL,
 		*_zoom_mi = NULL,
 		*_full_screen_mi = NULL;
 	Toolbar_Button
@@ -58,7 +59,8 @@ private:
 		*_play_pause_tb = NULL,
 		*_stop_tb = NULL;
 	Toolbar_Toggle_Button
-		*_loop_tb = NULL;
+		*_loop_tb = NULL,
+		*_continuous_tb = NULL;
 	Toolbar_Button
 		*_undo_tb = NULL,
 		*_redo_tb = NULL;
@@ -82,7 +84,6 @@ private:
 		*_loop_mi = NULL,
 		*_step_backward_mi = NULL,
 		*_step_forward_mi = NULL,
-		*_follow_mi = NULL,
 		*_undo_mi = NULL,
 		*_redo_mi = NULL,
 		*_pitch_up_mi = NULL,
@@ -145,9 +146,11 @@ public:
 	inline bool channel_2_muted(void) const { return _channel_2_mute_mi && !!_channel_2_mute_mi->value(); }
 	inline bool channel_3_muted(void) const { return _channel_3_mute_mi && !!_channel_3_mute_mi->value(); }
 	inline bool channel_4_muted(void) const { return _channel_4_mute_mi && !!_channel_4_mute_mi->value(); }
+	inline bool continuous_scroll(void) const { return _continuous_mi && !!_continuous_mi->value(); }
 	inline bool zoom(void) const { return _zoom_mi && !!_zoom_mi->value(); }
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
 	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
+	void continuous_scroll(bool c) { c ? _continuous_mi->set() : _continuous_mi->clear(); _continuous_tb->value(_continuous_mi->value()); }
 	inline int selected_channel(void) const { return _selected_channel; }
 	bool unsaved(void) const;
 	const char *modified_filename(void);
@@ -194,7 +197,7 @@ private:
 	static void channel_4_mute_cb(Fl_Widget *w, Main_Window *mw);
 	static void step_backward_cb(Fl_Widget *w, Main_Window *mw);
 	static void step_forward_cb(Fl_Widget *w, Main_Window *mw);
-	static void follow_cb(Fl_Widget *w, Main_Window *mw);
+	static void continuous_cb(Fl_Menu_ *m, Main_Window *mw);
 	// Edit menu
 	void put_note(Pitch pitch);
 	static void undo_cb(Fl_Widget *w, Main_Window *mw);
@@ -235,6 +238,7 @@ private:
 	static void full_screen_cb(Fl_Widget *w, Main_Window *mw);
 	// Toolbar buttons
 	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
+	static void continuous_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void channel_1_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
 	static void channel_2_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
 	static void channel_3_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);

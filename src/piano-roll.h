@@ -264,7 +264,7 @@ private:
 	Piano_Timeline _piano_timeline;
 	int32_t _tick = -1;
 	bool _following = false;
-	bool _realtime = true;
+	bool _continuous = true;
 	bool _paused = false;
 	bool _zoomed = true;
 
@@ -333,7 +333,8 @@ public:
 	int handle(int event) override;
 	bool handle_mouse_click(int event);
 
-	void toggle_follow_mode() { _realtime = !_realtime; }
+	void toggle_continuous_scroll() { _continuous = !_continuous; }
+	void set_continuous_scroll(bool c) { _continuous = c; }
 
 	void step_backward();
 	void step_forward();

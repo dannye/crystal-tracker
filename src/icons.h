@@ -16,6 +16,8 @@
 #include "redo.xpm"
 #include "save.xpm"
 #include "save-as.xpm"
+#include "scroll-dark.xpm"
+#include "scroll-light.xpm"
 #include "stop.xpm"
 #include "three.xpm"
 #include "two.xpm"
@@ -33,6 +35,8 @@ static Fl_Pixmap PLAY_ICON(PLAY_XPM);
 static Fl_Pixmap REDO_ICON(REDO_XPM);
 static Fl_Pixmap SAVE_ICON(SAVE_XPM);
 static Fl_Pixmap SAVE_AS_ICON(SAVE_AS_XPM);
+static Fl_Pixmap SCROLL_DARK_ICON(SCROLL_DARK_XPM);
+static Fl_Pixmap SCROLL_LIGHT_ICON(SCROLL_LIGHT_XPM);
 static Fl_Pixmap STOP_ICON(STOP_XPM);
 static Fl_Pixmap THREE_ICON(THREE_XPM);
 static Fl_Pixmap TWO_ICON(TWO_XPM);

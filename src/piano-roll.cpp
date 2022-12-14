@@ -967,7 +967,9 @@ bool Piano_Roll::handle_mouse_click(int event) {
 		return true;
 	}
 	else if (_following && event == FL_PUSH) {
-		toggle_follow_mode();
+		toggle_continuous_scroll();
+		parent()->continuous_scroll(_continuous);
+		parent()->redraw();
 		return true;
 	}
 	return false;
@@ -1576,7 +1578,7 @@ void Piano_Roll::highlight_tick(int32_t t) {
 
 void Piano_Roll::focus_cursor(bool center) {
 	int x_pos = (_tick / TICKS_PER_STEP * TICKS_PER_STEP) * tick_width();
-	if ((_following && _realtime) || x_pos > xposition() + w() - WHITE_KEY_WIDTH * 2 || x_pos < xposition()) {
+	if ((_following && _continuous) || x_pos > xposition() + w() - WHITE_KEY_WIDTH * 2 || x_pos < xposition()) {
 		int scroll_pos = center ? x_pos + WHITE_KEY_WIDTH - w() / 2 : x_pos;
 		scroll_to(std::min(std::max(scroll_pos, 0), scroll_x_max()), yposition());
 		sticky_keys();

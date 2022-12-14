@@ -165,6 +165,8 @@
     <None Include="..\res\redo.xpm" />
     <None Include="..\res\save.xpm" />
     <None Include="..\res\save-as.xpm" />
+    <None Include="..\res\scroll-dark.xpm" />
+    <None Include="..\res\scroll-light.xpm" />
     <None Include="..\res\stop.xpm" />
     <None Include="..\res\success.xpm" />
     <None Include="..\res\three.xpm" />

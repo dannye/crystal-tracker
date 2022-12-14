@@ -182,6 +182,12 @@
     <None Include="..\res\save-as.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\scroll-dark.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\scroll-light.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\stop.xpm">
       <Filter>Resource Files</Filter>
     </None>
