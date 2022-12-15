@@ -408,13 +408,10 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				}
 				buffered_labels.insert(label);
 				if (visited_labels.count(label)) {
-					// been here done that
-					done_with_branch = true;
+					return (_result = Result::SONG_TOO_COMPLEX);
 				}
-				else {
-					visited_labels.insert(label);
-					unvisited_labels.erase(label);
-				}
+				visited_labels.insert(label);
+				unvisited_labels.erase(label);
 				continue;
 			}
 			else {

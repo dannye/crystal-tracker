@@ -654,6 +654,9 @@ std::string Song::get_error_message(Parsed_Song parsed_song) const {
 		return "Cannot open song file.";
 	case Parsed_Song::Result::SONG_INVALID_HEADER:
 		return "Invalid song header.";
+	case Parsed_Song::Result::SONG_TOO_COMPLEX:
+		return "Channel " + std::to_string(parsed_song.channel_number()) +
+			": Too complex.";
 	case Parsed_Song::Result::SONG_ENDED_PREMATURELY:
 		return "Channel " + std::to_string(parsed_song.channel_number()) +
 			": File ended prematurely.";
