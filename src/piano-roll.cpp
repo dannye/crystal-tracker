@@ -1153,7 +1153,6 @@ bool Piano_Roll::build_note_view(
 	note.ghost = false;
 
 	bool restarted = false;
-	bool loop_pending = false;
 	Loop_Box *loop = nullptr;
 	Call_Box *call = nullptr;
 
@@ -1163,10 +1162,33 @@ bool Piano_Roll::build_note_view(
 	std::stack<decltype(command_itr)> call_stack;
 	std::map<std::string, int32_t> label_positions;
 
+	std::set<std::string> loop_targets;
+	for (const Command &command : commands) {
+		if (command.type == Command_Type::SOUND_LOOP && command.sound_loop.loop_count > 1) {
+			loop_targets.insert(command.target);
+		}
+	}
+	const auto is_loop_target = [&](const std::set<std::string> &labels) {
+		for (const std::string &label : labels) {
+			if (loop_targets.count(label) > 0) {
+				return true;
+			}
+		}
+		return false;
+	};
+
 	while (command_itr != commands.end() && tick < end_tick) {
 		for (const std::string &label : command_itr->labels) {
 			label_positions.insert({ label, tick });
 		}
+		if (!restarted && is_loop_target(command_itr->labels)) {
+			loop = new Loop_Box(0, 0, 0, 0);
+			loop->set_start_tick(tick);
+			loop->box(FL_BORDER_FRAME);
+			loop->color(fl_lighter(color));
+			loops.push_back(loop);
+		}
+
 		// TODO: handle all other commands...
 		if (command_itr->type == Command_Type::NOTE) {
 			note.length = command_itr->note.length;
@@ -1283,36 +1305,13 @@ bool Piano_Roll::build_note_view(
 			continue;
 		}
 		else if (command_itr->type == Command_Type::SOUND_LOOP) {
+			loop = nullptr;
 			if (loop_stack.size() > 0 && loop_stack.top().first == command_itr) {
-				if (loop_pending) {
-					Loop_Box *first_loop = loop;
-					loop = new Loop_Box(0, 0, 0, 0);
-					loop->set_start_tick(first_loop->start_tick());
-					loop->set_end_tick(first_loop->end_tick());
-					first_loop->set_start_tick(first_loop->start_tick() - (loop->end_tick() - loop->start_tick()));
-					first_loop->set_end_tick(first_loop->end_tick() - (loop->end_tick() - loop->start_tick()));
-					loop->set_min_pitch(first_loop->min_pitch(), first_loop->min_octave());
-					loop->set_max_pitch(first_loop->max_pitch(), first_loop->max_octave());
-					loop->box(FL_BORDER_FRAME);
-					loop->color(fl_lighter(color));
-					loops.push_back(loop);
-					loop_pending = false;
-				}
-
 				loop_stack.top().second -= 1;
 				if (loop_stack.top().second == 0) {
-					loop = nullptr;
 					loop_stack.pop();
 				}
 				else {
-					if (!restarted) {
-						loop = new Loop_Box(0, 0, 0, 0);
-						loop->set_start_tick(tick);
-						loop->box(FL_BORDER_FRAME);
-						loop->color(fl_lighter(color));
-						loops.push_back(loop);
-					}
-
 					command_itr = find_note_with_label(commands, command_itr->target);
 					continue;
 				}
@@ -1335,15 +1334,6 @@ bool Piano_Roll::build_note_view(
 					// nested loops not supported
 					if (loop_stack.size() > 0) {
 						return false;
-					}
-
-					if (!restarted) {
-						loop_pending = true;
-						loop = new Loop_Box(0, 0, 0, 0);
-						loop->set_start_tick(tick);
-						loop->box(FL_BORDER_FRAME);
-						loop->color(fl_lighter(color));
-						loops.push_back(loop);
 					}
 
 					loop_stack.emplace(command_itr, command_itr->sound_loop.loop_count - 1);
@@ -1381,21 +1371,6 @@ bool Piano_Roll::build_note_view(
 			}
 		}
 		++command_itr;
-	}
-
-	if (loop_pending) {
-		Loop_Box *first_loop = loop;
-		loop = new Loop_Box(0, 0, 0, 0);
-		loop->set_start_tick(first_loop->start_tick());
-		loop->set_end_tick(first_loop->end_tick());
-		first_loop->set_start_tick(first_loop->start_tick() - (loop->end_tick() - loop->start_tick()));
-		first_loop->set_end_tick(first_loop->end_tick() - (loop->end_tick() - loop->start_tick()));
-		loop->set_min_pitch(first_loop->min_pitch(), first_loop->min_octave());
-		loop->set_max_pitch(first_loop->max_pitch(), first_loop->max_octave());
-		loop->box(FL_BORDER_FRAME);
-		loop->color(fl_lighter(color));
-		loops.push_back(loop);
-		loop_pending = false;
 	}
 
 	const auto tick_to_x_pos = [&](int32_t tick) {

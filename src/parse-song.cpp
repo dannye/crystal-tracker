@@ -783,7 +783,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 						return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
 					}
 
-					if (!visited_labels.count(command.target)) {
+					if (!visited_labels.count(command.target) && command.sound_loop.loop_count != 1) {
 						unvisited_labels.insert(command.target);
 					}
 
