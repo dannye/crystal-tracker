@@ -114,6 +114,9 @@ void Note_Box::draw() {
 			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, NOTE_GHOST);
 			draw_box(FL_BORDER_FRAME, x() + 2, y() + 2, w() - 4, h() - 4, NOTE_GHOST);
 		}
+		else if (box() == FL_BORDER_FRAME && x() + w() > 1) {
+			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, NOTE_GHOST);
+		}
 	}
 	else if (_selected) {
 		draw_box(FL_BORDER_FRAME, FL_FOREGROUND_COLOR);
@@ -121,6 +124,12 @@ void Note_Box::draw() {
 			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, FL_WHITE);
 			draw_box(FL_BORDER_FRAME, x() + 2, y() + 2, w() - 4, h() - 4, FL_WHITE);
 		}
+		else if (box() == FL_BORDER_FRAME && x() + w() > 1) {
+			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, FL_FOREGROUND_COLOR);
+		}
+	}
+	else if (box() == FL_BORDER_FRAME && x() + w() > 1) {
+		draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, color());
 	}
 	draw_label();
 }
