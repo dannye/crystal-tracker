@@ -54,6 +54,9 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 			}
 			loop_tick = label_positions.at(command_itr->target);
 			end_tick = tick;
+			if (loop_tick == end_tick) {
+				return Parsed_Song::Result::SONG_EMPTY_LOOP;
+			}
 			break; // song is finished
 		}
 		else if (command_itr->type == Command_Type::SOUND_LOOP) {
@@ -75,6 +78,9 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 					}
 					loop_tick = label_positions.at(command_itr->target);
 					end_tick = tick;
+					if (loop_tick == end_tick) {
+						return Parsed_Song::Result::SONG_EMPTY_LOOP;
+					}
 					break; // song is finished
 				}
 				else if (command_itr->sound_loop.loop_count > 1) {
@@ -792,6 +798,9 @@ std::string Song::get_error_message(Parsed_Song parsed_song) const {
 	case Parsed_Song::Result::SONG_TOO_COMPLEX:
 		return "Channel " + std::to_string(parsed_song.channel_number()) +
 			": Too complex.";
+	case Parsed_Song::Result::SONG_EMPTY_LOOP:
+		return "Channel " + std::to_string(parsed_song.channel_number()) +
+			": Empty infinite loop.";
 	case Parsed_Song::Result::SONG_NESTED_LOOP:
 		return "Channel " + std::to_string(parsed_song.channel_number()) +
 			": Nested loops not allowed.";

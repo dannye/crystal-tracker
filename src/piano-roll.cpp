@@ -1242,7 +1242,6 @@ void Piano_Roll::build_note_view(
 					}
 					if (tick < end_tick) {
 						restarted = true;
-						// TODO: this gets trapped in an infinite loop if the channel's body advances by 0 ticks
 						command_itr = find_note_with_label(commands, command_itr->target);
 						continue;
 					}
