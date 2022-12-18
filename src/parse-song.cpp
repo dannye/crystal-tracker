@@ -399,8 +399,10 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 			}
 			buffered_labels.insert(label);
 			if (label == _label) {
-				visited_labels.insert(label);
-				unvisited_labels.erase(label);
+				for (const std::string &l : buffered_labels) {
+					visited_labels.insert(l);
+					unvisited_labels.erase(l);
+				}
 				step = Step::READING_CHANNEL;
 			}
 		}
