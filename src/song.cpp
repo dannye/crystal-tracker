@@ -48,8 +48,13 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 			speed = command_itr->drum_speed.speed;
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
-			command_itr = find_note_with_label(commands, command_itr->target);
-			continue;
+			if (!label_positions.count(command_itr->target)) {
+				command_itr = find_note_with_label(commands, command_itr->target);
+				continue;
+			}
+			loop_tick = label_positions.at(command_itr->target);
+			end_tick = tick;
+			break; // song is finished
 		}
 		else if (command_itr->type == Command_Type::SOUND_LOOP) {
 			if (loop_stack.size() > 0 && loop_stack.top().first == command_itr) {

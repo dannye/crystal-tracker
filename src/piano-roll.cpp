@@ -1216,8 +1216,11 @@ void Piano_Roll::build_note_view(
 			note.rate = command_itr->vibrato.rate;
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
-			command_itr = find_note_with_label(commands, command_itr->target);
-			continue;
+			if (!label_positions.count(command_itr->target)) {
+				command_itr = find_note_with_label(commands, command_itr->target);
+				continue;
+			}
+			break; // song is finished
 		}
 		else if (command_itr->type == Command_Type::SOUND_LOOP) {
 			loop = nullptr;
