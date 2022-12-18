@@ -1,8 +1,114 @@
 #include <cassert>
 #include <cstdio>
 #include <fstream>
+#include <map>
+#include <stack>
 
 #include "song.h"
+
+std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, std::string label) {
+	for (auto command_itr = commands.begin(); command_itr != commands.end(); ++command_itr) {
+		if (command_itr->labels.count(label) > 0) {
+			return command_itr;
+		}
+	}
+	assert(false);
+	return commands.end();
+}
+
+Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, int32_t &loop_tick, int32_t &end_tick) {
+	int32_t tick = 0;
+	loop_tick = -1;
+	end_tick = -1;
+	int32_t speed = 12;
+
+	auto command_itr = commands.begin();
+
+	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
+	std::stack<decltype(command_itr)> call_stack;
+	std::map<std::string, int32_t> label_positions;
+
+	while (command_itr != commands.end()) {
+		for (const std::string &label : command_itr->labels) {
+			label_positions.insert({ label, tick });
+		}
+		if (command_itr->type == Command_Type::NOTE) {
+			tick += command_itr->note.length * speed;
+		}
+		else if (command_itr->type == Command_Type::DRUM_NOTE) {
+			tick += command_itr->drum_note.length * speed;
+		}
+		else if (command_itr->type == Command_Type::REST) {
+			tick += command_itr->rest.length * speed;
+		}
+		else if (command_itr->type == Command_Type::NOTE_TYPE) {
+			speed = command_itr->note_type.speed;
+		}
+		else if (command_itr->type == Command_Type::DRUM_SPEED) {
+			speed = command_itr->drum_speed.speed;
+		}
+		else if (command_itr->type == Command_Type::SOUND_JUMP) {
+			command_itr = find_note_with_label(commands, command_itr->target);
+			continue;
+		}
+		else if (command_itr->type == Command_Type::SOUND_LOOP) {
+			if (loop_stack.size() > 0 && loop_stack.top().first == command_itr) {
+				loop_stack.top().second -= 1;
+				if (loop_stack.top().second == 0) {
+					loop_stack.pop();
+				}
+				else {
+					command_itr = find_note_with_label(commands, command_itr->target);
+					continue;
+				}
+			}
+			else {
+				if (command_itr->sound_loop.loop_count == 0) {
+					if (!label_positions.count(command_itr->target)) {
+						command_itr = find_note_with_label(commands, command_itr->target);
+						continue;
+					}
+					loop_tick = label_positions.at(command_itr->target);
+					end_tick = tick;
+					break; // song is finished
+				}
+				else if (command_itr->sound_loop.loop_count > 1) {
+					// nested loops not allowed
+					if (loop_stack.size() > 0) {
+						return Parsed_Song::Result::SONG_NESTED_LOOP;
+					}
+
+					loop_stack.emplace(command_itr, command_itr->sound_loop.loop_count - 1);
+					command_itr = find_note_with_label(commands, command_itr->target);
+					continue;
+				}
+			}
+		}
+		else if (command_itr->type == Command_Type::SOUND_CALL) {
+			// nested calls not allowed
+			if (call_stack.size() > 0) {
+				return Parsed_Song::Result::SONG_NESTED_CALL;
+			}
+
+			call_stack.push(command_itr);
+			command_itr = find_note_with_label(commands, command_itr->target);
+			continue;
+		}
+		else if (command_itr->type == Command_Type::SOUND_RET) {
+			if (call_stack.size() == 0) {
+				end_tick = tick;
+				break; // song is finished
+			}
+			else {
+				command_itr = call_stack.top();
+				call_stack.pop();
+			}
+		}
+		++command_itr;
+	}
+
+	return Parsed_Song::Result::SONG_OK;
+}
 
 Song::Song() {}
 
@@ -21,6 +127,14 @@ void Song::clear() {
 	_channel_2_commands.clear();
 	_channel_3_commands.clear();
 	_channel_4_commands.clear();
+	_channel_1_loop_tick = -1;
+	_channel_2_loop_tick = -1;
+	_channel_3_loop_tick = -1;
+	_channel_4_loop_tick = -1;
+	_channel_1_end_tick = -1;
+	_channel_2_end_tick = -1;
+	_channel_3_end_tick = -1;
+	_channel_4_end_tick = -1;
 	_result = Parsed_Song::Result::SONG_NULL;
 	_modified = false;
 	_mod_time = 0;
@@ -103,6 +217,14 @@ Parsed_Song::Result Song::read_song(const char *f) {
 	_channel_2_commands = data.channel_2_commands();
 	_channel_3_commands = data.channel_3_commands();
 	_channel_4_commands = data.channel_4_commands();
+	_channel_1_loop_tick = data.channel_1_loop_tick();
+	_channel_2_loop_tick = data.channel_2_loop_tick();
+	_channel_3_loop_tick = data.channel_3_loop_tick();
+	_channel_4_loop_tick = data.channel_4_loop_tick();
+	_channel_1_end_tick = data.channel_1_end_tick();
+	_channel_2_end_tick = data.channel_2_end_tick();
+	_channel_3_end_tick = data.channel_3_end_tick();
+	_channel_4_end_tick = data.channel_4_end_tick();
 
 	_mod_time = file_modified(f);
 
@@ -121,6 +243,14 @@ void Song::new_song() {
 	_channel_2_commands = { Command(Command_Type::SOUND_RET, _channel_2_label) };
 	_channel_3_commands = { Command(Command_Type::SOUND_RET, _channel_3_label) };
 	_channel_4_commands = { Command(Command_Type::SOUND_RET, _channel_4_label) };
+	_channel_1_loop_tick = -1;
+	_channel_2_loop_tick = -1;
+	_channel_3_loop_tick = -1;
+	_channel_4_loop_tick = -1;
+	_channel_1_end_tick = 0;
+	_channel_2_end_tick = 0;
+	_channel_3_end_tick = 0;
+	_channel_4_end_tick = 0;
 
 	_mod_time = 0;
 
@@ -657,6 +787,12 @@ std::string Song::get_error_message(Parsed_Song parsed_song) const {
 	case Parsed_Song::Result::SONG_TOO_COMPLEX:
 		return "Channel " + std::to_string(parsed_song.channel_number()) +
 			": Too complex.";
+	case Parsed_Song::Result::SONG_NESTED_LOOP:
+		return "Channel " + std::to_string(parsed_song.channel_number()) +
+			": Nested loops not allowed.";
+	case Parsed_Song::Result::SONG_NESTED_CALL:
+		return "Channel " + std::to_string(parsed_song.channel_number()) +
+			": Nested calls not allowed.";
 	case Parsed_Song::Result::SONG_ENDED_PREMATURELY:
 		return "Channel " + std::to_string(parsed_song.channel_number()) +
 			": File ended prematurely.";

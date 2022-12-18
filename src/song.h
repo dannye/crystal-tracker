@@ -2,6 +2,7 @@
 #define SONG_H
 
 #include <deque>
+#include <set>
 #include <vector>
 
 #include "utils.h"
@@ -9,6 +10,10 @@
 #include "parse-song.h"
 
 #define MAX_HISTORY_SIZE 100
+
+std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, std::string label);
+
+Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, int32_t &loop_tick, int32_t &end_tick);
 
 class Song {
 public:
@@ -43,7 +48,17 @@ private:
 	std::vector<Command> _channel_2_commands;
 	std::vector<Command> _channel_3_commands;
 	std::vector<Command> _channel_4_commands;
+	int32_t _channel_1_loop_tick = -1;
+	int32_t _channel_2_loop_tick = -1;
+	int32_t _channel_3_loop_tick = -1;
+	int32_t _channel_4_loop_tick = -1;
+	int32_t _channel_1_end_tick = -1;
+	int32_t _channel_2_end_tick = -1;
+	int32_t _channel_3_end_tick = -1;
+	int32_t _channel_4_end_tick = -1;
+
 	Parsed_Song::Result _result = Parsed_Song::Result::SONG_NULL;
+
 	bool _modified = false;
 	std::deque<Song_State> _history, _future;
 	int64_t _mod_time = 0;
@@ -83,6 +98,14 @@ public:
 	const std::vector<Command> &channel_2_commands() const { return _channel_2_commands; }
 	const std::vector<Command> &channel_3_commands() const { return _channel_3_commands; }
 	const std::vector<Command> &channel_4_commands() const { return _channel_4_commands; }
+	int32_t channel_1_loop_tick(void) const { return _channel_1_loop_tick; }
+	int32_t channel_2_loop_tick(void) const { return _channel_2_loop_tick; }
+	int32_t channel_3_loop_tick(void) const { return _channel_3_loop_tick; }
+	int32_t channel_4_loop_tick(void) const { return _channel_4_loop_tick; }
+	int32_t channel_1_end_tick(void) const { return _channel_1_end_tick; }
+	int32_t channel_2_end_tick(void) const { return _channel_2_end_tick; }
+	int32_t channel_3_end_tick(void) const { return _channel_3_end_tick; }
+	int32_t channel_4_end_tick(void) const { return _channel_4_end_tick; }
 
 	void put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t index, int32_t tick, int32_t tick_offset);
 	void pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);

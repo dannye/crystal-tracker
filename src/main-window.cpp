@@ -866,14 +866,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 			_error_dialog->show(this);
 			return;
 		}
-		if (!_piano_roll->set_timeline(_song)) {
-			_song.clear();
-			std::string msg = "Error reading ";
-			msg = msg + basename + "!\n\n" + "Nested loops/calls not supported.";
-			_error_dialog->message(msg);
-			_error_dialog->show(this);
-			return;
-		}
+		_piano_roll->set_timeline(_song);
 	}
 	else {
 		basename = NEW_SONG_NAME;
@@ -1162,8 +1155,6 @@ void Main_Window::clear_recent_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
-	mw->stop_audio_thread();
-
 	if (!mw->_song.loaded()) { return; }
 
 	if (mw->unsaved()) {
@@ -1174,6 +1165,8 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_unsaved_dialog->show(mw);
 		if (mw->_unsaved_dialog->canceled()) { return; }
 	}
+
+	mw->stop_audio_thread();
 
 	const char *basename;
 	if (mw->_asm_file.size()) {

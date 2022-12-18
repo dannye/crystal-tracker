@@ -1,6 +1,6 @@
-#include "it-module.h"
-
 #include <cmath>
+
+#include "it-module.h"
 
 IT_Module::IT_Module() {
 	generate_it_module();

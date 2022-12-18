@@ -1,10 +1,10 @@
-#include "parse-waves.h"
-
 #include <cstring>
 
 #pragma warning(push, 0)
 #include <FL/filename.H>
 #pragma warning(pop)
+
+#include "parse-waves.h"
 
 #include "utils.h"
 

@@ -12,6 +12,8 @@ public:
 		SONG_BAD_FILE,
 		SONG_INVALID_HEADER,
 		SONG_TOO_COMPLEX,
+		SONG_NESTED_LOOP,
+		SONG_NESTED_CALL,
 		SONG_ENDED_PREMATURELY,
 		SONG_UNRECOGNIZED_LABEL,
 		SONG_ILLEGAL_MACRO,
@@ -31,6 +33,15 @@ private:
 	std::vector<Command> _channel_2_commands;
 	std::vector<Command> _channel_3_commands;
 	std::vector<Command> _channel_4_commands;
+	int32_t _channel_1_loop_tick = -1;
+	int32_t _channel_2_loop_tick = -1;
+	int32_t _channel_3_loop_tick = -1;
+	int32_t _channel_4_loop_tick = -1;
+	int32_t _channel_1_end_tick = -1;
+	int32_t _channel_2_end_tick = -1;
+	int32_t _channel_3_end_tick = -1;
+	int32_t _channel_4_end_tick = -1;
+
 	Result _result = Result::SONG_NULL;
 
 	// for error reporting
@@ -50,6 +61,14 @@ public:
 	inline std::vector<Command> &&channel_2_commands(void) { return std::move(_channel_2_commands); }
 	inline std::vector<Command> &&channel_3_commands(void) { return std::move(_channel_3_commands); }
 	inline std::vector<Command> &&channel_4_commands(void) { return std::move(_channel_4_commands); }
+	inline int32_t channel_1_loop_tick(void) const { return _channel_1_loop_tick; }
+	inline int32_t channel_2_loop_tick(void) const { return _channel_2_loop_tick; }
+	inline int32_t channel_3_loop_tick(void) const { return _channel_3_loop_tick; }
+	inline int32_t channel_4_loop_tick(void) const { return _channel_4_loop_tick; }
+	inline int32_t channel_1_end_tick(void) const { return _channel_1_end_tick; }
+	inline int32_t channel_2_end_tick(void) const { return _channel_2_end_tick; }
+	inline int32_t channel_3_end_tick(void) const { return _channel_3_end_tick; }
+	inline int32_t channel_4_end_tick(void) const { return _channel_4_end_tick; }
 	inline Result result(void) const { return _result; }
 	inline int32_t line_number(void) const { return _line_number; }
 	inline int32_t channel_number(void) const { return _channel_number; }

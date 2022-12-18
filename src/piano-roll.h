@@ -2,6 +2,7 @@
 #define PIANO_ROLL_H
 
 #include <array>
+#include <set>
 #include <vector>
 
 #pragma warning(push, 0)
@@ -343,12 +344,12 @@ public:
 	void set_size(int W, int H);
 	void set_timeline_width();
 
-	bool set_timeline(const Song &song);
+	void set_timeline(const Song &song);
 	void set_active_channel_timeline(const Song &song);
 	void set_active_channel_selection(const std::set<int32_t> &selection);
 	void select_note_at_tick();
 
-	bool build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Note_View> &notes, const std::vector<Command> &commands, int32_t end_tick, Fl_Color color);
+	void build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Note_View> &notes, const std::vector<Command> &commands, int32_t end_tick, Fl_Color color);
 
 	int32_t get_song_length() const;
 	int32_t get_loop_tick() const;

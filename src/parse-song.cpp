@@ -3,8 +3,10 @@
 #include <sstream>
 #include <set>
 
-#include "utils.h"
 #include "parse-song.h"
+
+#include "song.h"
+#include "utils.h"
 
 Parsed_Song::Parsed_Song(const char *f) {
 	parse_song(f);
@@ -273,6 +275,8 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 
 	Step step = Step::LOOKING_FOR_HEADER;
 	std::vector<Command> *current_channel_commands;
+	int32_t *current_channel_loop_tick;
+	int32_t *current_channel_end_tick;
 	std::string current_scope;
 
 	std::set<std::string> visited_labels;
@@ -344,21 +348,29 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 						_channel_number = 1;
 						_label = _channel_1_label;
 						current_channel_commands = &_channel_1_commands;
+						current_channel_loop_tick = &_channel_1_loop_tick;
+						current_channel_end_tick = &_channel_1_end_tick;
 					}
 					else if (_channel_2_label.size() > 0) {
 						_channel_number = 2;
 						_label = _channel_2_label;
 						current_channel_commands = &_channel_2_commands;
+						current_channel_loop_tick = &_channel_2_loop_tick;
+						current_channel_end_tick = &_channel_2_end_tick;
 					}
 					else if (_channel_3_label.size() > 0) {
 						_channel_number = 3;
 						_label = _channel_3_label;
 						current_channel_commands = &_channel_3_commands;
+						current_channel_loop_tick = &_channel_3_loop_tick;
+						current_channel_end_tick = &_channel_3_end_tick;
 					}
 					else { // if (_channel_4_label.size() > 0)
 						_channel_number = 4;
 						_label = _channel_4_label;
 						current_channel_commands = &_channel_4_commands;
+						current_channel_loop_tick = &_channel_4_loop_tick;
+						current_channel_end_tick = &_channel_4_end_tick;
 					}
 					current_scope = "";
 					visited_labels.clear();
@@ -843,55 +855,68 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				}
 			}
 
-			if (done_with_branch && unvisited_labels.size() == 0) {
-				if (_channel_2_label.size() > 0 && _channel_number < 2) {
-					_channel_number = 2;
-					_label = _channel_2_label;
-					current_channel_commands = &_channel_2_commands;
+			if (done_with_branch) {
+				if (unvisited_labels.size() > 0) {
+					_label = *unvisited_labels.begin();
 					current_scope = "";
-					visited_labels.clear();
-					unvisited_labels.clear();
-					buffered_labels.clear();
-					ifs.seekg(0);
-					_line_number = 0;
-					step = Step::LOOKING_FOR_CHANNEL;
-				}
-				else if (_channel_3_label.size() > 0 && _channel_number < 3) {
-					_channel_number = 3;
-					_label = _channel_3_label;
-					current_channel_commands = &_channel_3_commands;
-					current_scope = "";
-					visited_labels.clear();
-					unvisited_labels.clear();
-					buffered_labels.clear();
-					ifs.seekg(0);
-					_line_number = 0;
-					step = Step::LOOKING_FOR_CHANNEL;
-				}
-				else if (_channel_4_label.size() > 0 && _channel_number < 4) {
-					_channel_number = 4;
-					_label = _channel_4_label;
-					current_channel_commands = &_channel_4_commands;
-					current_scope = "";
-					visited_labels.clear();
-					unvisited_labels.clear();
 					buffered_labels.clear();
 					ifs.seekg(0);
 					_line_number = 0;
 					step = Step::LOOKING_FOR_CHANNEL;
 				}
 				else {
-					step = Step::DONE;
-					break;
+					Result r = calc_channel_length(*current_channel_commands, *current_channel_loop_tick, *current_channel_end_tick);
+					if (r != Result::SONG_OK) {
+						return (_result = r);
+					}
+
+					if (_channel_2_label.size() > 0 && _channel_number < 2) {
+						_channel_number = 2;
+						_label = _channel_2_label;
+						current_channel_commands = &_channel_2_commands;
+						current_channel_loop_tick = &_channel_2_loop_tick;
+						current_channel_end_tick = &_channel_2_end_tick;
+						current_scope = "";
+						visited_labels.clear();
+						unvisited_labels.clear();
+						buffered_labels.clear();
+						ifs.seekg(0);
+						_line_number = 0;
+						step = Step::LOOKING_FOR_CHANNEL;
+					}
+					else if (_channel_3_label.size() > 0 && _channel_number < 3) {
+						_channel_number = 3;
+						_label = _channel_3_label;
+						current_channel_commands = &_channel_3_commands;
+						current_channel_loop_tick = &_channel_3_loop_tick;
+						current_channel_end_tick = &_channel_3_end_tick;
+						current_scope = "";
+						visited_labels.clear();
+						unvisited_labels.clear();
+						buffered_labels.clear();
+						ifs.seekg(0);
+						_line_number = 0;
+						step = Step::LOOKING_FOR_CHANNEL;
+					}
+					else if (_channel_4_label.size() > 0 && _channel_number < 4) {
+						_channel_number = 4;
+						_label = _channel_4_label;
+						current_channel_commands = &_channel_4_commands;
+						current_channel_loop_tick = &_channel_4_loop_tick;
+						current_channel_end_tick = &_channel_4_end_tick;
+						current_scope = "";
+						visited_labels.clear();
+						unvisited_labels.clear();
+						buffered_labels.clear();
+						ifs.seekg(0);
+						_line_number = 0;
+						step = Step::LOOKING_FOR_CHANNEL;
+					}
+					else {
+						step = Step::DONE;
+						break;
+					}
 				}
-			}
-			else if (done_with_branch) {
-				_label = *unvisited_labels.begin();
-				current_scope = "";
-				buffered_labels.clear();
-				ifs.seekg(0);
-				_line_number = 0;
-				step = Step::LOOKING_FOR_CHANNEL;
 			}
 		}
 	}
