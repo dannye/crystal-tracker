@@ -61,7 +61,7 @@ public:
 	int32_t play_note(Pitch pitch, int32_t octave);
 	void stop_note(int32_t channel);
 
-	int32_t current_tick() const { return (_current_pattern * ROWS_PER_PATTERN + _current_row) * 2; }
+	int32_t current_tick() const { return _current_pattern * ROWS_PER_PATTERN + _current_row; }
 	void set_tick(int32_t tick);
 private:
 	bool try_open();

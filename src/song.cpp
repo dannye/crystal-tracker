@@ -825,10 +825,6 @@ std::string Song::get_error_message(Parsed_Song parsed_song) const {
 		return "Line " + std::to_string(parsed_song.line_number()) +
 			": Channel " + std::to_string(parsed_song.channel_number()) +
 			": Invalid macro argument.";
-	case Parsed_Song::Result::SONG_UNSUPPORTED_MACRO_ARGUMENT:
-		return "Line " + std::to_string(parsed_song.line_number()) +
-			": Channel " + std::to_string(parsed_song.channel_number()) +
-			": Unsupported macro argument.";
 	case Parsed_Song::Result::SONG_NULL:
 		return "No *.asm file chosen.";
 	default:

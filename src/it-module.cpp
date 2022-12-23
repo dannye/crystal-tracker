@@ -30,6 +30,9 @@ IT_Module::IT_Module(
 		_mod->set_repeat_count(-1);
 	}
 
+	openmpt::ext::interactive *interactive = static_cast<openmpt::ext::interactive *>(_mod->get_interface(openmpt::ext::interactive_id));
+	interactive->set_tempo_factor(2.0);
+
 	_is_interleaved = false;
 	if (!try_open()) {
 		_is_interleaved = true;
@@ -89,7 +92,7 @@ void IT_Module::stop_note(int32_t channel) {
 void IT_Module::set_tick(int32_t tick) {
 	if (!ready()) return;
 
-	_mod->set_position_order_row((tick / 2) / ROWS_PER_PATTERN, (tick / 2) % ROWS_PER_PATTERN);
+	_mod->set_position_order_row(tick / ROWS_PER_PATTERN, tick % ROWS_PER_PATTERN);
 }
 
 bool IT_Module::try_open() {
@@ -351,8 +354,8 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 		// this is a purely empirical approximation.
 		// i have no idea what the real formula is.
 		int32_t bpm = (int32_t)(std::log2(tempo - 75.0) * -75.0 / 2.0 + 360.0);
+		if (bpm > 255 || bpm < 0) bpm = 255;
 		if (bpm < 32)  bpm = 32;
-		if (bpm > 255) bpm = 255;
 		return (uint8_t)bpm;
 	};
 
@@ -362,9 +365,8 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 		std::vector<uint8_t> pattern_data;
 		uint32_t row = 0;
 		do {
-			// NOTE: only even speeds are allowed for now to avoid complex time dilation
 			if (channel_1_note_length == 0 && channel_1_itr != channel_1_notes.end()) {
-				channel_1_note_length = channel_1_itr->length * channel_1_itr->speed / 2 - 1;
+				channel_1_note_length = channel_1_itr->length * channel_1_itr->speed - 1;
 				channel_1_note_duration = 0;
 				if (channel_1_itr->tempo != channel_1_prev_note.tempo) {
 					pattern_data.push_back(0x85);
@@ -388,7 +390,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				++channel_1_itr;
 			}
 			else if (channel_1_note_length > 0) {
-				if (channel_1_prev_note.fade && row % 4 == 1) {
+				if (channel_1_prev_note.fade && row % 8 == 1) {
 					pattern_data.push_back(0x81);
 					pattern_data.push_back(0x08); // command
 					if (
@@ -416,14 +418,14 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					pattern_data.push_back(0x81);
 					pattern_data.push_back(0x08); // command
 					pattern_data.push_back(0x08); // vibrato
-					pattern_data.push_back((16 - channel_1_prev_note.rate * 2) << 4 | (channel_1_prev_note.extent));
+					pattern_data.push_back((8 - channel_1_prev_note.rate) << 4 | (channel_1_prev_note.extent));
 				}
 				channel_1_note_length -= 1;
 				channel_1_note_duration += 1;
 			}
 
 			if (channel_2_note_length == 0 && channel_2_itr != channel_2_notes.end()) {
-				channel_2_note_length = channel_2_itr->length * channel_2_itr->speed / 2 - 1;
+				channel_2_note_length = channel_2_itr->length * channel_2_itr->speed - 1;
 				channel_2_note_duration = 0;
 				if (channel_2_itr->tempo != channel_2_prev_note.tempo) {
 					pattern_data.push_back(0x85);
@@ -447,7 +449,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				++channel_2_itr;
 			}
 			else if (channel_2_note_length > 0) {
-				if (channel_2_prev_note.fade && row % 4 == 1) {
+				if (channel_2_prev_note.fade && row % 8 == 1) {
 					pattern_data.push_back(0x82);
 					pattern_data.push_back(0x08); // command
 					if (
@@ -475,14 +477,14 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					pattern_data.push_back(0x82);
 					pattern_data.push_back(0x08); // command
 					pattern_data.push_back(0x08); // vibrato
-					pattern_data.push_back((16 - channel_2_prev_note.rate * 2) << 4 | (channel_2_prev_note.extent));
+					pattern_data.push_back((8 - channel_2_prev_note.rate) << 4 | (channel_2_prev_note.extent));
 				}
 				channel_2_note_length -= 1;
 				channel_2_note_duration += 1;
 			}
 
 			if (channel_3_note_length == 0 && channel_3_itr != channel_3_notes.end()) {
-				channel_3_note_length = channel_3_itr->length * channel_3_itr->speed / 2 - 1;
+				channel_3_note_length = channel_3_itr->length * channel_3_itr->speed - 1;
 				channel_3_note_duration = 0;
 				if (channel_3_itr->tempo != channel_3_prev_note.tempo) {
 					pattern_data.push_back(0x85);
@@ -514,14 +516,14 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					pattern_data.push_back(0x83);
 					pattern_data.push_back(0x08); // command
 					pattern_data.push_back(0x08); // vibrato
-					pattern_data.push_back((16 - channel_3_prev_note.rate * 2) << 4 | (channel_3_prev_note.extent));
+					pattern_data.push_back((8 - channel_3_prev_note.rate) << 4 | (channel_3_prev_note.extent));
 				}
 				channel_3_note_length -= 1;
 				channel_3_note_duration += 1;
 			}
 
 			if (channel_4_note_length == 0 && channel_4_itr != channel_4_notes.end()) {
-				channel_4_note_length = channel_4_itr->length * channel_4_itr->speed / 2 - 1;
+				channel_4_note_length = channel_4_itr->length * channel_4_itr->speed - 1;
 				if (channel_4_itr->tempo != channel_4_prev_note.tempo) {
 					pattern_data.push_back(0x85);
 					pattern_data.push_back(0x08); // command
@@ -536,8 +538,8 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 			}
 
 			if (song_finished() && loop_tick != -1) {
-				uint32_t pattern_number = (uint32_t)(loop_tick / 2) / ROWS_PER_PATTERN;
-				uint32_t row_number = (uint32_t)(loop_tick / 2) % ROWS_PER_PATTERN;
+				uint32_t pattern_number = (uint32_t)(loop_tick) / ROWS_PER_PATTERN;
+				uint32_t row_number = (uint32_t)(loop_tick) % ROWS_PER_PATTERN;
 
 				pattern_data.push_back(0x86);
 				pattern_data.push_back(0x08); // command
