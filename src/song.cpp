@@ -20,18 +20,23 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 	int32_t tick = 0;
 	loop_tick = -1;
 	end_tick = -1;
-	int32_t speed = 12;
+	int32_t speed = 1;
 
 	auto command_itr = commands.begin();
 
 	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
 	std::stack<decltype(command_itr)> call_stack;
+	std::set<std::string> visited_labels_during_call;
 	std::map<std::string, int32_t> label_positions;
 
 	while (command_itr != commands.end()) {
 		for (const std::string &label : command_itr->labels) {
 			label_positions.insert({ label, tick });
+			if (call_stack.size() > 0) {
+				visited_labels_during_call.insert(label);
+			}
 		}
+
 		if (command_itr->type == Command_Type::NOTE) {
 			tick += command_itr->note.length * speed;
 		}
@@ -48,7 +53,10 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 			speed = command_itr->drum_speed.speed;
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
-			if (!label_positions.count(command_itr->target)) {
+			if (
+				!label_positions.count(command_itr->target) ||
+				(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
+			) {
 				command_itr = find_note_with_label(commands, command_itr->target);
 				continue;
 			}
@@ -72,7 +80,10 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 			}
 			else {
 				if (command_itr->sound_loop.loop_count == 0) {
-					if (!label_positions.count(command_itr->target)) {
+					if (
+						!label_positions.count(command_itr->target) ||
+						(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
+					) {
 						command_itr = find_note_with_label(commands, command_itr->target);
 						continue;
 					}
@@ -113,6 +124,7 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 			else {
 				command_itr = call_stack.top();
 				call_stack.pop();
+				visited_labels_during_call.clear();
 			}
 		}
 		++command_itr;
@@ -795,9 +807,6 @@ std::string Song::get_error_message(Parsed_Song parsed_song) const {
 		return "Cannot open song file.";
 	case Parsed_Song::Result::SONG_INVALID_HEADER:
 		return "Invalid song header.";
-	case Parsed_Song::Result::SONG_TOO_COMPLEX:
-		return "Channel " + std::to_string(parsed_song.channel_number()) +
-			": Too complex.";
 	case Parsed_Song::Result::SONG_EMPTY_LOOP:
 		return "Channel " + std::to_string(parsed_song.channel_number()) +
 			": Empty infinite loop.";

@@ -422,11 +422,16 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				}
 				buffered_labels.insert(label);
 				if (visited_labels.count(label)) {
-					return (_result = Result::SONG_TOO_COMPLEX);
+					Command jump_command(Command_Type::SOUND_JUMP);
+					jump_command.target = label;
+					current_channel_commands->push_back(jump_command);
+					done_with_branch = true;
 				}
-				visited_labels.insert(label);
-				unvisited_labels.erase(label);
-				continue;
+				else {
+					visited_labels.insert(label);
+					unvisited_labels.erase(label);
+					continue;
+				}
 			}
 			else {
 				std::string macro;
@@ -501,7 +506,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 						if (!get_number_and_number_and_number(lss, command.note_type.speed, command.note_type.volume, command.note_type.wave)) {
 							return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
 						}
-						if (command.note_type.speed < 1 || command.note_type.speed > 16) {
+						if (command.note_type.speed < 1 || command.note_type.speed > 15) {
 							return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
 						}
 						if (command.note_type.volume < 0 || command.note_type.volume > 3) {
@@ -517,7 +522,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 						if (!get_number_and_number_and_number(lss, command.note_type.speed, command.note_type.volume, command.note_type.fade)) {
 							return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
 						}
-						if (command.note_type.speed < 1 || command.note_type.speed > 16) {
+						if (command.note_type.speed < 1 || command.note_type.speed > 15) {
 							return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
 						}
 						if (command.note_type.volume < 0 || command.note_type.volume > 15) {
@@ -539,7 +544,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					if (!get_number(lss, command.drum_speed.speed)) {
 						return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
 					}
-					if (command.drum_speed.speed < 1 || command.drum_speed.speed > 16) {
+					if (command.drum_speed.speed < 1 || command.drum_speed.speed > 15) {
 						return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
 					}
 					current_channel_commands->push_back(command);

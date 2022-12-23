@@ -1058,14 +1058,8 @@ void Piano_Roll::build_note_view(
 	int32_t tick = 0;
 
 	Note_View note;
-	note.octave = 1;
-	note.speed = 12;
-	note.volume = 0;
-	note.fade = 0;
-	note.delay = 0;
-	note.extent = 0;
-	note.rate = 0;
-	note.ghost = false;
+	note.octave = 8;
+	note.speed = 1;
 
 	bool restarted = false;
 	Loop_Box *loop = nullptr;
@@ -1075,6 +1069,7 @@ void Piano_Roll::build_note_view(
 
 	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
 	std::stack<decltype(command_itr)> call_stack;
+	std::set<std::string> visited_labels_during_call;
 	std::map<std::string, int32_t> label_positions;
 
 	std::set<std::string> loop_targets;
@@ -1095,6 +1090,9 @@ void Piano_Roll::build_note_view(
 	while (command_itr != commands.end() && tick < end_tick) {
 		for (const std::string &label : command_itr->labels) {
 			label_positions.insert({ label, tick });
+			if (call_stack.size() > 0) {
+				visited_labels_during_call.insert(label);
+			}
 		}
 		if (!restarted && is_loop_target(command_itr->labels)) {
 			loop = new Loop_Box(0, 0, 0, 0);
@@ -1216,7 +1214,10 @@ void Piano_Roll::build_note_view(
 			note.rate = command_itr->vibrato.rate;
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
-			if (!label_positions.count(command_itr->target)) {
+			if (
+				!label_positions.count(command_itr->target) ||
+				(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
+			) {
 				command_itr = find_note_with_label(commands, command_itr->target);
 				continue;
 			}
@@ -1236,7 +1237,10 @@ void Piano_Roll::build_note_view(
 			}
 			else {
 				if (command_itr->sound_loop.loop_count == 0) {
-					if (!label_positions.count(command_itr->target)) {
+					if (
+						!label_positions.count(command_itr->target) ||
+						(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
+					) {
 						command_itr = find_note_with_label(commands, command_itr->target);
 						continue;
 					}
@@ -1281,6 +1285,7 @@ void Piano_Roll::build_note_view(
 			else {
 				command_itr = call_stack.top();
 				call_stack.pop();
+				visited_labels_during_call.clear();
 			}
 		}
 		++command_itr;

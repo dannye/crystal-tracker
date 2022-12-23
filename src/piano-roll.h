@@ -267,7 +267,7 @@ private:
 	bool _following = false;
 	bool _continuous = true;
 	bool _paused = false;
-	bool _zoomed = true;
+	bool _zoomed = false;
 
 	bool _channel_1_muted = false;
 	bool _channel_2_muted = false;
