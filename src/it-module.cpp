@@ -354,8 +354,8 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 		// this is a purely empirical approximation.
 		// i have no idea what the real formula is.
 		int32_t bpm = (int32_t)(std::log2(tempo - 75.0) * -75.0 / 2.0 + 360.0);
-		if (bpm > 255 || bpm < 0) bpm = 255;
-		if (bpm < 32)  bpm = 32;
+		if (bpm > 255 || tempo <= 75) bpm = 255;
+		if (bpm < 32) bpm = 32;
 		return (uint8_t)bpm;
 	};
 
