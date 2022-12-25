@@ -396,6 +396,7 @@ private:
 	const Note_View *find_note_view_at_tick(const std::vector<Note_View> &view, int32_t tick, int32_t *tick_offset = nullptr);
 
 	std::vector<Note_View> *active_channel_view();
+	int32_t active_channel_length();
 
 	static void scrollbar_cb(Fl_Scrollbar *sb, void *);
 	static void hscrollbar_cb(Fl_Scrollbar *sb, void *);

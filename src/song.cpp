@@ -127,6 +127,9 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 				visited_labels_during_call.clear();
 			}
 		}
+		else if (command_itr->type == Command_Type::SPEED) {
+			speed = command_itr->speed.speed;
+		}
 		++command_itr;
 	}
 
@@ -158,6 +161,7 @@ void Song::clear() {
 	_channel_2_end_tick = -1;
 	_channel_3_end_tick = -1;
 	_channel_4_end_tick = -1;
+	_waves.clear();
 	_result = Parsed_Song::Result::SONG_NULL;
 	_modified = false;
 	_mod_time = 0;
@@ -248,6 +252,7 @@ Parsed_Song::Result Song::read_song(const char *f) {
 	_channel_2_end_tick = data.channel_2_end_tick();
 	_channel_3_end_tick = data.channel_3_end_tick();
 	_channel_4_end_tick = data.channel_4_end_tick();
+	_waves = data.waves();
 
 	_mod_time = file_modified(f);
 
@@ -274,6 +279,7 @@ void Song::new_song() {
 	_channel_2_end_tick = 0;
 	_channel_3_end_tick = 0;
 	_channel_4_end_tick = 0;
+	_waves.clear();
 
 	_mod_time = 0;
 
@@ -301,16 +307,16 @@ bool Song::write_song(const char *f) {
 		ofs << "\tchannel 4, " << _channel_4_label << '\n';
 	}
 	if (_channel_1_label.size()) {
-		ofs << '\n' << commands_str(_channel_1_commands);
+		ofs << '\n' << commands_str(_channel_1_commands, 1);
 	}
 	if (_channel_2_label.size()) {
-		ofs << '\n' << commands_str(_channel_2_commands);
+		ofs << '\n' << commands_str(_channel_2_commands, 2);
 	}
 	if (_channel_3_label.size()) {
-		ofs << '\n' << commands_str(_channel_3_commands);
+		ofs << '\n' << commands_str(_channel_3_commands, 3);
 	}
 	if (_channel_4_label.size()) {
-		ofs << '\n' << commands_str(_channel_4_commands);
+		ofs << '\n' << commands_str(_channel_4_commands, 4);
 	}
 	ofs.close();
 
@@ -396,6 +402,9 @@ void postprocess(std::vector<Command> &commands) {
 					view.octave = commands[i].octave.octave;
 					octave_index = i;
 				}
+			}
+			else if (commands[i].type == Command_Type::INC_OCTAVE || commands[i].type == Command_Type::DEC_OCTAVE) {
+				octave_index = -1;
 			}
 		}
 	} while (deleted);
@@ -707,7 +716,7 @@ void Song::snip_selection(const int selected_channel, const std::set<int32_t> &s
 	_modified = true;
 }
 
-std::string Song::commands_str(const std::vector<Command> &commands) const {
+std::string Song::commands_str(const std::vector<Command> &commands, int32_t channel_number) const {
 	const auto to_local_label = [](const std::string &label) {
 		std::size_t dot = label.find_first_of(".");
 		return dot != std::string::npos ? &label[dot] : label.c_str();
@@ -718,82 +727,155 @@ std::string Song::commands_str(const std::vector<Command> &commands) const {
 		for (const std::string &label : command.labels) {
 			str = str + to_local_label(label) + ":\n";
 		}
+
 		str = str + "\t" + COMMAND_NAMES[(uint32_t)command.type];
+
 		if (command.type == Command_Type::NOTE) {
-			str = str + " " + PITCH_NAMES[(uint32_t)command.note.pitch] + ", " + std::to_string(command.note.length);
+			str = str + " " + PITCH_NAMES[(uint32_t)command.note.pitch] +
+						", " + std::to_string(command.note.length);
 		}
+
 		else if (command.type == Command_Type::DRUM_NOTE) {
-			str = str + " " + std::to_string(command.drum_note.instrument) + ", " + std::to_string(command.drum_note.length);
+			str = str + " " + std::to_string(command.drum_note.instrument) +
+						", " + std::to_string(command.drum_note.length);
 		}
+
 		else if (command.type == Command_Type::REST) {
 			str = str + " " + std::to_string(command.rest.length);
 		}
+
 		else if (command.type == Command_Type::OCTAVE) {
 			str = str + " " + std::to_string(command.octave.octave);
 		}
+
 		else if (command.type == Command_Type::NOTE_TYPE) {
-			str = str + " " + std::to_string(command.note_type.speed) + ", " + std::to_string(command.note_type.volume) + ", " + std::to_string(command.note_type.fade);
+			str = str + " " + std::to_string(command.note_type.speed) +
+						", " + std::to_string(command.note_type.volume) +
+						", " + ((channel_number == 1 || channel_number == 2) && command.note_type.fade == 0 ? "8" : std::to_string(command.note_type.fade));
 		}
+
 		else if (command.type == Command_Type::DRUM_SPEED) {
 			str = str + " " + std::to_string(command.drum_speed.speed);
 		}
+
 		else if (command.type == Command_Type::TRANSPOSE) {
-			str = str + " " + std::to_string(command.transpose.num_octaves) + ", " + std::to_string(command.transpose.num_pitches);
+			str = str + " " + std::to_string(command.transpose.num_octaves) +
+						", " + std::to_string(command.transpose.num_pitches);
 		}
+
 		else if (command.type == Command_Type::TEMPO) {
 			str = str + " " + std::to_string(command.tempo.tempo);
 		}
+
 		else if (command.type == Command_Type::DUTY_CYCLE) {
 			str = str + " " + std::to_string(command.duty_cycle.duty);
 		}
+
 		else if (command.type == Command_Type::VOLUME_ENVELOPE) {
-			str = str + " " + std::to_string(command.volume_envelope.volume) + ", " + std::to_string(command.volume_envelope.fade);
+			str = str + " " + std::to_string(command.volume_envelope.volume) +
+						", " + ((channel_number == 1 || channel_number == 2) && command.volume_envelope.fade == 0 ? "8" : std::to_string(command.volume_envelope.fade));
 		}
+
 		else if (command.type == Command_Type::PITCH_SWEEP) {
-			str = str + " " + std::to_string(command.pitch_sweep.duration) + ", " + std::to_string(command.pitch_sweep.pitch_change);
+			str = str + " " + std::to_string(command.pitch_sweep.duration) +
+						", " + (command.pitch_sweep.pitch_change == 0 ? "8" : std::to_string(command.pitch_sweep.pitch_change));
 		}
+
 		else if (command.type == Command_Type::DUTY_CYCLE_PATTERN) {
-			str = str + " " + std::to_string(command.duty_cycle_pattern.duty1) + ", " + std::to_string(command.duty_cycle_pattern.duty2) + ", " + std::to_string(command.duty_cycle_pattern.duty3) + ", " + std::to_string(command.duty_cycle_pattern.duty4);
+			str = str + " " + std::to_string(command.duty_cycle_pattern.duty1) +
+						", " + std::to_string(command.duty_cycle_pattern.duty2) +
+						", " + std::to_string(command.duty_cycle_pattern.duty3) +
+						", " + std::to_string(command.duty_cycle_pattern.duty4);
 		}
+
 		else if (command.type == Command_Type::PITCH_SLIDE) {
-			str = str + " " + std::to_string(command.pitch_slide.duration) + ", " + std::to_string(command.pitch_slide.octave) + ", " + PITCH_NAMES[(uint32_t)command.pitch_slide.pitch];
+			str = str + " " + std::to_string(command.pitch_slide.duration) +
+						", " + std::to_string(command.pitch_slide.octave) +
+						", " + PITCH_NAMES[(uint32_t)command.pitch_slide.pitch];
 		}
+
 		else if (command.type == Command_Type::VIBRATO) {
-			str = str + " " + std::to_string(command.vibrato.delay) + ", " + std::to_string(command.vibrato.extent) + ", " + std::to_string(command.vibrato.rate);
+			str = str + " " + std::to_string(command.vibrato.delay) +
+						", " + std::to_string(command.vibrato.extent) +
+						", " + std::to_string(command.vibrato.rate);
 		}
+
 		else if (command.type == Command_Type::TOGGLE_NOISE) {
+			// TODO: handle true toggling
 			str = str + " " + std::to_string(command.toggle_noise.drumkit);
 		}
+
 		else if (command.type == Command_Type::FORCE_STEREO_PANNING) {
-			str = str + " " + (command.force_stereo_panning.left ? "TRUE" : "FALSE") + ", " + (command.force_stereo_panning.right ? "TRUE" : "FALSE");
+			str = str + " " + (command.force_stereo_panning.left ? "TRUE" : "FALSE") +
+						", " + (command.force_stereo_panning.right ? "TRUE" : "FALSE");
 		}
+
 		else if (command.type == Command_Type::VOLUME) {
-			str = str + " " + std::to_string(command.volume.left) + ", " + std::to_string(command.volume.right);
+			str = str + " " + std::to_string(command.volume.left) +
+						", " + std::to_string(command.volume.right);
 		}
+
 		else if (command.type == Command_Type::PITCH_OFFSET) {
 			str = str + " " + std::to_string(command.pitch_offset.offset);
 		}
+
 		else if (command.type == Command_Type::STEREO_PANNING) {
-			str = str + " " + (command.stereo_panning.left ? "TRUE" : "FALSE") + ", " + (command.stereo_panning.right ? "TRUE" : "FALSE");
+			str = str + " " + (command.stereo_panning.left ? "TRUE" : "FALSE") +
+						", " + (command.stereo_panning.right ? "TRUE" : "FALSE");
 		}
+
 		else if (command.type == Command_Type::SOUND_JUMP) {
 			str = str + " " + to_local_label(command.target);
 			str = str + "\n";
 		}
+
 		else if (command.type == Command_Type::SOUND_LOOP) {
-			str = str + " " + std::to_string(command.sound_loop.loop_count) + ", " + to_local_label(command.target);
+			str = str + " " + std::to_string(command.sound_loop.loop_count) +
+						", " + to_local_label(command.target);
 			if (command.sound_loop.loop_count == 0) {
 				str = str + "\n";
 			}
 		}
+
 		else if (command.type == Command_Type::SOUND_CALL) {
 			str = str + " " + to_local_label(command.target);
 		}
+
 		else if (command.type == Command_Type::SOUND_RET) {
 			str = str + "\n";
 		}
+
+		else if (command.type == Command_Type::TOGGLE_PERFECT_PITCH) {}
+
+		else if (command.type == Command_Type::LOAD_WAVE) {
+			const Wave &wave = _waves[command.load_wave.wave - 0x10];
+			for (size_t i = 0; i < NUM_WAVE_SAMPLES; ++i) {
+				str = str + " " + std::to_string(wave[i]);
+				if (i != NUM_WAVE_SAMPLES - 1) {
+					str = str + ",";
+				}
+			}
+		}
+
+		else if (command.type == Command_Type::INC_OCTAVE) {}
+
+		else if (command.type == Command_Type::DEC_OCTAVE) {}
+
+		else if (command.type == Command_Type::SPEED) {
+			str = str + " " + std::to_string(command.speed.speed);
+		}
+
+		else if (command.type == Command_Type::CHANNEL_VOLUME) {
+			str = str + " " + std::to_string(command.channel_volume.volume);
+		}
+
+		else if (command.type == Command_Type::FADE_WAVE) {
+			str = str + " " + ((channel_number == 1 || channel_number == 2) && command.fade_wave.fade == 0 ? "8" : std::to_string(command.fade_wave.fade));
+		}
+
 		str += "\n";
 	}
+
 	rtrim(str);
 	str += "\n";
 	return str;

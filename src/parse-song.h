@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "command.h"
+#include "parse-waves.h"
 
 class Parsed_Song {
 public:
@@ -41,6 +42,8 @@ private:
 	int32_t _channel_3_end_tick = -1;
 	int32_t _channel_4_end_tick = -1;
 
+	std::vector<Wave> _waves;
+
 	Result _result = Result::SONG_NULL;
 
 	// for error reporting
@@ -68,6 +71,7 @@ public:
 	inline int32_t channel_2_end_tick(void) const { return _channel_2_end_tick; }
 	inline int32_t channel_3_end_tick(void) const { return _channel_3_end_tick; }
 	inline int32_t channel_4_end_tick(void) const { return _channel_4_end_tick; }
+	inline std::vector<Wave> &&waves(void) { return std::move(_waves); }
 	inline Result result(void) const { return _result; }
 	inline int32_t line_number(void) const { return _line_number; }
 	inline int32_t channel_number(void) const { return _channel_number; }

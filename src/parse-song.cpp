@@ -712,6 +712,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					}
 					command.type = Command_Type::TOGGLE_NOISE;
 					if (!get_number(lss, command.toggle_noise.drumkit)) {
+						// TODO: handle true toggling
 						return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
 					}
 					if (command.toggle_noise.drumkit < 0 || command.toggle_noise.drumkit > 6) {
@@ -817,31 +818,102 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				}
 
 				else if (macro == "toggle_perfect_pitch") {
-					// TODO
+					if (_channel_number == 4) {
+						return (_result = Result::SONG_ILLEGAL_MACRO);
+					}
+					command.type = Command_Type::TOGGLE_PERFECT_PITCH;
+					current_channel_commands->push_back(command);
 				}
 
 				else if (macro == "load_wave") {
-					// TODO
+					if (_channel_number != 3) {
+						return (_result = Result::SONG_ILLEGAL_MACRO);
+					}
+					command.type = Command_Type::LOAD_WAVE;
+					Wave wave;
+					if (Parsed_Waves::parse_wave(lss, wave, true) != Parsed_Waves::Result::WAVES_OK) {
+						return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
+					}
+					command.load_wave.wave = 0x10 + _waves.size();
+					_waves.push_back(wave);
+					current_channel_commands->push_back(command);
 				}
 
 				else if (macro == "inc_octave") {
-					// TODO
+					command.type = Command_Type::INC_OCTAVE;
+					current_channel_commands->push_back(command);
 				}
 
 				else if (macro == "dec_octave") {
-					// TODO
+					command.type = Command_Type::DEC_OCTAVE;
+					current_channel_commands->push_back(command);
 				}
 
-				else if (macro == "notetype0") {
-					// TODO
+				else if (macro == "speed") {
+					if (_channel_number == 4) {
+						return (_result = Result::SONG_ILLEGAL_MACRO);
+					}
+					command.type = Command_Type::SPEED;
+					if (!get_number(lss, command.speed.speed)) {
+						return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
+					}
+					if (command.speed.speed < 1 || command.speed.speed > 15) {
+						return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
+					}
+					current_channel_commands->push_back(command);
 				}
 
-				else if (macro == "notetype1") {
-					// TODO
+				else if (macro == "channel_volume") {
+					if (_channel_number == 4) {
+						return (_result = Result::SONG_ILLEGAL_MACRO);
+					}
+					if (_channel_number == 3) {
+						command.type = Command_Type::CHANNEL_VOLUME;
+						if (!get_number(lss, command.channel_volume.volume)) {
+							return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
+						}
+						if (command.channel_volume.volume < 0 || command.channel_volume.volume > 3) {
+							return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
+						}
+						current_channel_commands->push_back(command);
+					}
+					else {
+						command.type = Command_Type::CHANNEL_VOLUME;
+						if (!get_number(lss, command.channel_volume.volume)) {
+							return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
+						}
+						if (command.channel_volume.volume < 0 || command.channel_volume.volume > 15) {
+							return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
+						}
+						current_channel_commands->push_back(command);
+					}
 				}
 
-				else if (macro == "notetype2") {
-					// TODO
+				else if (macro == "fade_wave") {
+					if (_channel_number == 4) {
+						return (_result = Result::SONG_ILLEGAL_MACRO);
+					}
+					if (_channel_number == 3) {
+						command.type = Command_Type::FADE_WAVE;
+						if (!get_number(lss, command.fade_wave.wave)) {
+							return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
+						}
+						if (command.fade_wave.wave < 0 || command.fade_wave.wave > 15) {
+							return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
+						}
+						current_channel_commands->push_back(command);
+					}
+					else {
+						command.type = Command_Type::FADE_WAVE;
+						if (!get_number(lss, command.fade_wave.fade)) {
+							return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
+						}
+						if (command.fade_wave.fade == 8) command.fade_wave.fade = 0; // 8 is used in place of 0
+						if (command.fade_wave.fade < -7 || command.fade_wave.fade > 7) {
+							return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
+						}
+						current_channel_commands->push_back(command);
+					}
 				}
 
 				else {

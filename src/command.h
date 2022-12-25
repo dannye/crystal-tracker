@@ -62,6 +62,13 @@ enum class Command_Type {
 	SOUND_LOOP,
 	SOUND_CALL,
 	SOUND_RET,
+	TOGGLE_PERFECT_PITCH,
+	LOAD_WAVE,
+	INC_OCTAVE,
+	DEC_OCTAVE,
+	SPEED,
+	CHANNEL_VOLUME,
+	FADE_WAVE,
 };
 
 static const char * const COMMAND_NAMES[] = {
@@ -88,6 +95,13 @@ static const char * const COMMAND_NAMES[] = {
 	"sound_loop",
 	"sound_call",
 	"sound_ret",
+	"toggle_perfect_pitch",
+	"load_wave",
+	"inc_octave",
+	"dec_octave",
+	"speed",
+	"channel_volume",
+	"fade_wave",
 };
 
 static inline bool is_note_command(Command_Type type) {
@@ -113,7 +127,14 @@ static inline bool is_note_setting_command(Command_Type type) {
 		type == Command_Type::TOGGLE_NOISE ||
 		type == Command_Type::FORCE_STEREO_PANNING ||
 		type == Command_Type::PITCH_OFFSET ||
-		type == Command_Type::STEREO_PANNING
+		type == Command_Type::STEREO_PANNING ||
+		type == Command_Type::TOGGLE_PERFECT_PITCH ||
+		type == Command_Type::LOAD_WAVE ||
+		type == Command_Type::INC_OCTAVE ||
+		type == Command_Type::DEC_OCTAVE ||
+		// type == Command_Type::SPEED ||
+		type == Command_Type::CHANNEL_VOLUME ||
+		type == Command_Type::FADE_WAVE
 	);
 }
 
@@ -127,7 +148,8 @@ static inline bool is_control_command(Command_Type type) {
 		type == Command_Type::SOUND_JUMP ||
 		type == Command_Type::SOUND_LOOP ||
 		type == Command_Type::SOUND_CALL ||
-		type == Command_Type::SOUND_RET
+		type == Command_Type::SOUND_RET ||
+		type == Command_Type::SPEED
 	);
 }
 
@@ -248,6 +270,31 @@ struct Command {
 
 	struct Sound_Ret {};
 
+	struct Toggle_Perfect_Pitch {};
+
+	struct Load_Wave {
+		int32_t wave;
+	};
+
+	struct Inc_Octave {};
+
+	struct Dec_Octave {};
+
+	struct Speed {
+		int32_t speed;
+	};
+
+	struct Channel_Volume {
+		int32_t volume;
+	};
+
+	struct Fade_Wave {
+		union {
+			int32_t fade;
+			int32_t wave;
+		};
+	};
+
 	Command_Type type;
 	std::set<std::string> labels;
 	std::string target;
@@ -275,6 +322,13 @@ struct Command {
 		Sound_Loop sound_loop;
 		Sound_Call sound_call;
 		Sound_Ret sound_ret;
+		Toggle_Perfect_Pitch toggle_perfect_pitch;
+		Load_Wave load_wave;
+		Inc_Octave inc_octave;
+		Dec_Octave dec_octave;
+		Speed speed;
+		Channel_Volume channel_volume;
+		Fade_Wave fade_wave;
 	};
 
 	Command() {}

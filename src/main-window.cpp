@@ -866,6 +866,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 			_error_dialog->show(this);
 			return;
 		}
+		_waves.insert(_waves.end(), RANGE(_song.waves()));
 		_piano_roll->set_timeline(_song);
 	}
 	else {

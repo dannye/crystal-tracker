@@ -329,6 +329,8 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 	Note_View channel_3_prev_note;
 	Note_View channel_4_prev_note;
 
+	int32_t wave = 0;
+
 	auto song_finished = [&]() {
 		return
 			channel_1_itr == channel_1_notes.end() &&
@@ -423,6 +425,11 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				channel_1_note_length -= 1;
 				channel_1_note_duration += 1;
 			}
+			else {
+				pattern_data.push_back(0x81);
+				pattern_data.push_back(0x01); // note
+				pattern_data.push_back(0xfe); // cut
+			}
 
 			if (channel_2_note_length == 0 && channel_2_itr != channel_2_notes.end()) {
 				channel_2_note_length = channel_2_itr->length * channel_2_itr->speed - 1;
@@ -482,10 +489,18 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				channel_2_note_length -= 1;
 				channel_2_note_duration += 1;
 			}
+			else {
+				pattern_data.push_back(0x82);
+				pattern_data.push_back(0x01); // note
+				pattern_data.push_back(0xfe); // cut
+			}
 
 			if (channel_3_note_length == 0 && channel_3_itr != channel_3_notes.end()) {
 				channel_3_note_length = channel_3_itr->length * channel_3_itr->speed - 1;
 				channel_3_note_duration = 0;
+				if (channel_3_itr->wave != 0x0f) {
+					wave = channel_3_itr->wave;
+				}
 				if (channel_3_itr->tempo != channel_3_prev_note.tempo) {
 					pattern_data.push_back(0x85);
 					pattern_data.push_back(0x08); // command
@@ -496,7 +511,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					pattern_data.push_back(0x83);
 					pattern_data.push_back(0x07); // note + sample + volume
 					pattern_data.push_back(channel_3_itr->octave * 12 + (uint32_t)channel_3_itr->pitch - 1);
-					pattern_data.push_back(channel_3_itr->wave + 5); // sample
+					pattern_data.push_back(wave + 5); // sample
 					pattern_data.push_back(channel_3_volume(channel_3_itr->volume)); // volume
 				}
 				else {
@@ -520,6 +535,11 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				}
 				channel_3_note_length -= 1;
 				channel_3_note_duration += 1;
+			}
+			else {
+				pattern_data.push_back(0x83);
+				pattern_data.push_back(0x01); // note
+				pattern_data.push_back(0xfe); // cut
 			}
 
 			if (channel_4_note_length == 0 && channel_4_itr != channel_4_notes.end()) {
@@ -594,7 +614,7 @@ void IT_Module::generate_it_module(
 	const uint32_t global_volume = 128;
 	const uint32_t mix_volume = 48;
 	const uint32_t initial_speed = 1;
-	const uint32_t initial_tempo = 128;
+	const uint32_t initial_tempo = 80;
 	const uint32_t panning_separation = 128;
 	const uint32_t pitch_wheel_depth = 0;
 	const uint32_t default_channel_panning = 32;

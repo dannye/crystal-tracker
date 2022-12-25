@@ -1109,8 +1109,8 @@ void Piano_Roll::build_note_view(
 			tick += note.length * note.speed;
 			if (tick > end_tick) {
 				assert(restarted);
-				note.length = (note.length * note.speed - (tick - end_tick)) / 2;
-				note.speed = 2;
+				note.length = note.length * note.speed - (tick - end_tick);
+				note.speed = 1;
 			}
 			note.index = command_itr - commands.begin();
 			note.ghost = restarted;
@@ -1141,8 +1141,8 @@ void Piano_Roll::build_note_view(
 			tick += note.length * note.speed;
 			if (tick > end_tick) {
 				assert(restarted);
-				note.length = (note.length * note.speed - (tick - end_tick)) / 2;
-				note.speed = 2;
+				note.length = note.length * note.speed - (tick - end_tick);
+				note.speed = 1;
 			}
 			note.index = command_itr - commands.begin();
 			note.ghost = restarted;
@@ -1173,8 +1173,8 @@ void Piano_Roll::build_note_view(
 			tick += note.length * note.speed;
 			if (tick > end_tick) {
 				assert(restarted);
-				note.length = (note.length * note.speed - (tick - end_tick)) / 2;
-				note.speed = 2;
+				note.length = note.length * note.speed - (tick - end_tick);
+				note.speed = 1;
 			}
 			note.index = command_itr - commands.begin();
 			note.ghost = restarted;
@@ -1287,6 +1287,32 @@ void Piano_Roll::build_note_view(
 				call_stack.pop();
 				visited_labels_during_call.clear();
 			}
+		}
+		else if (command_itr->type == Command_Type::LOAD_WAVE) {
+			if (note.wave >= 0x0f) {
+				note.wave = command_itr->load_wave.wave;
+			}
+		}
+		else if (command_itr->type == Command_Type::INC_OCTAVE) {
+			note.octave += 1;
+			if (note.octave > 8) {
+				note.octave = 1;
+			}
+		}
+		else if (command_itr->type == Command_Type::DEC_OCTAVE) {
+			note.octave -= 1;
+			if (note.octave < 1) {
+				note.octave = 8;
+			}
+		}
+		else if (command_itr->type == Command_Type::SPEED) {
+			note.speed = command_itr->speed.speed;
+		}
+		else if (command_itr->type == Command_Type::CHANNEL_VOLUME) {
+			note.volume = command_itr->channel_volume.volume;
+		}
+		else if (command_itr->type == Command_Type::FADE_WAVE) {
+			note.fade = command_itr->fade_wave.fade;
 		}
 		++command_itr;
 	}
@@ -1894,10 +1920,11 @@ int32_t Piano_Roll::quantize_tick(int32_t tick, bool round) {
 		for (const Note_View &note : *view) {
 			int32_t t_right = t_left + note.length * note.speed;
 			if (t_right > tick) {
-				return t_left + (tick - t_left + (round ? note.speed / 2 - 1 : 0)) / note.speed * note.speed;
+				return t_left + (tick - t_left + (round ? (int32_t)(note.speed / 2.0f - 0.5f) : 0)) / note.speed * note.speed;
 			}
 			t_left = t_right;
 		}
+		return active_channel_length();
 	}
 	return tick / TICKS_PER_STEP * TICKS_PER_STEP;
 }
@@ -1922,6 +1949,15 @@ std::vector<Note_View> *Piano_Roll::active_channel_view() {
 	if (active_channel == 3) return &_channel_3_notes;
 	if (active_channel == 4) return &_channel_4_notes;
 	return nullptr;
+}
+
+int32_t Piano_Roll::active_channel_length() {
+	int active_channel = selected_channel();
+	if (active_channel == 1) return _channel_1_end_tick;
+	if (active_channel == 2) return _channel_2_end_tick;
+	if (active_channel == 3) return _channel_3_end_tick;
+	if (active_channel == 4) return _channel_4_end_tick;
+	return -1;
 }
 
 void Piano_Roll::scrollbar_cb(Fl_Scrollbar *sb, void *) {

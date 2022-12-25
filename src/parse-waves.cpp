@@ -12,6 +12,39 @@ Parsed_Waves::Parsed_Waves(const char *d) {
 	parse_waves(d);
 }
 
+Parsed_Waves::Result Parsed_Waves::parse_wave(std::istringstream &lss, Wave &wave, bool nybbles) {
+	size_t i = 0;
+	for (std::string token; std::getline(lss, token, ',');) {
+		if (i >= NUM_WAVE_SAMPLES) {
+			return Result::WAVES_BAD_FILE;
+		}
+
+		int32_t v;
+		if (!parse_value(token, v)) {
+			return Result::WAVES_BAD_FILE;
+		}
+		if (nybbles) {
+			if (v < 0 || v > 15) {
+				return Result::WAVES_BAD_FILE;
+			}
+			wave[i++] = v;
+		}
+		else {
+			if (v < 0 || v > 255) {
+				return Result::WAVES_BAD_FILE;
+			}
+			int32_t hi = v >> 4;
+			int32_t lo = v & 0x0F;
+			wave[i++] = hi;
+			wave[i++] = lo;
+		}
+	}
+	if (i != NUM_WAVE_SAMPLES) {
+		return Result::WAVES_BAD_FILE;
+	}
+	return Result::WAVES_OK;
+}
+
 Parsed_Waves::Result Parsed_Waves::parse_waves(const char *d) {
 	char waves_file[FL_PATH_MAX] = {};
 
@@ -48,7 +81,7 @@ Parsed_Waves::Result Parsed_Waves::try_parse_waves(const char *f) {
 		return (_result = Result::WAVES_BAD_FILE);
 	}
 
-	while (ifs.good()) {
+	while (ifs.good() && _waves.size() < 16) {
 		std::string line;
 		std::getline(ifs, line);
 		remove_comment(line);
@@ -62,42 +95,19 @@ Parsed_Waves::Result Parsed_Waves::try_parse_waves(const char *f) {
 		if (!nybbles && !equals_ignore_case(macro, "db")) { continue; }
 
 		Wave wave;
-		size_t i = 0;
-		for (std::string token; std::getline(lss, token, ',');) {
-			if (i >= NUM_WAVE_SAMPLES) {
-				return (_result = Result::WAVES_BAD_FILE);
-			}
-
-			int32_t v;
-			if (!parse_value(token, v)) {
-				return (_result = Result::WAVES_BAD_FILE);
-			}
-			if (nybbles) {
-				if (v < 0 || v > 15) {
-					return (_result = Result::WAVES_BAD_FILE);
-				}
-				wave[i++] = v;
-			}
-			else {
-				if (v < 0 || v > 255) {
-					return (_result = Result::WAVES_BAD_FILE);
-				}
-				int32_t hi = v >> 4;
-				int32_t lo = v & 0x0F;
-				wave[i++] = hi;
-				wave[i++] = lo;
-			}
-		}
-		if (i != NUM_WAVE_SAMPLES) {
-			return (_result = Result::WAVES_BAD_FILE);
+		Result r = parse_wave(lss, wave, nybbles);
+		if (r != Result::WAVES_OK) {
+			return (_result = r);
 		}
 		_waves.push_back(wave);
 	}
 
-	if (_waves.size() > 0) {
-		return (_result = Result::WAVES_OK);
+	if (_waves.size() == 0) {
+		return (_result = Result::WAVES_BAD_FILE);
 	}
-	// TODO: warning if size > 15?
+	while (_waves.size() < 16) {
+		_waves.emplace_back();
+	}
 
-	return (_result = Result::WAVES_NULL);
+	return (_result = Result::WAVES_OK);
 }
