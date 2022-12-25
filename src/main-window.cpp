@@ -86,6 +86,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_4_tb->when(FL_WHEN_RELEASE_ALWAYS);
 	SEPARATE_TOOLBAR_BUTTONS;
 	_zoom_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_decrease_spacing_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_increase_spacing_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_toolbar->end();
 	begin();
 
@@ -225,6 +227,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		{},
 		OS_MENU_ITEM("&Zoom", FL_COMMAND + '=', (Fl_Callback *)zoom_cb, this,
 			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (zoom_config ? FL_MENU_VALUE : 0)),
+		OS_MENU_ITEM("Decrease Spacing", FL_SHIFT + '-', (Fl_Callback *)decrease_spacing_cb, this, 0),
+		OS_MENU_ITEM("Increase Spacing", FL_SHIFT + '=', (Fl_Callback *)increase_spacing_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Full &Screen", FULLSCREEN_KEY, (Fl_Callback *)full_screen_cb, this,
 			FL_MENU_TOGGLE | (fullscreen ? FL_MENU_VALUE : 0)),
 		{},
@@ -304,6 +308,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_4_mi = CT_FIND_MENU_ITEM_CB(channel_4_cb);
 	_next_channel_mi = CT_FIND_MENU_ITEM_CB(next_channel_cb);
 	_previous_channel_mi = CT_FIND_MENU_ITEM_CB(previous_channel_cb);
+	_decrease_spacing_mi = CT_FIND_MENU_ITEM_CB(decrease_spacing_cb);
+	_increase_spacing_mi = CT_FIND_MENU_ITEM_CB(increase_spacing_cb);
 #undef CT_FIND_MENU_ITEM_CB
 
 #ifndef __APPLE__
@@ -395,6 +401,14 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_zoom_tb->callback((Fl_Callback *)zoom_tb_cb, this);
 	_zoom_tb->image(ZOOM_ICON);
 	_zoom_tb->value(zoom());
+
+	_decrease_spacing_tb->tooltip("Decrease Spacing (" SHIFT_KEY_PLUS "-)");
+	_decrease_spacing_tb->callback((Fl_Callback *)decrease_spacing_cb, this);
+	_decrease_spacing_tb->image(DECREASE_SPACING_ICON);
+
+	_increase_spacing_tb->tooltip("Increase Spacing (" SHIFT_KEY_PLUS "=)");
+	_increase_spacing_tb->callback((Fl_Callback *)increase_spacing_cb, this);
+	_increase_spacing_tb->image(INCREASE_SPACING_ICON);
 
 	// Configure dialogs
 
@@ -1069,6 +1083,8 @@ void Main_Window::update_icons() {
 	make_deimage(_channel_3_tb);
 	make_deimage(_channel_4_tb);
 	make_deimage(_zoom_tb);
+	make_deimage(_decrease_spacing_tb);
+	make_deimage(_increase_spacing_tb);
 }
 
 void Main_Window::update_zoom() {
@@ -1875,6 +1891,34 @@ void Main_Window::high_contrast_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::update_macos_appearance(mw);
 	mw->_high_contrast_theme_mi->setonly();
 	mw->update_icons();
+	mw->redraw();
+}
+
+void Main_Window::decrease_spacing_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_piano_roll->ticks_per_step(mw->_piano_roll->ticks_per_step() - 1);
+	if (mw->_piano_roll->ticks_per_step() == 4) {
+		mw->_decrease_spacing_mi->deactivate();
+		mw->_decrease_spacing_tb->deactivate();
+	}
+	mw->_increase_spacing_mi->activate();
+	mw->_increase_spacing_tb->activate();
+	if (mw->_piano_roll->following() && mw->continuous_scroll()) {
+		mw->_piano_roll->focus_cursor();
+	}
+	mw->redraw();
+}
+
+void Main_Window::increase_spacing_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_piano_roll->ticks_per_step(mw->_piano_roll->ticks_per_step() + 1);
+	if (mw->_piano_roll->ticks_per_step() == 16) {
+		mw->_increase_spacing_mi->deactivate();
+		mw->_increase_spacing_tb->deactivate();
+	}
+	mw->_decrease_spacing_mi->activate();
+	mw->_decrease_spacing_tb->activate();
+	if (mw->_piano_roll->following() && mw->continuous_scroll()) {
+		mw->_piano_roll->focus_cursor();
+	}
 	mw->redraw();
 }
 

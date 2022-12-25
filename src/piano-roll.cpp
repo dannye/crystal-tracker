@@ -620,6 +620,7 @@ void Piano_Timeline::draw() {
 		Piano_Roll *p = parent();
 		const int note_row_height = p->note_row_height();
 		const int tick_width = p->tick_width();
+		const int ticks_per_step = p->ticks_per_step();
 
 		int y_pos = y();
 		for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
@@ -640,7 +641,7 @@ void Piano_Timeline::draw() {
 		}
 
 		int x_pos = x() + WHITE_KEY_WIDTH;
-		int time_step_width = tick_width * TICKS_PER_STEP;
+		int time_step_width = tick_width * ticks_per_step;
 		const size_t num_dividers = (w() - WHITE_KEY_WIDTH) / time_step_width + 1;
 		for (size_t i = 0; i < num_dividers; ++i) {
 			fl_color(FL_DARK3);
@@ -740,7 +741,7 @@ void Piano_Timeline::draw() {
 
 		_cursor_tick = p->tick();
 		if (_cursor_tick != -1 && (parent()->following() || parent()->paused())) {
-			_cursor_tick = _cursor_tick / TICKS_PER_STEP * TICKS_PER_STEP;
+			_cursor_tick = _cursor_tick / ticks_per_step * ticks_per_step;
 		}
 		x_pos = x() + _cursor_tick * tick_width + WHITE_KEY_WIDTH;
 		fl_color(cursor_color);
@@ -898,7 +899,7 @@ void Piano_Roll::step_backward() {
 	if (_song_length == -1) return;
 	if (_tick == -1) _tick = 0;
 
-	int32_t delta = TICKS_PER_STEP;
+	int32_t delta = ticks_per_step();
 
 	const auto view = active_channel_view();
 	if (view) {
@@ -916,7 +917,7 @@ void Piano_Roll::step_forward() {
 	if (_song_length == -1) return;
 	if (_tick == -1) _tick = 0;
 
-	int32_t delta = TICKS_PER_STEP;
+	int32_t delta = ticks_per_step();
 
 	const auto view = active_channel_view();
 	if (view) {
@@ -1486,7 +1487,7 @@ void Piano_Roll::highlight_tick(int32_t t) {
 
 	focus_cursor();
 	if (
-		_tick / TICKS_PER_STEP * TICKS_PER_STEP != _piano_timeline._cursor_tick ||
+		_tick / ticks_per_step() * ticks_per_step() != _piano_timeline._cursor_tick ||
 		xposition() != scroll_x_before
 	) {
 		redraw();
@@ -1494,7 +1495,7 @@ void Piano_Roll::highlight_tick(int32_t t) {
 }
 
 void Piano_Roll::focus_cursor(bool center) {
-	int x_pos = (_tick / TICKS_PER_STEP * TICKS_PER_STEP) * tick_width();
+	int x_pos = (_tick / ticks_per_step() * ticks_per_step()) * tick_width();
 	if ((_following && _continuous) || x_pos > xposition() + w() - WHITE_KEY_WIDTH * 2 || x_pos < xposition()) {
 		int scroll_pos = center ? x_pos + WHITE_KEY_WIDTH - w() / 2 : x_pos;
 		scroll_to(std::min(std::max(scroll_pos, 0), scroll_x_max()), yposition());
@@ -1926,7 +1927,7 @@ int32_t Piano_Roll::quantize_tick(int32_t tick, bool round) {
 		}
 		return active_channel_length();
 	}
-	return tick / TICKS_PER_STEP * TICKS_PER_STEP;
+	return tick / ticks_per_step() * ticks_per_step();
 }
 
 const Note_View *Piano_Roll::find_note_view_at_tick(const std::vector<Note_View> &view, int32_t tick, int32_t *tick_offset) {

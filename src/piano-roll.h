@@ -268,6 +268,7 @@ private:
 	bool _continuous = true;
 	bool _paused = false;
 	bool _zoomed = false;
+	int _ticks_per_step = TICKS_PER_STEP;
 
 	bool _channel_1_muted = false;
 	bool _channel_2_muted = false;
@@ -302,6 +303,7 @@ public:
 	inline bool following(void) const { return _following; }
 	inline bool paused(void) const { return _paused; }
 	inline bool zoomed(void) const { return _zoomed; }
+	inline int ticks_per_step(void) const { return _ticks_per_step; }
 
 	void tick(int32_t t) { _tick = t; }
 
@@ -340,6 +342,7 @@ public:
 	void step_backward();
 	void step_forward();
 	void zoom(bool z);
+	void ticks_per_step(int t) { _ticks_per_step = t; }
 
 	void set_size(int W, int H);
 	void set_timeline_width();

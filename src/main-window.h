@@ -71,6 +71,9 @@ private:
 		*_channel_4_tb = NULL;
 	Toolbar_Toggle_Button
 		*_zoom_tb = NULL;
+	Toolbar_Button
+		*_decrease_spacing_tb = NULL,
+		*_increase_spacing_tb = NULL;
 	// GUI outputs
 	Piano_Roll *_piano_roll = NULL;
 	Label *_status_label;
@@ -103,7 +106,9 @@ private:
 		*_channel_3_mi = NULL,
 		*_channel_4_mi = NULL,
 		*_next_channel_mi = NULL,
-		*_previous_channel_mi = NULL;
+		*_previous_channel_mi = NULL,
+		*_decrease_spacing_mi = NULL,
+		*_increase_spacing_mi = NULL;
 	// Dialogs
 	Directory_Chooser *_new_dir_chooser;
 	Fl_Native_File_Chooser *_asm_open_chooser, *_asm_save_chooser;
@@ -235,6 +240,8 @@ private:
 	static void brushed_metal_theme_cb(Fl_Widget *w, Main_Window *mw);
 	static void high_contrast_theme_cb(Fl_Widget *w, Main_Window *mw);
 	static void zoom_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void decrease_spacing_cb(Fl_Widget *w, Main_Window *mw);
+	static void increase_spacing_cb(Fl_Widget *w, Main_Window *mw);
 	static void full_screen_cb(Fl_Widget *w, Main_Window *mw);
 	// Toolbar buttons
 	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);

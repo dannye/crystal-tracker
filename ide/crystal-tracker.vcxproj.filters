@@ -146,6 +146,9 @@
     <None Include="..\res\brushed-metal.dat">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\decrease-spacing.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\error.xpm">
       <Filter>Resource Files</Filter>
     </None>
@@ -153,6 +156,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\help.html">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\increase-spacing.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\loop.xpm">

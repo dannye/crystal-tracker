@@ -153,9 +153,11 @@
     <None Include="..\res\app-icon.xpm" />
     <None Include="..\res\blank.xpm" />
     <None Include="..\res\brushed-metal.dat" />
+    <None Include="..\res\decrease-spacing.xpm" />
     <None Include="..\res\error.xpm" />
     <None Include="..\res\four.xpm" />
     <None Include="..\res\help.html" />
+    <None Include="..\res\increase-spacing.xpm" />
     <None Include="..\res\loop.xpm" />
     <None Include="..\res\new.xpm" />
     <None Include="..\res\one.xpm" />

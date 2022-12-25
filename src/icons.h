@@ -6,7 +6,9 @@
 #pragma warning(pop)
 
 #include "blank.xpm"
+#include "decrease-spacing.xpm"
 #include "four.xpm"
+#include "increase-spacing.xpm"
 #include "loop.xpm"
 #include "new.xpm"
 #include "one.xpm"
@@ -25,7 +27,9 @@
 #include "zoom.xpm"
 
 static Fl_Pixmap BLANK_ICON(BLANK_XPM);
+static Fl_Pixmap DECREASE_SPACING_ICON(DECREASE_SPACING_XPM);
 static Fl_Pixmap FOUR_ICON(FOUR_XPM);
+static Fl_Pixmap INCREASE_SPACING_ICON(INCREASE_SPACING_XPM);
 static Fl_Pixmap LOOP_ICON(LOOP_XPM);
 static Fl_Pixmap NEW_ICON(NEW_XPM);
 static Fl_Pixmap ONE_ICON(ONE_XPM);
