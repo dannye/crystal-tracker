@@ -164,7 +164,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("&Play/Pause", ' ', (Fl_Callback *)play_pause_cb, this, 0),
 		OS_MENU_ITEM("&Stop", ESCAPE_KEY, (Fl_Callback *)stop_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("&Loop", FL_COMMAND + 'l', (Fl_Callback *)loop_cb, this,
-			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (loop_config ? FL_MENU_VALUE : 0)),
+			FL_MENU_TOGGLE | (loop_config ? FL_MENU_VALUE : 0)),
+		OS_MENU_ITEM("&Continuous Scroll", '\\', (Fl_Callback *)continuous_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Mute Channel 1", FL_F + 5, (Fl_Callback *)channel_1_mute_cb, this, FL_MENU_TOGGLE),
 		OS_MENU_ITEM("Mute Channel 2", FL_F + 6, (Fl_Callback *)channel_2_mute_cb, this, FL_MENU_TOGGLE),
 		OS_MENU_ITEM("Mute Channel 3", FL_F + 7, (Fl_Callback *)channel_3_mute_cb, this, FL_MENU_TOGGLE),
@@ -172,8 +173,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("Step Backward", '[', (Fl_Callback *)step_backward_cb, this, 0),
 		OS_MENU_ITEM("Step Forward", ']', (Fl_Callback *)step_forward_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Skip Backward", FL_COMMAND + '[', (Fl_Callback *)skip_backward_cb, this, 0),
-		OS_MENU_ITEM("Skip Forward", FL_COMMAND + ']', (Fl_Callback *)skip_forward_cb, this, FL_MENU_DIVIDER),
-		OS_MENU_ITEM("&Continuous Scroll", '\\', (Fl_Callback *)continuous_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE),
+		OS_MENU_ITEM("Skip Forward", FL_COMMAND + ']', (Fl_Callback *)skip_forward_cb, this, 0),
 		{},
 		OS_SUBMENU("&Edit"),
 		OS_MENU_ITEM("&Undo", FL_COMMAND + 'z', (Fl_Callback *)undo_cb, this, 0),
@@ -232,7 +232,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (zoom_config ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Decrease Spacing", FL_SHIFT + '-', (Fl_Callback *)decrease_spacing_cb, this, 0),
 		OS_MENU_ITEM("Increase Spacing", FL_SHIFT + '=', (Fl_Callback *)increase_spacing_cb, this, FL_MENU_DIVIDER),
-		OS_MENU_ITEM("Key &Labels", 0, (Fl_Callback *)key_labels_cb, this,
+		OS_MENU_ITEM("Key &Labels", FL_COMMAND + '0', (Fl_Callback *)key_labels_cb, this,
 			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (key_labels_config ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Full &Screen", FULLSCREEN_KEY, (Fl_Callback *)full_screen_cb, this,
 			FL_MENU_TOGGLE | (fullscreen ? FL_MENU_VALUE : 0)),
@@ -277,11 +277,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_dark_theme_mi = CT_FIND_MENU_ITEM_CB(dark_theme_cb);
 	_brushed_metal_theme_mi = CT_FIND_MENU_ITEM_CB(brushed_metal_theme_cb);
 	_high_contrast_theme_mi = CT_FIND_MENU_ITEM_CB(high_contrast_theme_cb);
+	_continuous_mi = CT_FIND_MENU_ITEM_CB(continuous_cb);
 	_channel_1_mute_mi = CT_FIND_MENU_ITEM_CB(channel_1_mute_cb);
 	_channel_2_mute_mi = CT_FIND_MENU_ITEM_CB(channel_2_mute_cb);
 	_channel_3_mute_mi = CT_FIND_MENU_ITEM_CB(channel_3_mute_cb);
 	_channel_4_mute_mi = CT_FIND_MENU_ITEM_CB(channel_4_mute_cb);
-	_continuous_mi = CT_FIND_MENU_ITEM_CB(continuous_cb);
 	_zoom_mi = CT_FIND_MENU_ITEM_CB(zoom_cb);
 	_key_labels_mi = CT_FIND_MENU_ITEM_CB(key_labels_cb);
 	_full_screen_mi = CT_FIND_MENU_ITEM_CB(full_screen_cb);
@@ -563,8 +563,16 @@ int Main_Window::handle(int event) {
 		return 1;
 	case FL_KEYBOARD:
 #ifdef __APPLE__
-		if (Fl::event_shift() && Fl::event_key() == FL_Tab) {
+		if (Fl::event_shift() && Fl::event_key() == FL_Tab && _previous_channel_mi->active()) {
 			previous_channel_cb(nullptr, this);
+			return 1;
+		}
+		if (Fl::event_shift() && Fl::event_key() == '_' && _decrease_spacing_mi->active()) {
+			decrease_spacing_cb(nullptr, this);
+			return 1;
+		}
+		if (Fl::event_shift() && Fl::event_key() == '+' && _increase_spacing_mi->active()) {
+			increase_spacing_cb(nullptr, this);
 			return 1;
 		}
 #endif
@@ -1934,6 +1942,7 @@ void Main_Window::decrease_spacing_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->_piano_roll->following() && mw->continuous_scroll()) {
 		mw->_piano_roll->focus_cursor();
 	}
+	mw->_menu_bar->update();
 	mw->redraw();
 }
 
@@ -1948,6 +1957,7 @@ void Main_Window::increase_spacing_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->_piano_roll->following() && mw->continuous_scroll()) {
 		mw->_piano_roll->focus_cursor();
 	}
+	mw->_menu_bar->update();
 	mw->redraw();
 }
 

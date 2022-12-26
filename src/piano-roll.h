@@ -274,7 +274,6 @@ class Main_Window;
 
 class Piano_Roll : public Fl_Scroll {
 private:
-	Piano_Timeline _piano_timeline;
 	int32_t _tick = -1;
 	bool _following = false;
 	bool _continuous = true;
@@ -286,6 +285,8 @@ private:
 	bool _channel_2_muted = false;
 	bool _channel_3_muted = false;
 	bool _channel_4_muted = false;
+
+	Piano_Timeline _piano_timeline;
 
 	std::vector<Note_View> _channel_1_notes;
 	std::vector<Note_View> _channel_2_notes;

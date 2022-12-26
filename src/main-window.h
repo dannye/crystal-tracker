@@ -44,11 +44,11 @@ private:
 		*_brushed_metal_theme_mi = NULL,
 		*_high_contrast_theme_mi = NULL;
 	Fl_Menu_Item
+		*_continuous_mi = NULL,
 		*_channel_1_mute_mi = NULL,
 		*_channel_2_mute_mi = NULL,
 		*_channel_3_mute_mi = NULL,
 		*_channel_4_mute_mi = NULL,
-		*_continuous_mi = NULL,
 		*_zoom_mi = NULL,
 		*_key_labels_mi = NULL,
 		*_full_screen_mi = NULL;
@@ -150,11 +150,11 @@ public:
 	void resize(int X, int Y, int W, int H) override;
 	bool maximized(void) const;
 	void maximize(void);
+	inline bool continuous_scroll(void) const { return _continuous_mi && !!_continuous_mi->value(); }
 	inline bool channel_1_muted(void) const { return _channel_1_mute_mi && !!_channel_1_mute_mi->value(); }
 	inline bool channel_2_muted(void) const { return _channel_2_mute_mi && !!_channel_2_mute_mi->value(); }
 	inline bool channel_3_muted(void) const { return _channel_3_mute_mi && !!_channel_3_mute_mi->value(); }
 	inline bool channel_4_muted(void) const { return _channel_4_mute_mi && !!_channel_4_mute_mi->value(); }
-	inline bool continuous_scroll(void) const { return _continuous_mi && !!_continuous_mi->value(); }
 	inline bool zoom(void) const { return _zoom_mi && !!_zoom_mi->value(); }
 	inline bool key_labels(void) const { return _key_labels_mi && !!_key_labels_mi->value(); }
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
@@ -200,6 +200,7 @@ private:
 	static void play_pause_cb(Fl_Widget *w, Main_Window *mw);
 	static void stop_cb(Fl_Widget *w, Main_Window *mw);
 	static void loop_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void continuous_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void channel_1_mute_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_2_mute_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_3_mute_cb(Fl_Widget *w, Main_Window *mw);
@@ -208,7 +209,6 @@ private:
 	static void step_forward_cb(Fl_Widget *w, Main_Window *mw);
 	static void skip_backward_cb(Fl_Widget *w, Main_Window *mw);
 	static void skip_forward_cb(Fl_Widget *w, Main_Window *mw);
-	static void continuous_cb(Fl_Menu_ *m, Main_Window *mw);
 	// Edit menu
 	void put_note(Pitch pitch);
 	static void undo_cb(Fl_Widget *w, Main_Window *mw);
