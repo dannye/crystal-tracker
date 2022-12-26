@@ -171,6 +171,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("Mute Channel 4", FL_F + 8, (Fl_Callback *)channel_4_mute_cb, this, FL_MENU_TOGGLE | FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Step Backward", '[', (Fl_Callback *)step_backward_cb, this, 0),
 		OS_MENU_ITEM("Step Forward", ']', (Fl_Callback *)step_forward_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("Skip Backward", FL_COMMAND + '[', (Fl_Callback *)skip_backward_cb, this, 0),
+		OS_MENU_ITEM("Skip Forward", FL_COMMAND + ']', (Fl_Callback *)skip_forward_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("&Continuous Scroll", '\\', (Fl_Callback *)continuous_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE),
 		{},
 		OS_SUBMENU("&Edit"),
@@ -292,6 +294,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_loop_mi = CT_FIND_MENU_ITEM_CB(loop_cb);
 	_step_backward_mi = CT_FIND_MENU_ITEM_CB(step_backward_cb);
 	_step_forward_mi = CT_FIND_MENU_ITEM_CB(step_forward_cb);
+	_skip_backward_mi = CT_FIND_MENU_ITEM_CB(skip_backward_cb);
+	_skip_forward_mi = CT_FIND_MENU_ITEM_CB(skip_forward_cb);
 	_undo_mi = CT_FIND_MENU_ITEM_CB(undo_cb);
 	_redo_mi = CT_FIND_MENU_ITEM_CB(redo_cb);
 	_pitch_up_mi = CT_FIND_MENU_ITEM_CB(pitch_up_cb);
@@ -667,6 +671,8 @@ void Main_Window::update_active_controls() {
 			_loop_tb->deactivate();
 			_step_backward_mi->deactivate();
 			_step_forward_mi->deactivate();
+			_skip_backward_mi->deactivate();
+			_skip_forward_mi->deactivate();
 		}
 		else {
 			_stop_mi->deactivate();
@@ -675,6 +681,8 @@ void Main_Window::update_active_controls() {
 			_loop_tb->activate();
 			_step_backward_mi->activate();
 			_step_forward_mi->activate();
+			_skip_backward_mi->activate();
+			_skip_forward_mi->activate();
 		}
 		if (_song.can_undo() && stopped) {
 			_undo_mi->activate();
@@ -747,6 +755,8 @@ void Main_Window::update_active_controls() {
 		_loop_tb->activate();
 		_step_backward_mi->deactivate();
 		_step_forward_mi->deactivate();
+		_skip_backward_mi->deactivate();
+		_skip_forward_mi->deactivate();
 		_undo_mi->deactivate();
 		_undo_tb->deactivate();
 		_redo_mi->deactivate();
@@ -1447,6 +1457,18 @@ void Main_Window::step_backward_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::step_forward_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->step_forward();
+	mw->_piano_roll->focus_cursor(true);
+	mw->redraw();
+}
+
+void Main_Window::skip_backward_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_piano_roll->skip_backward();
+	mw->_piano_roll->focus_cursor(true);
+	mw->redraw();
+}
+
+void Main_Window::skip_forward_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_piano_roll->skip_forward();
 	mw->_piano_roll->focus_cursor(true);
 	mw->redraw();
 }

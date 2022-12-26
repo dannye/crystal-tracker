@@ -945,6 +945,44 @@ void Piano_Roll::step_forward() {
 	if (_tick > _song_length) _tick = _song_length;
 }
 
+void Piano_Roll::skip_backward() {
+	if (_song_length == -1) return;
+	if (_tick == -1) _tick = 0;
+
+	int32_t delta = ticks_per_step() * 4;
+
+	const auto view = active_channel_view();
+	if (view) {
+		int32_t tick_offset = 0;
+		const Note_View *note = find_note_view_at_tick(*view, _tick - 1, &tick_offset);
+		if (note) {
+			delta = tick_offset + 1;
+		}
+	}
+
+	_tick -= delta;
+	if (_tick < 0) _tick = 0;
+}
+
+void Piano_Roll::skip_forward() {
+	if (_song_length == -1) return;
+	if (_tick == -1) _tick = 0;
+
+	int32_t delta = ticks_per_step() * 4;
+
+	const auto view = active_channel_view();
+	if (view) {
+		int32_t tick_offset = 0;
+		const Note_View *note = find_note_view_at_tick(*view, _tick, &tick_offset);
+		if (note) {
+			delta = note->length * note->speed - tick_offset;
+		}
+	}
+
+	_tick += delta;
+	if (_tick > _song_length) _tick = _song_length;
+}
+
 void Piano_Roll::zoom(bool z) {
 	if (_zoomed == z) return;
 	_zoomed = z;

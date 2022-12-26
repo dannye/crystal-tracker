@@ -353,6 +353,8 @@ public:
 
 	void step_backward();
 	void step_forward();
+	void skip_backward();
+	void skip_forward();
 	void zoom(bool z);
 	void ticks_per_step(int t) { _ticks_per_step = t; }
 	void key_labels(bool show) { _piano_timeline._keys.key_labels(show); }
