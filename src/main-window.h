@@ -50,6 +50,7 @@ private:
 		*_channel_4_mute_mi = NULL,
 		*_continuous_mi = NULL,
 		*_zoom_mi = NULL,
+		*_key_labels_mi = NULL,
 		*_full_screen_mi = NULL;
 	Toolbar_Button
 		*_new_tb = NULL,
@@ -153,6 +154,7 @@ public:
 	inline bool channel_4_muted(void) const { return _channel_4_mute_mi && !!_channel_4_mute_mi->value(); }
 	inline bool continuous_scroll(void) const { return _continuous_mi && !!_continuous_mi->value(); }
 	inline bool zoom(void) const { return _zoom_mi && !!_zoom_mi->value(); }
+	inline bool key_labels(void) const { return _key_labels_mi && !!_key_labels_mi->value(); }
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
 	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
 	void continuous_scroll(bool c) { c ? _continuous_mi->set() : _continuous_mi->clear(); _continuous_tb->value(_continuous_mi->value()); }
@@ -242,6 +244,7 @@ private:
 	static void zoom_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void decrease_spacing_cb(Fl_Widget *w, Main_Window *mw);
 	static void increase_spacing_cb(Fl_Widget *w, Main_Window *mw);
+	static void key_labels_cb(Fl_Widget *w, Main_Window *mw);
 	static void full_screen_cb(Fl_Widget *w, Main_Window *mw);
 	// Toolbar buttons
 	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);

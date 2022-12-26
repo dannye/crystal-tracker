@@ -37,6 +37,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	// Get global configs
 	int loop_config = Preferences::get("loop", 1);
 	int zoom_config = Preferences::get("zoom", 0);
+	int key_labels_config = Preferences::get("key_labels", 1);
 
 	for (int i = 0; i < NUM_RECENT; i++) {
 		_recent[i] = Preferences::get_string(Fl_Preferences::Name("recent%d", i));
@@ -229,6 +230,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (zoom_config ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Decrease Spacing", FL_SHIFT + '-', (Fl_Callback *)decrease_spacing_cb, this, 0),
 		OS_MENU_ITEM("Increase Spacing", FL_SHIFT + '=', (Fl_Callback *)increase_spacing_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("Key &Labels", 0, (Fl_Callback *)key_labels_cb, this,
+			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (key_labels_config ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Full &Screen", FULLSCREEN_KEY, (Fl_Callback *)full_screen_cb, this,
 			FL_MENU_TOGGLE | (fullscreen ? FL_MENU_VALUE : 0)),
 		{},
@@ -278,6 +281,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_4_mute_mi = CT_FIND_MENU_ITEM_CB(channel_4_mute_cb);
 	_continuous_mi = CT_FIND_MENU_ITEM_CB(continuous_cb);
 	_zoom_mi = CT_FIND_MENU_ITEM_CB(zoom_cb);
+	_key_labels_mi = CT_FIND_MENU_ITEM_CB(key_labels_cb);
 	_full_screen_mi = CT_FIND_MENU_ITEM_CB(full_screen_cb);
 	// Conditional menu items
 	_close_mi = CT_FIND_MENU_ITEM_CB(close_cb);
@@ -445,6 +449,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	update_recent_songs();
 	update_active_controls();
 	update_zoom();
+
+	_piano_roll->key_labels(key_labels());
 
 	_piano_roll->scroll_to_y_max();
 
@@ -1342,6 +1348,7 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 	Preferences::set("maximized", mw->maximized());
 	Preferences::set("loop", mw->loop());
 	Preferences::set("zoom", mw->zoom());
+	Preferences::set("key_labels", mw->key_labels());
 	for (int i = 0; i < NUM_RECENT; i++) {
 		Preferences::set_string(Fl_Preferences::Name("recent%d", i), mw->_recent[i]);
 	}
@@ -1919,6 +1926,11 @@ void Main_Window::increase_spacing_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->_piano_roll->following() && mw->continuous_scroll()) {
 		mw->_piano_roll->focus_cursor();
 	}
+	mw->redraw();
+}
+
+void Main_Window::key_labels_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_piano_roll->key_labels(mw->key_labels());
 	mw->redraw();
 }
 

@@ -83,6 +83,17 @@ constexpr size_t PITCH_TO_KEY_INDEX[NUM_NOTES_PER_OCTAVE] {
 	0,  // B
 };
 
+constexpr char const *C_Key_Labels[] = {
+	"C1",
+	"C2",
+	"C3",
+	"C4",
+	"C5",
+	"C6",
+	"C7",
+	"C8",
+};
+
 class Note_Box : public Fl_Box {
 private:
 	const Note_View &_note_view;
@@ -179,6 +190,7 @@ public:
 	Piano_Timeline *parent() const { return (Piano_Timeline *)Fl_Group::parent(); }
 
 	void calc_sizes();
+	void key_labels(bool show);
 
 	void set_key_color(Pitch pitch, int32_t octave, Fl_Color color);
 	void reset_key_colors();
@@ -343,6 +355,7 @@ public:
 	void step_forward();
 	void zoom(bool z);
 	void ticks_per_step(int t) { _ticks_per_step = t; }
+	void key_labels(bool show) { _piano_timeline._keys.key_labels(show); }
 
 	void set_size(int W, int H);
 	void set_timeline_width();

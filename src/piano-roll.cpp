@@ -110,6 +110,9 @@ Piano_Keys::Piano_Keys(int X, int Y, int W, int H, const char *l) : Fl_Group(X, 
 				_keys[i]->box(FL_BORDER_BOX);
 				_keys[i]->color(FL_BACKGROUND2_COLOR);
 				_keys[i]->labelcolor(FL_FOREGROUND_COLOR);
+				if (NOTE_KEYS[_x].pitch == Pitch::C_NAT) {
+					_keys[i]->label(C_Key_Labels[NUM_OCTAVES - _y - 1]);
+				}
 			}
 			else {
 				_keys[i] = new Key_Box(NOTE_KEYS[_x].pitch, NUM_OCTAVES - _y, X, Y, 0, 0, NOTE_KEYS[_x].label);
@@ -163,6 +166,17 @@ void Piano_Keys::calc_sizes() {
 	}
 
 	size(w(), NUM_OCTAVES * octave_height);
+}
+
+void Piano_Keys::key_labels(bool show) {
+	for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
+		for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
+			size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
+			if (NOTE_KEYS[_x].pitch != Pitch::C_NAT) {
+				_keys[i]->label(show ? NOTE_KEYS[_x].label : nullptr);
+			}
+		}
+	}
 }
 
 void Piano_Keys::set_key_color(Pitch pitch, int32_t octave, Fl_Color color) {
