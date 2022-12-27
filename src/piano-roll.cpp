@@ -395,14 +395,27 @@ int Piano_Timeline::handle(int event) {
 		if (parent()->handle_mouse_click(event)) {
 			return 1;
 		}
-		if (Fl::event_button() == FL_LEFT_MOUSE && !Fl::event_inside(&_keys)) {
-			if (handle_note_selection(event)) {
-				return 1;
-			}
+		if (
+			Fl::event_button() == FL_LEFT_MOUSE &&
+			!Fl::event_inside(&_keys) &&
+			handle_note_selection(event)
+		) {
+			return 1;
 		}
 		break;
 	case FL_DRAG:
 		if (parent()->handle_mouse_click(event)) {
+			return 1;
+		}
+		break;
+	case FL_SHORTCUT:
+	case FL_KEYBOARD:
+		if (
+			Fl::event_key() == FL_Enter &&
+			!parent()->following() &&
+			!parent()->paused() &&
+			handle_note_selection(event)
+		) {
 			return 1;
 		}
 		break;
@@ -425,9 +438,19 @@ bool Piano_Timeline::handle_note_selection(int event) {
 		}
 	}
 
+	int32_t tick = parent()->tick();
+
 	bool clicked_note = false;
 	for (Note_Box *note : *channel) {
-		if (!note->ghost() && Fl::event_inside(note)) {
+		if (note->ghost()) break;
+
+		const Note_View &view = note->note_view();
+		int32_t t_left = note->tick();
+		int32_t t_right = t_left + view.length * view.speed;
+		if (
+			(event == FL_PUSH && Fl::event_inside(note)) ||
+			(event != FL_PUSH && t_left <= tick && tick < t_right)
+		) {
 			note->selected(!note->selected() || !Fl::event_command());
 			note->redraw();
 			_keys.redraw();
@@ -515,15 +538,14 @@ void Piano_Timeline::reset_note_colors() {
 }
 
 void Piano_Timeline::highlight_tick(std::vector<Note_Box *> &notes, int32_t tick, bool muted, Fl_Color color) {
-	int x_pos = tick * parent()->tick_width() + WHITE_KEY_WIDTH;
 	for (Note_Box *note : notes) {
-		int note_left = note->x() - x();
-		int note_right = note_left + note->w();
-		if (note_left > x_pos) {
+		const Note_View &view = note->note_view();
+		int32_t t_left = note->tick();
+		int32_t t_right = t_left + view.length * view.speed;
+		if (t_left > tick) {
 			return;
 		}
-		if (note_right > x_pos && !muted) {
-			const Note_View &view = note->note_view();
+		if (t_right > tick && !muted) {
 			_keys.set_key_color(view.pitch, view.octave, color);
 		}
 		if (note->color() != color) {
@@ -534,14 +556,14 @@ void Piano_Timeline::highlight_tick(std::vector<Note_Box *> &notes, int32_t tick
 }
 
 void Piano_Timeline::select_note_at_tick(std::vector<Note_Box *> &notes, int32_t tick) {
-	int x_pos = tick * parent()->tick_width() + WHITE_KEY_WIDTH;
 	for (Note_Box *note : notes) {
-		int note_left = note->x() - x();
-		int note_right = note_left + note->w();
-		if (note_left > x_pos) {
+		const Note_View &view = note->note_view();
+		int32_t t_left = note->tick();
+		int32_t t_right = t_left + view.length * view.speed;
+		if (t_left > tick) {
 			return;
 		}
-		if (note_right > x_pos) {
+		if (t_right > tick) {
 			note->selected(true);
 			return;
 		}
