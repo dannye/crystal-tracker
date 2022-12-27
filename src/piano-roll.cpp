@@ -925,6 +925,7 @@ void Piano_Roll::step_backward() {
 
 	_tick -= delta;
 	if (_tick < 0) _tick = 0;
+	parent()->set_song_position(_tick);
 }
 
 void Piano_Roll::step_forward() {
@@ -943,6 +944,7 @@ void Piano_Roll::step_forward() {
 
 	_tick += delta;
 	if (_tick > _song_length) _tick = _song_length;
+	parent()->set_song_position(_tick);
 }
 
 void Piano_Roll::skip_backward() {
@@ -962,6 +964,7 @@ void Piano_Roll::skip_backward() {
 
 	_tick -= delta;
 	if (_tick < 0) _tick = 0;
+	parent()->set_song_position(_tick);
 }
 
 void Piano_Roll::skip_forward() {
@@ -981,6 +984,7 @@ void Piano_Roll::skip_forward() {
 
 	_tick += delta;
 	if (_tick > _song_length) _tick = _song_length;
+	parent()->set_song_position(_tick);
 }
 
 void Piano_Roll::zoom(bool z) {

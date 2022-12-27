@@ -677,16 +677,20 @@ void Main_Window::update_active_controls() {
 			_stop_tb->activate();
 			_loop_mi->deactivate();
 			_loop_tb->deactivate();
-			_step_backward_mi->deactivate();
-			_step_forward_mi->deactivate();
-			_skip_backward_mi->deactivate();
-			_skip_forward_mi->deactivate();
 		}
 		else {
 			_stop_mi->deactivate();
 			_stop_tb->deactivate();
 			_loop_mi->activate();
 			_loop_tb->activate();
+		}
+		if (playing) {
+			_step_backward_mi->deactivate();
+			_step_forward_mi->deactivate();
+			_skip_backward_mi->deactivate();
+			_skip_forward_mi->deactivate();
+		}
+		else {
 			_step_backward_mi->activate();
 			_step_forward_mi->activate();
 			_skip_backward_mi->activate();

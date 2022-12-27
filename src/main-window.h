@@ -159,7 +159,7 @@ public:
 	inline bool key_labels(void) const { return _key_labels_mi && !!_key_labels_mi->value(); }
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
 	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
-	void continuous_scroll(bool c) { c ? _continuous_mi->set() : _continuous_mi->clear(); _continuous_tb->value(_continuous_mi->value()); }
+	void continuous_scroll(bool c) { c ? _continuous_mi->set() : _continuous_mi->clear(); _continuous_tb->value(_continuous_mi->value()); _menu_bar->update(); }
 	inline int selected_channel(void) const { return _selected_channel; }
 	bool unsaved(void) const;
 	const char *modified_filename(void);
