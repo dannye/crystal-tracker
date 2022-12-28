@@ -29,7 +29,9 @@ public:
 			SHORTEN,
 			LENGTHEN,
 			DELETE_SELECTION,
-			SNIP_SELECTION
+			SNIP_SELECTION,
+			SPLIT_NOTE,
+			GLUE_NOTE
 		};
 		int tick = -1;
 		int channel_number = 0;
@@ -121,6 +123,8 @@ public:
 	void lengthen(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
 	void delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
 	void snip_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
+	void split_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick, int32_t tick_offset);
+	void glue_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick);
 
 	std::vector<Command> &channel_commands(const int selected_channel);
 private:

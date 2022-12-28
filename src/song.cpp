@@ -404,6 +404,7 @@ void postprocess(std::vector<Command> &commands) {
 				}
 			}
 			else if (commands[i].type == Command_Type::INC_OCTAVE || commands[i].type == Command_Type::DEC_OCTAVE) {
+				view.octave = 0;
 				octave_index = -1;
 			}
 		}
@@ -716,6 +717,50 @@ void Song::snip_selection(const int selected_channel, const std::set<int32_t> &s
 	_modified = true;
 }
 
+void Song::split_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick, int32_t tick_offset) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SPLIT_NOTE, tick);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	assert(
+		commands[index].type == Command_Type::NOTE ||
+		commands[index].type == Command_Type::DRUM_NOTE
+	);
+	assert(tick_offset != 0);
+
+	Command command = commands[index];
+	command.note.length -= tick_offset;
+	commands[index].note.length = tick_offset;
+	commands.insert(commands.begin() + index + 1, command);
+
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::glue_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick) {
+	remember(selected_channel, selected_boxes, Song_State::Action::GLUE_NOTE, tick);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	assert(index > 0);
+	assert(
+		commands[index].type == Command_Type::NOTE ||
+		commands[index].type == Command_Type::DRUM_NOTE
+	);
+	assert(
+		commands[index].type == commands[index - 1].type &&
+		commands[index].note.pitch  == commands[index - 1].note.pitch &&
+		commands[index].note.length + commands[index - 1].note.length <= 16 &&
+		commands[index].labels.size() == 0
+	);
+
+	commands[index - 1].note.length += commands[index].note.length;
+	commands.erase(commands.begin() + index);
+
+	postprocess(commands);
+
+	_modified = true;
+}
+
 std::string Song::commands_str(const std::vector<Command> &commands, int32_t channel_number) const {
 	const auto to_local_label = [](const std::string &label) {
 		std::size_t dot = label.find_first_of(".");
@@ -947,6 +992,10 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Delete selection";
 	case Song_State::Action::SNIP_SELECTION:
 		return "Snip selection";
+	case Song_State::Action::SPLIT_NOTE:
+		return "Split note";
+	case Song_State::Action::GLUE_NOTE:
+		return "Glue note";
 	default:
 		return "Unspecified action";
 	}

@@ -92,6 +92,8 @@ private:
 		*_skip_forward_mi = NULL,
 		*_undo_mi = NULL,
 		*_redo_mi = NULL,
+		*_select_all_mi = NULL,
+		*_select_none_mi = NULL,
 		*_pitch_up_mi = NULL,
 		*_pitch_down_mi = NULL,
 		*_octave_up_mi = NULL,
@@ -102,8 +104,8 @@ private:
 		*_lengthen_mi = NULL,
 		*_delete_mi = NULL,
 		*_snip_mi = NULL,
-		*_select_all_mi = NULL,
-		*_select_none_mi = NULL,
+		*_split_note_mi = NULL,
+		*_glue_note_mi = NULL,
 		*_channel_1_mi = NULL,
 		*_channel_2_mi = NULL,
 		*_channel_3_mi = NULL,
@@ -213,6 +215,8 @@ private:
 	void put_note(Pitch pitch);
 	static void undo_cb(Fl_Widget *w, Main_Window *mw);
 	static void redo_cb(Fl_Widget *w, Main_Window *mw);
+	static void select_all_cb(Fl_Widget *w, Main_Window *mw);
+	static void select_none_cb(Fl_Widget *w, Main_Window *mw);
 	static void pitch_up_cb(Fl_Widget *w, Main_Window *mw);
 	static void pitch_down_cb(Fl_Widget *w, Main_Window *mw);
 	static void octave_up_cb(Fl_Widget *w, Main_Window *mw);
@@ -223,8 +227,8 @@ private:
 	static void lengthen_cb(Fl_Widget *w, Main_Window *mw);
 	static void delete_cb(Fl_Widget *w, Main_Window *mw);
 	static void snip_cb(Fl_Widget *w, Main_Window *mw);
-	static void select_all_cb(Fl_Widget *w, Main_Window *mw);
-	static void select_none_cb(Fl_Widget *w, Main_Window *mw);
+	static void split_note_cb(Fl_Widget *w, Main_Window *mw);
+	static void glue_note_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_1_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_2_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_3_cb(Fl_Widget *w, Main_Window *mw);

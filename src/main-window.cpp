@@ -178,6 +178,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_SUBMENU("&Edit"),
 		OS_MENU_ITEM("&Undo", FL_COMMAND + 'z', (Fl_Callback *)undo_cb, this, 0),
 		OS_MENU_ITEM("&Redo", FL_COMMAND + 'y', (Fl_Callback *)redo_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("Select &All", FL_COMMAND + 'a', (Fl_Callback *)select_all_cb, this, 0),
+		OS_MENU_ITEM("Select N&one", FL_COMMAND + 'A', (Fl_Callback *)select_none_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Pitch Up", FL_COMMAND + UP_KEY, (Fl_Callback *)pitch_up_cb, this, 0),
 		OS_MENU_ITEM("Pitch Down", FL_COMMAND + DOWN_KEY, (Fl_Callback *)pitch_down_cb, this, 0),
 		OS_MENU_ITEM("Octave Up", FL_COMMAND + FL_SHIFT + UP_KEY, (Fl_Callback *)octave_up_cb, this, 0),
@@ -188,8 +190,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("Lengthen", FL_COMMAND + FL_SHIFT + RIGHT_KEY, (Fl_Callback *)lengthen_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("&Delete Selection", DELETE_KEY, (Fl_Callback *)delete_cb, this, 0),
 		OS_MENU_ITEM("&Snip Selection", FL_SHIFT + DELETE_KEY, (Fl_Callback *)snip_cb, this, FL_MENU_DIVIDER),
-		OS_MENU_ITEM("Select &All", FL_COMMAND + 'a', (Fl_Callback *)select_all_cb, this, 0),
-		OS_MENU_ITEM("Select N&one", FL_COMMAND + 'A', (Fl_Callback *)select_none_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("Spli&t Note", '/', (Fl_Callback *)split_note_cb, this, 0),
+		OS_MENU_ITEM("&Glue Note", FL_SHIFT + '/', (Fl_Callback *)glue_note_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Channel &1", '1', (Fl_Callback *)channel_1_cb, this,
 			FL_MENU_RADIO | (selected_channel() == 1 ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Channel &2", '2', (Fl_Callback *)channel_2_cb, this,
@@ -298,6 +300,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_skip_forward_mi = CT_FIND_MENU_ITEM_CB(skip_forward_cb);
 	_undo_mi = CT_FIND_MENU_ITEM_CB(undo_cb);
 	_redo_mi = CT_FIND_MENU_ITEM_CB(redo_cb);
+	_select_all_mi = CT_FIND_MENU_ITEM_CB(select_all_cb);
+	_select_none_mi = CT_FIND_MENU_ITEM_CB(select_none_cb);
 	_pitch_up_mi = CT_FIND_MENU_ITEM_CB(pitch_up_cb);
 	_pitch_down_mi = CT_FIND_MENU_ITEM_CB(pitch_down_cb);
 	_octave_up_mi = CT_FIND_MENU_ITEM_CB(octave_up_cb);
@@ -308,8 +312,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_lengthen_mi = CT_FIND_MENU_ITEM_CB(lengthen_cb);
 	_delete_mi = CT_FIND_MENU_ITEM_CB(delete_cb);
 	_snip_mi = CT_FIND_MENU_ITEM_CB(snip_cb);
-	_select_all_mi = CT_FIND_MENU_ITEM_CB(select_all_cb);
-	_select_none_mi = CT_FIND_MENU_ITEM_CB(select_none_cb);
+	_split_note_mi = CT_FIND_MENU_ITEM_CB(split_note_cb);
+	_glue_note_mi = CT_FIND_MENU_ITEM_CB(glue_note_cb);
 	_channel_1_mi = CT_FIND_MENU_ITEM_CB(channel_1_cb);
 	_channel_2_mi = CT_FIND_MENU_ITEM_CB(channel_2_cb);
 	_channel_3_mi = CT_FIND_MENU_ITEM_CB(channel_3_cb);
@@ -713,6 +717,8 @@ void Main_Window::update_active_controls() {
 			_redo_tb->deactivate();
 		}
 		if (stopped) {
+			_select_all_mi->activate();
+			_select_none_mi->activate();
 			_pitch_up_mi->activate();
 			_pitch_down_mi->activate();
 			_octave_up_mi->activate();
@@ -723,10 +729,12 @@ void Main_Window::update_active_controls() {
 			_lengthen_mi->activate();
 			_delete_mi->activate();
 			_snip_mi->activate();
-			_select_all_mi->activate();
-			_select_none_mi->activate();
+			_split_note_mi->activate();
+			_glue_note_mi->activate();
 		}
 		else {
+			_select_all_mi->deactivate();
+			_select_none_mi->deactivate();
 			_pitch_up_mi->deactivate();
 			_pitch_down_mi->deactivate();
 			_octave_up_mi->deactivate();
@@ -737,8 +745,8 @@ void Main_Window::update_active_controls() {
 			_lengthen_mi->deactivate();
 			_delete_mi->deactivate();
 			_snip_mi->deactivate();
-			_select_all_mi->deactivate();
-			_select_none_mi->deactivate();
+			_split_note_mi->deactivate();
+			_glue_note_mi->deactivate();
 		}
 		_channel_1_mi->activate();
 		_channel_1_tb->activate();
@@ -773,6 +781,8 @@ void Main_Window::update_active_controls() {
 		_undo_tb->deactivate();
 		_redo_mi->deactivate();
 		_redo_tb->deactivate();
+		_select_all_mi->deactivate();
+		_select_none_mi->deactivate();
 		_pitch_up_mi->deactivate();
 		_pitch_down_mi->deactivate();
 		_octave_up_mi->deactivate();
@@ -783,8 +793,8 @@ void Main_Window::update_active_controls() {
 		_lengthen_mi->deactivate();
 		_delete_mi->deactivate();
 		_snip_mi->deactivate();
-		_select_all_mi->deactivate();
-		_select_none_mi->deactivate();
+		_split_note_mi->deactivate();
+		_glue_note_mi->deactivate();
 		_channel_1_mi->deactivate();
 		_channel_1_tb->deactivate();
 		_channel_2_mi->deactivate();
@@ -1514,7 +1524,11 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 		mw->sync_channel_buttons();
 	}
 	mw->_piano_roll->set_active_channel_timeline(mw->_song);
-	if (action == Song::Song_State::Action::PUT_NOTE) {
+	if (
+		action == Song::Song_State::Action::PUT_NOTE ||
+		action == Song::Song_State::Action::SPLIT_NOTE ||
+		action == Song::Song_State::Action::GLUE_NOTE
+	) {
 		mw->_piano_roll->tick(tick);
 		mw->_piano_roll->select_note_at_tick();
 		mw->_piano_roll->focus_cursor(true);
@@ -1552,6 +1566,14 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_piano_roll->focus_cursor(true);
 	}
 	else if (
+		action == Song::Song_State::Action::SPLIT_NOTE ||
+		action == Song::Song_State::Action::GLUE_NOTE
+	) {
+		mw->_piano_roll->tick(tick);
+		mw->_piano_roll->select_note_at_tick();
+		mw->_piano_roll->focus_cursor(true);
+	}
+	else if (
 		action != Song::Song_State::Action::DELETE_SELECTION &&
 		action != Song::Song_State::Action::SNIP_SELECTION
 	) {
@@ -1560,6 +1582,16 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 
 	mw->update_active_controls();
 	mw->redraw();
+}
+
+void Main_Window::select_all_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	mw->_piano_roll->select_all();
+}
+
+void Main_Window::select_none_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	mw->_piano_roll->select_none();
 }
 
 void Main_Window::pitch_up_cb(Fl_Widget *, Main_Window *mw) {
@@ -1672,14 +1704,26 @@ void Main_Window::snip_cb(Fl_Widget *, Main_Window *mw) {
 	}
 }
 
-void Main_Window::select_all_cb(Fl_Widget *, Main_Window *mw) {
+void Main_Window::split_note_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
-	mw->_piano_roll->select_all();
+	if (mw->_piano_roll->split_note(mw->_song)) {
+		mw->_status_message = mw->_song.undo_action_message();
+		mw->_status_label->label(mw->_status_message.c_str());
+
+		mw->update_active_controls();
+		mw->redraw();
+	}
 }
 
-void Main_Window::select_none_cb(Fl_Widget *, Main_Window *mw) {
+void Main_Window::glue_note_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
-	mw->_piano_roll->select_none();
+	if (mw->_piano_roll->glue_note(mw->_song)) {
+		mw->_status_message = mw->_song.undo_action_message();
+		mw->_status_label->label(mw->_status_message.c_str());
+
+		mw->update_active_controls();
+		mw->redraw();
+	}
 }
 
 void Main_Window::channel_1_cb(Fl_Widget *, Main_Window *mw) {

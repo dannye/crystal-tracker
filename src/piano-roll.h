@@ -44,7 +44,7 @@ constexpr int BLACK_KEY_HEIGHT_ZOOMED = 30;
 constexpr int BLACK_KEY_HEIGHT_UNZOOMED = 20;
 
 constexpr int TICK_WIDTH_ZOOMED = 4;
-constexpr int TICK_WIDTH_UNZOOMED = 2;
+constexpr int TICK_WIDTH_UNZOOMED = 3;
 constexpr int TICKS_PER_STEP = 12;
 
 struct Note_Key {
@@ -407,6 +407,9 @@ public:
 	bool lengthen(Song &song);
 	bool delete_selection(Song &song);
 	bool snip_selection(Song &song);
+	bool split_note(Song &song);
+	bool glue_note(Song &song);
+
 	bool select_all() { return _piano_timeline.select_all(); }
 	bool select_none() { return _piano_timeline.select_none(); }
 private:
