@@ -37,7 +37,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	// Get global configs
 	int loop_config = Preferences::get("loop", 1);
 	int zoom_config = Preferences::get("zoom", 0);
-	int key_labels_config = Preferences::get("key_labels", 1);
+	int key_labels_config = Preferences::get("key_labels", 0);
 
 	for (int i = 0; i < NUM_RECENT; i++) {
 		_recent[i] = Preferences::get_string(Fl_Preferences::Name("recent%d", i));

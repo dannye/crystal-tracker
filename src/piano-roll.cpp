@@ -95,8 +95,17 @@ int Key_Box::handle(int event) {
 	return Fl_Box::handle(event);
 }
 
+void Key_Box::draw() {
+	draw_box();
+	if (OS::current_theme() == OS::Theme::HIGH_CONTRAST)
+		draw_box(FL_BORDER_FRAME, fl_darker(FL_SELECTION_COLOR));
+	draw_label();
+}
+
 void White_Key_Box::draw() {
 	draw_box();
+	if (OS::current_theme() == OS::Theme::HIGH_CONTRAST)
+		draw_box(FL_BORDER_FRAME, fl_darker(FL_SELECTION_COLOR));
 	draw_label(x() + BLACK_KEY_WIDTH, y(), w() - BLACK_KEY_WIDTH, h());
 }
 
@@ -646,12 +655,21 @@ std::vector<Note_Box *> *Piano_Timeline::active_channel_boxes() {
 
 void Piano_Timeline::draw() {
 	OS::Theme theme = OS::current_theme();
-	bool dark = OS::is_dark_theme(theme);
+	bool dark = theme == OS::Theme::DARK;
 	bool hc = theme == OS::Theme::HIGH_CONTRAST;
+	bool gray = theme == OS::Theme::CLASSIC || theme == OS::Theme::GREYBIRD || theme == OS::Theme::BRUSHED_METAL;
+	bool colorful = theme == OS::Theme::BLUE || theme == OS::Theme::OLIVE || theme == OS::Theme::ROSE_GOLD;
+
 	Fl_Color light_row = hc ? fl_darker(FL_BACKGROUND2_COLOR) : dark ? ALT_LIGHT_ROW : FL_LIGHT1;
-	Fl_Color dark_row = hc ? FL_BACKGROUND2_COLOR : dark ? ALT_DARK_ROW : FL_DARK2;
-	Fl_Color row_divider = hc ? FL_BACKGROUND2_COLOR : FL_DARK2;
-	Fl_Color cursor_color = dark ? FL_YELLOW : FL_MAGENTA;
+	Fl_Color dark_row =
+		hc ? FL_BACKGROUND2_COLOR :
+		dark ? ALT_DARK_ROW :
+		(gray || colorful) ? fl_color_average(FL_DARK2, light_row, 0.5f) :
+		FL_DARK2;
+	Fl_Color row_divider = dark ? FL_DARK2 : dark_row;
+	Fl_Color col_divider = (gray || colorful) ? FL_DARK2 : FL_DARK3;
+	Fl_Color cursor_color = (dark || hc) ? FL_YELLOW : fl_color_average(FL_MAGENTA, FL_BLACK, 0.9f);
+
 	if (damage() & ~FL_DAMAGE_CHILD) {
 		Piano_Roll *p = parent();
 		const int note_row_height = p->note_row_height();
@@ -680,7 +698,7 @@ void Piano_Timeline::draw() {
 		int time_step_width = tick_width * ticks_per_step;
 		const size_t num_dividers = (w() - WHITE_KEY_WIDTH) / time_step_width + 1;
 		for (size_t i = 0; i < num_dividers; ++i) {
-			fl_color(FL_DARK3);
+			fl_color(col_divider);
 			fl_yxline(x_pos - 1, y(), y() + h());
 			x_pos += time_step_width;
 		}

@@ -167,6 +167,8 @@ public:
 	inline int32_t octave(void) const { return _octave; }
 
 	int handle(int event) override;
+protected:
+	void draw() override;
 };
 
 class White_Key_Box : public Key_Box {
