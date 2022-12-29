@@ -46,6 +46,7 @@
 #define LEFT_KEY      NSLeftArrowFunctionKey
 #define RIGHT_KEY     NSRightArrowFunctionKey
 
+#define GLUE_KEY '?'
 #define FULLSCREEN_KEY FL_COMMAND + FL_SHIFT + 'f'
 #else
 #define CONTROL_KEY "Ctrl"
@@ -67,6 +68,7 @@
 #define LEFT_KEY      FL_Left
 #define RIGHT_KEY     FL_Right
 
+#define GLUE_KEY FL_SHIFT + '/'
 #define FULLSCREEN_KEY FL_F + 11
 #endif
 

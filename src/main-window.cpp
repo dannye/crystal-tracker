@@ -191,7 +191,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("&Delete Selection", DELETE_KEY, (Fl_Callback *)delete_cb, this, 0),
 		OS_MENU_ITEM("&Snip Selection", FL_SHIFT + DELETE_KEY, (Fl_Callback *)snip_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Spli&t Note", '/', (Fl_Callback *)split_note_cb, this, 0),
-		OS_MENU_ITEM("&Glue Note", FL_SHIFT + '/', (Fl_Callback *)glue_note_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("&Glue Note", GLUE_KEY, (Fl_Callback *)glue_note_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Channel &1", '1', (Fl_Callback *)channel_1_cb, this,
 			FL_MENU_RADIO | (selected_channel() == 1 ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Channel &2", '2', (Fl_Callback *)channel_2_cb, this,
