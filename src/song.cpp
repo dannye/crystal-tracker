@@ -727,8 +727,9 @@ void Song::split_note(const int selected_channel, const std::set<int32_t> &selec
 	);
 	assert(tick_offset != 0);
 
-	Command command = commands[index];
-	command.note.length -= tick_offset;
+	Command command = Command(commands[index].type);
+	command.note.length = commands[index].note.length - tick_offset;
+	command.note.pitch = commands[index].note.pitch;
 	commands[index].note.length = tick_offset;
 	commands.insert(commands.begin() + index + 1, command);
 
