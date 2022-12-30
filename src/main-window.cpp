@@ -887,14 +887,12 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	close_cb(NULL, this);
 
 	_directory = directory;
-	_new_dir_chooser->directory(directory);
-	_asm_open_chooser->directory(directory);
-	_asm_save_chooser->directory(directory);
 	if (filename) {
 		_asm_file = filename;
 	}
 	else {
 		_asm_file = "";
+		_asm_save_chooser->directory(directory);
 	}
 
 	Parsed_Waves parsed_waves(directory);
