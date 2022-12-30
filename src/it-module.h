@@ -45,6 +45,8 @@ public:
 	IT_Module(const IT_Module&) = delete;
 	IT_Module& operator=(const IT_Module&) = delete;
 
+	std::string get_warnings() { return _mod->get_metadata("warnings"); }
+
 	bool ready() const { return _stream.isOpen(); }
 	bool playing() { return Pa_IsStreamActive(_stream.paStream()) == 1; }
 	bool paused() const { return _paused; }

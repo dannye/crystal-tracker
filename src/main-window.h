@@ -127,6 +127,7 @@ private:
 	std::vector<Wave> _waves;
 	IT_Module *_it_module = nullptr;
 	int32_t _tick = -1;
+	bool _showed_it_warning = false;
 	// Work properties
 	int _selected_channel = 0;
 	bool _sync_requested = false;

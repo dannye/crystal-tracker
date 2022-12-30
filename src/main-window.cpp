@@ -436,10 +436,10 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_asm_save_chooser->options(Fl_Native_File_Chooser::Option::SAVEAS_CONFIRM);
 	_asm_save_chooser->preset_file("NewSong.asm");
 
-	_error_dialog->width_range(280, 700);
-	_warning_dialog->width_range(280, 700);
-	_success_dialog->width_range(280, 700);
-	_unsaved_dialog->width_range(280, 700);
+	_error_dialog->width_range(280, 500);
+	_warning_dialog->width_range(280, 500);
+	_success_dialog->width_range(280, 500);
+	_unsaved_dialog->width_range(280, 500);
 
 	std::string subject(PROGRAM_NAME " " PROGRAM_VERSION_STRING), message(
 		"Copyright \xc2\xa9 " CURRENT_YEAR " " PROGRAM_AUTHOR ".\n"
@@ -449,7 +449,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	);
 	_about_dialog->subject(subject);
 	_about_dialog->message(message);
-	_about_dialog->width_range(280, 700);
+	_about_dialog->width_range(280, 500);
 
 	_help_window->content(
 #include "help.html" // a C++11 raw string literal
@@ -1024,6 +1024,14 @@ void Main_Window::toggle_playback() {
 		_it_module->mute_channel(2, channel_2_muted());
 		_it_module->mute_channel(3, channel_3_muted());
 		_it_module->mute_channel(4, channel_4_muted());
+
+		std::string warnings = _it_module->get_warnings();
+		if (warnings.size() > 0 && !_showed_it_warning) {
+			_warning_dialog->message(warnings);
+			_warning_dialog->show(this);
+			_showed_it_warning = true;
+		}
+
 		if (_it_module->ready() && _it_module->start()) {
 			_tick = _piano_roll->tick();
 			if (_tick != -1) {
@@ -1241,6 +1249,7 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 		delete mw->_it_module;
 		mw->_it_module = nullptr;
 	}
+	mw->_showed_it_warning = false;
 	mw->init_sizes();
 	mw->_directory.clear();
 	mw->_asm_file.clear();
