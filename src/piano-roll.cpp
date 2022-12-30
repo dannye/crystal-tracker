@@ -660,11 +660,10 @@ void Piano_Timeline::draw() {
 	bool gray = theme == OS::Theme::CLASSIC || theme == OS::Theme::GREYBIRD || theme == OS::Theme::BRUSHED_METAL;
 	bool colorful = theme == OS::Theme::BLUE || theme == OS::Theme::OLIVE || theme == OS::Theme::ROSE_GOLD;
 
-	Fl_Color light_row = hc ? fl_darker(FL_BACKGROUND2_COLOR) : dark ? ALT_LIGHT_ROW : FL_LIGHT1;
+	Fl_Color light_row = (dark || hc) ? FL_BACKGROUND2_COLOR : FL_LIGHT1;
 	Fl_Color dark_row =
-		hc ? FL_BACKGROUND2_COLOR :
-		dark ? ALT_DARK_ROW :
-		(gray || colorful) ? fl_color_average(FL_DARK2, light_row, 0.5f) :
+		(dark || hc) ? fl_color_average(light_row, FL_WHITE, 0.95f) :
+		(gray || colorful) ? fl_color_average(light_row, FL_DARK2, 0.5f) :
 		FL_DARK2;
 	Fl_Color row_divider = dark ? FL_DARK2 : dark_row;
 	Fl_Color col_divider = (gray || colorful) ? FL_DARK2 : FL_DARK3;

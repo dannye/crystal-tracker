@@ -26,9 +26,6 @@ const Fl_Color NOTE_BROWN_LIGHT = fl_lighter(NOTE_BROWN);
 
 const Fl_Color NOTE_GHOST = fl_rgb_color(96);
 
-const Fl_Color ALT_LIGHT_ROW = fl_rgb_color(35, 35, 35);
-const Fl_Color ALT_DARK_ROW  = fl_rgb_color(52, 52, 52);
-
 constexpr size_t NUM_WHITE_NOTES = 7;
 constexpr size_t NUM_BLACK_NOTES = 5;
 
