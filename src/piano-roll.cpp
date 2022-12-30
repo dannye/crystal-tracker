@@ -2005,7 +2005,7 @@ bool Piano_Roll::snip_selection(Song &song) {
 	song.snip_selection(selected_channel(), selected_notes, selected_boxes);
 	set_active_channel_timeline(song);
 
-	// TODO: pad end of channel with rests to maintain channel length
+	align_cursor();
 
 	return true;
 }

@@ -13,7 +13,19 @@
 
 std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, std::string label);
 
-Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, int32_t &loop_tick, int32_t &end_tick);
+struct Extra_Info {
+	int32_t loop_index = 0;
+	int32_t speed_at_loop = 1;
+	int32_t volume_at_loop = 0;
+	int32_t fade_at_loop = 0;
+
+	int32_t end_index = 0;
+	int32_t speed_at_end = 1;
+	int32_t volume_at_end = 0;
+	int32_t fade_at_end = 0;
+};
+
+Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, int32_t &loop_tick, int32_t &end_tick, Extra_Info *info = nullptr);
 
 class Song {
 public:
@@ -127,6 +139,8 @@ public:
 	void glue_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick);
 
 	std::vector<Command> &channel_commands(const int selected_channel);
+	int32_t channel_loop_tick(const int selected_channel);
+	int32_t channel_end_tick(const int selected_channel);
 private:
 	std::string commands_str(const std::vector<Command> &commands, int32_t channel_number) const;
 	std::string get_error_message(Parsed_Song parsed_song) const;

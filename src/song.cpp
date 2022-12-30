@@ -16,22 +16,32 @@ std::vector<Command>::const_iterator find_note_with_label(const std::vector<Comm
 	return commands.end();
 }
 
-Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, int32_t &loop_tick, int32_t &end_tick) {
+Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, int32_t &loop_tick, int32_t &end_tick, Extra_Info *info) {
 	int32_t tick = 0;
 	loop_tick = -1;
 	end_tick = -1;
 	int32_t speed = 1;
+	int32_t volume = 0;
+	int32_t fade = 0;
+
+	struct Label_Info {
+		int32_t tick = 0;
+		int32_t index = 0;
+		int32_t speed = 0;
+		int32_t volume = 0;
+		int32_t fade = 0;
+	};
 
 	auto command_itr = commands.begin();
 
 	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
 	std::stack<decltype(command_itr)> call_stack;
 	std::set<std::string> visited_labels_during_call;
-	std::map<std::string, int32_t> label_positions;
+	std::map<std::string, Label_Info> label_infos;
 
 	while (command_itr != commands.end()) {
 		for (const std::string &label : command_itr->labels) {
-			label_positions.insert({ label, tick });
+			label_infos.insert({ label, { tick, (int32_t)(command_itr - commands.begin()), speed, volume, fade } });
 			if (call_stack.size() > 0) {
 				visited_labels_during_call.insert(label);
 			}
@@ -48,20 +58,38 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 		}
 		else if (command_itr->type == Command_Type::NOTE_TYPE) {
 			speed = command_itr->note_type.speed;
+			volume = command_itr->note_type.volume;
+			fade = command_itr->note_type.fade;
 		}
 		else if (command_itr->type == Command_Type::DRUM_SPEED) {
 			speed = command_itr->drum_speed.speed;
 		}
+		else if (command_itr->type == Command_Type::VOLUME_ENVELOPE) {
+			volume = command_itr->volume_envelope.volume;
+			fade = command_itr->volume_envelope.fade;
+		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			if (
-				!label_positions.count(command_itr->target) ||
+				!label_infos.count(command_itr->target) ||
 				(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
 			) {
 				command_itr = find_note_with_label(commands, command_itr->target);
 				continue;
 			}
-			loop_tick = label_positions.at(command_itr->target);
+			const Label_Info &label_info = label_infos.at(command_itr->target);
+			loop_tick = label_info.tick;
 			end_tick = tick;
+			if (info) {
+				info->loop_index = label_info.index;
+				info->speed_at_loop = label_info.speed;
+				info->volume_at_loop = label_info.volume;
+				info->fade_at_loop = label_info.fade;
+
+				info->end_index = command_itr - commands.begin();
+				info->speed_at_end = speed;
+				info->volume_at_end = volume;
+				info->fade_at_end = fade;
+			}
 			if (loop_tick == end_tick) {
 				return Parsed_Song::Result::SONG_EMPTY_LOOP;
 			}
@@ -81,14 +109,26 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 			else {
 				if (command_itr->sound_loop.loop_count == 0) {
 					if (
-						!label_positions.count(command_itr->target) ||
+						!label_infos.count(command_itr->target) ||
 						(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
 					) {
 						command_itr = find_note_with_label(commands, command_itr->target);
 						continue;
 					}
-					loop_tick = label_positions.at(command_itr->target);
+					const Label_Info &label_info = label_infos.at(command_itr->target);
+					loop_tick = label_info.tick;
 					end_tick = tick;
+					if (info) {
+						info->loop_index = label_info.index;
+						info->speed_at_loop = label_info.speed;
+						info->volume_at_loop = label_info.volume;
+						info->fade_at_loop = label_info.fade;
+
+						info->end_index = command_itr - commands.begin();
+						info->speed_at_end = speed;
+						info->volume_at_end = volume;
+						info->fade_at_end = fade;
+					}
 					if (loop_tick == end_tick) {
 						return Parsed_Song::Result::SONG_EMPTY_LOOP;
 					}
@@ -119,6 +159,12 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 		else if (command_itr->type == Command_Type::SOUND_RET) {
 			if (call_stack.size() == 0) {
 				end_tick = tick;
+				if (info) {
+					info->end_index = command_itr - commands.begin();
+					info->speed_at_end = speed;
+					info->volume_at_end = volume;
+					info->fade_at_end = fade;
+				}
 				break; // song is finished
 			}
 			else {
@@ -129,6 +175,12 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 		}
 		else if (command_itr->type == Command_Type::SPEED) {
 			speed = command_itr->speed.speed;
+		}
+		else if (command_itr->type == Command_Type::CHANNEL_VOLUME) {
+			volume = command_itr->channel_volume.volume;
+		}
+		else if (command_itr->type == Command_Type::FADE_WAVE) {
+			fade = command_itr->fade_wave.fade;
 		}
 		++command_itr;
 	}
@@ -712,6 +764,51 @@ void Song::snip_selection(const int selected_channel, const std::set<int32_t> &s
 		commands.erase(commands.begin() + *note_itr);
 	}
 
+	int32_t loop_tick = channel_loop_tick(selected_channel);
+	int32_t end_tick = channel_end_tick(selected_channel);
+
+	int32_t new_loop_tick, new_end_tick;
+	Extra_Info info;
+	calc_channel_length(commands, new_loop_tick, new_end_tick, &info);
+	assert(new_loop_tick != -1 || loop_tick == -1);
+	assert(new_loop_tick <= loop_tick);
+	assert(new_end_tick != -1);
+	assert(new_end_tick < end_tick);
+
+	auto insert_ticks = [selected_channel](std::vector<Command> &commands, int32_t ticks_to_insert, int32_t index, int32_t speed, int32_t volume, int32_t fade) {
+		int32_t speed_ticks_to_insert = ticks_to_insert / speed;
+		int32_t rem_ticks_to_insert = ticks_to_insert % speed;
+
+		Command rest = Command(Command_Type::REST);
+		rest.rest.length = 16;
+
+		while (speed_ticks_to_insert) {
+			if (speed_ticks_to_insert < 16) rest.rest.length = speed_ticks_to_insert;
+			commands.insert(commands.begin() + index, rest);
+			speed_ticks_to_insert -= rest.rest.length;
+		}
+		if (rem_ticks_to_insert > 0) {
+			Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+			command.note_type.speed = speed;
+			command.note_type.volume = volume;
+			command.note_type.fade = fade;
+			commands.insert(commands.begin() + index, command);
+
+			rest.rest.length = rem_ticks_to_insert;
+			commands.insert(commands.begin() + index, rest);
+
+			command.note_type.speed = 1;
+			commands.insert(commands.begin() + index, command);
+		}
+	};
+
+	int32_t ticks_to_insert_at_loop = loop_tick - new_loop_tick;
+	int32_t ticks_to_insert_at_end = end_tick - new_end_tick - ticks_to_insert_at_loop;
+
+	insert_ticks(commands, ticks_to_insert_at_end,  info.end_index,  info.speed_at_end,  info.volume_at_end,  info.fade_at_end);
+	insert_ticks(commands, ticks_to_insert_at_loop, info.loop_index, info.speed_at_loop, info.volume_at_loop, info.fade_at_loop);
+
+	// TODO: merge redundant note_type commands
 	postprocess(commands);
 
 	_modified = true;
@@ -1015,5 +1112,37 @@ std::vector<Command> &Song::channel_commands(const int selected_channel) {
 	}
 	else {
 		return _channel_4_commands;
+	}
+}
+
+int32_t Song::channel_loop_tick(const int selected_channel) {
+	assert(selected_channel >= 1 && selected_channel <= 4);
+	if (selected_channel == 1) {
+		return _channel_1_loop_tick;
+	}
+	else if (selected_channel == 2) {
+		return _channel_2_loop_tick;
+	}
+	else if (selected_channel == 3) {
+		return _channel_3_loop_tick;
+	}
+	else {
+		return _channel_4_loop_tick;
+	}
+}
+
+int32_t Song::channel_end_tick(const int selected_channel) {
+	assert(selected_channel >= 1 && selected_channel <= 4);
+	if (selected_channel == 1) {
+		return _channel_1_end_tick;
+	}
+	else if (selected_channel == 2) {
+		return _channel_2_end_tick;
+	}
+	else if (selected_channel == 3) {
+		return _channel_3_end_tick;
+	}
+	else {
+		return _channel_4_end_tick;
 	}
 }
