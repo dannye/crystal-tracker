@@ -308,7 +308,8 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 	const std::vector<Note_View> &channel_2_notes,
 	const std::vector<Note_View> &channel_3_notes,
 	const std::vector<Note_View> &channel_4_notes,
-	int32_t loop_tick
+	int32_t loop_tick,
+	bool inline_waves
 ) {
 	std::vector<std::vector<uint8_t>> patterns;
 
@@ -498,7 +499,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 			if (channel_3_note_length == 0 && channel_3_itr != channel_3_notes.end()) {
 				channel_3_note_length = channel_3_itr->length * channel_3_itr->speed - 1;
 				channel_3_note_duration = 0;
-				if (channel_3_itr->wave != 0x0f) {
+				if (channel_3_itr->wave != 0x0f || !inline_waves) {
 					wave = channel_3_itr->wave;
 				}
 				if (channel_3_itr->tempo != channel_3_prev_note.tempo) {
@@ -626,7 +627,7 @@ void IT_Module::generate_it_module(
 
 	std::vector<std::vector<uint8_t>> instruments = get_instruments();
 	std::vector<std::vector<uint8_t>> samples = get_samples(waves);
-	std::vector<std::vector<uint8_t>> patterns = get_patterns(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, loop_tick);
+	std::vector<std::vector<uint8_t>> patterns = get_patterns(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, loop_tick, waves.size() > 0x10);
 
 	const uint32_t number_of_orders = patterns.size() + 1;
 	const uint32_t number_of_instruments = instruments.size();
