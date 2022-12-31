@@ -139,8 +139,10 @@ public:
 	void glue_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick);
 
 	std::vector<Command> &channel_commands(const int selected_channel);
-	int32_t channel_loop_tick(const int selected_channel);
-	int32_t channel_end_tick(const int selected_channel);
+	int32_t channel_loop_tick(const int selected_channel) const;
+	int32_t channel_end_tick(const int selected_channel) const;
+
+	int32_t max_wave_id() const;
 private:
 	std::string commands_str(const std::vector<Command> &commands, int32_t channel_number) const;
 	std::string get_error_message(Parsed_Song parsed_song) const;

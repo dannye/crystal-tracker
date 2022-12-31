@@ -14,12 +14,14 @@ public:
 private:
 	std::string _waves_file;
 	std::vector<Wave> _waves;
+	int32_t _num_parsed_waves = 0;
 	Result _result = Result::WAVES_NULL;
 public:
 	Parsed_Waves(const char *d);
 	inline ~Parsed_Waves() {}
 	inline std::string waves_file(void) const { return _waves_file; }
 	inline std::vector<Wave> &&waves(void) { return std::move(_waves); }
+	inline int32_t num_parsed_waves(void) const { return _num_parsed_waves; }
 	inline Result result(void) const { return _result; }
 
 	static Result parse_wave(std::istringstream &lss, Wave &wave, bool nybbles);

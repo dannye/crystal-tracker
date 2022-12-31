@@ -73,6 +73,7 @@ Parsed_Waves::Result Parsed_Waves::parse_waves(const char *d) {
 Parsed_Waves::Result Parsed_Waves::try_parse_waves(const char *f) {
 	_waves_file = f;
 	_waves.clear();
+	_num_parsed_waves = 0;
 	_result = Result::WAVES_NULL;
 
 	std::ifstream ifs;
@@ -81,7 +82,7 @@ Parsed_Waves::Result Parsed_Waves::try_parse_waves(const char *f) {
 		return (_result = Result::WAVES_BAD_FILE);
 	}
 
-	while (ifs.good() && _waves.size() < 16) {
+	while (ifs.good()) {
 		std::string line;
 		std::getline(ifs, line);
 		remove_comment(line);
@@ -102,12 +103,11 @@ Parsed_Waves::Result Parsed_Waves::try_parse_waves(const char *f) {
 		_waves.push_back(wave);
 	}
 
-	if (_waves.size() == 0) {
+	_num_parsed_waves = (int32_t)_waves.size();
+	_waves.resize(16);
+
+	if (_num_parsed_waves == 0) {
 		return (_result = Result::WAVES_BAD_FILE);
 	}
-	while (_waves.size() < 16) {
-		_waves.emplace_back();
-	}
-
 	return (_result = Result::WAVES_OK);
 }

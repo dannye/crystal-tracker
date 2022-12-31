@@ -1115,7 +1115,7 @@ std::vector<Command> &Song::channel_commands(const int selected_channel) {
 	}
 }
 
-int32_t Song::channel_loop_tick(const int selected_channel) {
+int32_t Song::channel_loop_tick(const int selected_channel) const {
 	assert(selected_channel >= 1 && selected_channel <= 4);
 	if (selected_channel == 1) {
 		return _channel_1_loop_tick;
@@ -1131,7 +1131,7 @@ int32_t Song::channel_loop_tick(const int selected_channel) {
 	}
 }
 
-int32_t Song::channel_end_tick(const int selected_channel) {
+int32_t Song::channel_end_tick(const int selected_channel) const {
 	assert(selected_channel >= 1 && selected_channel <= 4);
 	if (selected_channel == 1) {
 		return _channel_1_end_tick;
@@ -1145,4 +1145,33 @@ int32_t Song::channel_end_tick(const int selected_channel) {
 	else {
 		return _channel_4_end_tick;
 	}
+}
+
+int32_t Song::max_wave_id() const {
+	int32_t max_wave = -1;
+	bool inline_waves = _waves.size() > 0;
+	for (const Command &command : _channel_3_commands) {
+		if (
+			command.type == Command_Type::NOTE_TYPE &&
+			command.note_type.wave > max_wave &&
+			(command.note_type.wave != 0x0f || !inline_waves)
+		) {
+			max_wave = command.note_type.wave;
+		}
+		else if (
+			command.type == Command_Type::VOLUME_ENVELOPE &&
+			command.volume_envelope.wave > max_wave &&
+			(command.volume_envelope.wave != 0x0f || !inline_waves)
+		) {
+			max_wave = command.volume_envelope.wave;
+		}
+		else if (
+			command.type == Command_Type::FADE_WAVE &&
+			command.fade_wave.wave > max_wave &&
+			(command.fade_wave.wave != 0x0f || !inline_waves)
+		) {
+			max_wave = command.fade_wave.wave;
+		}
+	}
+	return max_wave;
 }

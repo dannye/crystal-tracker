@@ -943,6 +943,20 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	}
 
 	redraw();
+
+	if (parsed_waves.num_parsed_waves() > 16) {
+		std::string msg = "wave_samples.asm contains more than 16 waves!";
+		_warning_dialog->message(msg);
+		_warning_dialog->show(this);
+	}
+	int32_t max_wave_id = _song.max_wave_id();
+	if (max_wave_id >= parsed_waves.num_parsed_waves()) {
+		std::string msg = basename;
+		msg = msg + " uses undefined wave sample: " + std::to_string(max_wave_id) + "\n\n"
+			"Valid wave IDs are: 0-" + std::to_string(parsed_waves.num_parsed_waves() - 1);
+		_warning_dialog->message(msg);
+		_warning_dialog->show(this);
+	}
 }
 
 void Main_Window::open_recent(int n) {
