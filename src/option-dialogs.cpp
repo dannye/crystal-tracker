@@ -162,11 +162,11 @@ const char *Song_Options_Dialog::get_error_message(Result r) {
 void Song_Options_Dialog::initialize_content() {
 	// Populate content group
 	_song_name = new Fl_Input(0, 0, 0, 0, "Title:");
-	_looping_checkbox = new OS_Check_Button(0, 0, 0, 0, "Looping");
-	_channel_1_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel 1");
-	_channel_2_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel 2");
-	_channel_3_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel 3");
-	_channel_4_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel 4");
+	_looping_checkbox = new OS_Check_Button(0, 0, 0, 0, "&Looping");
+	_channel_1_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel &1");
+	_channel_2_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel &2");
+	_channel_3_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel &3");
+	_channel_4_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel &4");
 	_channel_1_loop_tick = new Fl_Int_Input(0, 0, 0, 0, "Loop Tick:");
 	_channel_2_loop_tick = new Fl_Int_Input(0, 0, 0, 0, "Loop Tick:");
 	_channel_3_loop_tick = new Fl_Int_Input(0, 0, 0, 0, "Loop Tick:");
@@ -175,7 +175,7 @@ void Song_Options_Dialog::initialize_content() {
 	_channel_2_end_tick = new Fl_Int_Input(0, 0, 0, 0, "End Tick:");
 	_channel_3_end_tick = new Fl_Int_Input(0, 0, 0, 0, "End Tick:");
 	_channel_4_end_tick = new Fl_Int_Input(0, 0, 0, 0, "End Tick:");
-	_synchronize_checkbox = new OS_Check_Button(0, 0, 0, 0, "Synchronize Channels");
+	_synchronize_checkbox = new OS_Check_Button(0, 0, 0, 0, "&Synchronize Channels");
 	// Initialize content group's children
 	_song_name->align(FL_ALIGN_LEFT);
 	_looping_checkbox->callback((Fl_Callback *)looping_checkbox_cb, this);
