@@ -111,6 +111,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_success_dialog = new Modal_Dialog(this, "Success", Modal_Dialog::Icon::SUCCESS_ICON);
 	_unsaved_dialog = new Modal_Dialog(this, "Warning", Modal_Dialog::Icon::WARNING_ICON, true);
 	_about_dialog = new Modal_Dialog(this, "About " PROGRAM_NAME, Modal_Dialog::Icon::APP_ICON);
+	_song_options_dialog = new Song_Options_Dialog("Song Options");
 	_help_window = new Help_Window(48, 48, 700, 500, PROGRAM_NAME " Help");
 
 	// Configure window
@@ -483,6 +484,7 @@ Main_Window::~Main_Window() {
 	delete _success_dialog;
 	delete _unsaved_dialog;
 	delete _about_dialog;
+	delete _song_options_dialog;
 	delete _help_window;
 	if (_it_module) {
 		delete _it_module;
@@ -883,6 +885,21 @@ void Main_Window::open_song(const char *filename) {
 }
 
 void Main_Window::open_song(const char *directory, const char *filename) {
+	Song_Options_Dialog::Song_Options options;
+	if (!filename) {
+		_song_options_dialog->show(this);
+		bool canceled = _song_options_dialog->canceled();
+		if (canceled) { return; }
+
+		options = _song_options_dialog->get_options();
+		if (options.result != Song_Options_Dialog::Result::RESULT_OK) {
+			std::string msg = _song_options_dialog->get_error_message(options.result);
+			_error_dialog->message(msg);
+			_error_dialog->show(this);
+			return;
+		}
+	}
+
 	_song.modified(false);
 	close_cb(NULL, this);
 
@@ -924,7 +941,8 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	else {
 		basename = NEW_SONG_NAME;
 		_song.modified(true);
-		_song.new_song();
+		_song.new_song(options);
+		_piano_roll->set_timeline(_song);
 	}
 
 	// set filenames

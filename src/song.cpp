@@ -312,26 +312,170 @@ Parsed_Song::Result Song::read_song(const char *f) {
 	return (_result = Parsed_Song::Result::SONG_OK);
 }
 
-void Song::new_song() {
-	_song_name = "NewSong";
-	_number_of_channels = 4;
-	_channel_1_label = "NewSong_Ch1";
-	_channel_2_label = "NewSong_Ch2";
-	_channel_3_label = "NewSong_Ch3";
-	_channel_4_label = "NewSong_Ch4";
-	_channel_1_commands = { Command(Command_Type::SOUND_RET, _channel_1_label) };
-	_channel_2_commands = { Command(Command_Type::SOUND_RET, _channel_2_label) };
-	_channel_3_commands = { Command(Command_Type::SOUND_RET, _channel_3_label) };
-	_channel_4_commands = { Command(Command_Type::SOUND_RET, _channel_4_label) };
-	_channel_1_loop_tick = -1;
-	_channel_2_loop_tick = -1;
-	_channel_3_loop_tick = -1;
-	_channel_4_loop_tick = -1;
-	_channel_1_end_tick = 0;
-	_channel_2_end_tick = 0;
-	_channel_3_end_tick = 0;
-	_channel_4_end_tick = 0;
-	_waves.clear();
+void Song::new_song(Song_Options_Dialog::Song_Options options) {
+	auto build_channel = [](std::vector<Command> &commands, const std::string &channel_label, int channel_number, bool first_channel, int32_t loop_tick, int32_t end_tick) {
+		Command command;
+		command.labels.insert(channel_label);
+
+		if (first_channel) {
+			command.type = Command_Type::TEMPO;
+			command.tempo.tempo = 256;
+			commands.push_back(command);
+			command.labels.clear();
+
+			command.type = Command_Type::VOLUME;
+			command.volume.left = 7;
+			command.volume.right = 7;
+			commands.push_back(command);
+		}
+		if (channel_number == 1 || channel_number == 2) {
+			command.type = Command_Type::NOTE_TYPE;
+			command.note_type.speed = 12;
+			command.note_type.volume = 15;
+			command.note_type.fade = 0;
+			commands.push_back(command);
+			command.labels.clear();
+		}
+		else if (channel_number == 3) {
+			command.type = Command_Type::NOTE_TYPE;
+			command.note_type.speed = 12;
+			command.note_type.volume = 1;
+			command.note_type.wave = 0;
+			commands.push_back(command);
+			command.labels.clear();
+		}
+		else {
+			command.type = Command_Type::TOGGLE_NOISE;
+			command.toggle_noise.drumkit = 0;
+			commands.push_back(command);
+			command.labels.clear();
+
+			command.type = Command_Type::DRUM_SPEED;
+			command.drum_speed.speed = 12;
+			commands.push_back(command);
+		}
+
+		auto insert_ticks = [channel_number](std::vector<Command> &commands, Command &command, int32_t ticks_to_insert) {
+			int32_t speed_ticks_to_insert = ticks_to_insert / 12;
+			int32_t rem_ticks_to_insert = ticks_to_insert % 12;
+
+			command.type = Command_Type::REST;
+			command.rest.length = 16;
+
+			while (speed_ticks_to_insert) {
+				if (speed_ticks_to_insert < 16) command.rest.length = speed_ticks_to_insert;
+				commands.push_back(command);
+				command.labels.clear();
+				speed_ticks_to_insert -= command.rest.length;
+			}
+			if (rem_ticks_to_insert > 0) {
+				if (channel_number == 1 || channel_number == 2) {
+					command.type = Command_Type::NOTE_TYPE;
+					command.note_type.speed = 1;
+					command.note_type.volume = 15;
+					command.note_type.fade = 0;
+				}
+				else if (channel_number == 3) {
+					command.type = Command_Type::NOTE_TYPE;
+					command.note_type.speed = 1;
+					command.note_type.volume = 1;
+					command.note_type.fade = 0;
+				}
+				else {
+					command.type = Command_Type::DRUM_SPEED;
+					command.drum_speed.speed = 1;
+				}
+				commands.push_back(command);
+				command.labels.clear();
+
+				command.type = Command_Type::REST;
+				command.rest.length = rem_ticks_to_insert;
+				commands.push_back(command);
+
+				if (channel_number == 1 || channel_number == 2) {
+					command.type = Command_Type::NOTE_TYPE;
+					command.note_type.speed = 12;
+					command.note_type.volume = 15;
+					command.note_type.fade = 0;
+				}
+				else if (channel_number == 3) {
+					command.type = Command_Type::NOTE_TYPE;
+					command.note_type.speed = 12;
+					command.note_type.volume = 1;
+					command.note_type.fade = 0;
+				}
+				else {
+					command.type = Command_Type::DRUM_SPEED;
+					command.drum_speed.speed = 12;
+				}
+				commands.push_back(command);
+			}
+		};
+
+		if (loop_tick != -1) {
+			insert_ticks(commands, command, loop_tick);
+			command.labels.insert(channel_label + ".mainLoop");
+		}
+
+		int32_t body_length = loop_tick != -1 ? end_tick - loop_tick : end_tick;
+		insert_ticks(commands, command, body_length);
+
+		if (loop_tick != -1) {
+			command.type = Command_Type::SOUND_LOOP;
+			command.target = channel_label + ".mainLoop";
+			command.sound_loop.loop_count = 0;
+			commands.push_back(command);
+		}
+		else {
+			command.type = Command_Type::SOUND_RET;
+			commands.push_back(command);
+		}
+	};
+
+	_song_name = "Music_" + options.song_name;
+	_number_of_channels = 0;
+	if (options.channel_1) {
+		_number_of_channels += 1;
+		_channel_1_label = _song_name + "_Ch1";
+		if (options.looping) _channel_1_loop_tick = options.channel_1_loop_tick;
+		_channel_1_end_tick = options.channel_1_end_tick;
+	}
+	if (options.channel_2) {
+		_number_of_channels += 1;
+		_channel_2_label = _song_name + "_Ch2";
+		if (options.looping) _channel_2_loop_tick = options.channel_2_loop_tick;
+		_channel_2_end_tick = options.channel_2_end_tick;
+	}
+	if (options.channel_3) {
+		_number_of_channels += 1;
+		_channel_3_label = _song_name + "_Ch3";
+		if (options.looping) _channel_3_loop_tick = options.channel_3_loop_tick;
+		_channel_3_end_tick = options.channel_3_end_tick;
+	}
+	if (options.channel_4) {
+		_number_of_channels += 1;
+		_channel_4_label = _song_name + "_Ch4";
+		if (options.looping) _channel_4_loop_tick = options.channel_4_loop_tick;
+		_channel_4_end_tick = options.channel_4_end_tick;
+	}
+
+	bool first_channel = true;
+	if (options.channel_1) {
+		build_channel(_channel_1_commands, _channel_1_label, 1, first_channel, _channel_1_loop_tick, _channel_1_end_tick);
+		first_channel = false;
+	}
+	if (options.channel_2) {
+		build_channel(_channel_2_commands, _channel_2_label, 2, first_channel, _channel_2_loop_tick, _channel_2_end_tick);
+		first_channel = false;
+	}
+	if (options.channel_3) {
+		build_channel(_channel_3_commands, _channel_3_label, 3, first_channel, _channel_3_loop_tick, _channel_3_end_tick);
+		first_channel = false;
+	}
+	if (options.channel_4) {
+		build_channel(_channel_4_commands, _channel_4_label, 4, first_channel, _channel_4_loop_tick, _channel_4_end_tick);
+		first_channel = false;
+	}
 
 	_mod_time = 0;
 

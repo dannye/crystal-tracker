@@ -11,6 +11,7 @@
 
 #include "widgets.h"
 #include "modal-dialog.h"
+#include "option-dialogs.h"
 #include "song.h"
 #include "piano-roll.h"
 #include "it-module.h"
@@ -118,6 +119,7 @@ private:
 	Directory_Chooser *_new_dir_chooser;
 	Fl_Native_File_Chooser *_asm_open_chooser, *_asm_save_chooser;
 	Modal_Dialog *_error_dialog, *_warning_dialog, *_success_dialog, *_unsaved_dialog, *_about_dialog;
+	Song_Options_Dialog *_song_options_dialog;
 	Help_Window *_help_window;
 	// Data
 	std::string _status_message = "Ready";

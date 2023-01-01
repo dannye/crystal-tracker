@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "command.h"
 #include "parse-song.h"
+#include "option-dialogs.h"
 
 #define MAX_HISTORY_SIZE 100
 
@@ -106,7 +107,7 @@ public:
 	void undo();
 	void redo();
 	Parsed_Song::Result read_song(const char *f);
-	void new_song();
+	void new_song(Song_Options_Dialog::Song_Options options);
 	bool write_song(const char *f);
 	const char *error_message() const { return _error_message.c_str(); }
 
