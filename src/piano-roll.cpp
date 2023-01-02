@@ -1317,6 +1317,11 @@ void Piano_Roll::build_note_view(
 				command_itr = find_note_with_label(commands, command_itr->target);
 				continue;
 			}
+			if (tick < end_tick) {
+				restarted = true;
+				command_itr = find_note_with_label(commands, command_itr->target);
+				continue;
+			}
 			break; // song is finished
 		}
 		else if (command_itr->type == Command_Type::SOUND_LOOP) {
