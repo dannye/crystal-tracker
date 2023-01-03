@@ -1070,7 +1070,6 @@ void Main_Window::toggle_playback() {
 				_it_module->set_tick(_tick);
 			}
 			_piano_roll->start_following();
-			stop_note();
 			start_audio_thread();
 			update_active_controls();
 		}
@@ -1084,7 +1083,6 @@ void Main_Window::toggle_playback() {
 	else if (_it_module->paused()) {
 		if (_it_module->ready() && _it_module->start()) {
 			_piano_roll->unpause_following();
-			stop_note();
 			start_audio_thread();
 			update_active_controls();
 		}

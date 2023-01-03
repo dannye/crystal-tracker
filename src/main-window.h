@@ -165,12 +165,15 @@ public:
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
 	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
 	void continuous_scroll(bool c) { c ? _continuous_mi->set() : _continuous_mi->clear(); _continuous_tb->value(_continuous_mi->value()); _menu_bar->update(); }
-	inline int selected_channel(void) const { return _selected_channel; }
 	bool unsaved(void) const;
 	const char *modified_filename(void);
 	int handle(int event) override;
 	void set_song_position(int32_t tick);
 	void open_song(const char *filename);
+
+	inline int selected_channel(void) const { return _selected_channel; }
+	inline Pitch playing_pitch(void) const { return _playing_pitch; }
+	inline int32_t playing_octave(void) const { return _playing_octave; }
 
 	bool play_note(Pitch pitch, int32_t octave);
 	bool stop_note();

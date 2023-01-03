@@ -180,6 +180,15 @@ class Piano_Timeline;
 class Piano_Keys : public Fl_Group {
 private:
 	std::array<Key_Box *, NUM_NOTES_PER_OCTAVE * NUM_OCTAVES> _keys;
+
+	Pitch   _channel_1_pitch = Pitch::REST;
+	int32_t _channel_1_octave = 0;
+	Pitch   _channel_2_pitch = Pitch::REST;
+	int32_t _channel_2_octave = 0;
+	Pitch   _channel_3_pitch = Pitch::REST;
+	int32_t _channel_3_octave = 0;
+	Pitch   _channel_4_pitch = Pitch::REST;
+	int32_t _channel_4_octave = 0;
 public:
 	Piano_Keys(int X, int Y, int W, int H, const char *l = nullptr);
 
@@ -192,9 +201,18 @@ public:
 	void key_labels(bool show);
 
 	void set_key_color(Pitch pitch, int32_t octave, Fl_Color color);
+	void update_key_colors();
 	void reset_key_colors();
 
 	bool find_key_below_mouse(Key_Box *&key);
+
+	inline void set_channel_1_pitch(Pitch p, int32_t o) { _channel_1_pitch = p; _channel_1_octave = o; }
+	inline void set_channel_2_pitch(Pitch p, int32_t o) { _channel_2_pitch = p; _channel_2_octave = o; }
+	inline void set_channel_3_pitch(Pitch p, int32_t o) { _channel_3_pitch = p; _channel_3_octave = o; }
+	inline void set_channel_4_pitch(Pitch p, int32_t o) { _channel_4_pitch = p; _channel_4_octave = o; }
+
+	void set_channel_pitch(int channel_number, Pitch p, int32_t o);
+	void reset_channel_pitches();
 };
 
 class Piano_Roll;
@@ -242,10 +260,10 @@ public:
 	bool select_all();
 	bool select_none();
 
-	void highlight_channel_1_tick(int32_t tick, bool muted) { highlight_tick(_channel_1_notes, tick, muted, NOTE_RED_LIGHT); }
-	void highlight_channel_2_tick(int32_t tick, bool muted) { highlight_tick(_channel_2_notes, tick, muted, NOTE_BLUE_LIGHT); }
-	void highlight_channel_3_tick(int32_t tick, bool muted) { highlight_tick(_channel_3_notes, tick, muted, NOTE_GREEN_LIGHT); }
-	void highlight_channel_4_tick(int32_t tick, bool muted) { highlight_tick(_channel_4_notes, tick, muted, NOTE_BROWN_LIGHT); }
+	void highlight_channel_1_tick(int32_t tick, bool muted) { highlight_tick(_channel_1_notes, 1, tick, muted, NOTE_RED_LIGHT); }
+	void highlight_channel_2_tick(int32_t tick, bool muted) { highlight_tick(_channel_2_notes, 2, tick, muted, NOTE_BLUE_LIGHT); }
+	void highlight_channel_3_tick(int32_t tick, bool muted) { highlight_tick(_channel_3_notes, 3, tick, muted, NOTE_GREEN_LIGHT); }
+	void highlight_channel_4_tick(int32_t tick, bool muted) { highlight_tick(_channel_4_notes, 4, tick, muted, NOTE_BROWN_LIGHT); }
 
 	void set_channel_1(const std::vector<Note_View> &notes) { set_channel(_channel_1_notes, notes, NOTE_RED); }
 	void set_channel_2(const std::vector<Note_View> &notes) { set_channel(_channel_2_notes, notes, NOTE_BLUE); }
@@ -259,7 +277,7 @@ public:
 
 	void reset_note_colors();
 private:
-	void highlight_tick(std::vector<Note_Box *> &notes, int32_t tick, bool muted, Fl_Color color);
+	void highlight_tick(std::vector<Note_Box *> &notes, int channel_number, int32_t tick, bool muted, Fl_Color color);
 	void select_note_at_tick(std::vector<Note_Box *> &notes, int32_t tick);
 	void set_channel(std::vector<Note_Box *> &channel, const std::vector<Note_View> &notes, Fl_Color color);
 	void set_channel_detailed(std::vector<Note_Box *> &notes, std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, bool detailed);

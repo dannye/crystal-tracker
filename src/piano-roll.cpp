@@ -57,24 +57,22 @@ void Call_Box::draw() {
 }
 
 int Key_Box::handle(int event) {
-	Piano_Roll *piano_roll = parent()->parent()->parent();
 	Main_Window *mw = parent()->parent()->parent()->parent();
 	Key_Box *key_below_mouse = nullptr;
 	switch (event) {
 	case FL_PUSH:
 		if (
 			Fl::event_button() == FL_LEFT_MOUSE &&
-			!piano_roll->following() && !piano_roll->paused() &&
 			mw->play_note(_pitch, _octave)
 		) {
-			color(fl_color_average(FL_FOREGROUND_COLOR, FL_BACKGROUND2_COLOR, 0.5f));
+			parent()->update_key_colors();
 			parent()->redraw();
 			return 1;
 		}
 		break;
 	case FL_RELEASE:
 		if (mw->stop_note()) {
-			parent()->reset_key_colors();
+			parent()->update_key_colors();
 			parent()->redraw();
 			return 1;
 		}
@@ -85,8 +83,7 @@ int Key_Box::handle(int event) {
 			parent()->find_key_below_mouse(key_below_mouse) &&
 			mw->play_note(key_below_mouse->_pitch, key_below_mouse->_octave)
 		) {
-			parent()->reset_key_colors();
-			key_below_mouse->color(fl_color_average(FL_FOREGROUND_COLOR, FL_BACKGROUND2_COLOR, 0.5f));
+			parent()->update_key_colors();
 			parent()->redraw();
 			return 1;
 		}
@@ -198,6 +195,28 @@ void Piano_Keys::set_key_color(Pitch pitch, int32_t octave, Fl_Color color) {
 	}
 }
 
+void Piano_Keys::update_key_colors() {
+	reset_key_colors();
+	if (_channel_1_pitch != Pitch::REST) {
+		set_key_color(_channel_1_pitch, _channel_1_octave, NOTE_RED_LIGHT);
+	}
+	if (_channel_2_pitch != Pitch::REST) {
+		set_key_color(_channel_2_pitch, _channel_2_octave, NOTE_BLUE_LIGHT);
+	}
+	if (_channel_3_pitch != Pitch::REST) {
+		set_key_color(_channel_3_pitch, _channel_3_octave, NOTE_GREEN_LIGHT);
+	}
+	if (_channel_4_pitch != Pitch::REST) {
+		set_key_color(_channel_4_pitch, _channel_4_octave, NOTE_BROWN_LIGHT);
+	}
+
+	Pitch interactive_pitch = parent()->parent()->parent()->playing_pitch();
+	int32_t interactive_octave = parent()->parent()->parent()->playing_octave();
+	if (interactive_pitch != Pitch::REST) {
+		set_key_color(interactive_pitch, interactive_octave, fl_color_average(FL_FOREGROUND_COLOR, FL_BACKGROUND2_COLOR, 0.5f));
+	}
+}
+
 void Piano_Keys::reset_key_colors() {
 	for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
 		for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
@@ -222,6 +241,30 @@ bool Piano_Keys::find_key_below_mouse(Key_Box *&key) {
 		}
 	}
 	return false;
+}
+
+void Piano_Keys::set_channel_pitch(int channel_number, Pitch p, int32_t o) {
+	assert(channel_number >= 1 && channel_number <= 4);
+	if (channel_number == 1) {
+		set_channel_1_pitch(p, o);
+	}
+	else if (channel_number == 2) {
+		set_channel_2_pitch(p, o);
+	}
+	else if (channel_number == 3) {
+		set_channel_3_pitch(p, o);
+	}
+	else {
+		set_channel_4_pitch(p, o);
+	}
+}
+
+void Piano_Keys::reset_channel_pitches() {
+	set_channel_1_pitch(Pitch::REST, 0);
+	set_channel_2_pitch(Pitch::REST, 0);
+	set_channel_3_pitch(Pitch::REST, 0);
+	set_channel_4_pitch(Pitch::REST, 0);
+	update_key_colors();
 }
 
 Piano_Timeline::Piano_Timeline(int X, int Y, int W, int H, const char *l) :
@@ -401,7 +444,10 @@ void Piano_Timeline::calc_sizes() {
 int Piano_Timeline::handle(int event) {
 	switch (event) {
 	case FL_PUSH:
-		if (parent()->handle_mouse_click(event)) {
+		if (
+			!Fl::event_inside(&_keys) &&
+			parent()->handle_mouse_click(event)
+		) {
 			return 1;
 		}
 		if (
@@ -546,7 +592,8 @@ void Piano_Timeline::reset_note_colors() {
 	}
 }
 
-void Piano_Timeline::highlight_tick(std::vector<Note_Box *> &notes, int32_t tick, bool muted, Fl_Color color) {
+void Piano_Timeline::highlight_tick(std::vector<Note_Box *> &notes, int channel_number, int32_t tick, bool muted, Fl_Color color) {
+	_keys.set_channel_pitch(channel_number, Pitch::REST, 0);
 	for (Note_Box *note : notes) {
 		const Note_View &view = note->note_view();
 		int32_t t_left = note->tick();
@@ -555,7 +602,7 @@ void Piano_Timeline::highlight_tick(std::vector<Note_Box *> &notes, int32_t tick
 			return;
 		}
 		if (t_right > tick && !muted) {
-			_keys.set_key_color(view.pitch, view.octave, color);
+			_keys.set_channel_pitch(channel_number, view.pitch, view.octave);
 		}
 		if (note->color() != color) {
 			note->color(color);
@@ -1517,7 +1564,7 @@ void Piano_Roll::align_cursor() {
 void Piano_Roll::clear() {
 	_piano_timeline.clear();
 	_piano_timeline.w(w() - scrollbar.w());
-	_piano_timeline._keys.reset_key_colors();
+	_piano_timeline._keys.reset_channel_pitches();
 	scroll_to(0, yposition());
 	sticky_keys();
 	_following = false;
@@ -1544,7 +1591,7 @@ void Piano_Roll::start_following() {
 	_following = true;
 	_paused = false;
 	_piano_timeline.reset_note_colors();
-	_piano_timeline._keys.reset_key_colors();
+	_piano_timeline._keys.reset_channel_pitches();
 	if (_tick == -1) {
 		scroll_to(0, yposition());
 		sticky_keys();
@@ -1562,7 +1609,7 @@ void Piano_Roll::stop_following() {
 	_paused = false;
 	_tick = -1;
 	_piano_timeline.reset_note_colors();
-	_piano_timeline._keys.reset_key_colors();
+	_piano_timeline._keys.reset_channel_pitches();
 	redraw();
 }
 
@@ -1577,13 +1624,12 @@ void Piano_Roll::highlight_tick(int32_t t) {
 
 	int scroll_x_before = xposition();
 
-	_piano_timeline._keys.reset_key_colors();
-	_piano_timeline._keys.redraw();
-
 	_piano_timeline.highlight_channel_1_tick(_tick, _channel_1_muted);
 	_piano_timeline.highlight_channel_2_tick(_tick, _channel_2_muted);
 	_piano_timeline.highlight_channel_3_tick(_tick, _channel_3_muted);
 	_piano_timeline.highlight_channel_4_tick(_tick, _channel_4_muted);
+	_piano_timeline._keys.update_key_colors();
+	_piano_timeline._keys.redraw();
 
 	focus_cursor();
 	if (
