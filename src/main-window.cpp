@@ -752,14 +752,38 @@ void Main_Window::update_active_controls() {
 			_split_note_mi->deactivate();
 			_glue_note_mi->deactivate();
 		}
-		_channel_1_mi->activate();
-		_channel_1_tb->activate();
-		_channel_2_mi->activate();
-		_channel_2_tb->activate();
-		_channel_3_mi->activate();
-		_channel_3_tb->activate();
-		_channel_4_mi->activate();
-		_channel_4_tb->activate();
+		if (_song.channel_1_end_tick() != -1) {
+			_channel_1_mi->activate();
+			_channel_1_tb->activate();
+		}
+		else {
+			_channel_1_mi->deactivate();
+			_channel_1_tb->deactivate();
+		}
+		if (_song.channel_2_end_tick() != -1) {
+			_channel_2_mi->activate();
+			_channel_2_tb->activate();
+		}
+		else {
+			_channel_2_mi->deactivate();
+			_channel_2_tb->deactivate();
+		}
+		if (_song.channel_3_end_tick() != -1) {
+			_channel_3_mi->activate();
+			_channel_3_tb->activate();
+		}
+		else {
+			_channel_3_mi->deactivate();
+			_channel_3_tb->deactivate();
+		}
+		if (_song.channel_4_end_tick() != -1) {
+			_channel_4_mi->activate();
+			_channel_4_tb->activate();
+		}
+		else {
+			_channel_4_mi->deactivate();
+			_channel_4_tb->deactivate();
+		}
 		_next_channel_mi->activate();
 		_previous_channel_mi->activate();
 	}
@@ -1828,17 +1852,21 @@ void Main_Window::channel_4_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::next_channel_cb(Fl_Widget *, Main_Window *mw) {
-	mw->selected_channel(mw->selected_channel() % 4 + 1);
+	do {
+		mw->selected_channel(mw->selected_channel() % 4 + 1);
+	} while (mw->_song.channel_end_tick(mw->selected_channel()) == -1);
 	mw->sync_channel_buttons();
 }
 
 void Main_Window::previous_channel_cb(Fl_Widget *, Main_Window *mw) {
-	if (mw->selected_channel() == 0) {
-		mw->selected_channel(4);
-	}
-	else {
-		mw->selected_channel((mw->selected_channel() + 2) % 4 + 1);
-	}
+	do {
+		if (mw->selected_channel() == 0) {
+			mw->selected_channel(4);
+		}
+		else {
+			mw->selected_channel((mw->selected_channel() + 2) % 4 + 1);
+		}
+	} while (mw->_song.channel_end_tick(mw->selected_channel()) == -1);
 	mw->sync_channel_buttons();
 }
 
