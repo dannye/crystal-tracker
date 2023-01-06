@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
 	if (cocoa_is_dark_mode()) default_theme = OS::Theme::DARK;
 	OS::Theme theme = (OS::Theme)Preferences::get("theme", (int)default_theme);
 #else
-	OS::Theme theme = (OS::Theme)Preferences::get("theme", (int)OS::Theme::METRO);
+	OS::Theme theme = (OS::Theme)Preferences::get("theme", (int)OS::Theme::GREYBIRD);
 #endif
 	use_theme(theme);
 
