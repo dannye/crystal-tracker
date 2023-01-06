@@ -36,6 +36,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	// Get global configs
 	int loop_config = Preferences::get("loop", 1);
+	int ruler_config = Preferences::get("ruler", 0);
 	int zoom_config = Preferences::get("zoom", 0);
 	int key_labels_config = Preferences::get("key_labels", 0);
 
@@ -99,6 +100,14 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_status_bar->end();
 	begin();
 
+	// Ruler
+	int rs = Fl::scrollbar_size();
+	_ruler = new Ruler(wx, wy, ww, rs);
+	if (ruler_config) {
+		wy += _ruler->h();
+		wh -= _ruler->h();
+	}
+
 	// Piano Roll
 	_piano_roll = new Piano_Roll(wx, wy, ww, wh);
 
@@ -127,6 +136,13 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	XpmCreatePixmapFromData(fl_display, DefaultRootWindow(fl_display), (char **)&APP_ICON_XPM, &_icon_pixmap, &_icon_mask, NULL);
 	icon((const void *)_icon_pixmap);
 #endif
+
+	// Configure ruler
+	_ruler->user_data(this);
+	if (!ruler_config) {
+		_ruler->hide();
+	}
+	_piano_roll->add_correlate(_ruler);
 
 	// Configure menu bar
 	_menu_bar->box(OS_PANEL_THIN_UP_BOX);
@@ -233,6 +249,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("&High Contrast", 0, (Fl_Callback *)high_contrast_theme_cb, this,
 			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::HIGH_CONTRAST ? FL_MENU_VALUE : 0)),
 		{},
+		OS_MENU_ITEM("&Ruler", FL_COMMAND + 'R', (Fl_Callback *)ruler_cb, this,
+			FL_MENU_TOGGLE | (ruler_config ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("&Zoom", FL_COMMAND + '=', (Fl_Callback *)zoom_cb, this,
 			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (zoom_config ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Decrease Spacing", FL_SHIFT + '-', (Fl_Callback *)decrease_spacing_cb, this, 0),
@@ -287,6 +305,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_2_mute_mi = CT_FIND_MENU_ITEM_CB(channel_2_mute_cb);
 	_channel_3_mute_mi = CT_FIND_MENU_ITEM_CB(channel_3_mute_cb);
 	_channel_4_mute_mi = CT_FIND_MENU_ITEM_CB(channel_4_mute_cb);
+	_ruler_mi = CT_FIND_MENU_ITEM_CB(ruler_cb);
 	_zoom_mi = CT_FIND_MENU_ITEM_CB(zoom_cb);
 	_key_labels_mi = CT_FIND_MENU_ITEM_CB(key_labels_cb);
 	_full_screen_mi = CT_FIND_MENU_ITEM_CB(full_screen_cb);
@@ -462,7 +481,6 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	update_zoom();
 
 	_piano_roll->key_labels(key_labels());
-
 	_piano_roll->scroll_to_y_max();
 
 	start_interactive_thread();
@@ -475,6 +493,7 @@ Main_Window::~Main_Window() {
 	delete _menu_bar; // includes menu items
 	delete _toolbar; // includes toolbar buttons
 	delete _status_bar; // includes status bar fields
+	delete _ruler;
 	delete _piano_roll;
 	delete _new_dir_chooser;
 	delete _asm_open_chooser;
@@ -497,10 +516,12 @@ void Main_Window::show() {
 
 void Main_Window::resize(int X, int Y, int W, int H) {
 	Fl_Double_Window::resize(X, Y, W, H);
-	_menu_bar->resize(0, 0, W, _menu_bar->h());
-	_toolbar->resize(0, _menu_bar->h(), W, _toolbar->h());
-	_piano_roll->set_size(W, H - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - STATUS_BAR_HEIGHT);
-	_status_bar->resize(0, H - STATUS_BAR_HEIGHT, W, _status_bar->h());
+	_menu_bar->size(W, MENU_BAR_HEIGHT);
+	_toolbar->size(W, TOOLBAR_HEIGHT);
+	_ruler->size(W, Fl::scrollbar_size());
+	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (ruler() ? Fl::scrollbar_size() : 0));
+	_piano_roll->set_size(W, H - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT);
+	_status_bar->resize(0, H - STATUS_BAR_HEIGHT, W, STATUS_BAR_HEIGHT);
 }
 
 bool Main_Window::maximized() const {
@@ -1187,13 +1208,29 @@ void Main_Window::update_icons() {
 	make_deimage(_increase_spacing_tb);
 }
 
+void Main_Window::update_ruler() {
+	if (ruler()) {
+		_ruler->show();
+	}
+	else {
+		_ruler->hide();
+	}
+	update_layout();
+}
+
 void Main_Window::update_zoom() {
 	_piano_roll->zoom(zoom());
+	update_layout();
+}
+
+void Main_Window::update_layout() {
+	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (ruler() ? Fl::scrollbar_size() : 0));
+	_piano_roll->set_size(w(), h() - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT);
 	size_range(
-		WHITE_KEY_WIDTH * 3 + 15,
-		_piano_roll->octave_height() + MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + STATUS_BAR_HEIGHT + 15,
+		WHITE_KEY_WIDTH * 3 + Fl::scrollbar_size(),
+		MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (ruler() ? Fl::scrollbar_size() : 0) + _piano_roll->octave_height() + Fl::scrollbar_size() + STATUS_BAR_HEIGHT,
 		0,
-		_piano_roll->octave_height() * NUM_OCTAVES + MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + STATUS_BAR_HEIGHT + 15
+		MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (ruler() ? Fl::scrollbar_size() : 0) + _piano_roll->octave_height() * NUM_OCTAVES + Fl::scrollbar_size() + STATUS_BAR_HEIGHT
 	);
 }
 
@@ -1442,6 +1479,7 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 	}
 	Preferences::set("maximized", mw->maximized());
 	Preferences::set("loop", mw->loop());
+	Preferences::set("ruler", mw->ruler());
 	Preferences::set("zoom", mw->zoom());
 	Preferences::set("key_labels", mw->key_labels());
 	for (int i = 0; i < NUM_RECENT; i++) {
@@ -2045,6 +2083,11 @@ void Main_Window::high_contrast_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::update_macos_appearance(mw);
 	mw->_high_contrast_theme_mi->setonly();
 	mw->update_icons();
+	mw->redraw();
+}
+
+void Main_Window::ruler_cb(Fl_Widget *, Main_Window *mw) {
+	mw->update_ruler();
 	mw->redraw();
 }
 

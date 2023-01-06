@@ -56,20 +56,20 @@ public:
 		Result result;
 	};
 private:
-	Fl_Input *_song_name = nullptr;
+	OS_Input *_song_name = nullptr;
 	OS_Check_Button *_looping_checkbox = nullptr;
 	OS_Check_Button *_channel_1_checkbox = nullptr;
 	OS_Check_Button *_channel_2_checkbox = nullptr;
 	OS_Check_Button *_channel_3_checkbox = nullptr;
 	OS_Check_Button *_channel_4_checkbox = nullptr;
-	Fl_Int_Input *_channel_1_loop_tick = nullptr;
-	Fl_Int_Input *_channel_2_loop_tick = nullptr;
-	Fl_Int_Input *_channel_3_loop_tick = nullptr;
-	Fl_Int_Input *_channel_4_loop_tick = nullptr;
-	Fl_Int_Input *_channel_1_end_tick = nullptr;
-	Fl_Int_Input *_channel_2_end_tick = nullptr;
-	Fl_Int_Input *_channel_3_end_tick = nullptr;
-	Fl_Int_Input *_channel_4_end_tick = nullptr;
+	OS_Int_Input *_channel_1_loop_tick = nullptr;
+	OS_Int_Input *_channel_2_loop_tick = nullptr;
+	OS_Int_Input *_channel_3_loop_tick = nullptr;
+	OS_Int_Input *_channel_4_loop_tick = nullptr;
+	OS_Int_Input *_channel_1_end_tick = nullptr;
+	OS_Int_Input *_channel_2_end_tick = nullptr;
+	OS_Int_Input *_channel_3_end_tick = nullptr;
+	OS_Int_Input *_channel_4_end_tick = nullptr;
 	OS_Check_Button *_synchronize_checkbox = nullptr;
 public:
 	Song_Options_Dialog(const char *t);
@@ -82,8 +82,8 @@ protected:
 private:
 	static void looping_checkbox_cb(OS_Check_Button *c, Song_Options_Dialog *sod);
 	static void channel_checkbox_cb(OS_Check_Button *c, Song_Options_Dialog *sod);
-	static void channel_loop_tick_cb(Fl_Int_Input *i, Song_Options_Dialog *sod);
-	static void channel_end_tick_cb(Fl_Int_Input *i, Song_Options_Dialog *sod);
+	static void channel_loop_tick_cb(OS_Int_Input *i, Song_Options_Dialog *sod);
+	static void channel_end_tick_cb(OS_Int_Input *i, Song_Options_Dialog *sod);
 	static void synchronize_checkbox_cb(OS_Check_Button *c, Song_Options_Dialog *sod);
 };
 

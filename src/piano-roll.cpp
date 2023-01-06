@@ -852,7 +852,7 @@ void Piano_Timeline::draw() {
 }
 
 Piano_Roll::Piano_Roll(int X, int Y, int W, int H, const char *l) :
-	Fl_Scroll(X, Y, W, H, l),
+	OS_Scroll(X, Y, W, H, l),
 	_piano_timeline(X, Y, W - scrollbar.w(), NUM_OCTAVES * octave_height())
 {
 	type(BOTH_ALWAYS);
@@ -967,7 +967,7 @@ int Piano_Roll::handle(int event) {
 		}
 		break;
 	}
-	return Fl_Scroll::handle(event);
+	return OS_Scroll::handle(event);
 }
 
 bool Piano_Roll::handle_mouse_click(int event) {
@@ -1655,6 +1655,13 @@ void Piano_Roll::sticky_keys() {
 
 void Piano_Roll::scroll_to_y_max() {
 	scroll_to(xposition(), scroll_y_max());
+}
+
+void Piano_Roll::scroll_to(int X, int Y) {
+	OS_Scroll::scroll_to(X, Y);
+	for (Fl_Widget *wgt : _correlates) {
+		wgt->damage(1);
+	}
 }
 
 int Piano_Roll::scroll_x_max() const {

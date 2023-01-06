@@ -8,11 +8,11 @@
 #pragma warning(push, 0)
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Group.H>
-#include <FL/Fl_Scroll.H>
 #pragma warning(pop)
 
 #include "command.h"
 #include "song.h"
+#include "widgets.h"
 
 const Fl_Color NOTE_RED   = fl_rgb_color(217,   0,   0);
 const Fl_Color NOTE_BLUE  = fl_rgb_color(  0, 117, 253);
@@ -289,7 +289,7 @@ protected:
 
 class Main_Window;
 
-class Piano_Roll : public Fl_Scroll {
+class Piano_Roll : public OS_Scroll {
 private:
 	int32_t _tick = -1;
 	bool _following = false;
@@ -319,6 +319,8 @@ private:
 	int32_t _channel_4_end_tick = -1;
 
 	int32_t _song_length = -1;
+
+	std::vector<Fl_Widget *> _correlates;
 public:
 	Piano_Roll(int X, int Y, int W, int H, const char *l = nullptr);
 	~Piano_Roll() noexcept;
@@ -326,7 +328,10 @@ public:
 	Piano_Roll(const Piano_Roll&) = delete;
 	Piano_Roll& operator=(const Piano_Roll&) = delete;
 
-	Main_Window *parent() const { return (Main_Window *)Fl_Scroll::parent(); }
+	inline void add_correlate(Fl_Widget *wgt) { _correlates.push_back(wgt); }
+	inline void clear_correlates(void) { _correlates.clear(); }
+
+	Main_Window *parent() const { return (Main_Window *)OS_Scroll::parent(); }
 	inline int selected_channel() const;
 
 	inline int32_t tick(void) const { return _tick; }
@@ -409,6 +414,7 @@ public:
 	void sticky_keys();
 
 	void scroll_to_y_max();
+	void scroll_to(int X, int Y);
 
 	int scroll_x_max() const;
 	int scroll_y_max() const;

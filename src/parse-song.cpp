@@ -667,7 +667,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				}
 
 				else if (macro == "pitch_slide") {
-					if (_channel_number != 1) {
+					if (_channel_number == 4) {
 						return (_result = Result::SONG_ILLEGAL_MACRO);
 					}
 					command.type = Command_Type::PITCH_SLIDE;

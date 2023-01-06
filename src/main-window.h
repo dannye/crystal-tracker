@@ -12,6 +12,7 @@
 #include "widgets.h"
 #include "modal-dialog.h"
 #include "option-dialogs.h"
+#include "ruler.h"
 #include "song.h"
 #include "piano-roll.h"
 #include "it-module.h"
@@ -50,6 +51,7 @@ private:
 		*_channel_2_mute_mi = NULL,
 		*_channel_3_mute_mi = NULL,
 		*_channel_4_mute_mi = NULL,
+		*_ruler_mi = NULL,
 		*_zoom_mi = NULL,
 		*_key_labels_mi = NULL,
 		*_full_screen_mi = NULL;
@@ -77,6 +79,7 @@ private:
 		*_decrease_spacing_tb = NULL,
 		*_increase_spacing_tb = NULL;
 	// GUI outputs
+	Ruler *_ruler;
 	Piano_Roll *_piano_roll = NULL;
 	Label *_status_label;
 	// Conditional menu items
@@ -155,16 +158,19 @@ public:
 	void resize(int X, int Y, int W, int H) override;
 	bool maximized(void) const;
 	void maximize(void);
+	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
 	inline bool continuous_scroll(void) const { return _continuous_mi && !!_continuous_mi->value(); }
 	inline bool channel_1_muted(void) const { return _channel_1_mute_mi && !!_channel_1_mute_mi->value(); }
 	inline bool channel_2_muted(void) const { return _channel_2_mute_mi && !!_channel_2_mute_mi->value(); }
 	inline bool channel_3_muted(void) const { return _channel_3_mute_mi && !!_channel_3_mute_mi->value(); }
 	inline bool channel_4_muted(void) const { return _channel_4_mute_mi && !!_channel_4_mute_mi->value(); }
+	inline bool ruler(void) const { return _ruler_mi && !!_ruler_mi->value(); }
 	inline bool zoom(void) const { return _zoom_mi && !!_zoom_mi->value(); }
 	inline bool key_labels(void) const { return _key_labels_mi && !!_key_labels_mi->value(); }
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
-	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
-	void continuous_scroll(bool c) { c ? _continuous_mi->set() : _continuous_mi->clear(); _continuous_tb->value(_continuous_mi->value()); _menu_bar->update(); }
+	inline void continuous_scroll(bool c) { c ? _continuous_mi->set() : _continuous_mi->clear(); _continuous_tb->value(_continuous_mi->value()); _menu_bar->update(); }
+	inline int song_scroll_x(void) const { return _piano_roll->xposition(); }
+	inline int song_ticks_per_step(void) const { return _piano_roll->ticks_per_step(); }
 	bool unsaved(void) const;
 	const char *modified_filename(void);
 	int handle(int event) override;
@@ -194,7 +200,9 @@ private:
 	void start_interactive_thread();
 	void stop_interactive_thread();
 	void update_icons(void);
+	void update_ruler(void);
 	void update_zoom(void);
+	void update_layout(void);
 	// File menu
 	static void new_cb(Fl_Widget *w, Main_Window *mw);
 	static void open_cb(Fl_Widget *w, Main_Window *mw);
@@ -255,6 +263,7 @@ private:
 	static void dark_theme_cb(Fl_Widget *w, Main_Window *mw);
 	static void brushed_metal_theme_cb(Fl_Widget *w, Main_Window *mw);
 	static void high_contrast_theme_cb(Fl_Widget *w, Main_Window *mw);
+	static void ruler_cb(Fl_Widget *w, Main_Window *mw);
 	static void zoom_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void decrease_spacing_cb(Fl_Widget *w, Main_Window *mw);
 	static void increase_spacing_cb(Fl_Widget *w, Main_Window *mw);

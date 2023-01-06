@@ -161,20 +161,20 @@ const char *Song_Options_Dialog::get_error_message(Result r) {
 
 void Song_Options_Dialog::initialize_content() {
 	// Populate content group
-	_song_name = new Fl_Input(0, 0, 0, 0, "Title:");
+	_song_name = new OS_Input(0, 0, 0, 0, "Title:");
 	_looping_checkbox = new OS_Check_Button(0, 0, 0, 0, "&Looping");
 	_channel_1_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel &1");
 	_channel_2_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel &2");
 	_channel_3_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel &3");
 	_channel_4_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel &4");
-	_channel_1_loop_tick = new Fl_Int_Input(0, 0, 0, 0, "Loop Tick:");
-	_channel_2_loop_tick = new Fl_Int_Input(0, 0, 0, 0, "Loop Tick:");
-	_channel_3_loop_tick = new Fl_Int_Input(0, 0, 0, 0, "Loop Tick:");
-	_channel_4_loop_tick = new Fl_Int_Input(0, 0, 0, 0, "Loop Tick:");
-	_channel_1_end_tick = new Fl_Int_Input(0, 0, 0, 0, "End Tick:");
-	_channel_2_end_tick = new Fl_Int_Input(0, 0, 0, 0, "End Tick:");
-	_channel_3_end_tick = new Fl_Int_Input(0, 0, 0, 0, "End Tick:");
-	_channel_4_end_tick = new Fl_Int_Input(0, 0, 0, 0, "End Tick:");
+	_channel_1_loop_tick = new OS_Int_Input(0, 0, 0, 0, "Loop Tick:");
+	_channel_2_loop_tick = new OS_Int_Input(0, 0, 0, 0, "Loop Tick:");
+	_channel_3_loop_tick = new OS_Int_Input(0, 0, 0, 0, "Loop Tick:");
+	_channel_4_loop_tick = new OS_Int_Input(0, 0, 0, 0, "Loop Tick:");
+	_channel_1_end_tick = new OS_Int_Input(0, 0, 0, 0, "End Tick:");
+	_channel_2_end_tick = new OS_Int_Input(0, 0, 0, 0, "End Tick:");
+	_channel_3_end_tick = new OS_Int_Input(0, 0, 0, 0, "End Tick:");
+	_channel_4_end_tick = new OS_Int_Input(0, 0, 0, 0, "End Tick:");
 	_synchronize_checkbox = new OS_Check_Button(0, 0, 0, 0, "&Synchronize Channels");
 	// Initialize content group's children
 	_song_name->align(FL_ALIGN_LEFT);
@@ -419,7 +419,7 @@ void Song_Options_Dialog::channel_checkbox_cb(OS_Check_Button *c, Song_Options_D
 	}
 }
 
-void Song_Options_Dialog::channel_loop_tick_cb(Fl_Int_Input *i, Song_Options_Dialog *sod) {
+void Song_Options_Dialog::channel_loop_tick_cb(OS_Int_Input *i, Song_Options_Dialog *sod) {
 	if (!i->active()) return;
 	if (
 		(strlen(i->value()) == 0 && Fl::focus() != i) ||
@@ -444,7 +444,7 @@ void Song_Options_Dialog::channel_loop_tick_cb(Fl_Int_Input *i, Song_Options_Dia
 	}
 }
 
-void Song_Options_Dialog::channel_end_tick_cb(Fl_Int_Input *i, Song_Options_Dialog *sod) {
+void Song_Options_Dialog::channel_end_tick_cb(OS_Int_Input *i, Song_Options_Dialog *sod) {
 	if (!i->active()) return;
 	if (
 		(strlen(i->value()) == 0 && Fl::focus() != i) ||
