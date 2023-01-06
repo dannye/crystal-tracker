@@ -26,12 +26,12 @@ void Ruler::draw() {
 	fl_color(fl_color_average(FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR, 0.4f));
 	fl_xyline(X, Y+H-1, X+W-1);
 	// tick marks and labels
-	int o = S*2 - WHITE_KEY_WIDTH;
 	int mx = mw->song_scroll_x();
-	int r = mx % s;
 	// tick marks
-	int d = ((mx / s) % 2 == 0) ? 0 : H / 2;
-	for (int i = S-r-1; i < W + o; i += s, d = d ? 0 : H / 2) {
+	int o = s * 4 - WHITE_KEY_WIDTH;
+	int r = mx % s;
+	int d = ((mx / s) % 2) ? 0 : H / 2;
+	for (int i = s-r-1; i < W + o; i += s, d = d ? 0 : H / 2) {
 		fl_yxline(X+i - o, Y+d, Y+H-1);
 	}
 	// labels
@@ -39,11 +39,12 @@ void Ruler::draw() {
 	fl_font(FL_COURIER, 12);
 	fl_color(FL_FOREGROUND_COLOR);
 	fl_push_clip(X, Y, W, H);
-	int n = mx / S - 1;
-	r = mx % S;
-	for (int i = S-r-1; i < W+S + o; i += S, n++) {
+	int O = S - WHITE_KEY_WIDTH;
+	int R = mx % S;
+	int n = mx / S;
+	for (int i = S-R-1; i < W+S + O; i += S, n++) {
 		print_tick_label(t, n);
-		fl_draw(t, X+i-S+1 - o, Y, S-2, H, FL_ALIGN_BOTTOM_RIGHT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
+		fl_draw(t, X+i-S+1 - O, Y, S-2, H, FL_ALIGN_BOTTOM_RIGHT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
 	}
 	fl_pop_clip();
 }
