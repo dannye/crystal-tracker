@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 #include <cstdio>
 #include <fstream>
@@ -8,7 +9,7 @@
 
 std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, std::string label) {
 	for (auto command_itr = commands.begin(); command_itr != commands.end(); ++command_itr) {
-		if (command_itr->labels.count(label) > 0) {
+		if (std::count(RANGE(command_itr->labels), label) > 0) {
 			return command_itr;
 		}
 	}
@@ -315,7 +316,7 @@ Parsed_Song::Result Song::read_song(const char *f) {
 void Song::new_song(Song_Options_Dialog::Song_Options options) {
 	auto build_channel = [](std::vector<Command> &commands, const std::string &channel_label, int channel_number, bool first_channel, int32_t loop_tick, int32_t end_tick) {
 		Command command;
-		command.labels.insert(channel_label);
+		command.labels.push_back(channel_label);
 
 		if (first_channel) {
 			command.type = Command_Type::TEMPO;
@@ -414,7 +415,7 @@ void Song::new_song(Song_Options_Dialog::Song_Options options) {
 
 		if (loop_tick != -1) {
 			insert_ticks(commands, command, loop_tick);
-			command.labels.insert(channel_label + ".mainLoop");
+			command.labels.push_back(channel_label + ".mainLoop");
 		}
 
 		int32_t body_length = loop_tick != -1 ? end_tick - loop_tick : end_tick;
@@ -563,6 +564,7 @@ void postprocess(std::vector<Command> &commands) {
 					}
 					else {
 						commands[rest_index].rest.length = commands[rest_index].rest.length + commands[i].rest.length;
+						assert(commands[i].labels.size() == 0);
 						commands.erase(commands.begin() + i);
 						i -= 1;
 
@@ -577,6 +579,7 @@ void postprocess(std::vector<Command> &commands) {
 				if (octave_index == -1) {
 					if (view.octave == commands[i].octave.octave) {
 						deleted = true;
+						assert(commands[i].labels.size() == 0);
 						commands.erase(commands.begin() + i);
 						i -= 1;
 					}
@@ -587,8 +590,7 @@ void postprocess(std::vector<Command> &commands) {
 				}
 				else {
 					deleted = true;
-					// TODO: these label's order is probably not being preserved...
-					commands[octave_index + 1].labels.insert(commands[octave_index].labels.begin(), commands[octave_index].labels.end());
+					commands[octave_index + 1].labels.insert(commands[octave_index + 1].labels.begin(), RANGE(commands[octave_index].labels));
 					commands.erase(commands.begin() + octave_index);
 					i -= 1;
 					if (rest_index > octave_index) {
@@ -670,6 +672,7 @@ void Song::pitch_up(const int selected_channel, const std::set<int32_t> &selecte
 
 			command.octave.octave = note_view.octave + 1;
 			command.labels = std::move(commands[*note_itr].labels);
+			commands[*note_itr].labels.clear();
 			commands.insert(commands.begin() + *note_itr, command);
 		}
 		else {
@@ -697,6 +700,7 @@ void Song::pitch_down(const int selected_channel, const std::set<int32_t> &selec
 
 			command.octave.octave = note_view.octave - 1;
 			command.labels = std::move(commands[*note_itr].labels);
+			commands[*note_itr].labels.clear();
 			commands.insert(commands.begin() + *note_itr, command);
 		}
 		else {
@@ -721,6 +725,7 @@ void Song::octave_up(const int selected_channel, const std::set<int32_t> &select
 
 		command.octave.octave = note_view.octave + 1;
 		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
@@ -741,6 +746,7 @@ void Song::octave_down(const int selected_channel, const std::set<int32_t> &sele
 
 		command.octave.octave = note_view.octave - 1;
 		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
@@ -757,6 +763,7 @@ void Song::move_left(const int selected_channel, const std::set<int32_t> &select
 
 	for (auto note_itr = selected_notes.begin(); note_itr != selected_notes.end(); ++note_itr) {
 		auto command_itr = commands.rbegin() + (commands.size() - 1 - (*note_itr + offset));
+		assert(commands[*note_itr + offset].labels.size() == 0);
 
 		const auto find_preceding_rest = [&](decltype(command_itr) itr) {
 			++itr;
@@ -776,8 +783,7 @@ void Song::move_left(const int selected_channel, const std::set<int32_t> &select
 		command.rest.length = 1;
 		commands.insert(commands.begin() + (*note_itr + offset) + 1, command);
 		if (commands[rest_index].rest.length == 1) {
-			// TODO: these label's order is probably not being preserved...
-			commands[rest_index + 1].labels.insert(commands[rest_index].labels.begin(), commands[rest_index].labels.end());
+			commands[rest_index + 1].labels.insert(commands[rest_index + 1].labels.begin(), RANGE(commands[rest_index].labels));
 			commands.erase(commands.begin() + rest_index);
 		}
 		else {
@@ -823,6 +829,7 @@ void Song::move_right(const int selected_channel, const std::set<int32_t> &selec
 		// TODO: this potentially puts a rest between note settings and note which is maybe not ideal?
 		Command command = Command(Command_Type::REST);
 		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
 		command.rest.length = 1;
 		commands.insert(commands.begin() + *note_itr, command);
 	}
@@ -903,8 +910,7 @@ void Song::snip_selection(const int selected_channel, const std::set<int32_t> &s
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
-		// TODO: these label's order is probably not being preserved...
-		commands[*note_itr + 1].labels.insert(commands[*note_itr].labels.begin(), commands[*note_itr].labels.end());
+		commands[*note_itr + 1].labels.insert(commands[*note_itr + 1].labels.begin(), RANGE(commands[*note_itr].labels));
 		commands.erase(commands.begin() + *note_itr);
 	}
 

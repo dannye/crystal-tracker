@@ -1,7 +1,7 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
-#include <set>
+#include <vector>
 #include <string>
 
 enum class Pitch {
@@ -296,7 +296,7 @@ struct Command {
 	};
 
 	Command_Type type;
-	std::set<std::string> labels;
+	std::vector<std::string> labels;
 	std::string target;
 	union {
 		Note note = {};
@@ -337,7 +337,7 @@ struct Command {
 	}
 	Command(Command_Type t, const std::string& label) {
 		type = t;
-		labels.insert(label);
+		labels.push_back(label);
 	}
 };
 

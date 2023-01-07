@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -281,7 +282,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 
 	std::set<std::string> visited_labels;
 	std::set<std::string> unvisited_labels;
-	std::set<std::string> buffered_labels;
+	std::vector<std::string> buffered_labels;
 
 	while (ifs.good()) {
 		std::string line;
@@ -397,7 +398,9 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 			else {
 				current_scope = label;
 			}
-			buffered_labels.insert(label);
+			if (!std::count(RANGE(buffered_labels), label)) {
+				buffered_labels.push_back(label);
+			}
 			if (label == _label) {
 				for (const std::string &l : buffered_labels) {
 					visited_labels.insert(l);
@@ -420,7 +423,9 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				else {
 					current_scope = label;
 				}
-				buffered_labels.insert(label);
+				if (!std::count(RANGE(buffered_labels), label)) {
+					buffered_labels.push_back(label);
+				}
 				if (visited_labels.count(label)) {
 					Command jump_command(Command_Type::SOUND_JUMP);
 					jump_command.target = label;
@@ -440,6 +445,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				}
 				Command command;
 				command.labels = std::move(buffered_labels);
+				buffered_labels.clear();
 				if (macro == "note") {
 					if (_channel_number == 4) {
 						return (_result = Result::SONG_ILLEGAL_MACRO);

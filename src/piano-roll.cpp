@@ -1221,7 +1221,7 @@ void Piano_Roll::build_note_view(
 			loop_targets.insert(command.target);
 		}
 	}
-	const auto is_loop_target = [&](const std::set<std::string> &labels) {
+	const auto is_loop_target = [&](const std::vector<std::string> &labels) {
 		for (const std::string &label : labels) {
 			if (loop_targets.count(label) > 0) {
 				return true;
