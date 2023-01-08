@@ -311,6 +311,32 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 	int32_t loop_tick,
 	bool inline_waves
 ) {
+	const uint8_t CHANNEL = 0x80;
+	const uint8_t CH1 = 1;
+	const uint8_t CH2 = 2;
+	const uint8_t CH3 = 3;
+	const uint8_t CH4 = 4;
+	const uint8_t CH5 = 5;
+	const uint8_t CH6 = 6;
+	const uint8_t CH7 = 7;
+
+	const uint8_t NOTE    = 1;
+	const uint8_t SAMPLE  = 2;
+	const uint8_t VOLUME  = 4;
+	const uint8_t COMMAND = 8;
+
+	const uint8_t PATTERN_JUMP = 0x02;
+	const uint8_t ROW_JUMP     = 0x03;
+	const uint8_t FADE         = 0x04;
+	const uint8_t VIBRATO      = 0x08;
+	const uint8_t FADE_VIBRATO = 0x0b;
+	const uint8_t TEMPO        = 0x14;
+
+	const uint8_t CUT = 0xfe;
+
+	const uint8_t FINE_DECREASE = 0xf0;
+	const uint8_t FINE_INCREASE = 0x0f;
+
 	std::vector<std::vector<uint8_t>> patterns;
 
 	auto channel_1_itr = channel_1_notes.begin();
@@ -372,45 +398,45 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				channel_1_note_length = channel_1_itr->length * channel_1_itr->speed - 1;
 				channel_1_note_duration = 0;
 				if (channel_1_itr->tempo != channel_1_prev_note.tempo) {
-					pattern_data.push_back(0x85);
-					pattern_data.push_back(0x08); // command
-					pattern_data.push_back(0x14); // tempo
+					pattern_data.push_back(CHANNEL + CH5);
+					pattern_data.push_back(COMMAND);
+					pattern_data.push_back(TEMPO);
 					pattern_data.push_back(convert_tempo(channel_1_itr->tempo));
 				}
 				if (channel_1_itr->pitch != Pitch::REST) {
-					pattern_data.push_back(0x81);
-					pattern_data.push_back(0x07); // note + sample + volume
-					pattern_data.push_back(channel_1_itr->octave * 12 + (uint32_t)channel_1_itr->pitch - 1);
+					pattern_data.push_back(CHANNEL + CH1);
+					pattern_data.push_back(NOTE + SAMPLE + VOLUME);
+					pattern_data.push_back(channel_1_itr->octave * 12 + (uint32_t)channel_1_itr->pitch - 1); // note
 					pattern_data.push_back(channel_1_itr->duty + 1); // sample
 					pattern_data.push_back((channel_1_itr->volume + 1) * 4); // volume
 				}
 				else {
-					pattern_data.push_back(0x81);
-					pattern_data.push_back(0x01); // note
-					pattern_data.push_back(0xfe); // cut
+					pattern_data.push_back(CHANNEL + CH1);
+					pattern_data.push_back(NOTE);
+					pattern_data.push_back(CUT);
 				}
 				channel_1_prev_note = *channel_1_itr;
 				++channel_1_itr;
 			}
 			else if (channel_1_note_length > 0) {
 				if (channel_1_prev_note.fade && row % 8 == 1) {
-					pattern_data.push_back(0x81);
-					pattern_data.push_back(0x08); // command
+					pattern_data.push_back(CHANNEL + CH1);
+					pattern_data.push_back(COMMAND);
 					if (
 						channel_1_prev_note.rate &&
 						channel_1_prev_note.extent &&
 						channel_1_note_duration > channel_1_prev_note.delay
 					) {
-						pattern_data.push_back(0x0b); // fade+vibrato
+						pattern_data.push_back(FADE_VIBRATO);
 					}
 					else {
-						pattern_data.push_back(0x04); // fade
+						pattern_data.push_back(FADE);
 					}
 					if (channel_1_prev_note.fade > 0) {
-						pattern_data.push_back(0xf0 | (10 - channel_1_prev_note.fade));
+						pattern_data.push_back(FINE_DECREASE | (10 - channel_1_prev_note.fade));
 					}
 					else {
-						pattern_data.push_back(((10 + channel_1_prev_note.fade) << 4) | 0x0f);
+						pattern_data.push_back(((10 + channel_1_prev_note.fade) << 4) | FINE_INCREASE);
 					}
 				}
 				else if (
@@ -418,63 +444,63 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					channel_1_prev_note.extent &&
 					channel_1_note_duration >= channel_1_prev_note.delay
 				) {
-					pattern_data.push_back(0x81);
-					pattern_data.push_back(0x08); // command
-					pattern_data.push_back(0x08); // vibrato
+					pattern_data.push_back(CHANNEL + CH1);
+					pattern_data.push_back(COMMAND);
+					pattern_data.push_back(VIBRATO);
 					pattern_data.push_back((8 - channel_1_prev_note.rate) << 4 | (channel_1_prev_note.extent));
 				}
 				channel_1_note_length -= 1;
 				channel_1_note_duration += 1;
 			}
 			else {
-				pattern_data.push_back(0x81);
-				pattern_data.push_back(0x01); // note
-				pattern_data.push_back(0xfe); // cut
+				pattern_data.push_back(CHANNEL + CH1);
+				pattern_data.push_back(NOTE);
+				pattern_data.push_back(CUT);
 			}
 
 			if (channel_2_note_length == 0 && channel_2_itr != channel_2_notes.end()) {
 				channel_2_note_length = channel_2_itr->length * channel_2_itr->speed - 1;
 				channel_2_note_duration = 0;
 				if (channel_2_itr->tempo != channel_2_prev_note.tempo) {
-					pattern_data.push_back(0x85);
-					pattern_data.push_back(0x08); // command
-					pattern_data.push_back(0x14); // tempo
+					pattern_data.push_back(CHANNEL + CH5);
+					pattern_data.push_back(COMMAND);
+					pattern_data.push_back(TEMPO);
 					pattern_data.push_back(convert_tempo(channel_2_itr->tempo));
 				}
 				if (channel_2_itr->pitch != Pitch::REST) {
-					pattern_data.push_back(0x82);
-					pattern_data.push_back(0x07); // note + sample + volume
-					pattern_data.push_back(channel_2_itr->octave * 12 + (uint32_t)channel_2_itr->pitch - 1);
+					pattern_data.push_back(CHANNEL + CH2);
+					pattern_data.push_back(NOTE + SAMPLE + VOLUME);
+					pattern_data.push_back(channel_2_itr->octave * 12 + (uint32_t)channel_2_itr->pitch - 1); // note
 					pattern_data.push_back(channel_2_itr->duty + 1); // sample
 					pattern_data.push_back((channel_2_itr->volume + 1) * 4); // volume
 				}
 				else {
-					pattern_data.push_back(0x82);
-					pattern_data.push_back(0x01); // note
-					pattern_data.push_back(0xfe); // cut
+					pattern_data.push_back(CHANNEL + CH2);
+					pattern_data.push_back(NOTE);
+					pattern_data.push_back(CUT);
 				}
 				channel_2_prev_note = *channel_2_itr;
 				++channel_2_itr;
 			}
 			else if (channel_2_note_length > 0) {
 				if (channel_2_prev_note.fade && row % 8 == 1) {
-					pattern_data.push_back(0x82);
-					pattern_data.push_back(0x08); // command
+					pattern_data.push_back(CHANNEL + CH2);
+					pattern_data.push_back(COMMAND);
 					if (
 						channel_2_prev_note.rate &&
 						channel_2_prev_note.extent &&
 						channel_2_note_duration > channel_2_prev_note.delay
 					) {
-						pattern_data.push_back(0x0b); // fade+vibrato
+						pattern_data.push_back(FADE_VIBRATO);
 					}
 					else {
-						pattern_data.push_back(0x04); // fade
+						pattern_data.push_back(FADE);
 					}
 					if (channel_2_prev_note.fade > 0) {
-						pattern_data.push_back(0xf0 | (10 - channel_2_prev_note.fade));
+						pattern_data.push_back(FINE_DECREASE | (10 - channel_2_prev_note.fade));
 					}
 					else {
-						pattern_data.push_back(((10 + channel_2_prev_note.fade) << 4) | 0x0f);
+						pattern_data.push_back(((10 + channel_2_prev_note.fade) << 4) | FINE_INCREASE);
 					}
 				}
 				else if (
@@ -482,18 +508,18 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					channel_2_prev_note.extent &&
 					channel_2_note_duration >= channel_2_prev_note.delay
 				) {
-					pattern_data.push_back(0x82);
-					pattern_data.push_back(0x08); // command
-					pattern_data.push_back(0x08); // vibrato
+					pattern_data.push_back(CHANNEL + CH2);
+					pattern_data.push_back(COMMAND);
+					pattern_data.push_back(VIBRATO);
 					pattern_data.push_back((8 - channel_2_prev_note.rate) << 4 | (channel_2_prev_note.extent));
 				}
 				channel_2_note_length -= 1;
 				channel_2_note_duration += 1;
 			}
 			else {
-				pattern_data.push_back(0x82);
-				pattern_data.push_back(0x01); // note
-				pattern_data.push_back(0xfe); // cut
+				pattern_data.push_back(CHANNEL + CH2);
+				pattern_data.push_back(NOTE);
+				pattern_data.push_back(CUT);
 			}
 
 			if (channel_3_note_length == 0 && channel_3_itr != channel_3_notes.end()) {
@@ -503,22 +529,22 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					wave = channel_3_itr->wave;
 				}
 				if (channel_3_itr->tempo != channel_3_prev_note.tempo) {
-					pattern_data.push_back(0x85);
-					pattern_data.push_back(0x08); // command
-					pattern_data.push_back(0x14); // tempo
+					pattern_data.push_back(CHANNEL + CH5);
+					pattern_data.push_back(COMMAND);
+					pattern_data.push_back(TEMPO);
 					pattern_data.push_back(convert_tempo(channel_3_itr->tempo));
 				}
 				if (channel_3_itr->pitch != Pitch::REST) {
-					pattern_data.push_back(0x83);
-					pattern_data.push_back(0x07); // note + sample + volume
-					pattern_data.push_back(channel_3_itr->octave * 12 + (uint32_t)channel_3_itr->pitch - 1);
+					pattern_data.push_back(CHANNEL + CH3);
+					pattern_data.push_back(NOTE + SAMPLE + VOLUME);
+					pattern_data.push_back(channel_3_itr->octave * 12 + (uint32_t)channel_3_itr->pitch - 1); // note
 					pattern_data.push_back(wave + 5); // sample
 					pattern_data.push_back(channel_3_volume(channel_3_itr->volume)); // volume
 				}
 				else {
-					pattern_data.push_back(0x83);
-					pattern_data.push_back(0x01); // note
-					pattern_data.push_back(0xfe); // cut
+					pattern_data.push_back(CHANNEL + CH3);
+					pattern_data.push_back(NOTE);
+					pattern_data.push_back(CUT);
 				}
 				channel_3_prev_note = *channel_3_itr;
 				++channel_3_itr;
@@ -529,26 +555,26 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					channel_3_prev_note.extent &&
 					channel_3_note_duration >= channel_3_prev_note.delay
 				) {
-					pattern_data.push_back(0x83);
-					pattern_data.push_back(0x08); // command
-					pattern_data.push_back(0x08); // vibrato
+					pattern_data.push_back(CHANNEL + CH3);
+					pattern_data.push_back(COMMAND);
+					pattern_data.push_back(VIBRATO);
 					pattern_data.push_back((8 - channel_3_prev_note.rate) << 4 | (channel_3_prev_note.extent));
 				}
 				channel_3_note_length -= 1;
 				channel_3_note_duration += 1;
 			}
 			else {
-				pattern_data.push_back(0x83);
-				pattern_data.push_back(0x01); // note
-				pattern_data.push_back(0xfe); // cut
+				pattern_data.push_back(CHANNEL + CH3);
+				pattern_data.push_back(NOTE);
+				pattern_data.push_back(CUT);
 			}
 
 			if (channel_4_note_length == 0 && channel_4_itr != channel_4_notes.end()) {
 				channel_4_note_length = channel_4_itr->length * channel_4_itr->speed - 1;
 				if (channel_4_itr->tempo != channel_4_prev_note.tempo) {
-					pattern_data.push_back(0x85);
-					pattern_data.push_back(0x08); // command
-					pattern_data.push_back(0x14); // tempo
+					pattern_data.push_back(CHANNEL + CH5);
+					pattern_data.push_back(COMMAND);
+					pattern_data.push_back(TEMPO);
 					pattern_data.push_back(convert_tempo(channel_4_itr->tempo));
 				}
 				channel_4_prev_note = *channel_4_itr;
@@ -562,14 +588,14 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				uint32_t pattern_number = (uint32_t)(loop_tick) / ROWS_PER_PATTERN;
 				uint32_t row_number = (uint32_t)(loop_tick) % ROWS_PER_PATTERN;
 
-				pattern_data.push_back(0x86);
-				pattern_data.push_back(0x08); // command
-				pattern_data.push_back(0x02); // pattern jump
+				pattern_data.push_back(CHANNEL + CH6);
+				pattern_data.push_back(COMMAND);
+				pattern_data.push_back(PATTERN_JUMP);
 				pattern_data.push_back(pattern_number);
 
-				pattern_data.push_back(0x87);
-				pattern_data.push_back(0x08); // command
-				pattern_data.push_back(0x03); // row jump
+				pattern_data.push_back(CHANNEL + CH7);
+				pattern_data.push_back(COMMAND);
+				pattern_data.push_back(ROW_JUMP);
 				pattern_data.push_back(row_number);
 			}
 
