@@ -1355,6 +1355,13 @@ void Piano_Roll::build_note_view(
 			note.volume = command_itr->volume_envelope.volume;
 			note.fade = command_itr->volume_envelope.fade;
 		}
+		else if (command_itr->type == Command_Type::DUTY_CYCLE_PATTERN) {
+			note.duty_cycle_loop = true;
+			note.duty1 = command_itr->duty_cycle_pattern.duty1;
+			note.duty2 = command_itr->duty_cycle_pattern.duty2;
+			note.duty3 = command_itr->duty_cycle_pattern.duty3;
+			note.duty4 = command_itr->duty_cycle_pattern.duty4;
+		}
 		else if (command_itr->type == Command_Type::VIBRATO) {
 			note.vibrato_delay = command_itr->vibrato.delay;
 			note.vibrato_extent = command_itr->vibrato.extent;

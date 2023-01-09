@@ -354,7 +354,13 @@ struct Note_View {
 	};
 
 	int32_t tempo  = 0;
-	int32_t duty   = 0;
+
+	int32_t duty = 0;
+	bool duty_cycle_loop = false;
+	int32_t duty1 = 0;
+	int32_t duty2 = 0;
+	int32_t duty3 = 0;
+	int32_t duty4 = 0;
 
 	int32_t vibrato_delay  = 0;
 	int32_t vibrato_extent = 0;
