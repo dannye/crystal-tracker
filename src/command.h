@@ -345,17 +345,23 @@ struct Note_View {
 	int32_t length = 0;
 	Pitch pitch = Pitch::REST;
 	int32_t octave = 0;
+
 	int32_t speed = 0;
 	int32_t volume = 0;
 	union {
 		int32_t fade = 0;
 		int32_t wave;
 	};
+
 	int32_t tempo  = 0;
 	int32_t duty   = 0;
-	int32_t delay  = 0; //
-	int32_t extent = 0; // vibrato
-	int32_t rate   = 0; //
+
+	int32_t vibrato_delay  = 0;
+	int32_t vibrato_extent = 0;
+	int32_t vibrato_rate   = 0;
+
+	int32_t transpose_octaves = 0;
+	int32_t transpose_pitches = 0;
 
 	int32_t index = 0;
 	bool ghost = false;

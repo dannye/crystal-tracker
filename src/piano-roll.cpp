@@ -1341,6 +1341,10 @@ void Piano_Roll::build_note_view(
 		else if (command_itr->type == Command_Type::DRUM_SPEED) {
 			note.speed = command_itr->drum_speed.speed;
 		}
+		else if (command_itr->type == Command_Type::TRANSPOSE) {
+			note.transpose_octaves = command_itr->transpose.num_octaves;
+			note.transpose_pitches = command_itr->transpose.num_pitches;
+		}
 		else if (command_itr->type == Command_Type::TEMPO) {
 			note.tempo = command_itr->tempo.tempo;
 		}
@@ -1352,9 +1356,9 @@ void Piano_Roll::build_note_view(
 			note.fade = command_itr->volume_envelope.fade;
 		}
 		else if (command_itr->type == Command_Type::VIBRATO) {
-			note.delay = command_itr->vibrato.delay;
-			note.extent = command_itr->vibrato.extent;
-			note.rate = command_itr->vibrato.rate;
+			note.vibrato_delay = command_itr->vibrato.delay;
+			note.vibrato_extent = command_itr->vibrato.extent;
+			note.vibrato_rate = command_itr->vibrato.rate;
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			if (

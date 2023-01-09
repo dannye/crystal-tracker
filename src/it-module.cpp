@@ -315,7 +315,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 	const uint8_t CH1 = 1;
 	const uint8_t CH2 = 2;
 	const uint8_t CH3 = 3;
-	const uint8_t CH4 = 4;
+	// const uint8_t CH4 = 4;
 	const uint8_t CH5 = 5;
 	const uint8_t CH6 = 6;
 	const uint8_t CH7 = 7;
@@ -370,6 +370,13 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 			channel_4_note_length == 0;
 	};
 
+	auto note = [](const Note_View &view) {
+		return (uint8_t)(
+			((view.octave - view.transpose_octaves + view.transpose_pitches / 12) * 12 +
+			((uint32_t)view.pitch - 1 + (uint32_t)view.transpose_pitches % 12)) % (9 * 12)
+		);
+	};
+
 	auto channel_3_volume = [](int32_t volume) {
 		return (uint8_t)(
 			volume == 1 ? 64 :
@@ -406,7 +413,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				if (channel_1_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(CHANNEL + CH1);
 					pattern_data.push_back(NOTE + SAMPLE + VOLUME);
-					pattern_data.push_back(channel_1_itr->octave * 12 + (uint32_t)channel_1_itr->pitch - 1); // note
+					pattern_data.push_back(note(*channel_1_itr)); // note
 					pattern_data.push_back(channel_1_itr->duty + 1); // sample
 					pattern_data.push_back((channel_1_itr->volume + 1) * 4); // volume
 				}
@@ -423,9 +430,9 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					pattern_data.push_back(CHANNEL + CH1);
 					pattern_data.push_back(COMMAND);
 					if (
-						channel_1_prev_note.rate &&
-						channel_1_prev_note.extent &&
-						channel_1_note_duration > channel_1_prev_note.delay
+						channel_1_prev_note.vibrato_rate &&
+						channel_1_prev_note.vibrato_extent &&
+						channel_1_note_duration > channel_1_prev_note.vibrato_delay
 					) {
 						pattern_data.push_back(FADE_VIBRATO);
 					}
@@ -440,14 +447,14 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					}
 				}
 				else if (
-					channel_1_prev_note.rate &&
-					channel_1_prev_note.extent &&
-					channel_1_note_duration >= channel_1_prev_note.delay
+					channel_1_prev_note.vibrato_rate &&
+					channel_1_prev_note.vibrato_extent &&
+					channel_1_note_duration >= channel_1_prev_note.vibrato_delay
 				) {
 					pattern_data.push_back(CHANNEL + CH1);
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(VIBRATO);
-					pattern_data.push_back((8 - channel_1_prev_note.rate) << 4 | (channel_1_prev_note.extent));
+					pattern_data.push_back((8 - channel_1_prev_note.vibrato_rate) << 4 | (channel_1_prev_note.vibrato_extent));
 				}
 				channel_1_note_length -= 1;
 				channel_1_note_duration += 1;
@@ -470,7 +477,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				if (channel_2_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(CHANNEL + CH2);
 					pattern_data.push_back(NOTE + SAMPLE + VOLUME);
-					pattern_data.push_back(channel_2_itr->octave * 12 + (uint32_t)channel_2_itr->pitch - 1); // note
+					pattern_data.push_back(note(*channel_2_itr)); // note
 					pattern_data.push_back(channel_2_itr->duty + 1); // sample
 					pattern_data.push_back((channel_2_itr->volume + 1) * 4); // volume
 				}
@@ -487,9 +494,9 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					pattern_data.push_back(CHANNEL + CH2);
 					pattern_data.push_back(COMMAND);
 					if (
-						channel_2_prev_note.rate &&
-						channel_2_prev_note.extent &&
-						channel_2_note_duration > channel_2_prev_note.delay
+						channel_2_prev_note.vibrato_rate &&
+						channel_2_prev_note.vibrato_extent &&
+						channel_2_note_duration > channel_2_prev_note.vibrato_delay
 					) {
 						pattern_data.push_back(FADE_VIBRATO);
 					}
@@ -504,14 +511,14 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					}
 				}
 				else if (
-					channel_2_prev_note.rate &&
-					channel_2_prev_note.extent &&
-					channel_2_note_duration >= channel_2_prev_note.delay
+					channel_2_prev_note.vibrato_rate &&
+					channel_2_prev_note.vibrato_extent &&
+					channel_2_note_duration >= channel_2_prev_note.vibrato_delay
 				) {
 					pattern_data.push_back(CHANNEL + CH2);
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(VIBRATO);
-					pattern_data.push_back((8 - channel_2_prev_note.rate) << 4 | (channel_2_prev_note.extent));
+					pattern_data.push_back((8 - channel_2_prev_note.vibrato_rate) << 4 | (channel_2_prev_note.vibrato_extent));
 				}
 				channel_2_note_length -= 1;
 				channel_2_note_duration += 1;
@@ -537,7 +544,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				if (channel_3_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(CHANNEL + CH3);
 					pattern_data.push_back(NOTE + SAMPLE + VOLUME);
-					pattern_data.push_back(channel_3_itr->octave * 12 + (uint32_t)channel_3_itr->pitch - 1); // note
+					pattern_data.push_back(note(*channel_3_itr)); // note
 					pattern_data.push_back(wave + 5); // sample
 					pattern_data.push_back(channel_3_volume(channel_3_itr->volume)); // volume
 				}
@@ -551,14 +558,14 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 			}
 			else if (channel_3_note_length > 0) {
 				if (
-					channel_3_prev_note.rate &&
-					channel_3_prev_note.extent &&
-					channel_3_note_duration >= channel_3_prev_note.delay
+					channel_3_prev_note.vibrato_rate &&
+					channel_3_prev_note.vibrato_extent &&
+					channel_3_note_duration >= channel_3_prev_note.vibrato_delay
 				) {
 					pattern_data.push_back(CHANNEL + CH3);
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(VIBRATO);
-					pattern_data.push_back((8 - channel_3_prev_note.rate) << 4 | (channel_3_prev_note.extent));
+					pattern_data.push_back((8 - channel_3_prev_note.vibrato_rate) << 4 | (channel_3_prev_note.vibrato_extent));
 				}
 				channel_3_note_length -= 1;
 				channel_3_note_duration += 1;
