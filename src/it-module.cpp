@@ -30,9 +30,6 @@ IT_Module::IT_Module(
 		_mod->set_repeat_count(-1);
 	}
 
-	openmpt::ext::interactive *interactive = static_cast<openmpt::ext::interactive *>(_mod->get_interface(openmpt::ext::interactive_id));
-	interactive->set_tempo_factor(2.0);
-
 	_is_interleaved = false;
 	if (!try_open()) {
 		_is_interleaved = true;
@@ -319,6 +316,9 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 	const uint8_t CH5 = 5;
 	const uint8_t CH6 = 6;
 	const uint8_t CH7 = 7;
+	const uint8_t CH8 = 8;
+	const uint8_t CH9 = 9;
+	const uint8_t CH10 = 10;
 
 	const uint8_t NOTE    = 1;
 	const uint8_t SAMPLE  = 2;
@@ -331,6 +331,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 	const uint8_t VIBRATO      = 0x08;
 	const uint8_t FADE_VIBRATO = 0x0b;
 	const uint8_t TEMPO        = 0x14;
+	const uint8_t EXTENSION    = 0x1b;
 
 	const uint8_t CUT = 0xfe;
 
@@ -354,6 +355,11 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 	Note_View channel_2_prev_note;
 	Note_View channel_3_prev_note;
 	Note_View channel_4_prev_note;
+
+	int32_t channel_1_tempo = 0;
+	int32_t channel_2_tempo = 0;
+	int32_t channel_3_tempo = 0;
+	int32_t channel_4_tempo = 0;
 
 	int32_t wave = 0;
 
@@ -402,10 +408,8 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 	auto convert_tempo = [](int32_t tempo) {
 		// this is a purely empirical approximation.
 		// i have no idea what the real formula is.
-		int32_t bpm = (int32_t)(std::log2(tempo - 75.0) * -75.0 / 2.0 + 360.0);
-		if (bpm > 255 || tempo <= 75) bpm = 255;
-		if (bpm < 32) bpm = 32;
-		return (uint8_t)bpm;
+		int32_t bpm = (int32_t)(std::log2(std::max(tempo, 76) - 75.0) * -75.0 + 720.0);
+		return std::max(bpm, 64);
 	};
 
 	do {
@@ -414,14 +418,43 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 		std::vector<uint8_t> pattern_data;
 		uint32_t row = 0;
 		do {
+			if (channel_1_tempo != 0) {
+				pattern_data.push_back(CHANNEL + CH5);
+				pattern_data.push_back(COMMAND);
+				pattern_data.push_back(EXTENSION);
+				pattern_data.push_back(channel_1_tempo % 256);
+				channel_1_tempo = 0;
+			}
+			if (channel_2_tempo != 0) {
+				pattern_data.push_back(CHANNEL + CH6);
+				pattern_data.push_back(COMMAND);
+				pattern_data.push_back(EXTENSION);
+				pattern_data.push_back(channel_2_tempo % 256);
+				channel_2_tempo = 0;
+			}
+			if (channel_3_tempo != 0) {
+				pattern_data.push_back(CHANNEL + CH7);
+				pattern_data.push_back(COMMAND);
+				pattern_data.push_back(EXTENSION);
+				pattern_data.push_back(channel_3_tempo % 256);
+				channel_3_tempo = 0;
+			}
+			if (channel_4_tempo != 0) {
+				pattern_data.push_back(CHANNEL + CH8);
+				pattern_data.push_back(COMMAND);
+				pattern_data.push_back(EXTENSION);
+				pattern_data.push_back(channel_4_tempo % 256);
+				channel_4_tempo = 0;
+			}
 			if (channel_1_note_length == 0 && channel_1_itr != channel_1_notes.end()) {
 				channel_1_note_length = channel_1_itr->length * channel_1_itr->speed - 1;
 				channel_1_note_duration = 0;
 				if (channel_1_itr->tempo != channel_1_prev_note.tempo) {
+					channel_1_tempo = convert_tempo(channel_1_itr->tempo);
 					pattern_data.push_back(CHANNEL + CH5);
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(TEMPO);
-					pattern_data.push_back(convert_tempo(channel_1_itr->tempo));
+					pattern_data.push_back(channel_1_tempo / 256);
 				}
 				if (channel_1_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(CHANNEL + CH1);
@@ -499,10 +532,11 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				channel_2_note_length = channel_2_itr->length * channel_2_itr->speed - 1;
 				channel_2_note_duration = 0;
 				if (channel_2_itr->tempo != channel_2_prev_note.tempo) {
-					pattern_data.push_back(CHANNEL + CH5);
+					channel_2_tempo = convert_tempo(channel_2_itr->tempo);
+					pattern_data.push_back(CHANNEL + CH6);
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(TEMPO);
-					pattern_data.push_back(convert_tempo(channel_2_itr->tempo));
+					pattern_data.push_back(channel_2_tempo / 256);
 				}
 				if (channel_2_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(CHANNEL + CH2);
@@ -583,10 +617,11 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					wave = channel_3_itr->wave;
 				}
 				if (channel_3_itr->tempo != channel_3_prev_note.tempo) {
-					pattern_data.push_back(CHANNEL + CH5);
+					channel_3_tempo = convert_tempo(channel_3_itr->tempo);
+					pattern_data.push_back(CHANNEL + CH7);
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(TEMPO);
-					pattern_data.push_back(convert_tempo(channel_3_itr->tempo));
+					pattern_data.push_back(channel_3_tempo / 256);
 				}
 				if (channel_3_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(CHANNEL + CH3);
@@ -626,10 +661,11 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 			if (channel_4_note_length == 0 && channel_4_itr != channel_4_notes.end()) {
 				channel_4_note_length = channel_4_itr->length * channel_4_itr->speed - 1;
 				if (channel_4_itr->tempo != channel_4_prev_note.tempo) {
-					pattern_data.push_back(CHANNEL + CH5);
+					channel_4_tempo = convert_tempo(channel_4_itr->tempo);
+					pattern_data.push_back(CHANNEL + CH8);
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(TEMPO);
-					pattern_data.push_back(convert_tempo(channel_4_itr->tempo));
+					pattern_data.push_back(channel_4_tempo / 256);
 				}
 				channel_4_prev_note = *channel_4_itr;
 				++channel_4_itr;
@@ -642,12 +678,12 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				uint32_t pattern_number = (uint32_t)(loop_tick) / ROWS_PER_PATTERN;
 				uint32_t row_number = (uint32_t)(loop_tick) % ROWS_PER_PATTERN;
 
-				pattern_data.push_back(CHANNEL + CH6);
+				pattern_data.push_back(CHANNEL + CH9);
 				pattern_data.push_back(COMMAND);
 				pattern_data.push_back(PATTERN_JUMP);
 				pattern_data.push_back(pattern_number);
 
-				pattern_data.push_back(CHANNEL + CH7);
+				pattern_data.push_back(CHANNEL + CH10);
 				pattern_data.push_back(COMMAND);
 				pattern_data.push_back(ROW_JUMP);
 				pattern_data.push_back(row_number);
@@ -695,7 +731,7 @@ void IT_Module::generate_it_module(
 	const uint32_t global_volume = 128;
 	const uint32_t mix_volume = 48;
 	const uint32_t initial_speed = 1;
-	const uint32_t initial_tempo = 80;
+	const uint32_t initial_tempo = 160;
 	const uint32_t panning_separation = 128;
 	const uint32_t pitch_wheel_depth = 0;
 	const uint32_t default_channel_panning = 32;
@@ -810,5 +846,39 @@ void IT_Module::generate_it_module(
 	// patterns
 	for (const auto &pattern : patterns) {
 		_data.insert(_data.end(), pattern.begin(), pattern.end());
+	}
+
+	// extensions
+	{
+		_data.push_back('S');
+		_data.push_back('T');
+		_data.push_back('P');
+		_data.push_back('M');
+
+		// compatibility flags, defaults unless noted
+		{
+			_data.push_back('.');
+			_data.push_back('F');
+			_data.push_back('S');
+			_data.push_back('M');
+
+			put_short(_data, 15);
+
+			_data.push_back(0x81);
+			_data.push_back(0xfe); // bit 0: tempo clamp off
+			_data.push_back(0xff);
+			_data.push_back(0xff);
+			_data.push_back(0xff);
+			_data.push_back(0xff);
+			_data.push_back(0x05);
+			_data.push_back(0x00);
+			_data.push_back(0x00);
+			_data.push_back(0x00);
+			_data.push_back(0x80);
+			_data.push_back(0x01);
+			_data.push_back(0xd0);
+			_data.push_back(0x01);
+			_data.push_back(0x08);
+		}
 	}
 }
