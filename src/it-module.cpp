@@ -325,13 +325,15 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 	const uint8_t VOLUME  = 4;
 	const uint8_t COMMAND = 8;
 
-	const uint8_t PATTERN_JUMP = 0x02;
-	const uint8_t ROW_JUMP     = 0x03;
-	const uint8_t FADE         = 0x04;
-	const uint8_t VIBRATO      = 0x08;
-	const uint8_t FADE_VIBRATO = 0x0b;
-	const uint8_t TEMPO        = 0x14;
-	const uint8_t EXTENSION    = 0x1b;
+	const uint8_t PATTERN_JUMP     = 0x02;
+	const uint8_t ROW_JUMP         = 0x03;
+	const uint8_t FADE             = 0x04;
+	const uint8_t PITCH_SLIDE      = 0x07;
+	const uint8_t VIBRATO          = 0x08;
+	const uint8_t FADE_VIBRATO     = 0x0b;
+	const uint8_t FADE_PITCH_SLIDE = 0x0c;
+	const uint8_t TEMPO            = 0x14;
+	const uint8_t EXTENSION        = 0x1b;
 
 	const uint8_t CUT = 0xfe;
 
@@ -481,7 +483,10 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					else {
 						pattern_data.push_back(COMMAND);
 					}
-					if (
+					if (channel_1_prev_note.slide_pitch != Pitch::REST) {
+						pattern_data.push_back(FADE_PITCH_SLIDE);
+					}
+					else if (
 						channel_1_prev_note.vibrato_rate &&
 						channel_1_prev_note.vibrato_extent &&
 						channel_1_note_duration > channel_1_prev_note.vibrato_delay
@@ -497,6 +502,13 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					else {
 						pattern_data.push_back(((10 + channel_1_prev_note.fade) << 4) | FINELY);
 					}
+				}
+				else if (channel_1_prev_note.slide_pitch != Pitch::REST) {
+					pattern_data.push_back(CHANNEL + CH1);
+					pattern_data.push_back(NOTE + COMMAND);
+					pattern_data.push_back(channel_1_prev_note.slide_octave * 12 + (uint32_t)channel_1_prev_note.slide_pitch - 1);
+					pattern_data.push_back(PITCH_SLIDE);
+					pattern_data.push_back(channel_1_prev_note.slide_duration * 6);
 				}
 				else if (
 					channel_1_prev_note.vibrato_rate &&
@@ -563,7 +575,10 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					else {
 						pattern_data.push_back(COMMAND);
 					}
-					if (
+					if (channel_2_prev_note.slide_pitch != Pitch::REST) {
+						pattern_data.push_back(FADE_PITCH_SLIDE);
+					}
+					else if (
 						channel_2_prev_note.vibrato_rate &&
 						channel_2_prev_note.vibrato_extent &&
 						channel_2_note_duration > channel_2_prev_note.vibrato_delay
@@ -579,6 +594,13 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					else {
 						pattern_data.push_back(((10 + channel_2_prev_note.fade) << 4) | FINELY);
 					}
+				}
+				else if (channel_2_prev_note.slide_pitch != Pitch::REST) {
+					pattern_data.push_back(CHANNEL + CH2);
+					pattern_data.push_back(NOTE + COMMAND);
+					pattern_data.push_back(channel_2_prev_note.slide_octave * 12 + (uint32_t)channel_2_prev_note.slide_pitch - 1);
+					pattern_data.push_back(PITCH_SLIDE);
+					pattern_data.push_back(channel_2_prev_note.slide_duration * 6);
 				}
 				else if (
 					channel_2_prev_note.vibrato_rate &&
@@ -639,7 +661,14 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				++channel_3_itr;
 			}
 			else if (channel_3_note_length > 0) {
-				if (
+				if (channel_3_prev_note.slide_pitch != Pitch::REST) {
+					pattern_data.push_back(CHANNEL + CH3);
+					pattern_data.push_back(NOTE + COMMAND);
+					pattern_data.push_back(channel_3_prev_note.slide_octave * 12 + (uint32_t)channel_3_prev_note.slide_pitch - 1);
+					pattern_data.push_back(PITCH_SLIDE);
+					pattern_data.push_back(channel_3_prev_note.slide_duration * 6);
+				}
+				else if (
 					channel_3_prev_note.vibrato_rate &&
 					channel_3_prev_note.vibrato_extent &&
 					channel_3_note_duration >= channel_3_prev_note.vibrato_delay
@@ -864,7 +893,7 @@ void IT_Module::generate_it_module(
 
 			put_short(_data, 15);
 
-			_data.push_back(0x81);
+			_data.push_back(0xC1); // bit 6: fine tone portamento
 			_data.push_back(0xfe); // bit 0: tempo clamp off
 			_data.push_back(0xff);
 			_data.push_back(0xff);

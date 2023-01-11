@@ -1259,6 +1259,10 @@ void Piano_Roll::build_note_view(
 			note.ghost = restarted;
 			notes.push_back(note);
 
+			note.slide_duration = 0;
+			note.slide_octave = 0;
+			note.slide_pitch = Pitch::REST;
+
 			if (loop) {
 				loop->set_end_tick(tick);
 				if (compare_pitch(note.pitch, note.octave, loop->max_pitch(), loop->max_octave()) > 0) {
@@ -1361,6 +1365,11 @@ void Piano_Roll::build_note_view(
 			note.duty2 = command_itr->duty_cycle_pattern.duty2;
 			note.duty3 = command_itr->duty_cycle_pattern.duty3;
 			note.duty4 = command_itr->duty_cycle_pattern.duty4;
+		}
+		else if (command_itr->type == Command_Type::PITCH_SLIDE) {
+			note.slide_duration = command_itr->pitch_slide.duration;
+			note.slide_octave = command_itr->pitch_slide.octave;
+			note.slide_pitch = command_itr->pitch_slide.pitch;
 		}
 		else if (command_itr->type == Command_Type::VIBRATO) {
 			note.vibrato_delay = command_itr->vibrato.delay;
