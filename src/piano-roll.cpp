@@ -396,7 +396,7 @@ void Piano_Timeline::calc_sizes() {
 		return x() + WHITE_KEY_WIDTH + tick * tick_width;
 	};
 	const auto pitch_to_y_pos = [&](Pitch pitch, int32_t octave) {
-		return y() + (NUM_OCTAVES - octave) * octave_height + (NUM_PITCHES - (size_t)(pitch)) * note_row_height;
+		return y() + (NUM_OCTAVES - octave) * octave_height + (NUM_NOTES_PER_OCTAVE - (size_t)(pitch)) * note_row_height;
 	};
 
 	const auto resize_notes = [&](std::vector<Note_Box *> &notes) {
@@ -635,7 +635,7 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, const std::ve
 		return x() + WHITE_KEY_WIDTH + tick * tick_width;
 	};
 	const auto pitch_to_y_pos = [&](Pitch pitch, int32_t octave) {
-		return y() + (NUM_OCTAVES - octave) * octave_height + (NUM_PITCHES - (size_t)(pitch)) * note_row_height;
+		return y() + (NUM_OCTAVES - octave) * octave_height + (NUM_NOTES_PER_OCTAVE - (size_t)(pitch)) * note_row_height;
 	};
 
 	begin();
@@ -963,6 +963,7 @@ int Piano_Roll::handle(int event) {
 
 		if (Fl::event_key() == FL_Escape && _tick != -1) {
 			_tick = -1;
+			parent()->set_song_position(0);
 			redraw();
 		}
 		break;
@@ -1489,7 +1490,7 @@ void Piano_Roll::build_note_view(
 		return _piano_timeline.x() + WHITE_KEY_WIDTH + tick * tick_width();
 	};
 	const auto pitch_to_y_pos = [&](Pitch pitch, int32_t octave) {
-		return _piano_timeline.y() + (NUM_OCTAVES - octave) * octave_height() + (NUM_PITCHES - (size_t)(pitch)) * note_row_height();
+		return _piano_timeline.y() + (NUM_OCTAVES - octave) * octave_height() + (NUM_NOTES_PER_OCTAVE - (size_t)(pitch)) * note_row_height();
 	};
 	const auto resize_wrappers = [&](auto &wrappers) {
 		for (Wrapper_Box *wrapper : wrappers) {
@@ -1574,6 +1575,13 @@ int32_t Piano_Roll::get_last_note_x() const {
 		get_channel_last_note_x(_piano_timeline._channel_4_notes),
 	});
 	return last_note_x;
+}
+
+void Piano_Roll::update_channel_detail(int channel_number) {
+	_piano_timeline.set_channel_1_detailed(channel_number == 0 || channel_number == 1);
+	_piano_timeline.set_channel_2_detailed(channel_number == 0 || channel_number == 2);
+	_piano_timeline.set_channel_3_detailed(channel_number == 0 || channel_number == 3);
+	_piano_timeline.set_channel_4_detailed(channel_number == 0 || channel_number == 4);
 }
 
 void Piano_Roll::align_cursor() {

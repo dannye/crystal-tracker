@@ -65,6 +65,9 @@ public:
 
 	int32_t current_tick() const { return _current_pattern * ROWS_PER_PATTERN + _current_row; }
 	void set_tick(int32_t tick);
+
+	double get_position_seconds();
+	double get_duration_seconds();
 private:
 	bool try_open();
 	void generate_it_module(

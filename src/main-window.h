@@ -81,7 +81,7 @@ private:
 	// GUI outputs
 	Ruler *_ruler;
 	Piano_Roll *_piano_roll = NULL;
-	Label *_status_label;
+	Label *_timestamp_label, *_status_label;
 	// Conditional menu items
 	Fl_Menu_Item
 		*_close_mi = NULL,
@@ -203,6 +203,7 @@ private:
 	void update_ruler(void);
 	void update_zoom(void);
 	void update_layout(void);
+	void update_status(void);
 	// File menu
 	static void new_cb(Fl_Widget *w, Main_Window *mw);
 	static void open_cb(Fl_Widget *w, Main_Window *mw);

@@ -87,9 +87,15 @@ void IT_Module::stop_note(int32_t channel) {
 }
 
 void IT_Module::set_tick(int32_t tick) {
-	if (!ready()) return;
-
 	_mod->set_position_order_row(tick / ROWS_PER_PATTERN, tick % ROWS_PER_PATTERN);
+}
+
+double IT_Module::get_position_seconds() {
+	return _mod->get_position_seconds();
+}
+
+double IT_Module::get_duration_seconds() {
+	return _mod->get_duration_seconds();
 }
 
 bool IT_Module::try_open() {

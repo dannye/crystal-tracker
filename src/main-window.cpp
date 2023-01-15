@@ -36,7 +36,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	// Get global configs
 	int loop_config = Preferences::get("loop", 1);
-	int ruler_config = Preferences::get("ruler", 0);
+	int ruler_config = Preferences::get("ruler", 1);
 	int zoom_config = Preferences::get("zoom", 0);
 	int key_labels_config = Preferences::get("key_labels", 0);
 
@@ -96,6 +96,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	// Status bar
 	_status_bar = new Toolbar(wx, h - STATUS_BAR_HEIGHT, ww, STATUS_BAR_HEIGHT);
 	wh -= _status_bar->h();
+	_timestamp_label = new Label(0, 0, text_width("00:00:00 / 00:00:00", 8), STATUS_BAR_HEIGHT - 2, "00:00:00 / 00:00:00");
+	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
 	_status_label = new Label(0, 0, ww, STATUS_BAR_HEIGHT - 2, _status_message.c_str());
 	_status_bar->end();
 	begin();
@@ -658,6 +660,7 @@ void Main_Window::set_song_position(int32_t tick) {
 	if (_it_module) {
 		_it_module->set_tick(tick);
 	}
+	update_status();
 	_audio_mutex.unlock();
 }
 
@@ -860,10 +863,7 @@ void Main_Window::update_active_controls() {
 }
 
 void Main_Window::update_channel_detail() {
-	_piano_roll->set_channel_1_detailed(selected_channel() == 0 || selected_channel() == 1);
-	_piano_roll->set_channel_2_detailed(selected_channel() == 0 || selected_channel() == 2);
-	_piano_roll->set_channel_3_detailed(selected_channel() == 0 || selected_channel() == 3);
-	_piano_roll->set_channel_4_detailed(selected_channel() == 0 || selected_channel() == 4);
+	_piano_roll->update_channel_detail(selected_channel());
 	_piano_roll->align_cursor();
 }
 
@@ -989,6 +989,15 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 		_song.new_song(options);
 		_piano_roll->set_timeline(_song);
 	}
+	int32_t loop_tick = loop() ? _piano_roll->get_loop_tick() : -1;
+	_it_module = new IT_Module(
+		_piano_roll->channel_1_notes(),
+		_piano_roll->channel_2_notes(),
+		_piano_roll->channel_3_notes(),
+		_piano_roll->channel_4_notes(),
+		_waves,
+		loop_tick
+	);
 
 	// set filenames
 	char buffer[FL_PATH_MAX] = {};
@@ -1000,6 +1009,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	_status_label->label(_status_message.c_str());
 
 	update_active_controls();
+	update_status();
 
 	if (filename) {
 		store_recent_song();
@@ -1152,6 +1162,7 @@ void Main_Window::stop_playback() {
 		_it_module->stop();
 		_tick = -1;
 		_piano_roll->stop_following();
+		set_song_position(0);
 		update_active_controls();
 	}
 }
@@ -1232,6 +1243,27 @@ void Main_Window::update_layout() {
 		0,
 		MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (ruler() ? Fl::scrollbar_size() : 0) + _piano_roll->octave_height() * NUM_OCTAVES + Fl::scrollbar_size() + STATUS_BAR_HEIGHT
 	);
+}
+
+void Main_Window::update_status() {
+	if (!_song.loaded()) {
+		_timestamp_label->label("00:00:00 / 00:00:00");
+	}
+	else {
+		char buffer[64] = {};
+		double position_seconds = _it_module->get_position_seconds();
+		double duration_seconds = _it_module->get_duration_seconds();
+		sprintf(
+			buffer, "%02d:%02d:%02d / %02d:%02d:%02d",
+			(int)position_seconds / 60,
+			(int)position_seconds % 60,
+			(int)(position_seconds * 100) % 100,
+			(int)duration_seconds / 60,
+			(int)duration_seconds % 60,
+			(int)(duration_seconds * 100) % 100
+		);
+		_timestamp_label->copy_label(buffer);
+	}
 }
 
 void Main_Window::new_cb(Fl_Widget *, Main_Window *mw) {
@@ -1342,6 +1374,7 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	}
 	mw->_showed_it_warning = false;
 	mw->init_sizes();
+	mw->update_status();
 	mw->_directory.clear();
 	mw->_asm_file.clear();
 
@@ -1599,6 +1632,7 @@ void Main_Window::skip_forward_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::put_note(Pitch pitch) {
 	if (!_song.loaded()) { return; }
 	if (_piano_roll->put_note(_song, pitch)) {
+		set_song_position(_piano_roll->tick());
 		_status_message = _song.undo_action_message();
 		_status_label->label(_status_message.c_str());
 
@@ -1634,6 +1668,7 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_piano_roll->tick(tick);
 		mw->_piano_roll->select_note_at_tick();
 		mw->_piano_roll->focus_cursor(true);
+		mw->set_song_position(tick);
 	}
 	else {
 		mw->_piano_roll->set_active_channel_selection(selection);
@@ -1667,6 +1702,7 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_piano_roll->select_note_at_tick();
 		mw->_piano_roll->step_forward();
 		mw->_piano_roll->focus_cursor(true);
+		mw->set_song_position(tick);
 	}
 	else if (
 		action == Song::Song_State::Action::SPLIT_NOTE ||
@@ -1675,6 +1711,7 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_piano_roll->tick(tick);
 		mw->_piano_roll->select_note_at_tick();
 		mw->_piano_roll->focus_cursor(true);
+		mw->set_song_position(tick);
 	}
 	else if (
 		action != Song::Song_State::Action::DELETE_SELECTION &&
@@ -2202,8 +2239,10 @@ void Main_Window::sync_cb(Main_Window *mw) {
 	else if (!mod || mod->stopped()) {
 		mw->_tick = -1;
 		mw->_piano_roll->stop_following();
+		if (mod) mod->set_tick(0);
 		mw->update_active_controls();
 	}
+	mw->update_status();
 	mw->_sync_requested = false;
 	mw->_audio_mutex.unlock();
 }

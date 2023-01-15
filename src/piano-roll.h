@@ -396,10 +396,7 @@ public:
 	int32_t get_loop_tick() const;
 	int32_t get_last_note_x() const;
 
-	void set_channel_1_detailed(bool detailed) { _piano_timeline.set_channel_1_detailed(detailed); }
-	void set_channel_2_detailed(bool detailed) { _piano_timeline.set_channel_2_detailed(detailed); }
-	void set_channel_3_detailed(bool detailed) { _piano_timeline.set_channel_3_detailed(detailed); }
-	void set_channel_4_detailed(bool detailed) { _piano_timeline.set_channel_4_detailed(detailed); }
+	void update_channel_detail(int channel_number);
 
 	void align_cursor();
 
