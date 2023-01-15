@@ -1010,15 +1010,21 @@ void Song::glue_note(const int selected_channel, const std::set<int32_t> &select
 }
 
 std::string Song::commands_str(const std::vector<Command> &commands, int32_t channel_number) const {
-	const auto to_local_label = [](const std::string &label) {
+	const auto to_local_label = [](const std::string &label, const std::string &scope) {
 		std::size_t dot = label.find_first_of(".");
-		return dot != std::string::npos ? &label[dot] : label.c_str();
+		return dot != std::string::npos && label.substr(0, dot) == scope ? &label[dot] : label.c_str();
 	};
+
+	std::string current_scope;
 
 	std::string str;
 	for (const Command &command : commands) {
 		for (const std::string &label : command.labels) {
-			str = str + to_local_label(label) + ":\n";
+			std::size_t dot = label.find_first_of(".");
+			if (dot == std::string::npos) {
+				current_scope = label;
+			}
+			str = str + to_local_label(label, current_scope) + ":\n";
 		}
 
 		str = str + "\t" + COMMAND_NAMES[(uint32_t)command.type];
@@ -1118,20 +1124,20 @@ std::string Song::commands_str(const std::vector<Command> &commands, int32_t cha
 		}
 
 		else if (command.type == Command_Type::SOUND_JUMP) {
-			str = str + " " + to_local_label(command.target);
+			str = str + " " + to_local_label(command.target, current_scope);
 			str = str + "\n";
 		}
 
 		else if (command.type == Command_Type::SOUND_LOOP) {
 			str = str + " " + std::to_string(command.sound_loop.loop_count) +
-						", " + to_local_label(command.target);
+						", " + to_local_label(command.target, current_scope);
 			if (command.sound_loop.loop_count == 0) {
 				str = str + "\n";
 			}
 		}
 
 		else if (command.type == Command_Type::SOUND_CALL) {
-			str = str + " " + to_local_label(command.target);
+			str = str + " " + to_local_label(command.target, current_scope);
 		}
 
 		else if (command.type == Command_Type::SOUND_RET) {
