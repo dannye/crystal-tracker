@@ -78,6 +78,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_undo_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_redo_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	SEPARATE_TOOLBAR_BUTTONS;
+	_pencil_mode_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	SEPARATE_TOOLBAR_BUTTONS;
 	_channel_1_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_channel_1_tb->when(FL_WHEN_RELEASE_ALWAYS);
 	_channel_2_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
@@ -213,6 +215,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		{},
 		OS_MENU_ITEM("Spli&t Note", '/', (Fl_Callback *)split_note_cb, this, 0),
 		OS_MENU_ITEM("&Glue Note", GLUE_KEY, (Fl_Callback *)glue_note_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("Pencil &Mode", FL_COMMAND + 'p', (Fl_Callback *)pencil_mode_cb, this, FL_MENU_TOGGLE | FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Channel &1", '1', (Fl_Callback *)channel_1_cb, this,
 			FL_MENU_RADIO | (selected_channel() == 1 ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Channel &2", '2', (Fl_Callback *)channel_2_cb, this,
@@ -338,6 +341,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_snip_mi = CT_FIND_MENU_ITEM_CB(snip_cb);
 	_split_note_mi = CT_FIND_MENU_ITEM_CB(split_note_cb);
 	_glue_note_mi = CT_FIND_MENU_ITEM_CB(glue_note_cb);
+	_pencil_mode_mi = CT_FIND_MENU_ITEM_CB(pencil_mode_cb);
 	_channel_1_mi = CT_FIND_MENU_ITEM_CB(channel_1_cb);
 	_channel_2_mi = CT_FIND_MENU_ITEM_CB(channel_2_cb);
 	_channel_3_mi = CT_FIND_MENU_ITEM_CB(channel_3_cb);
@@ -412,6 +416,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_redo_tb->tooltip("Redo (" COMMAND_KEY_PLUS "Y)");
 	_redo_tb->callback((Fl_Callback *)redo_cb, this);
 	_redo_tb->image(REDO_ICON);
+
+	_pencil_mode_tb->tooltip("Pencil Mode (" COMMAND_KEY_PLUS "P)");
+	_pencil_mode_tb->callback((Fl_Callback *)pencil_mode_tb_cb, this);
+	_pencil_mode_tb->image(PENCIL_ICON);
+	_pencil_mode_tb->value(pencil_mode());
 
 	_channel_1_tb->tooltip("Channel 1 (1)");
 	_channel_1_tb->callback((Fl_Callback *)channel_1_tb_cb, this);
@@ -759,6 +768,8 @@ void Main_Window::update_active_controls() {
 			_snip_mi->activate();
 			_split_note_mi->activate();
 			_glue_note_mi->activate();
+			_pencil_mode_mi->activate();
+			_pencil_mode_tb->activate();
 		}
 		else {
 			_select_all_mi->deactivate();
@@ -775,6 +786,8 @@ void Main_Window::update_active_controls() {
 			_snip_mi->deactivate();
 			_split_note_mi->deactivate();
 			_glue_note_mi->deactivate();
+			_pencil_mode_mi->deactivate();
+			_pencil_mode_tb->deactivate();
 		}
 		if (_song.channel_1_end_tick() != -1) {
 			_channel_1_mi->activate();
@@ -847,6 +860,8 @@ void Main_Window::update_active_controls() {
 		_snip_mi->deactivate();
 		_split_note_mi->deactivate();
 		_glue_note_mi->deactivate();
+		_pencil_mode_mi->deactivate();
+		_pencil_mode_tb->deactivate();
 		_channel_1_mi->deactivate();
 		_channel_1_tb->deactivate();
 		_channel_2_mi->deactivate();
@@ -1210,6 +1225,7 @@ void Main_Window::update_icons() {
 	make_deimage(_continuous_tb);
 	make_deimage(_undo_tb);
 	make_deimage(_redo_tb);
+	make_deimage(_pencil_mode_tb);
 	make_deimage(_channel_1_tb);
 	make_deimage(_channel_2_tb);
 	make_deimage(_channel_3_tb);
@@ -1378,6 +1394,7 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_directory.clear();
 	mw->_asm_file.clear();
 
+	mw->pencil_mode(false);
 	mw->selected_channel(0);
 	mw->_channel_1_mi->clear();
 	mw->_channel_1_tb->clear();
@@ -1545,6 +1562,13 @@ void Main_Window::continuous_cb(Fl_Menu_ *m, Main_Window *mw) {
 	mw->redraw();
 }
 
+void Main_Window::pencil_mode_cb(Fl_Menu_ *m, Main_Window *mw) {
+	SYNC_TB_WITH_M(mw->_pencil_mode_tb, m);
+	if (mw->pencil_mode() && mw->selected_channel() == 0) next_channel_cb(nullptr, mw);
+	fl_cursor(mw->pencil_mode() ? FL_CURSOR_CROSS : FL_CURSOR_DEFAULT);
+	mw->redraw();
+}
+
 void Main_Window::zoom_cb(Fl_Menu_ *m, Main_Window *mw) {
 	SYNC_TB_WITH_M(mw->_zoom_tb, m);
 	mw->update_zoom();
@@ -1564,6 +1588,14 @@ void Main_Window::loop_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 void Main_Window::continuous_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 	SYNC_MI_WITH_TB(mw->_continuous_tb, mw->_continuous_mi);
 	mw->_piano_roll->set_continuous_scroll(mw->continuous_scroll());
+	mw->_menu_bar->update();
+	mw->redraw();
+}
+
+void Main_Window::pencil_mode_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
+	SYNC_MI_WITH_TB(mw->_pencil_mode_tb, mw->_pencil_mode_mi);
+	if (mw->pencil_mode() && mw->selected_channel() == 0) next_channel_cb(nullptr, mw);
+	fl_cursor(mw->pencil_mode() ? FL_CURSOR_CROSS : FL_CURSOR_DEFAULT);
 	mw->_menu_bar->update();
 	mw->redraw();
 }

@@ -188,6 +188,9 @@
     <None Include="..\res\pause.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\pencil.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\play.xpm">
       <Filter>Resource Files</Filter>
     </None>

@@ -14,6 +14,7 @@
 #include "one.xpm"
 #include "open.xpm"
 #include "pause.xpm"
+#include "pencil.xpm"
 #include "play.xpm"
 #include "redo.xpm"
 #include "save.xpm"
@@ -35,6 +36,7 @@ static Fl_Pixmap NEW_ICON(NEW_XPM);
 static Fl_Pixmap ONE_ICON(ONE_XPM);
 static Fl_Pixmap OPEN_ICON(OPEN_XPM);
 static Fl_Pixmap PAUSE_ICON(PAUSE_XPM);
+static Fl_Pixmap PENCIL_ICON(PENCIL_XPM);
 static Fl_Pixmap PLAY_ICON(PLAY_XPM);
 static Fl_Pixmap REDO_ICON(REDO_XPM);
 static Fl_Pixmap SAVE_ICON(SAVE_XPM);

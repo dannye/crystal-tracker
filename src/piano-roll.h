@@ -256,6 +256,7 @@ public:
 	void calc_sizes();
 
 	int handle(int event) override;
+	bool handle_note_eraser(int event);
 	bool handle_note_selection(int event);
 	bool select_all();
 	bool select_none();
@@ -371,7 +372,6 @@ public:
 	int handle(int event) override;
 	bool handle_mouse_click(int event);
 
-	void toggle_continuous_scroll() { _continuous = !_continuous; }
 	void set_continuous_scroll(bool c) { _continuous = c; }
 
 	void step_backward();

@@ -167,6 +167,7 @@
     <None Include="..\res\one.xpm" />
     <None Include="..\res\open.xpm" />
     <None Include="..\res\pause.xpm" />
+    <None Include="..\res\pencil.xpm" />
     <None Include="..\res\play.xpm" />
     <None Include="..\res\redo.xpm" />
     <None Include="..\res\save.xpm" />

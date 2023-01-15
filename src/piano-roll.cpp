@@ -442,6 +442,7 @@ void Piano_Timeline::calc_sizes() {
 }
 
 int Piano_Timeline::handle(int event) {
+	bool pencil_mode = parent()->parent()->pencil_mode();
 	switch (event) {
 	case FL_PUSH:
 		if (
@@ -451,6 +452,17 @@ int Piano_Timeline::handle(int event) {
 			return 1;
 		}
 		if (
+			pencil_mode &&
+			Fl::event_button() == FL_RIGHT_MOUSE &&
+			!Fl::event_inside(&_keys) &&
+			!parent()->following() &&
+			!parent()->paused() &&
+			handle_note_eraser(event)
+		) {
+			return 1;
+		}
+		else if (
+			!pencil_mode &&
 			Fl::event_button() == FL_LEFT_MOUSE &&
 			!Fl::event_inside(&_keys) &&
 			handle_note_selection(event)
@@ -460,6 +472,16 @@ int Piano_Timeline::handle(int event) {
 		break;
 	case FL_DRAG:
 		if (parent()->handle_mouse_click(event)) {
+			return 1;
+		}
+		if (
+			pencil_mode &&
+			Fl::event_button() == FL_RIGHT_MOUSE &&
+			!Fl::event_inside(&_keys) &&
+			!parent()->following() &&
+			!parent()->paused() &&
+			handle_note_eraser(event)
+		) {
 			return 1;
 		}
 		break;
@@ -476,6 +498,22 @@ int Piano_Timeline::handle(int event) {
 		break;
 	}
 	return Fl_Group::handle(event);
+}
+
+bool Piano_Timeline::handle_note_eraser(int event) {
+	auto channel = active_channel_boxes();
+	if (!channel) return false;
+
+	for (Note_Box *note : *channel) {
+		if (Fl::event_inside(note)) {
+			select_none();
+			note->selected(true);
+			parent()->parent()->delete_selection();
+			return true;
+		}
+	}
+
+	return true; // keep focus for drag
 }
 
 bool Piano_Timeline::handle_note_selection(int event) {
@@ -988,8 +1026,7 @@ bool Piano_Roll::handle_mouse_click(int event) {
 		return true;
 	}
 	else if (_following && event == FL_PUSH) {
-		toggle_continuous_scroll();
-		parent()->continuous_scroll(_continuous);
+		parent()->continuous_scroll(!_continuous);
 		parent()->redraw();
 		return true;
 	}

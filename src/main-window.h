@@ -68,6 +68,8 @@ private:
 	Toolbar_Button
 		*_undo_tb = NULL,
 		*_redo_tb = NULL;
+	Toolbar_Toggle_Button
+		*_pencil_mode_tb = NULL;
 	Toolbar_Radio_Button
 		*_channel_1_tb = NULL,
 		*_channel_2_tb = NULL,
@@ -110,6 +112,7 @@ private:
 		*_snip_mi = NULL,
 		*_split_note_mi = NULL,
 		*_glue_note_mi = NULL,
+		*_pencil_mode_mi = NULL,
 		*_channel_1_mi = NULL,
 		*_channel_2_mi = NULL,
 		*_channel_3_mi = NULL,
@@ -164,11 +167,13 @@ public:
 	inline bool channel_2_muted(void) const { return _channel_2_mute_mi && !!_channel_2_mute_mi->value(); }
 	inline bool channel_3_muted(void) const { return _channel_3_mute_mi && !!_channel_3_mute_mi->value(); }
 	inline bool channel_4_muted(void) const { return _channel_4_mute_mi && !!_channel_4_mute_mi->value(); }
+	inline bool pencil_mode(void) const { return _pencil_mode_mi && !!_pencil_mode_mi->value(); }
 	inline bool ruler(void) const { return _ruler_mi && !!_ruler_mi->value(); }
 	inline bool zoom(void) const { return _zoom_mi && !!_zoom_mi->value(); }
 	inline bool key_labels(void) const { return _key_labels_mi && !!_key_labels_mi->value(); }
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
-	inline void continuous_scroll(bool c) { c ? _continuous_mi->set() : _continuous_mi->clear(); _continuous_tb->value(_continuous_mi->value()); _menu_bar->update(); }
+	inline void continuous_scroll(bool c) { _continuous_tb->value(c); continuous_tb_cb(nullptr, this); }
+	inline void pencil_mode(bool p) { _pencil_mode_tb->value(p); pencil_mode_tb_cb(nullptr, this); }
 	inline int song_scroll_x(void) const { return _piano_roll->xposition(); }
 	inline int song_ticks_per_step(void) const { return _piano_roll->ticks_per_step(); }
 	bool unsaved(void) const;
@@ -184,6 +189,8 @@ public:
 	bool play_note(Pitch pitch, int32_t octave);
 	bool stop_note();
 	bool playing_note() { return _playing_pitch != Pitch::REST; }
+
+	void delete_selection() { delete_cb(nullptr, this); };
 private:
 	inline void selected_channel(int i) { _selected_channel = i; }
 	void update_active_controls(void);
@@ -244,6 +251,7 @@ private:
 	static void snip_cb(Fl_Widget *w, Main_Window *mw);
 	static void split_note_cb(Fl_Widget *w, Main_Window *mw);
 	static void glue_note_cb(Fl_Widget *w, Main_Window *mw);
+	static void pencil_mode_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void channel_1_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_2_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_3_cb(Fl_Widget *w, Main_Window *mw);
@@ -273,6 +281,7 @@ private:
 	// Toolbar buttons
 	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void continuous_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
+	static void pencil_mode_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void channel_1_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
 	static void channel_2_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
 	static void channel_3_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
