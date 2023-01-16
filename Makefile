@@ -48,7 +48,6 @@ endif
 
 TARGET = $(bindir)/$(crystaltracker)
 DEBUGTARGET = $(bindir)/$(crystaltrackerd)
-DESKTOP = "$(DESTDIR)$(PREFIX)/share/applications/Crystal Tracker.desktop"
 
 .PHONY: all $(crystaltracker) $(crystaltrackerd) release debug clean appdir appdmg install uninstall
 
