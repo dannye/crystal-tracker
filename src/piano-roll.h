@@ -14,6 +14,8 @@
 #include "song.h"
 #include "widgets.h"
 
+const Fl_Color BACKGROUND3_COLOR = FL_FREE_COLOR;
+
 const Fl_Color NOTE_RED   = fl_rgb_color(217,   0,   0);
 const Fl_Color NOTE_BLUE  = fl_rgb_color(  0, 117, 253);
 const Fl_Color NOTE_GREEN = fl_rgb_color(  3, 180,   3);

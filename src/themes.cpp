@@ -236,6 +236,7 @@ static void use_classic_colors() {
 	Fl::foreground(0x00, 0x00, 0x00);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x5F, 0x5F, 0x5F);
 	Fl::set_color(FL_SELECTION_COLOR, 0x0A, 0x24, 0x6A);
+	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xE1));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -591,6 +592,7 @@ static void use_aero_colors() {
 	Fl::foreground(0x00, 0x00, 0x00);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x6F, 0x6F, 0x6F);
 	Fl::set_color(FL_SELECTION_COLOR, 0x33, 0x99, 0xFF);
+	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xF0));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -735,6 +737,7 @@ static void use_metro_colors() {
 	Fl::foreground(0x00, 0x00, 0x00);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x6F, 0x6F, 0x6F);
 	Fl::set_color(FL_SELECTION_COLOR, 0x33, 0x99, 0xFF);
+	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xFF));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -1011,6 +1014,7 @@ static void use_aqua_colors() {
 	Fl::foreground(0x00, 0x00, 0x00);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x4D, 0x4D, 0x69);
 	Fl::set_color(FL_SELECTION_COLOR, 0x30, 0x60, 0xF6);
+	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xC7));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -1333,6 +1337,7 @@ static void use_greybird_colors() {
 	Fl::foreground(0x3C, 0x3C, 0x3C);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x55, 0x55, 0x55);
 	Fl::set_color(FL_SELECTION_COLOR, 0x50, 0xA0, 0xF4);
+	Fl::set_color(FL_FREE_COLOR, 0xFC, 0xFC, 0xFC);
 	Fl_Tooltip::color(fl_rgb_color(0x0A, 0x0A, 0x0A));
 	Fl_Tooltip::textcolor(fl_rgb_color(0xFF, 0xFF, 0xFF));
 }
@@ -1472,6 +1477,7 @@ static void use_ocean_colors() {
 	Fl::foreground(0x33, 0x33, 0x33);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x58, 0x58, 0x68);
 	Fl::set_color(FL_SELECTION_COLOR, 0xA3, 0xB8, 0xCC);
+	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
 	Fl_Tooltip::color(fl_rgb_color(0xB8, 0xCF, 0xE5));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -1715,6 +1721,7 @@ static void use_blue_colors() {
 	Fl::foreground(0x1E, 0x39, 0x5B);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x35, 0x49, 0x6A);
 	Fl::set_color(FL_SELECTION_COLOR, 0x33, 0x33, 0x33);
+	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xFF));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -2128,6 +2135,7 @@ static void use_olive_colors() {
 	Fl::foreground(0x41, 0x40, 0x0A);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x56, 0x66, 0x46);
 	Fl::set_color(FL_SELECTION_COLOR, 0xCC, 0x45, 0x18);
+	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xE1));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -2371,6 +2379,7 @@ static void use_rose_gold_colors() {
 	Fl::foreground(0x4C, 0x1E, 0x12);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x60, 0x4C, 0x4C);
 	Fl::set_color(FL_SELECTION_COLOR, 0x15, 0x81, 0xFA);
+	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xFF));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -2575,10 +2584,11 @@ static void use_dark_scheme() {
 
 static void use_dark_colors() {
 	Fl::background(0x53, 0x53, 0x53);
-	Fl::background2(0x24, 0x24, 0x24);
+	Fl::background2(0x3A, 0x3A, 0x3A);
 	Fl::foreground(0xEC, 0xEC, 0xEC);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x26, 0x26, 0x26);
 	Fl::set_color(FL_SELECTION_COLOR, 0xD6, 0xD6, 0xD6);
+	Fl::set_color(FL_FREE_COLOR, 0x24, 0x24, 0x24);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xCC));
 	Fl_Tooltip::textcolor(fl_rgb_color(0x00, 0x00, 0x00));
 }
@@ -2989,6 +2999,7 @@ static void use_brushed_metal_colors() {
 	Fl::foreground(0x00, 0x00, 0x00);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x50, 0x50, 0x50);
 	Fl::set_color(FL_SELECTION_COLOR, 0x40, 0x40, 0x40);
+	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
 	Fl_Tooltip::color(fl_rgb_color(0xEE, 0xEE, 0xEE));
 	Fl_Tooltip::textcolor(fl_rgb_color(0x00, 0x00, 0x00));
 }
@@ -3121,10 +3132,11 @@ static void use_high_contrast_scheme() {
 
 static void use_high_contrast_colors() {
 	Fl::background(0x00, 0x00, 0x00);
-	Fl::background2(0x00, 0x15, 0x15);
+	Fl::background2(0x00, 0x20, 0x20);
 	Fl::foreground(0xFF, 0xFF, 0xFF);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x00, 0x20, 0x20);
 	Fl::set_color(FL_SELECTION_COLOR, 0x00, 0xFF, 0xFF);
+	Fl::set_color(FL_FREE_COLOR, 0x00, 0x15, 0x15);
 	Fl_Tooltip::color(fl_rgb_color(0x00, 0x00, 0x00));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }

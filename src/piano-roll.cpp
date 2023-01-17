@@ -114,7 +114,7 @@ Piano_Keys::Piano_Keys(int X, int Y, int W, int H, const char *l) : Fl_Group(X, 
 			if (NOTE_KEYS[_x].white) {
 				_keys[i] = new White_Key_Box(NOTE_KEYS[_x].pitch, NUM_OCTAVES - _y, X, Y, 0, 0, NOTE_KEYS[_x].label);
 				_keys[i]->box(FL_BORDER_BOX);
-				_keys[i]->color(FL_BACKGROUND2_COLOR);
+				_keys[i]->color(BACKGROUND3_COLOR);
 				_keys[i]->labelcolor(FL_FOREGROUND_COLOR);
 				if (NOTE_KEYS[_x].pitch == Pitch::C_NAT) {
 					_keys[i]->label(C_Key_Labels[NUM_OCTAVES - _y - 1]);
@@ -124,7 +124,7 @@ Piano_Keys::Piano_Keys(int X, int Y, int W, int H, const char *l) : Fl_Group(X, 
 				_keys[i] = new Key_Box(NOTE_KEYS[_x].pitch, NUM_OCTAVES - _y, X, Y, 0, 0, NOTE_KEYS[_x].label);
 				_keys[i]->box(FL_BORDER_BOX);
 				_keys[i]->color(FL_FOREGROUND_COLOR);
-				_keys[i]->labelcolor(FL_BACKGROUND2_COLOR);
+				_keys[i]->labelcolor(BACKGROUND3_COLOR);
 			}
 		}
 	}
@@ -213,7 +213,7 @@ void Piano_Keys::update_key_colors() {
 	Pitch interactive_pitch = parent()->parent()->parent()->playing_pitch();
 	int32_t interactive_octave = parent()->parent()->parent()->playing_octave();
 	if (interactive_pitch != Pitch::REST) {
-		set_key_color(interactive_pitch, interactive_octave, fl_color_average(FL_FOREGROUND_COLOR, FL_BACKGROUND2_COLOR, 0.5f));
+		set_key_color(interactive_pitch, interactive_octave, fl_color_average(FL_FOREGROUND_COLOR, BACKGROUND3_COLOR, 0.5f));
 	}
 }
 
@@ -221,7 +221,7 @@ void Piano_Keys::reset_key_colors() {
 	for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
 		for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
 			size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
-			Fl_Color color = NOTE_KEYS[_x].white ? FL_BACKGROUND2_COLOR : FL_FOREGROUND_COLOR;
+			Fl_Color color = NOTE_KEYS[_x].white ? BACKGROUND3_COLOR : FL_FOREGROUND_COLOR;
 			if (_keys[i]->color() != color) {
 				_keys[i]->color(color);
 				_keys[i]->redraw();
@@ -769,7 +769,7 @@ void Piano_Timeline::draw() {
 	bool gray = theme == OS::Theme::CLASSIC || theme == OS::Theme::GREYBIRD || theme == OS::Theme::BRUSHED_METAL;
 	bool colorful = theme == OS::Theme::BLUE || theme == OS::Theme::OLIVE || theme == OS::Theme::ROSE_GOLD;
 
-	Fl_Color light_row = (dark || hc) ? FL_BACKGROUND2_COLOR : FL_LIGHT1;
+	Fl_Color light_row = (dark || hc) ? BACKGROUND3_COLOR : FL_LIGHT1;
 	Fl_Color dark_row =
 		(dark || hc) ? fl_color_average(light_row, FL_WHITE, 0.95f) :
 		(gray || colorful) ? fl_color_average(light_row, FL_DARK2, 0.5f) :
