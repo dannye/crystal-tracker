@@ -190,7 +190,8 @@ public:
 	bool stop_note();
 	bool playing_note() { return _playing_pitch != Pitch::REST; }
 
-	void delete_selection() { delete_cb(nullptr, this); };
+	void delete_selection() { delete_cb(nullptr, this); }
+	bool put_note(Pitch pitch, int32_t octave = 0, int32_t tick = -1);
 private:
 	inline void selected_channel(int i) { _selected_channel = i; }
 	void update_active_controls(void);
@@ -234,7 +235,6 @@ private:
 	static void skip_backward_cb(Fl_Widget *w, Main_Window *mw);
 	static void skip_forward_cb(Fl_Widget *w, Main_Window *mw);
 	// Edit menu
-	void put_note(Pitch pitch);
 	static void undo_cb(Fl_Widget *w, Main_Window *mw);
 	static void redo_cb(Fl_Widget *w, Main_Window *mw);
 	static void select_all_cb(Fl_Widget *w, Main_Window *mw);

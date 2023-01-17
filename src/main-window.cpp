@@ -1661,16 +1661,18 @@ void Main_Window::skip_forward_cb(Fl_Widget *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::put_note(Pitch pitch) {
-	if (!_song.loaded()) { return; }
-	if (_piano_roll->put_note(_song, pitch)) {
+bool Main_Window::put_note(Pitch pitch, int32_t octave, int32_t tick) {
+	if (!_song.loaded()) { return false; }
+	if (_piano_roll->put_note(_song, pitch, octave, tick)) {
 		set_song_position(_piano_roll->tick());
 		_status_message = _song.undo_action_message();
 		_status_label->label(_status_message.c_str());
 
 		update_active_controls();
 		redraw();
+		return true;
 	}
+	return false;
 }
 
 void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {

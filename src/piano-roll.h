@@ -256,6 +256,7 @@ public:
 	void calc_sizes();
 
 	int handle(int event) override;
+	bool handle_note_pencil(int event);
 	bool handle_note_eraser(int event);
 	bool handle_note_selection(int event);
 	bool select_all();
@@ -416,7 +417,7 @@ public:
 	int scroll_x_max() const;
 	int scroll_y_max() const;
 
-	bool put_note(Song &song, Pitch pitch);
+	bool put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick);
 	bool pitch_up(Song &song);
 	bool pitch_down(Song &song);
 	bool octave_up(Song &song);
@@ -432,9 +433,9 @@ public:
 
 	bool select_all() { return _piano_timeline.select_all(); }
 	bool select_none() { return _piano_timeline.select_none(); }
-private:
-	int32_t quantize_tick(int32_t tick, bool round = false);
 
+	int32_t quantize_tick(int32_t tick, bool round = false);
+private:
 	const Note_View *find_note_view_at_tick(const std::vector<Note_View> &view, int32_t tick, int32_t *tick_offset = nullptr);
 
 	std::vector<Note_View> *active_channel_view();

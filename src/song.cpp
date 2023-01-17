@@ -609,7 +609,7 @@ void postprocess(std::vector<Command> &commands) {
 	} while (deleted);
 }
 
-void Song::put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t index, int32_t tick, int32_t tick_offset) {
+void Song::put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t octave, int32_t old_octave, int32_t index, int32_t tick, int32_t tick_offset) {
 	remember(selected_channel, selected_boxes, Song_State::Action::PUT_NOTE, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
@@ -642,6 +642,19 @@ void Song::put_note(const int selected_channel, const std::set<int32_t> &selecte
 		commands.insert(commands.begin() + index + 1, command);
 
 		old_length -= tick_offset;
+		index += 1;
+	}
+
+	{
+		Command command = Command(Command_Type::OCTAVE);
+		command.octave.octave = octave;
+		command.labels = std::move(commands[index].labels);
+		commands[index].labels.clear();
+		commands.insert(commands.begin() + index, command);
+		index += 1;
+
+		command.octave.octave = old_octave;
+		commands.insert(commands.begin() + index + 1, command);
 		index += 1;
 	}
 

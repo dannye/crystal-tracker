@@ -125,7 +125,7 @@ public:
 	int32_t channel_4_end_tick(void) const { return _channel_4_end_tick; }
 	const std::vector<Wave> &waves() const { return _waves; }
 
-	void put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t index, int32_t tick, int32_t tick_offset);
+	void put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t octave, int32_t old_octave, int32_t index, int32_t tick, int32_t tick_offset);
 	void pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void octave_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
