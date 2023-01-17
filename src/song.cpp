@@ -654,6 +654,7 @@ void Song::put_note(const int selected_channel, const std::set<int32_t> &selecte
 		index += 1;
 
 		command.octave.octave = old_octave;
+		command.labels.clear();
 		commands.insert(commands.begin() + index + 1, command);
 		index += 1;
 	}
