@@ -28,6 +28,11 @@ const Fl_Color NOTE_BROWN_LIGHT = fl_lighter(NOTE_BROWN);
 
 const Fl_Color NOTE_GHOST = fl_rgb_color(96);
 
+const Fl_Color FLAG_SPEED     = FL_CYAN;
+const Fl_Color FLAG_VOLUME    = FL_MAGENTA;
+const Fl_Color FLAG_VIBRATO   = FL_YELLOW;
+const Fl_Color FLAG_DUTY_WAVE = fl_rgb_color(255, 128, 0);
+
 constexpr size_t NUM_WHITE_NOTES = 7;
 constexpr size_t NUM_BLACK_NOTES = 5;
 
@@ -284,10 +289,10 @@ public:
 	void highlight_channel_3_tick(int32_t tick, bool muted) { highlight_tick(_channel_3_notes, 3, tick, muted, NOTE_GREEN_LIGHT); }
 	void highlight_channel_4_tick(int32_t tick, bool muted) { highlight_tick(_channel_4_notes, 4, tick, muted, NOTE_BROWN_LIGHT); }
 
-	void set_channel_1(const std::vector<Note_View> &notes) { set_channel(_channel_1_notes, _channel_1_flags, notes, NOTE_RED); }
-	void set_channel_2(const std::vector<Note_View> &notes) { set_channel(_channel_2_notes, _channel_2_flags, notes, NOTE_BLUE); }
-	void set_channel_3(const std::vector<Note_View> &notes) { set_channel(_channel_3_notes, _channel_3_flags, notes, NOTE_GREEN); }
-	void set_channel_4(const std::vector<Note_View> &notes) { set_channel(_channel_4_notes, _channel_4_flags, notes, NOTE_BROWN); }
+	void set_channel_1(const std::vector<Note_View> &notes) { set_channel(_channel_1_notes, _channel_1_flags, 1, notes, NOTE_RED); }
+	void set_channel_2(const std::vector<Note_View> &notes) { set_channel(_channel_2_notes, _channel_2_flags, 2, notes, NOTE_BLUE); }
+	void set_channel_3(const std::vector<Note_View> &notes) { set_channel(_channel_3_notes, _channel_3_flags, 3, notes, NOTE_GREEN); }
+	void set_channel_4(const std::vector<Note_View> &notes) { set_channel(_channel_4_notes, _channel_4_flags, 4, notes, NOTE_BROWN); }
 
 	void set_channel_1_detail(int detail) { set_channel_detail(_channel_1_notes, _channel_1_loops, _channel_1_calls, _channel_1_flags, detail); }
 	void set_channel_2_detail(int detail) { set_channel_detail(_channel_2_notes, _channel_2_loops, _channel_2_calls, _channel_2_flags, detail); }
@@ -298,7 +303,7 @@ public:
 private:
 	void highlight_tick(std::vector<Note_Box *> &notes, int channel_number, int32_t tick, bool muted, Fl_Color color);
 	void select_note_at_tick(std::vector<Note_Box *> &notes, int32_t tick);
-	void set_channel(std::vector<Note_Box *> &channel, std::vector<Flag_Box *> &flags, const std::vector<Note_View> &notes, Fl_Color color);
+	void set_channel(std::vector<Note_Box *> &channel, std::vector<Flag_Box *> &flags, int channel_number, const std::vector<Note_View> &notes, Fl_Color color);
 	void set_channel_detail(std::vector<Note_Box *> &notes, std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Flag_Box *> &flags, int detail);
 
 	std::vector<Note_Box *> *active_channel_boxes();

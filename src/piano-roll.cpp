@@ -729,7 +729,7 @@ void Piano_Timeline::select_note_at_tick(std::vector<Note_Box *> &notes, int32_t
 	}
 }
 
-void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<Flag_Box *> &flags, const std::vector<Note_View> &notes, Fl_Color color) {
+void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<Flag_Box *> &flags, int channel_number, const std::vector<Note_View> &notes, Fl_Color color) {
 	const int octave_height = parent()->octave_height();
 	const int note_row_height = parent()->note_row_height();
 	const int tick_width = parent()->tick_width();
@@ -760,7 +760,7 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 			channel.push_back(box);
 
 			int32_t row_offset = 1;
-			if (note.vibrato_delay != prev_note.vibrato_delay || note.vibrato_extent != prev_note.vibrato_extent || note.vibrato_rate != prev_note.vibrato_rate) {
+			const auto add_flag = [&](Fl_Color c) {
 				Flag_Box *flag = new Flag_Box(
 					channel.size() - 1,
 					row_offset,
@@ -770,40 +770,33 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 					box->h()
 				);
 				flag->box(FL_BORDER_BOX);
-				flag->color(FL_YELLOW);
+				flag->color(c);
 				flag->hide();
 				flags.push_back(flag);
 				row_offset += 1;
+			};
+
+			if (
+				note.duty != prev_note.duty ||
+				(channel_number == 3 && note.wave != prev_note.wave)
+			) {
+				add_flag(FLAG_DUTY_WAVE);
 			}
-			if (note.volume != prev_note.volume || note.fade != prev_note.fade) {
-				Flag_Box *flag = new Flag_Box(
-					channel.size() - 1,
-					row_offset,
-					box->x(),
-					box->y() - box->h() * row_offset,
-					tick_width * 4,
-					box->h()
-				);
-				flag->box(FL_BORDER_BOX);
-				flag->color(FL_MAGENTA);
-				flag->hide();
-				flags.push_back(flag);
-				row_offset += 1;
+			if (
+				note.vibrato_delay != prev_note.vibrato_delay ||
+				note.vibrato_extent != prev_note.vibrato_extent ||
+				note.vibrato_rate != prev_note.vibrato_rate
+			) {
+				add_flag(FLAG_VIBRATO);
+			}
+			if (
+				note.volume != prev_note.volume ||
+				((channel_number == 1 || channel_number == 2) && note.fade != prev_note.fade)
+			) {
+				add_flag(FLAG_VOLUME);
 			}
 			if (note.speed != prev_note.speed) {
-				Flag_Box *flag = new Flag_Box(
-					channel.size() - 1,
-					row_offset,
-					box->x(),
-					box->y() - box->h() * row_offset,
-					tick_width * 4,
-					box->h()
-				);
-				flag->box(FL_BORDER_BOX);
-				flag->color(FL_CYAN);
-				flag->hide();
-				flags.push_back(flag);
-				row_offset += 1;
+				add_flag(FLAG_SPEED);
 			}
 			prev_note = note;
 		}
