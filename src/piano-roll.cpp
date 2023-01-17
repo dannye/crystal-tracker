@@ -305,6 +305,11 @@ void Piano_Timeline::clear() {
 	_channel_2_calls.clear();
 	_channel_3_calls.clear();
 	_channel_4_calls.clear();
+
+	_channel_1_flags.clear();
+	_channel_2_flags.clear();
+	_channel_3_flags.clear();
+	_channel_4_flags.clear();
 }
 
 void Piano_Timeline::clear_channel_1() {
@@ -322,6 +327,11 @@ void Piano_Timeline::clear_channel_1() {
 		_trashcan.add(*call);
 	}
 	_channel_1_calls.clear();
+
+	for (Flag_Box *flag : _channel_1_flags) {
+		_trashcan.add(*flag);
+	}
+	_channel_1_flags.clear();
 
 	_trashcan.clear();
 }
@@ -342,6 +352,11 @@ void Piano_Timeline::clear_channel_2() {
 	}
 	_channel_2_calls.clear();
 
+	for (Flag_Box *flag : _channel_2_flags) {
+		_trashcan.add(*flag);
+	}
+	_channel_2_flags.clear();
+
 	_trashcan.clear();
 }
 
@@ -361,6 +376,11 @@ void Piano_Timeline::clear_channel_3() {
 	}
 	_channel_3_calls.clear();
 
+	for (Flag_Box *flag : _channel_3_flags) {
+		_trashcan.add(*flag);
+	}
+	_channel_3_flags.clear();
+
 	_trashcan.clear();
 }
 
@@ -379,6 +399,11 @@ void Piano_Timeline::clear_channel_4() {
 		_trashcan.add(*call);
 	}
 	_channel_4_calls.clear();
+
+	for (Flag_Box *flag : _channel_4_flags) {
+		_trashcan.add(*flag);
+	}
+	_channel_4_flags.clear();
 
 	_trashcan.clear();
 }
@@ -439,6 +464,22 @@ void Piano_Timeline::calc_sizes() {
 	resize_wrappers(_channel_2_calls);
 	resize_wrappers(_channel_3_calls);
 	resize_wrappers(_channel_4_calls);
+
+	const auto resize_flags = [&](std::vector<Flag_Box *> &flags, const std::vector<Note_Box *> &notes) {
+		for (Flag_Box *flag : flags) {
+			flag->resize(
+				notes[flag->note_index()]->x(),
+				notes[flag->note_index()]->y() - notes[flag->note_index()]->h() * flag->row_offset(),
+				tick_width * 4,
+				notes[flag->note_index()]->h()
+			);
+		}
+	};
+
+	resize_flags(_channel_1_flags, _channel_1_notes);
+	resize_flags(_channel_2_flags, _channel_2_notes);
+	resize_flags(_channel_3_flags, _channel_3_notes);
+	resize_flags(_channel_4_flags, _channel_4_notes);
 }
 
 int Piano_Timeline::handle(int event) {
@@ -688,7 +729,7 @@ void Piano_Timeline::select_note_at_tick(std::vector<Note_Box *> &notes, int32_t
 	}
 }
 
-void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, const std::vector<Note_View> &notes, Fl_Color color) {
+void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<Flag_Box *> &flags, const std::vector<Note_View> &notes, Fl_Color color) {
 	const int octave_height = parent()->octave_height();
 	const int note_row_height = parent()->note_row_height();
 	const int tick_width = parent()->tick_width();
@@ -699,6 +740,8 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, const std::ve
 	const auto pitch_to_y_pos = [&](Pitch pitch, int32_t octave) {
 		return y() + (NUM_OCTAVES - octave) * octave_height + (NUM_NOTES_PER_OCTAVE - (size_t)(pitch)) * note_row_height;
 	};
+
+	Note_View prev_note;
 
 	begin();
 	int32_t tick = 0;
@@ -715,6 +758,54 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, const std::ve
 			box->box(FL_BORDER_BOX);
 			box->color(color);
 			channel.push_back(box);
+
+			int32_t row_offset = 1;
+			if (note.vibrato_delay != prev_note.vibrato_delay || note.vibrato_extent != prev_note.vibrato_extent || note.vibrato_rate != prev_note.vibrato_rate) {
+				Flag_Box *flag = new Flag_Box(
+					channel.size() - 1,
+					row_offset,
+					box->x(),
+					box->y() - box->h() * row_offset,
+					tick_width * 4,
+					box->h()
+				);
+				flag->box(FL_BORDER_BOX);
+				flag->color(FL_YELLOW);
+				flag->hide();
+				flags.push_back(flag);
+				row_offset += 1;
+			}
+			if (note.volume != prev_note.volume || note.fade != prev_note.fade) {
+				Flag_Box *flag = new Flag_Box(
+					channel.size() - 1,
+					row_offset,
+					box->x(),
+					box->y() - box->h() * row_offset,
+					tick_width * 4,
+					box->h()
+				);
+				flag->box(FL_BORDER_BOX);
+				flag->color(FL_MAGENTA);
+				flag->hide();
+				flags.push_back(flag);
+				row_offset += 1;
+			}
+			if (note.speed != prev_note.speed) {
+				Flag_Box *flag = new Flag_Box(
+					channel.size() - 1,
+					row_offset,
+					box->x(),
+					box->y() - box->h() * row_offset,
+					tick_width * 4,
+					box->h()
+				);
+				flag->box(FL_BORDER_BOX);
+				flag->color(FL_CYAN);
+				flag->hide();
+				flags.push_back(flag);
+				row_offset += 1;
+			}
+			prev_note = note;
 		}
 		tick += note.length * note.speed;
 	}
@@ -733,14 +824,15 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, const std::ve
 	}
 }
 
-void Piano_Timeline::set_channel_detailed(
+void Piano_Timeline::set_channel_detail(
 	std::vector<Note_Box *> &notes,
 	std::vector<Loop_Box *> &loops,
 	std::vector<Call_Box *> &calls,
-	bool detailed
+	std::vector<Flag_Box *> &flags,
+	int detail
 ) {
-	Fl_Boxtype note_box = detailed ? FL_BORDER_BOX : FL_BORDER_FRAME;
-	Fl_Boxtype group_box = detailed ? FL_BORDER_FRAME : FL_NO_BOX;
+	Fl_Boxtype note_box = detail > 0 ? FL_BORDER_BOX : FL_BORDER_FRAME;
+	Fl_Boxtype group_box = detail > 0 ? FL_BORDER_FRAME : FL_NO_BOX;
 	for (Note_Box *note : notes) {
 		note->box(note_box);
 	}
@@ -749,6 +841,10 @@ void Piano_Timeline::set_channel_detailed(
 	}
 	for (Call_Box *call : calls) {
 		call->box(group_box);
+	}
+	for (Flag_Box *flag : flags) {
+		if (detail > 1) flag->show();
+		else flag->hide();
 	}
 	redraw();
 }
@@ -1213,24 +1309,52 @@ void Piano_Roll::set_active_channel_timeline(const Song &song) {
 		_channel_1_notes.clear();
 		build_note_view(_piano_timeline._channel_1_loops, _piano_timeline._channel_1_calls, _channel_1_notes, song.channel_1_commands(), _song_length, NOTE_RED);
 		_piano_timeline.set_channel_1(_channel_1_notes);
+		_piano_timeline.set_channel_detail(
+			_piano_timeline._channel_1_notes,
+			_piano_timeline._channel_1_loops,
+			_piano_timeline._channel_1_calls,
+			_piano_timeline._channel_1_flags,
+			2
+		);
 	}
 	else if (selected_channel() == 2) {
 		_piano_timeline.clear_channel_2();
 		_channel_2_notes.clear();
 		build_note_view(_piano_timeline._channel_2_loops, _piano_timeline._channel_2_calls, _channel_2_notes, song.channel_2_commands(), _song_length, NOTE_BLUE);
 		_piano_timeline.set_channel_2(_channel_2_notes);
+		_piano_timeline.set_channel_detail(
+			_piano_timeline._channel_2_notes,
+			_piano_timeline._channel_2_loops,
+			_piano_timeline._channel_2_calls,
+			_piano_timeline._channel_2_flags,
+			2
+		);
 	}
 	else if (selected_channel() == 3) {
 		_piano_timeline.clear_channel_3();
 		_channel_3_notes.clear();
 		build_note_view(_piano_timeline._channel_3_loops, _piano_timeline._channel_3_calls, _channel_3_notes, song.channel_3_commands(), _song_length, NOTE_GREEN);
 		_piano_timeline.set_channel_3(_channel_3_notes);
+		_piano_timeline.set_channel_detail(
+			_piano_timeline._channel_3_notes,
+			_piano_timeline._channel_3_loops,
+			_piano_timeline._channel_3_calls,
+			_piano_timeline._channel_3_flags,
+			2
+		);
 	}
 	else if (selected_channel() == 4) {
 		_piano_timeline.clear_channel_4();
 		_channel_4_notes.clear();
 		build_note_view(_piano_timeline._channel_4_loops, _piano_timeline._channel_4_calls, _channel_4_notes, song.channel_4_commands(), _song_length, NOTE_BROWN);
 		_piano_timeline.set_channel_4(_channel_4_notes);
+		_piano_timeline.set_channel_detail(
+			_piano_timeline._channel_4_notes,
+			_piano_timeline._channel_4_loops,
+			_piano_timeline._channel_4_calls,
+			_piano_timeline._channel_4_flags,
+			2
+		);
 	}
 	_piano_timeline.end();
 
@@ -1639,10 +1763,10 @@ int32_t Piano_Roll::get_last_note_x() const {
 }
 
 void Piano_Roll::update_channel_detail(int channel_number) {
-	_piano_timeline.set_channel_1_detailed(channel_number == 0 || channel_number == 1);
-	_piano_timeline.set_channel_2_detailed(channel_number == 0 || channel_number == 2);
-	_piano_timeline.set_channel_3_detailed(channel_number == 0 || channel_number == 3);
-	_piano_timeline.set_channel_4_detailed(channel_number == 0 || channel_number == 4);
+	_piano_timeline.set_channel_1_detail(channel_number == 1 ? 2 : channel_number == 0 ? 1 : 0);
+	_piano_timeline.set_channel_2_detail(channel_number == 2 ? 2 : channel_number == 0 ? 1 : 0);
+	_piano_timeline.set_channel_3_detail(channel_number == 3 ? 2 : channel_number == 0 ? 1 : 0);
+	_piano_timeline.set_channel_4_detail(channel_number == 4 ? 2 : channel_number == 0 ? 1 : 0);
 }
 
 void Piano_Roll::align_cursor() {
