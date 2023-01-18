@@ -114,8 +114,8 @@ int main(int argc, char **argv) {
 		window->maximize();
 	}
 
-#ifdef __APPLE__
 	int argi = 1;
+#ifndef __APPLE__
 	// Ignore the "-psn_*" parameter passed by some older macOS versions
 	// See https://stackoverflow.com/questions/10242115/os-x-strange-psn-command-line-parameter-when-launched-from-finder
 	while (argi < argc) {
@@ -123,6 +123,10 @@ int main(int argc, char **argv) {
 		argi++;
 	}
 #endif
+
+	if (argi < argc) {
+		window->open_song(argv[argi]);
+	}
 
 	return Fl::run();
 }
