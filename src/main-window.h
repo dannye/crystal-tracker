@@ -81,9 +81,15 @@ private:
 		*_decrease_spacing_tb = NULL,
 		*_increase_spacing_tb = NULL;
 	// GUI outputs
-	Ruler *_ruler;
+	Ruler *_ruler = NULL;
 	Piano_Roll *_piano_roll = NULL;
-	Label *_timestamp_label, *_status_label;
+	Label
+		*_timestamp_label = NULL,
+		*_channel_1_status_label = NULL,
+		*_channel_2_status_label = NULL,
+		*_channel_3_status_label = NULL,
+		*_channel_4_status_label = NULL,
+		*_status_label = NULL;
 	// Conditional menu items
 	Fl_Menu_Item
 		*_close_mi = NULL,
@@ -211,7 +217,8 @@ private:
 	void update_ruler(void);
 	void update_zoom(void);
 	void update_layout(void);
-	void update_status(void);
+	void update_timestamp(void);
+	void update_channel_status(void);
 	// File menu
 	static void new_cb(Fl_Widget *w, Main_Window *mw);
 	static void open_cb(Fl_Widget *w, Main_Window *mw);

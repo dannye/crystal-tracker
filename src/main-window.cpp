@@ -100,6 +100,14 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	wh -= _status_bar->h();
 	_timestamp_label = new Label(0, 0, text_width("00:00:00 / 00:00:00", 8), STATUS_BAR_HEIGHT - 2, "00:00:00 / 00:00:00");
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
+	_channel_1_status_label = new Label(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
+	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
+	_channel_2_status_label = new Label(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
+	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
+	_channel_3_status_label = new Label(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
+	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
+	_channel_4_status_label = new Label(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
+	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
 	_status_label = new Label(0, 0, ww, STATUS_BAR_HEIGHT - 2, _status_message.c_str());
 	_status_bar->end();
 	begin();
@@ -490,6 +498,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	update_recent_songs();
 	update_active_controls();
 	update_zoom();
+	update_channel_status();
 
 	_piano_roll->key_labels(key_labels());
 	_piano_roll->scroll_to_y_max();
@@ -669,7 +678,7 @@ void Main_Window::set_song_position(int32_t tick) {
 	if (_it_module) {
 		_it_module->set_tick(tick);
 	}
-	update_status();
+	update_timestamp();
 	_audio_mutex.unlock();
 }
 
@@ -1024,7 +1033,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	_status_label->label(_status_message.c_str());
 
 	update_active_controls();
-	update_status();
+	update_timestamp();
 
 	if (filename) {
 		store_recent_song();
@@ -1261,7 +1270,7 @@ void Main_Window::update_layout() {
 	);
 }
 
-void Main_Window::update_status() {
+void Main_Window::update_timestamp() {
 	if (!_song.loaded()) {
 		_timestamp_label->label("00:00:00 / 00:00:00");
 	}
@@ -1280,6 +1289,18 @@ void Main_Window::update_status() {
 		);
 		_timestamp_label->copy_label(buffer);
 	}
+}
+
+void Main_Window::update_channel_status() {
+	char buffer[16] = {};
+	sprintf(buffer, "Ch1: %s", channel_1_muted() ? "Off" : "On");
+	_channel_1_status_label->copy_label(buffer);
+	sprintf(buffer, "Ch2: %s", channel_2_muted() ? "Off" : "On");
+	_channel_2_status_label->copy_label(buffer);
+	sprintf(buffer, "Ch3: %s", channel_3_muted() ? "Off" : "On");
+	_channel_3_status_label->copy_label(buffer);
+	sprintf(buffer, "Ch4: %s", channel_4_muted() ? "Off" : "On");
+	_channel_4_status_label->copy_label(buffer);
 }
 
 void Main_Window::new_cb(Fl_Widget *, Main_Window *mw) {
@@ -1390,7 +1411,7 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	}
 	mw->_showed_it_warning = false;
 	mw->init_sizes();
-	mw->update_status();
+	mw->update_timestamp();
 	mw->_directory.clear();
 	mw->_asm_file.clear();
 
@@ -1614,6 +1635,7 @@ void Main_Window::channel_1_mute_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->_it_module) {
 		mw->_it_module->mute_channel(1, mw->channel_1_muted());
 	}
+	mw->update_channel_status();
 }
 
 void Main_Window::channel_2_mute_cb(Fl_Widget *, Main_Window *mw) {
@@ -1621,6 +1643,7 @@ void Main_Window::channel_2_mute_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->_it_module) {
 		mw->_it_module->mute_channel(2, mw->channel_2_muted());
 	}
+	mw->update_channel_status();
 }
 
 void Main_Window::channel_3_mute_cb(Fl_Widget *, Main_Window *mw) {
@@ -1628,6 +1651,7 @@ void Main_Window::channel_3_mute_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->_it_module) {
 		mw->_it_module->mute_channel(3, mw->channel_3_muted());
 	}
+	mw->update_channel_status();
 }
 
 void Main_Window::channel_4_mute_cb(Fl_Widget *, Main_Window *mw) {
@@ -1635,6 +1659,7 @@ void Main_Window::channel_4_mute_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->_it_module) {
 		mw->_it_module->mute_channel(4, mw->channel_4_muted());
 	}
+	mw->update_channel_status();
 }
 
 void Main_Window::step_backward_cb(Fl_Widget *, Main_Window *mw) {
@@ -2276,7 +2301,7 @@ void Main_Window::sync_cb(Main_Window *mw) {
 		if (mod) mod->set_tick(0);
 		mw->update_active_controls();
 	}
-	mw->update_status();
+	mw->update_timestamp();
 	mw->_sync_requested = false;
 	mw->_audio_mutex.unlock();
 }
