@@ -777,25 +777,31 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 			};
 
 			if (
-				note.duty != prev_note.duty ||
-				(channel_number == 3 && note.wave != prev_note.wave)
+				!note.ghost &&
+				(note.duty != prev_note.duty ||
+				(channel_number == 3 && note.wave != prev_note.wave))
 			) {
 				add_flag(FLAG_DUTY_WAVE);
 			}
 			if (
-				note.vibrato_delay != prev_note.vibrato_delay ||
+				!note.ghost &&
+				(note.vibrato_delay != prev_note.vibrato_delay ||
 				note.vibrato_extent != prev_note.vibrato_extent ||
-				note.vibrato_rate != prev_note.vibrato_rate
+				note.vibrato_rate != prev_note.vibrato_rate)
 			) {
 				add_flag(FLAG_VIBRATO);
 			}
 			if (
-				note.volume != prev_note.volume ||
-				((channel_number == 1 || channel_number == 2) && note.fade != prev_note.fade)
+				!note.ghost &&
+				(note.volume != prev_note.volume ||
+				((channel_number == 1 || channel_number == 2) && note.fade != prev_note.fade))
 			) {
 				add_flag(FLAG_VOLUME);
 			}
-			if (note.speed != prev_note.speed) {
+			if (
+				!note.ghost &&
+				note.speed != prev_note.speed
+			) {
 				add_flag(FLAG_SPEED);
 			}
 			prev_note = note;
