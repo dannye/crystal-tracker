@@ -31,6 +31,8 @@
 constexpr int TOOLBAR_BUTTON_HEIGHT = 24;
 constexpr int STATUS_BAR_HEIGHT = 23;
 
+constexpr int NOTE_PROP_HEIGHT = 42;
+
 Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_Window(x, y, w, h, PROGRAM_NAME),
 	_wx(x), _wy(y), _ww(w), _wh(h) {
 
@@ -110,6 +112,14 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
 	_status_label = new Label(0, 0, ww, STATUS_BAR_HEIGHT - 2, _status_message.c_str());
 	_status_bar->end();
+	begin();
+
+	// Note Properties panel
+	_note_properties = new Note_Properties(wx, wy, ww, NOTE_PROP_HEIGHT);
+	_note_properties->resizable(nullptr);
+	_note_properties->hide();
+	_note_properties->deactivate();
+	_note_properties->end();
 	begin();
 
 	// Ruler
@@ -513,6 +523,7 @@ Main_Window::~Main_Window() {
 	delete _menu_bar; // includes menu items
 	delete _toolbar; // includes toolbar buttons
 	delete _status_bar; // includes status bar fields
+	delete _note_properties;
 	delete _ruler;
 	delete _piano_roll;
 	delete _new_dir_chooser;
@@ -538,9 +549,10 @@ void Main_Window::resize(int X, int Y, int W, int H) {
 	Fl_Double_Window::resize(X, Y, W, H);
 	_menu_bar->size(W, MENU_BAR_HEIGHT);
 	_toolbar->size(W, TOOLBAR_HEIGHT);
+	_note_properties->size(W, NOTE_PROP_HEIGHT);
 	_ruler->size(W, Fl::scrollbar_size());
-	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (ruler() ? Fl::scrollbar_size() : 0));
-	_piano_roll->set_size(W, H - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT);
+	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0));
+	_piano_roll->set_size(W, H - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (note_properties() ? NOTE_PROP_HEIGHT : 0) - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT);
 	_status_bar->resize(0, H - STATUS_BAR_HEIGHT, W, STATUS_BAR_HEIGHT);
 }
 
@@ -702,6 +714,25 @@ bool Main_Window::stop_note() {
 		return true;
 	}
 	return false;
+}
+
+void Main_Window::open_note_properties() {
+	if (note_properties()) return;
+	_note_properties->activate();
+	_note_properties->show();
+	update_layout();
+	_piano_roll->scroll_to(_piano_roll->xposition(), _piano_roll->yposition() + NOTE_PROP_HEIGHT);
+	redraw();
+}
+
+void Main_Window::close_note_properties() {
+	if (!note_properties()) return;
+	_note_properties->hide();
+	_note_properties->deactivate();
+	int y_pos = _piano_roll->yposition();
+	update_layout();
+	_piano_roll->scroll_to(_piano_roll->xposition(), std::max(y_pos - NOTE_PROP_HEIGHT, 0));
+	redraw();
 }
 
 void Main_Window::update_active_controls() {
@@ -1260,13 +1291,14 @@ void Main_Window::update_zoom() {
 }
 
 void Main_Window::update_layout() {
-	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (ruler() ? Fl::scrollbar_size() : 0));
-	_piano_roll->set_size(w(), h() - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT);
+	_ruler->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0));
+	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0));
+	_piano_roll->set_size(w(), h() - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (note_properties() ? NOTE_PROP_HEIGHT : 0) - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT);
 	size_range(
 		WHITE_KEY_WIDTH * 3 + Fl::scrollbar_size(),
-		MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (ruler() ? Fl::scrollbar_size() : 0) + _piano_roll->octave_height() + Fl::scrollbar_size() + STATUS_BAR_HEIGHT,
+		MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0) + _piano_roll->octave_height() + Fl::scrollbar_size() + STATUS_BAR_HEIGHT,
 		0,
-		MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (ruler() ? Fl::scrollbar_size() : 0) + _piano_roll->octave_height() * NUM_OCTAVES + Fl::scrollbar_size() + STATUS_BAR_HEIGHT
+		MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0) + _piano_roll->octave_height() * NUM_OCTAVES + Fl::scrollbar_size() + STATUS_BAR_HEIGHT
 	);
 }
 
@@ -1425,6 +1457,7 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_channel_3_tb->clear();
 	mw->_channel_4_mi->clear();
 	mw->_channel_4_tb->clear();
+	mw->close_note_properties();
 
 	mw->update_active_controls();
 	mw->_status_label->label(mw->_status_message.c_str());
@@ -1773,9 +1806,12 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 		mw->set_song_position(tick);
 	}
 	else if (
-		action != Song::Song_State::Action::DELETE_SELECTION &&
-		action != Song::Song_State::Action::SNIP_SELECTION
+		action == Song::Song_State::Action::DELETE_SELECTION ||
+		action == Song::Song_State::Action::SNIP_SELECTION
 	) {
+		mw->close_note_properties();
+	}
+	else {
 		mw->_piano_roll->set_active_channel_selection(selection);
 	}
 

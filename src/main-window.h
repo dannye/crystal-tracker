@@ -15,6 +15,7 @@
 #include "ruler.h"
 #include "song.h"
 #include "piano-roll.h"
+#include "note-properties.h"
 #include "it-module.h"
 #include "parse-waves.h"
 #include "help-window.h"
@@ -81,6 +82,7 @@ private:
 		*_decrease_spacing_tb = NULL,
 		*_increase_spacing_tb = NULL;
 	// GUI outputs
+	Note_Properties *_note_properties = NULL;
 	Ruler *_ruler = NULL;
 	Piano_Roll *_piano_roll = NULL;
 	Label
@@ -174,6 +176,7 @@ public:
 	inline bool channel_3_muted(void) const { return _channel_3_mute_mi && !!_channel_3_mute_mi->value(); }
 	inline bool channel_4_muted(void) const { return _channel_4_mute_mi && !!_channel_4_mute_mi->value(); }
 	inline bool pencil_mode(void) const { return _pencil_mode_mi && !!_pencil_mode_mi->value(); }
+	inline bool note_properties(void) const { return _note_properties && _note_properties->visible(); }
 	inline bool ruler(void) const { return _ruler_mi && !!_ruler_mi->value(); }
 	inline bool zoom(void) const { return _zoom_mi && !!_zoom_mi->value(); }
 	inline bool key_labels(void) const { return _key_labels_mi && !!_key_labels_mi->value(); }
@@ -195,6 +198,10 @@ public:
 	bool play_note(Pitch pitch, int32_t octave);
 	bool stop_note();
 	bool playing_note() { return _playing_pitch != Pitch::REST; }
+
+	void open_note_properties();
+	void close_note_properties();
+	void set_note_properties(Note_View view) { _note_properties->set_note_properties(view, selected_channel()); }
 
 	void delete_selection() { delete_cb(nullptr, this); }
 	bool put_note(Pitch pitch, int32_t octave = 0, int32_t tick = -1);

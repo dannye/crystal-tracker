@@ -643,6 +643,8 @@ bool Piano_Timeline::handle_note_selection(int event) {
 		}
 	}
 
+	parent()->on_selection_change();
+
 	return clicked_note;
 }
 
@@ -660,6 +662,8 @@ bool Piano_Timeline::select_all() {
 		}
 	}
 
+	parent()->on_selection_change();
+
 	return note_selected;
 }
 
@@ -676,6 +680,8 @@ bool Piano_Timeline::select_none() {
 			note_deselected = true;
 		}
 	}
+
+	parent()->on_selection_change();
 
 	return note_deselected;
 }
@@ -724,6 +730,7 @@ void Piano_Timeline::select_note_at_tick(std::vector<Note_Box *> &notes, int32_t
 		}
 		if (t_right > tick) {
 			note->selected(true);
+			parent()->on_selection_change();
 			return;
 		}
 	}
@@ -1152,6 +1159,20 @@ bool Piano_Roll::handle_mouse_click(int event) {
 	return false;
 }
 
+void Piano_Roll::on_selection_change() {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (channel) {
+		for (Note_Box *note : *channel) {
+			if (note->selected()) {
+				parent()->open_note_properties();
+				parent()->set_note_properties(note->note_view());
+				return;
+			}
+		}
+	}
+	parent()->close_note_properties();
+}
+
 void Piano_Roll::step_backward() {
 	if (_song_length == -1) return;
 	if (_tick == -1) _tick = 0;
@@ -1369,6 +1390,8 @@ void Piano_Roll::set_active_channel_selection(const std::set<int32_t> &selection
 	for (int32_t index : selection) {
 		channel->at(index)->selected(true);
 	}
+
+	on_selection_change();
 }
 
 void Piano_Roll::select_note_at_tick() {
@@ -1766,6 +1789,7 @@ void Piano_Roll::update_channel_detail(int channel_number) {
 	_piano_timeline.set_channel_2_detail(channel_number == 2 ? 2 : channel_number == 0 ? 1 : 0);
 	_piano_timeline.set_channel_3_detail(channel_number == 3 ? 2 : channel_number == 0 ? 1 : 0);
 	_piano_timeline.set_channel_4_detail(channel_number == 4 ? 2 : channel_number == 0 ? 1 : 0);
+	on_selection_change();
 }
 
 void Piano_Roll::align_cursor() {
@@ -2256,6 +2280,7 @@ bool Piano_Roll::delete_selection(Song &song) {
 
 	song.delete_selection(selected_channel(), selected_notes, selected_boxes);
 	set_active_channel_timeline(song);
+	on_selection_change();
 
 	return true;
 }
@@ -2281,6 +2306,7 @@ bool Piano_Roll::snip_selection(Song &song) {
 
 	song.snip_selection(selected_channel(), selected_notes, selected_boxes);
 	set_active_channel_timeline(song);
+	on_selection_change();
 
 	align_cursor();
 

@@ -395,6 +395,8 @@ public:
 	int handle(int event) override;
 	bool handle_mouse_click(int event);
 
+	void on_selection_change();
+
 	void set_continuous_scroll(bool c) { _continuous = c; }
 
 	void step_backward();

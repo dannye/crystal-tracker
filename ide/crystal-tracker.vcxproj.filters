@@ -39,6 +39,9 @@
     <ClCompile Include="..\src\modal-dialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\note-properties.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\option-dialogs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -96,6 +99,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\modal-dialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\note-properties.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\option-dialogs.h">
