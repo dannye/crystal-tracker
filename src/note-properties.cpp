@@ -29,6 +29,33 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 	_duty_wave_input = new OS_Spinner(x() + dx + text_width("Wave:", 2), y() + wgt_m, wgt_w, wgt_h, "Wave:");
 	dx += wgt_w + wgt_m + text_width("Wave:", 2);
 
+	_advanced_button = new OS_Button(x() + dx + wgt_m, y() + wgt_m, text_width("Advanced", 8), wgt_h, "Advanced");
+
+	dx = wgt_m;
+
+	_tempo_input = new OS_Spinner(x() + dx + text_width("Tempo:", 2), y() + wgt_m, wgt_w2, wgt_h, "Tempo:");
+	dx += wgt_w2 + wgt_m + text_width("Tempo:", 2);
+
+	_transpose_octaves_input = new OS_Spinner(x() + dx + text_width("Transpose octaves:", 2), y() + wgt_m, wgt_w, wgt_h, "Transpose octaves:");
+	dx += wgt_w + wgt_m + text_width("Transpose octaves:", 2);
+
+	_transpose_pitches_input = new OS_Spinner(x() + dx + text_width("Transpose pitches:", 2), y() + wgt_m, wgt_w, wgt_h, "Transpose pitches:");
+	dx += wgt_w + wgt_m + text_width("Transpose pitches:", 2);
+
+	_slide_duration_input = new OS_Spinner(x() + dx + text_width("Slide duration:", 2), y() + wgt_m, wgt_w2, wgt_h, "Slide duration:");
+	dx += wgt_w2 + wgt_m + text_width("Slide duration:", 2);
+
+	_slide_octave_input = new OS_Spinner(x() + dx + text_width("Slide octave:", 2), y() + wgt_m, wgt_w, wgt_h, "Slide octave:");
+	dx += wgt_w + wgt_m + text_width("Slide octave:", 2);
+
+	_slide_pitch_input = new Dropdown(x() + dx + text_width("Slide pitch:", 2), y() + wgt_m, wgt_w2, wgt_h, "Slide pitch:");
+	dx += wgt_w2 + wgt_m + text_width("Slide pitch:", 2);
+	for (int i = 0; i <= NUM_PITCHES; ++i) {
+		_slide_pitch_input->add(PITCH_NAMES[i]);
+	}
+
+	_basic_button = new OS_Button(x() + dx + wgt_m, y() + wgt_m, text_width("Basic", 8), wgt_h, "Basic");
+
 	_speed_input->value(0);
 	_volume_input->value(0);
 	_fade_input->value(0);
@@ -37,6 +64,13 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 	_vibrato_rate_input->value(0);
 	_duty_wave_input->value(0);
 
+	_tempo_input->value(0);
+	_transpose_octaves_input->value(0);
+	_transpose_pitches_input->value(0);
+	_slide_duration_input->value(0);
+	_slide_octave_input->value(0);
+	_slide_pitch_input->value(0);
+
 	_speed_input->deactivate();
 	_volume_input->deactivate();
 	_fade_input->deactivate();
@@ -44,6 +78,18 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 	_vibrato_depth_input->deactivate();
 	_vibrato_rate_input->deactivate();
 	_duty_wave_input->deactivate();
+
+	_tempo_input->deactivate();
+	_transpose_octaves_input->deactivate();
+	_transpose_pitches_input->deactivate();
+	_slide_duration_input->deactivate();
+	_slide_octave_input->deactivate();
+	_slide_pitch_input->deactivate();
+
+	_advanced_button->callback((Fl_Callback *)advanced_button_cb, this);
+	_basic_button->callback((Fl_Callback *)basic_button_cb, this);
+
+	basic_button_cb(nullptr, this);
 }
 
 void Note_Properties::set_note_properties(Note_View view, int channel_number) {
@@ -66,5 +112,50 @@ void Note_Properties::set_note_properties(Note_View view, int channel_number) {
 		_duty_wave_input->label("Duty:");
 		_duty_wave_input->value(view.duty);
 	}
+
+	_tempo_input->value(view.tempo);
+	_transpose_octaves_input->value(view.transpose_octaves);
+	_transpose_pitches_input->value(view.transpose_pitches);
+	_slide_duration_input->value(view.slide_duration);
+	_slide_octave_input->value(view.slide_octave);
+	_slide_pitch_input->value((int)view.slide_pitch);
 	redraw();
+}
+
+void Note_Properties::advanced_button_cb(OS_Button *, Note_Properties *np) {
+	np->_speed_input->hide();
+	np->_volume_input->hide();
+	np->_fade_input->hide();
+	np->_vibrato_delay_input->hide();
+	np->_vibrato_depth_input->hide();
+	np->_vibrato_rate_input->hide();
+	np->_duty_wave_input->hide();
+	np->_advanced_button->hide();
+
+	np->_tempo_input->show();
+	np->_transpose_octaves_input->show();
+	np->_transpose_pitches_input->show();
+	np->_slide_duration_input->show();
+	np->_slide_octave_input->show();
+	np->_slide_pitch_input->show();
+	np->_basic_button->show();
+}
+
+void Note_Properties::basic_button_cb(OS_Button *, Note_Properties *np) {
+	np->_speed_input->show();
+	np->_volume_input->show();
+	np->_fade_input->show();
+	np->_vibrato_delay_input->show();
+	np->_vibrato_depth_input->show();
+	np->_vibrato_rate_input->show();
+	np->_duty_wave_input->show();
+	np->_advanced_button->show();
+
+	np->_tempo_input->hide();
+	np->_transpose_octaves_input->hide();
+	np->_transpose_pitches_input->hide();
+	np->_slide_duration_input->hide();
+	np->_slide_octave_input->hide();
+	np->_slide_pitch_input->hide();
+	np->_basic_button->hide();
 }

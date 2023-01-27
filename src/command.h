@@ -21,7 +21,7 @@ enum class Pitch {
 };
 
 static const char * const PITCH_NAMES[] = {
-	"",
+	"  ",
 	"C_",
 	"C#",
 	"D_",
