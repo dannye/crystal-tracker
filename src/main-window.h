@@ -86,11 +86,13 @@ private:
 	Ruler *_ruler = NULL;
 	Piano_Roll *_piano_roll = NULL;
 	Label
-		*_timestamp_label = NULL,
+		*_timestamp_label = NULL;
+	Label_Button
 		*_channel_1_status_label = NULL,
 		*_channel_2_status_label = NULL,
 		*_channel_3_status_label = NULL,
-		*_channel_4_status_label = NULL,
+		*_channel_4_status_label = NULL;
+	Label
 		*_status_label = NULL;
 	// Conditional menu items
 	Fl_Menu_Item

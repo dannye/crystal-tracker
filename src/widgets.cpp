@@ -42,6 +42,14 @@ Label::Label(int x, int y, int w, int h, const char *l) : Fl_Box(x, y, w, h, l) 
 	align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
 }
 
+Label_Button::Label_Button(int x, int y, int w, int h, const char *l) : Fl_Button(x, y, w, h, l) {
+	labelfont(OS_FONT);
+	labelsize(OS_FONT_SIZE);
+	box(FL_NO_BOX);
+	down_box(OS_CHECK_DOWN_BOX);
+	align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
+}
+
 Spacer::Spacer(int x, int y, int w, int h, const char *l) : Fl_Box(x, y, w, h, l) {
 	labeltype(FL_NO_LABEL);
 	box(OS_SPACER_THIN_DOWN_FRAME);

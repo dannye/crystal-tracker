@@ -102,13 +102,13 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	wh -= _status_bar->h();
 	_timestamp_label = new Label(0, 0, text_width("00:00:00 / 00:00:00", 8), STATUS_BAR_HEIGHT - 2, "00:00:00 / 00:00:00");
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
-	_channel_1_status_label = new Label(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
+	_channel_1_status_label = new Label_Button(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
-	_channel_2_status_label = new Label(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
+	_channel_2_status_label = new Label_Button(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
-	_channel_3_status_label = new Label(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
+	_channel_3_status_label = new Label_Button(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
-	_channel_4_status_label = new Label(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
+	_channel_4_status_label = new Label_Button(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
 	_status_label = new Label(0, 0, ww, STATUS_BAR_HEIGHT - 2, _status_message.c_str());
 	_status_bar->end();
@@ -472,6 +472,12 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_increase_spacing_tb->tooltip("Increase Spacing (" SHIFT_KEY_PLUS "=)");
 	_increase_spacing_tb->callback((Fl_Callback *)increase_spacing_cb, this);
 	_increase_spacing_tb->image(INCREASE_SPACING_ICON);
+
+	// Configure status bar
+	_channel_1_status_label->callback((Fl_Callback *)channel_1_mute_cb, this);
+	_channel_2_status_label->callback((Fl_Callback *)channel_2_mute_cb, this);
+	_channel_3_status_label->callback((Fl_Callback *)channel_3_mute_cb, this);
+	_channel_4_status_label->callback((Fl_Callback *)channel_4_mute_cb, this);
 
 	// Configure dialogs
 
@@ -1663,7 +1669,16 @@ void Main_Window::zoom_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 
 #undef SYNC_MI_WITH_TB
 
-void Main_Window::channel_1_mute_cb(Fl_Widget *, Main_Window *mw) {
+void Main_Window::channel_1_mute_cb(Fl_Widget *w, Main_Window *mw) {
+	if (w == mw->_channel_1_status_label) {
+		if (mw->channel_1_muted()) {
+			mw->_channel_1_mute_mi->clear();
+		}
+		else {
+			mw->_channel_1_mute_mi->set();
+		}
+		Fl::focus(nullptr);
+	}
 	mw->_piano_roll->channel_1_muted(mw->channel_1_muted());
 	if (mw->_it_module) {
 		mw->_it_module->mute_channel(1, mw->channel_1_muted());
@@ -1671,7 +1686,16 @@ void Main_Window::channel_1_mute_cb(Fl_Widget *, Main_Window *mw) {
 	mw->update_channel_status();
 }
 
-void Main_Window::channel_2_mute_cb(Fl_Widget *, Main_Window *mw) {
+void Main_Window::channel_2_mute_cb(Fl_Widget *w, Main_Window *mw) {
+	if (w == mw->_channel_2_status_label) {
+		if (mw->channel_2_muted()) {
+			mw->_channel_2_mute_mi->clear();
+		}
+		else {
+			mw->_channel_2_mute_mi->set();
+		}
+		Fl::focus(nullptr);
+	}
 	mw->_piano_roll->channel_2_muted(mw->channel_2_muted());
 	if (mw->_it_module) {
 		mw->_it_module->mute_channel(2, mw->channel_2_muted());
@@ -1679,7 +1703,16 @@ void Main_Window::channel_2_mute_cb(Fl_Widget *, Main_Window *mw) {
 	mw->update_channel_status();
 }
 
-void Main_Window::channel_3_mute_cb(Fl_Widget *, Main_Window *mw) {
+void Main_Window::channel_3_mute_cb(Fl_Widget *w, Main_Window *mw) {
+	if (w == mw->_channel_3_status_label) {
+		if (mw->channel_3_muted()) {
+			mw->_channel_3_mute_mi->clear();
+		}
+		else {
+			mw->_channel_3_mute_mi->set();
+		}
+		Fl::focus(nullptr);
+	}
 	mw->_piano_roll->channel_3_muted(mw->channel_3_muted());
 	if (mw->_it_module) {
 		mw->_it_module->mute_channel(3, mw->channel_3_muted());
@@ -1687,7 +1720,16 @@ void Main_Window::channel_3_mute_cb(Fl_Widget *, Main_Window *mw) {
 	mw->update_channel_status();
 }
 
-void Main_Window::channel_4_mute_cb(Fl_Widget *, Main_Window *mw) {
+void Main_Window::channel_4_mute_cb(Fl_Widget *w, Main_Window *mw) {
+	if (w == mw->_channel_4_status_label) {
+		if (mw->channel_4_muted()) {
+			mw->_channel_4_mute_mi->clear();
+		}
+		else {
+			mw->_channel_4_mute_mi->set();
+		}
+		Fl::focus(nullptr);
+	}
 	mw->_piano_roll->channel_4_muted(mw->channel_4_muted());
 	if (mw->_it_module) {
 		mw->_it_module->mute_channel(4, mw->channel_4_muted());

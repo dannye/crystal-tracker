@@ -47,6 +47,11 @@ public:
 	Label(int x, int y, int w, int h, const char *l = NULL);
 };
 
+class Label_Button : public Fl_Button {
+public:
+	Label_Button(int x, int y, int w, int h, const char *l = NULL);
+};
+
 class Spacer : public Fl_Box {
 public:
 	Spacer(int x, int y, int w, int h, const char *l = NULL);
