@@ -467,11 +467,12 @@ void Piano_Timeline::calc_sizes() {
 
 	const auto resize_flags = [&](std::vector<Flag_Box *> &flags, const std::vector<Note_Box *> &notes) {
 		for (Flag_Box *flag : flags) {
+			const Note_Box *note = notes[flag->note_index()];
 			flag->resize(
-				notes[flag->note_index()]->x(),
-				notes[flag->note_index()]->y() - notes[flag->note_index()]->h() * flag->row_offset(),
+				note->x(),
+				note->y() - note->h() * flag->row_offset() * (note->note_view().octave == 8 ? -1 : 1),
 				tick_width * 4,
-				notes[flag->note_index()]->h()
+				note->h()
 			);
 		}
 	};
@@ -772,7 +773,7 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 					channel.size() - 1,
 					row_offset,
 					box->x(),
-					box->y() - box->h() * row_offset,
+					box->y() - box->h() * row_offset * (note.octave == 8 ? -1 : 1),
 					tick_width * 4,
 					box->h()
 				);
