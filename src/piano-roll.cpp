@@ -1163,12 +1163,16 @@ bool Piano_Roll::handle_mouse_click(int event) {
 void Piano_Roll::on_selection_change() {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (channel) {
+		std::vector<const Note_View *> selected_notes;
 		for (Note_Box *note : *channel) {
 			if (note->selected()) {
-				parent()->open_note_properties();
-				parent()->set_note_properties(note->note_view());
-				return;
+				selected_notes.push_back(&note->note_view());
 			}
+		}
+		if (selected_notes.size() > 0) {
+			parent()->open_note_properties();
+			parent()->set_note_properties(selected_notes);
+			return;
 		}
 	}
 	parent()->close_note_properties();

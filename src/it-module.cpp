@@ -495,7 +495,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					else if (
 						channel_1_prev_note.vibrato_rate &&
 						channel_1_prev_note.vibrato_extent &&
-						channel_1_note_duration > channel_1_prev_note.vibrato_delay
+						channel_1_note_duration > channel_1_prev_note.vibrato_delay * (channel_1_prev_note.speed / 4)
 					) {
 						pattern_data.push_back(FADE_VIBRATO);
 					}
@@ -519,7 +519,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				else if (
 					channel_1_prev_note.vibrato_rate &&
 					channel_1_prev_note.vibrato_extent &&
-					channel_1_note_duration >= channel_1_prev_note.vibrato_delay
+					channel_1_note_duration >= channel_1_prev_note.vibrato_delay * (channel_1_prev_note.speed / 4)
 				) {
 					pattern_data.push_back(CHANNEL + CH1);
 					if (channel_1_prev_note.duty_cycle_loop) {
@@ -530,7 +530,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 						pattern_data.push_back(COMMAND);
 					}
 					pattern_data.push_back(VIBRATO);
-					pattern_data.push_back((8 - channel_1_prev_note.vibrato_rate) << 4 | (channel_1_prev_note.vibrato_extent));
+					pattern_data.push_back((8 - std::min(channel_1_prev_note.vibrato_rate, 7)) << 4 | (channel_1_prev_note.vibrato_extent));
 				}
 				else if (channel_1_prev_note.duty_cycle_loop) {
 					pattern_data.push_back(CHANNEL + CH1);
@@ -587,7 +587,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					else if (
 						channel_2_prev_note.vibrato_rate &&
 						channel_2_prev_note.vibrato_extent &&
-						channel_2_note_duration > channel_2_prev_note.vibrato_delay
+						channel_2_note_duration > channel_2_prev_note.vibrato_delay * (channel_2_prev_note.speed / 4)
 					) {
 						pattern_data.push_back(FADE_VIBRATO);
 					}
@@ -611,7 +611,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				else if (
 					channel_2_prev_note.vibrato_rate &&
 					channel_2_prev_note.vibrato_extent &&
-					channel_2_note_duration >= channel_2_prev_note.vibrato_delay
+					channel_2_note_duration >= channel_2_prev_note.vibrato_delay * (channel_2_prev_note.speed / 4)
 				) {
 					pattern_data.push_back(CHANNEL + CH2);
 					if (channel_2_prev_note.duty_cycle_loop) {
@@ -622,7 +622,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 						pattern_data.push_back(COMMAND);
 					}
 					pattern_data.push_back(VIBRATO);
-					pattern_data.push_back((8 - channel_2_prev_note.vibrato_rate) << 4 | (channel_2_prev_note.vibrato_extent));
+					pattern_data.push_back((8 - std::min(channel_2_prev_note.vibrato_rate, 7)) << 4 | (channel_2_prev_note.vibrato_extent));
 				}
 				else if (channel_2_prev_note.duty_cycle_loop) {
 					pattern_data.push_back(CHANNEL + CH2);
@@ -677,12 +677,12 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 				else if (
 					channel_3_prev_note.vibrato_rate &&
 					channel_3_prev_note.vibrato_extent &&
-					channel_3_note_duration >= channel_3_prev_note.vibrato_delay
+					channel_3_note_duration >= channel_3_prev_note.vibrato_delay * (channel_3_prev_note.speed / 4)
 				) {
 					pattern_data.push_back(CHANNEL + CH3);
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(VIBRATO);
-					pattern_data.push_back((8 - channel_3_prev_note.vibrato_rate) << 4 | (channel_3_prev_note.vibrato_extent));
+					pattern_data.push_back((8 - std::min(channel_3_prev_note.vibrato_rate, 7)) << 4 | (channel_3_prev_note.vibrato_extent));
 				}
 				channel_3_note_length -= 1;
 				channel_3_note_duration += 1;
@@ -899,7 +899,7 @@ void IT_Module::generate_it_module(
 
 			put_short(_data, 15);
 
-			_data.push_back(0xC1); // bit 6: fine tone portamento
+			_data.push_back(0xc1); // bit 6: fine tone portamento
 			_data.push_back(0xfe); // bit 0: tempo clamp off
 			_data.push_back(0xff);
 			_data.push_back(0xff);

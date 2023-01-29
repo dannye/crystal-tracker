@@ -567,7 +567,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					if (command.transpose.num_octaves < 0 || command.transpose.num_octaves > 7) {
 						return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
 					}
-					if (command.transpose.num_pitches < 0 || command.transpose.num_pitches > 24) {
+					if (command.transpose.num_pitches < 0 || command.transpose.num_pitches > 15) {
 						return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
 					}
 					current_channel_commands->push_back(command);
@@ -706,9 +706,6 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					if (command.vibrato.rate < 0 || command.vibrato.rate > 15) {
 						return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
 					}
-					// TODO: verify what happens with values >= 8
-					command.vibrato.extent %= 8;
-					command.vibrato.rate %= 8;
 					current_channel_commands->push_back(command);
 				}
 

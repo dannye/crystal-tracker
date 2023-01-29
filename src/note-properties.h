@@ -28,7 +28,7 @@ private:
 	OS_Button *_basic_button = nullptr;
 public:
 	Note_Properties(int X, int Y, int W, int H, const char *l = nullptr);
-	void set_note_properties(Note_View view, int channel_number);
+	void set_note_properties(const std::vector<const Note_View *> &notes, int channel_number);
 private:
 	static void advanced_button_cb(OS_Button *b, Note_Properties *np);
 	static void basic_button_cb(OS_Button *b, Note_Properties *np);
