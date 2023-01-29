@@ -671,6 +671,298 @@ void Song::put_note(const int selected_channel, const std::set<int32_t> &selecte
 	_modified = true;
 }
 
+void Song::set_speed(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t speed) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_SPEED);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		if (selected_channel == 4) {
+			Command command = Command(Command_Type::DRUM_SPEED);
+			command.drum_speed.speed = speed;
+			command.labels = std::move(commands[*note_itr].labels);
+			commands[*note_itr].labels.clear();
+			commands.insert(commands.begin() + *note_itr, command);
+		}
+		else {
+			Note_View note_view = find_note_view(view, *note_itr);
+			Command command = Command(Command_Type::NOTE_TYPE);
+			command.note_type.speed = speed;
+			command.note_type.volume = note_view.volume;
+			command.note_type.fade = note_view.fade;
+			command.labels = std::move(commands[*note_itr].labels);
+			commands[*note_itr].labels.clear();
+			commands.insert(commands.begin() + *note_itr, command);
+		}
+	}
+
+	// TODO: merge redundant note_type/drum_speed commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::set_volume(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t volume) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_VOLUME);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Note_View note_view = find_note_view(view, *note_itr);
+		Command command = Command(Command_Type::VOLUME_ENVELOPE);
+		command.volume_envelope.volume = volume;
+		command.volume_envelope.fade = note_view.fade;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	// TODO: merge redundant volume_envelope commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::set_fade(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t fade) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_FADE);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Note_View note_view = find_note_view(view, *note_itr);
+		Command command = Command(Command_Type::VOLUME_ENVELOPE);
+		command.volume_envelope.volume = note_view.volume;
+		command.volume_envelope.fade = fade;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	// TODO: merge redundant volume_envelope commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::set_vibrato_delay(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t delay) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_VIBRATO_DELAY);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Note_View note_view = find_note_view(view, *note_itr);
+		Command command = Command(Command_Type::VIBRATO);
+		command.vibrato.delay = delay;
+		command.vibrato.extent = note_view.vibrato_extent;
+		command.vibrato.rate = note_view.vibrato_rate;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	// TODO: merge redundant vibrato commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::set_vibrato_extent(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t extent) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_VIBRATO_EXTENT);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Note_View note_view = find_note_view(view, *note_itr);
+		Command command = Command(Command_Type::VIBRATO);
+		command.vibrato.delay = note_view.vibrato_delay;
+		command.vibrato.extent = extent;
+		command.vibrato.rate = note_view.vibrato_rate;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	// TODO: merge redundant vibrato commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::set_vibrato_rate(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t rate) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_VIBRATO_RATE);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Note_View note_view = find_note_view(view, *note_itr);
+		Command command = Command(Command_Type::VIBRATO);
+		command.vibrato.delay = note_view.vibrato_delay;
+		command.vibrato.extent = note_view.vibrato_extent;
+		command.vibrato.rate = rate;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	// TODO: merge redundant vibrato commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::set_wave(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t wave) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_WAVE);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Note_View note_view = find_note_view(view, *note_itr);
+		Command command = Command(Command_Type::VOLUME_ENVELOPE);
+		command.volume_envelope.volume = note_view.volume;
+		command.volume_envelope.wave = wave;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	// TODO: merge redundant volume_envelope commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::set_duty(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t duty) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_DUTY);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Command command = Command(Command_Type::DUTY_CYCLE);
+		command.duty_cycle.duty = duty;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	// TODO: merge redundant duty_cycle commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::set_tempo(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t tempo) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_TEMPO);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Command command = Command(Command_Type::TEMPO);
+		command.tempo.tempo = tempo;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	// TODO: merge redundant tempo commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::set_transpose_octaves(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t octaves) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_TRANSPOSE_OCTAVES);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Note_View note_view = find_note_view(view, *note_itr);
+		Command command = Command(Command_Type::TRANSPOSE);
+		command.transpose.num_octaves = octaves;
+		command.transpose.num_pitches = note_view.transpose_pitches;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	// TODO: merge redundant transpose commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::set_transpose_pitches(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t pitches) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_TRANSPOSE_PITCHES);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Note_View note_view = find_note_view(view, *note_itr);
+		Command command = Command(Command_Type::TRANSPOSE);
+		command.transpose.num_octaves = note_view.transpose_octaves;
+		command.transpose.num_pitches = pitches;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	// TODO: merge redundant transpose commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::set_slide_duration(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t duration) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_SLIDE_DURATION);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Note_View note_view = find_note_view(view, *note_itr);
+		Command command = Command(Command_Type::PITCH_SLIDE);
+		command.pitch_slide.duration = duration;
+		command.pitch_slide.octave = note_view.slide_octave;
+		command.pitch_slide.pitch = note_view.slide_pitch;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	// TODO: merge redundant pitch_slide commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::set_slide_octave(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t octave) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_SLIDE_OCTAVE);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Note_View note_view = find_note_view(view, *note_itr);
+		Command command = Command(Command_Type::PITCH_SLIDE);
+		command.pitch_slide.duration = note_view.slide_duration;
+		command.pitch_slide.octave = octave;
+		command.pitch_slide.pitch = note_view.slide_pitch;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	// TODO: merge redundant pitch_slide commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::set_slide_pitch(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, Pitch pitch) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_SLIDE_PITCH);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Note_View note_view = find_note_view(view, *note_itr);
+		Command command = Command(Command_Type::PITCH_SLIDE);
+		command.pitch_slide.duration = note_view.slide_duration;
+		command.pitch_slide.octave = note_view.slide_octave;
+		command.pitch_slide.pitch = pitch;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	// TODO: merge redundant pitch_slide commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
 void Song::pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view) {
 	remember(selected_channel, selected_boxes, Song_State::Action::PITCH_UP);
 	std::vector<Command> &commands = channel_commands(selected_channel);
@@ -1240,6 +1532,34 @@ const char *Song::get_action_message(Song_State::Action action) const {
 	switch (action) {
 	case Song_State::Action::PUT_NOTE:
 		return "Put note";
+	case Song_State::Action::SET_SPEED:
+		return "Set speed";
+	case Song_State::Action::SET_VOLUME:
+		return "Set volume";
+	case Song_State::Action::SET_FADE:
+		return "Set fade";
+	case Song_State::Action::SET_VIBRATO_DELAY:
+		return "Set vibrato delay";
+	case Song_State::Action::SET_VIBRATO_EXTENT:
+		return "Set vibrato depth";
+	case Song_State::Action::SET_VIBRATO_RATE:
+		return "Set vibrato rate";
+	case Song_State::Action::SET_WAVE:
+		return "Set wave";
+	case Song_State::Action::SET_DUTY:
+		return "Set duty";
+	case Song_State::Action::SET_TEMPO:
+		return "Set tempo";
+	case Song_State::Action::SET_TRANSPOSE_OCTAVES:
+		return "Set transpose octaves";
+	case Song_State::Action::SET_TRANSPOSE_PITCHES:
+		return "Set transpose pitches";
+	case Song_State::Action::SET_SLIDE_DURATION:
+		return "Set slide duration";
+	case Song_State::Action::SET_SLIDE_OCTAVE:
+		return "Set slide octave";
+	case Song_State::Action::SET_SLIDE_PITCH:
+		return "Set slide pitch";
 	case Song_State::Action::PITCH_UP:
 		return "Pitch up";
 	case Song_State::Action::PITCH_DOWN:

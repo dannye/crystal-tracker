@@ -207,6 +207,20 @@ public:
 
 	void delete_selection() { delete_cb(nullptr, this); }
 	bool put_note(Pitch pitch, int32_t octave = 0, int32_t tick = -1);
+	void set_speed(int32_t speed);
+	void set_volume(int32_t volume);
+	void set_fade(int32_t fade);
+	void set_vibrato_delay(int32_t delay);
+	void set_vibrato_extent(int32_t extent);
+	void set_vibrato_rate(int32_t rate);
+	void set_wave(int32_t wave);
+	void set_duty(int32_t duty);
+	void set_tempo(int32_t tempo);
+	void set_transpose_octaves(int32_t octaves);
+	void set_transpose_pitches(int32_t pitches);
+	void set_slide_duration(int32_t duration);
+	void set_slide_octave(int32_t octave);
+	void set_slide_pitch(Pitch pitch);
 private:
 	inline void selected_channel(int i) { _selected_channel = i; }
 	void update_active_controls(void);

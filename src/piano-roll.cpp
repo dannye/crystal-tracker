@@ -1162,7 +1162,7 @@ bool Piano_Roll::handle_mouse_click(int event) {
 
 void Piano_Roll::on_selection_change() {
 	auto channel = _piano_timeline.active_channel_boxes();
-	if (channel && !parent()->pencil_mode()) {
+	if (channel && !parent()->pencil_mode() && !_following && !_paused) {
 		std::vector<const Note_View *> selected_notes;
 		for (Note_Box *note : *channel) {
 			if (note->selected()) {
@@ -1837,6 +1837,7 @@ void Piano_Roll::start_following() {
 		scroll_to(0, yposition());
 		sticky_keys();
 	}
+	on_selection_change();
 	redraw();
 }
 
@@ -1851,6 +1852,7 @@ void Piano_Roll::stop_following() {
 	_tick = -1;
 	_piano_timeline.reset_note_colors();
 	_piano_timeline._keys.reset_channel_pitches();
+	on_selection_change();
 	redraw();
 }
 
@@ -1953,6 +1955,371 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick)
 
 	_tick = tick + speed;
 	focus_cursor(true);
+
+	return true;
+}
+
+bool Piano_Roll::set_speed(Song &song, int32_t speed) {
+	// TODO
+	return false;
+}
+
+bool Piano_Roll::set_volume(Song &song, int32_t volume) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_volume(selected_channel(), selected_notes, selected_boxes, *view, volume);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::set_fade(Song &song, int32_t fade) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_fade(selected_channel(), selected_notes, selected_boxes, *view, fade);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::set_vibrato_delay(Song &song, int32_t delay) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_vibrato_delay(selected_channel(), selected_notes, selected_boxes, *view, delay);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::set_vibrato_extent(Song &song, int32_t extent) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_vibrato_extent(selected_channel(), selected_notes, selected_boxes, *view, extent);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::set_vibrato_rate(Song &song, int32_t rate) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_vibrato_rate(selected_channel(), selected_notes, selected_boxes, *view, rate);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::set_wave(Song &song, int32_t wave) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_wave(selected_channel(), selected_notes, selected_boxes, *view, wave);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::set_duty(Song &song, int32_t duty) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_duty(selected_channel(), selected_notes, selected_boxes, duty);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::set_tempo(Song &song, int32_t tempo) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_tempo(selected_channel(), selected_notes, selected_boxes, tempo);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::set_transpose_octaves(Song &song, int32_t octaves) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_transpose_octaves(selected_channel(), selected_notes, selected_boxes, *view, octaves);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::set_transpose_pitches(Song &song, int32_t pitches) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_transpose_pitches(selected_channel(), selected_notes, selected_boxes, *view, pitches);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::set_slide_duration(Song &song, int32_t duration) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_slide_duration(selected_channel(), selected_notes, selected_boxes, *view, duration);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::set_slide_octave(Song &song, int32_t octave) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_slide_octave(selected_channel(), selected_notes, selected_boxes, *view, octave);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::set_slide_pitch(Song &song, Pitch pitch) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_slide_pitch(selected_channel(), selected_notes, selected_boxes, *view, pitch);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
 
 	return true;
 }

@@ -442,6 +442,21 @@ public:
 	int scroll_y_max() const;
 
 	bool put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick);
+	bool set_speed(Song &song, int32_t speed);
+	bool set_volume(Song &song, int32_t volume);
+	bool set_fade(Song &song, int32_t fade);
+	bool set_vibrato_delay(Song &song, int32_t delay);
+	bool set_vibrato_extent(Song &song, int32_t extent);
+	bool set_vibrato_rate(Song &song, int32_t rate);
+	bool set_wave(Song &song, int32_t wave);
+	bool set_duty(Song &song, int32_t duty);
+	bool set_tempo(Song &song, int32_t tempo);
+	bool set_transpose_octaves(Song &song, int32_t octaves);
+	bool set_transpose_pitches(Song &song, int32_t pitches);
+	bool set_slide_duration(Song &song, int32_t duration);
+	bool set_slide_octave(Song &song, int32_t octave);
+	bool set_slide_pitch(Song &song, Pitch pitch);
+
 	bool pitch_up(Song &song);
 	bool pitch_down(Song &song);
 	bool octave_up(Song &song);

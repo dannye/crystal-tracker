@@ -116,9 +116,6 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	// Note Properties panel
 	_note_properties = new Note_Properties(wx, wy, ww, NOTE_PROP_HEIGHT);
-	_note_properties->resizable(nullptr);
-	_note_properties->hide();
-	_note_properties->deactivate();
 	_note_properties->end();
 	begin();
 
@@ -158,6 +155,12 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	XpmCreatePixmapFromData(fl_display, DefaultRootWindow(fl_display), (char **)&APP_ICON_XPM, &_icon_pixmap, &_icon_mask, NULL);
 	icon((const void *)_icon_pixmap);
 #endif
+
+	// Configure Note Properties panel
+	_note_properties->user_data(this);
+	_note_properties->resizable(nullptr);
+	_note_properties->hide();
+	_note_properties->deactivate();
 
 	// Configure ruler
 	_ruler->user_data(this);
@@ -1775,6 +1778,160 @@ bool Main_Window::put_note(Pitch pitch, int32_t octave, int32_t tick) {
 		return true;
 	}
 	return false;
+}
+
+void Main_Window::set_speed(int32_t speed) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_speed(_song, speed)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
+void Main_Window::set_volume(int32_t volume) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_volume(_song, volume)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
+void Main_Window::set_fade(int32_t fade) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_fade(_song, fade)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
+void Main_Window::set_vibrato_delay(int32_t delay) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_vibrato_delay(_song, delay)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
+void Main_Window::set_vibrato_extent(int32_t extent) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_vibrato_extent(_song, extent)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
+void Main_Window::set_vibrato_rate(int32_t rate) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_vibrato_rate(_song, rate)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
+void Main_Window::set_wave(int32_t wave) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_wave(_song, wave)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
+void Main_Window::set_duty(int32_t duty) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_duty(_song, duty)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
+void Main_Window::set_tempo(int32_t tempo) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_tempo(_song, tempo)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
+void Main_Window::set_transpose_octaves(int32_t octaves) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_transpose_octaves(_song, octaves)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
+void Main_Window::set_transpose_pitches(int32_t pitches) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_transpose_pitches(_song, pitches)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
+void Main_Window::set_slide_duration(int32_t duration) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_slide_duration(_song, duration)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
+void Main_Window::set_slide_octave(int32_t octave) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_slide_octave(_song, octave)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
+void Main_Window::set_slide_pitch(Pitch pitch) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_slide_pitch(_song, pitch)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
 }
 
 void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {

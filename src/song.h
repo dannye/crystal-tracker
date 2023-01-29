@@ -33,6 +33,20 @@ public:
 	struct Song_State {
 		enum class Action {
 			PUT_NOTE,
+			SET_SPEED,
+			SET_VOLUME,
+			SET_FADE,
+			SET_VIBRATO_DELAY,
+			SET_VIBRATO_EXTENT,
+			SET_VIBRATO_RATE,
+			SET_WAVE,
+			SET_DUTY,
+			SET_TEMPO,
+			SET_TRANSPOSE_OCTAVES,
+			SET_TRANSPOSE_PITCHES,
+			SET_SLIDE_DURATION,
+			SET_SLIDE_OCTAVE,
+			SET_SLIDE_PITCH,
 			PITCH_UP,
 			PITCH_DOWN,
 			OCTAVE_UP,
@@ -126,6 +140,21 @@ public:
 	const std::vector<Wave> &waves() const { return _waves; }
 
 	void put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t octave, int32_t old_octave, int32_t index, int32_t tick, int32_t tick_offset);
+	void set_speed(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t speed);
+	void set_volume(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t volume);
+	void set_fade(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t fade);
+	void set_vibrato_delay(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t delay);
+	void set_vibrato_extent(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t extent);
+	void set_vibrato_rate(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t rate);
+	void set_wave(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t wave);
+	void set_duty(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t duty);
+	void set_tempo(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t tempo);
+	void set_transpose_octaves(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t octaves);
+	void set_transpose_pitches(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t pitches);
+	void set_slide_duration(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t duration);
+	void set_slide_octave(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t octave);
+	void set_slide_pitch(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxe, const std::vector<Note_View> &views, Pitch pitch);
+
 	void pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void octave_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);

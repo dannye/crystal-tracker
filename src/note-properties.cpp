@@ -1,7 +1,8 @@
-#include "note-properties.h"
-
 #include <cassert>
 
+#include "note-properties.h"
+
+#include "main-window.h"
 #include "themes.h"
 #include "utils.h"
 
@@ -58,39 +59,99 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 
 	_basic_button = new OS_Button(x() + dx + wgt_m, y() + wgt_m, text_width("Basic", 8), wgt_h, "Basic");
 
+	_speed_input->callback((Fl_Callback *)speed_input_cb, this);
+	_speed_input->clear_visible_focus();
+
+	_volume_input->callback((Fl_Callback *)volume_input_cb, this);
+	_volume_input->clear_visible_focus();
+
+	_fade_input->callback((Fl_Callback *)fade_input_cb, this);
+	_fade_input->clear_visible_focus();
+
+	_vibrato_delay_input->callback((Fl_Callback *)vibrato_delay_input_cb, this);
+	_vibrato_delay_input->clear_visible_focus();
+
+	_vibrato_depth_input->callback((Fl_Callback *)vibrato_depth_input_cb, this);
+	_vibrato_depth_input->clear_visible_focus();
+
+	_vibrato_rate_input->callback((Fl_Callback *)vibrato_rate_input_cb, this);
+	_vibrato_rate_input->clear_visible_focus();
+
+	_duty_wave_input->callback((Fl_Callback *)duty_wave_input_cb, this);
+	_duty_wave_input->clear_visible_focus();
+
 	_advanced_button->callback((Fl_Callback *)advanced_button_cb, this);
+
+	_tempo_input->callback((Fl_Callback *)tempo_input_cb, this);
+	_tempo_input->clear_visible_focus();
+
+	_transpose_octaves_input->callback((Fl_Callback *)transpose_octaves_input_cb, this);
+	_transpose_octaves_input->clear_visible_focus();
+
+	_transpose_pitches_input->callback((Fl_Callback *)transpose_pitches_input_cb, this);
+	_transpose_pitches_input->clear_visible_focus();
+
+	_slide_duration_input->callback((Fl_Callback *)slide_duration_input_cb, this);
+	_slide_duration_input->clear_visible_focus();
+
+	_slide_octave_input->callback((Fl_Callback *)slide_octave_input_cb, this);
+	_slide_octave_input->clear_visible_focus();
+
+	_slide_pitch_input->callback((Fl_Callback *)slide_pitch_input_cb, this);
+	_slide_pitch_input->clear_visible_focus();
+
 	_basic_button->callback((Fl_Callback *)basic_button_cb, this);
 
 	basic_button_cb(nullptr, this);
 }
 
+Note_Properties::~Note_Properties() {
+	delete _speed_input;
+	delete _volume_input;
+	delete _fade_input;
+	delete _vibrato_delay_input;
+	delete _vibrato_depth_input;
+	delete _vibrato_rate_input;
+	delete _duty_wave_input;
+	delete _advanced_button;
+
+	delete _tempo_input;
+	delete _transpose_octaves_input;
+	delete _transpose_pitches_input;
+	delete _slide_duration_input;
+	delete _slide_octave_input;
+	delete _slide_pitch_input;
+	delete _basic_button;
+}
+
 void Note_Properties::set_note_properties(const std::vector<const Note_View *> &notes, int channel_number) {
 	assert(notes.size() > 0);
-	const Note_View *first = notes.front();
-	_speed_input->value(first->speed);
-	_volume_input->value(first->volume);
+	_note = *notes.front();
+	_channel_number = channel_number;
+	_speed_input->value(_note.speed);
+	_volume_input->value(_note.volume);
 	if (channel_number == 1 || channel_number == 2) {
-		_fade_input->value(first->fade);
+		_fade_input->value(_note.fade);
 	}
 	else {
 		_fade_input->value(0);
 	}
-	_vibrato_delay_input->value(first->vibrato_delay);
-	_vibrato_depth_input->value(first->vibrato_extent);
-	_vibrato_rate_input->value(first->vibrato_rate);
+	_vibrato_delay_input->value(_note.vibrato_delay);
+	_vibrato_depth_input->value(_note.vibrato_extent);
+	_vibrato_rate_input->value(_note.vibrato_rate);
 	if (channel_number == 3) {
-		_duty_wave_input->value(first->wave);
+		_duty_wave_input->value(_note.wave);
 	}
 	else {
-		_duty_wave_input->value(first->duty);
+		_duty_wave_input->value(_note.duty);
 	}
 
-	_tempo_input->value(first->tempo);
-	_transpose_octaves_input->value(first->transpose_octaves);
-	_transpose_pitches_input->value(first->transpose_pitches);
-	_slide_duration_input->value(first->slide_duration);
-	_slide_octave_input->value(first->slide_octave);
-	_slide_pitch_input->value((int)first->slide_pitch);
+	_tempo_input->value(_note.tempo);
+	_transpose_octaves_input->value(_note.transpose_octaves);
+	_transpose_pitches_input->value(_note.transpose_pitches);
+	_slide_duration_input->value(_note.slide_duration);
+	_slide_octave_input->value(_note.slide_octave);
+	_slide_pitch_input->value((int)_note.slide_pitch);
 
 	_speed_input->label("Speed:");
 	_volume_input->label("Volume:");
@@ -167,43 +228,29 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 		}
 	}
 
-	_speed_input->minimum(1);
-	_speed_input->maximum(15);
+	_speed_input->range(1, 15);
 	if (channel_number == 3) {
-		_volume_input->minimum(0);
-		_volume_input->maximum(3);
+		_volume_input->range(0, 3);
 	}
 	else {
-		_volume_input->minimum(0);
-		_volume_input->maximum(15);
+		_volume_input->range(0, 15);
 	}
-	_fade_input->minimum(-7);
-	_fade_input->maximum(7);
-	_vibrato_delay_input->minimum(0);
-	_vibrato_delay_input->maximum(255);
-	_vibrato_depth_input->minimum(0);
-	_vibrato_depth_input->maximum(15);
-	_vibrato_rate_input->minimum(0);
-	_vibrato_rate_input->maximum(15);
+	_fade_input->range(-7, 7);
+	_vibrato_delay_input->range(0, 255);
+	_vibrato_depth_input->range(0, 15);
+	_vibrato_rate_input->range(0, 15);
 	if (channel_number == 3) {
-		_duty_wave_input->minimum(0);
-		_duty_wave_input->maximum(15);
+		_duty_wave_input->range(0, 15);
 	}
 	else {
-		_duty_wave_input->minimum(0);
-		_duty_wave_input->maximum(3);
+		_duty_wave_input->range(0, 3);
 	}
 
-	_tempo_input->minimum(0);
-	_tempo_input->maximum(1024);
-	_transpose_octaves_input->minimum(0);
-	_transpose_octaves_input->maximum(7);
-	_transpose_pitches_input->minimum(0);
-	_transpose_pitches_input->maximum(15);
-	_slide_duration_input->minimum(0);
-	_slide_duration_input->maximum(256);
-	_slide_octave_input->minimum(0);
-	_slide_octave_input->maximum(8);
+	_tempo_input->range(0, 1024);
+	_transpose_octaves_input->range(0, 7);
+	_transpose_pitches_input->range(0, 15);
+	_slide_duration_input->range(0, 256);
+	_slide_octave_input->range(0, 8);
 
 	_speed_input->activate();
 	_volume_input->activate();
@@ -241,6 +288,86 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	redraw();
 }
 
+void Note_Properties::speed_input_cb(OS_Spinner *s, Note_Properties *np) {
+	if (!s->active()) return;
+
+	int32_t val = (int32_t)s->value();
+	if (val != np->_note.speed) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_speed(val);
+	}
+}
+
+void Note_Properties::volume_input_cb(OS_Spinner *s, Note_Properties *np) {
+	if (!s->active()) return;
+
+	int32_t val = (int32_t)s->value();
+	if (val != np->_note.volume) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_volume(val);
+	}
+	else if (val == 0) s->value(0);
+}
+
+void Note_Properties::fade_input_cb(OS_Spinner *s, Note_Properties *np) {
+	if (!s->active()) return;
+
+	int32_t val = (int32_t)s->value();
+	if (val != np->_note.fade) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_fade(val);
+	}
+	else if (val == 0) s->value(0);
+}
+
+void Note_Properties::vibrato_delay_input_cb(OS_Spinner *s, Note_Properties *np) {
+	if (!s->active()) return;
+
+	int32_t val = (int32_t)s->value();
+	if (val != np->_note.vibrato_delay) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_vibrato_delay(val);
+	}
+	else if (val == 0) s->value(0);
+}
+
+void Note_Properties::vibrato_depth_input_cb(OS_Spinner *s, Note_Properties *np) {
+	if (!s->active()) return;
+
+	int32_t val = (int32_t)s->value();
+	if (val != np->_note.vibrato_extent) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_vibrato_extent(val);
+	}
+	else if (val == 0) s->value(0);
+}
+
+void Note_Properties::vibrato_rate_input_cb(OS_Spinner *s, Note_Properties *np) {
+	if (!s->active()) return;
+
+	int32_t val = (int32_t)s->value();
+	if (val != np->_note.vibrato_rate) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_vibrato_rate(val);
+	}
+	else if (val == 0) s->value(0);
+}
+
+void Note_Properties::duty_wave_input_cb(OS_Spinner *s, Note_Properties *np) {
+	if (!s->active()) return;
+
+	int32_t val = (int32_t)s->value();
+	if (np->_channel_number == 3 && val != np->_note.wave) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_wave(val);
+	}
+	else if (np->_channel_number != 3 && val != np->_note.duty) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_duty(val);
+	}
+	else if (val == 0) s->value(0);
+}
+
 void Note_Properties::advanced_button_cb(OS_Button *, Note_Properties *np) {
 	np->_speed_input->hide();
 	np->_volume_input->hide();
@@ -258,6 +385,71 @@ void Note_Properties::advanced_button_cb(OS_Button *, Note_Properties *np) {
 	np->_slide_octave_input->show();
 	np->_slide_pitch_input->show();
 	np->_basic_button->show();
+}
+
+void Note_Properties::tempo_input_cb(OS_Spinner *s, Note_Properties *np) {
+	if (!s->active()) return;
+
+	int32_t val = (int32_t)s->value();
+	if (val != np->_note.tempo) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_tempo(val);
+	}
+	else if (val == 0) s->value(0);
+}
+
+void Note_Properties::transpose_octaves_input_cb(OS_Spinner *s, Note_Properties *np) {
+	if (!s->active()) return;
+
+	int32_t val = (int32_t)s->value();
+	if (val != np->_note.transpose_octaves) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_transpose_octaves(val);
+	}
+	else if (val == 0) s->value(0);
+}
+
+void Note_Properties::transpose_pitches_input_cb(OS_Spinner *s, Note_Properties *np) {
+	if (!s->active()) return;
+
+	int32_t val = (int32_t)s->value();
+	if (val != np->_note.transpose_pitches) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_transpose_pitches(val);
+	}
+	else if (val == 0) s->value(0);
+}
+
+void Note_Properties::slide_duration_input_cb(OS_Spinner *s, Note_Properties *np) {
+	if (!s->active()) return;
+
+	int32_t val = (int32_t)s->value();
+	if (val != np->_note.slide_duration) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_slide_duration(val);
+	}
+	else if (val == 0) s->value(0);
+}
+
+void Note_Properties::slide_octave_input_cb(OS_Spinner *s, Note_Properties *np) {
+	if (!s->active()) return;
+
+	int32_t val = (int32_t)s->value();
+	if (val != np->_note.slide_octave) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_slide_octave(val);
+	}
+	else if (val == 0) s->value(0);
+}
+
+void Note_Properties::slide_pitch_input_cb(Dropdown *s, Note_Properties *np) {
+	if (!s->active()) return;
+
+	Pitch val = (Pitch)s->value();
+	if (val != np->_note.slide_pitch) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_slide_pitch(val);
+	}
 }
 
 void Note_Properties::basic_button_cb(OS_Button *, Note_Properties *np) {
