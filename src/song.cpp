@@ -537,8 +537,11 @@ void postprocess(std::vector<Command> &commands) {
 		Note_View view;
 		int32_t rest_index = -1;
 		int32_t octave_index = -1;
+		int32_t transpose_index = -1;
 		int32_t tempo_index = -1;
+		int32_t duty_index = -1;
 		int32_t slide_index = -1;
+		int32_t vibrato_index = -1;
 		deleted = false;
 		for (uint32_t i = 0; i < commands.size(); ++i) {
 			if (
@@ -548,8 +551,11 @@ void postprocess(std::vector<Command> &commands) {
 				view = Note_View{};
 				rest_index = -1;
 				octave_index = -1;
+				transpose_index = -1;
 				tempo_index = -1;
+				duty_index = -1;
 				slide_index = -1;
+				vibrato_index = -1;
 			}
 			if (
 				is_global_command(commands[i].type) ||
@@ -566,8 +572,11 @@ void postprocess(std::vector<Command> &commands) {
 				view.slide_pitch = Pitch::REST;
 				rest_index = -1;
 				octave_index = -1;
+				transpose_index = -1;
 				tempo_index = -1;
+				duty_index = -1;
 				slide_index = -1;
+				vibrato_index = -1;
 			}
 
 			if (commands[i].type == Command_Type::REST) {
@@ -617,11 +626,20 @@ void postprocess(std::vector<Command> &commands) {
 					if (rest_index > octave_index) {
 						rest_index -= 1;
 					}
+					if (transpose_index > octave_index) {
+						transpose_index -= 1;
+					}
 					if (tempo_index > octave_index) {
 						tempo_index -= 1;
 					}
+					if (duty_index > octave_index) {
+						duty_index -= 1;
+					}
 					if (slide_index > octave_index) {
 						slide_index -= 1;
+					}
+					if (vibrato_index > octave_index) {
+						vibrato_index -= 1;
 					}
 
 					view.octave = commands[i].octave.octave;
@@ -631,6 +649,53 @@ void postprocess(std::vector<Command> &commands) {
 			else if (commands[i].type == Command_Type::INC_OCTAVE || commands[i].type == Command_Type::DEC_OCTAVE) {
 				view.octave = 0;
 				octave_index = -1;
+			}
+
+			else if (commands[i].type == Command_Type::TRANSPOSE) {
+				if (transpose_index == -1) {
+					if (
+						view.transpose_octaves == commands[i].transpose.num_octaves &&
+						view.transpose_pitches == commands[i].transpose.num_pitches
+					) {
+						deleted = true;
+						assert(commands[i].labels.size() == 0);
+						commands.erase(commands.begin() + i);
+						i -= 1;
+					}
+					else {
+						view.transpose_octaves = commands[i].transpose.num_octaves;
+						view.transpose_pitches = commands[i].transpose.num_pitches;
+						transpose_index = i;
+					}
+				}
+				else {
+					deleted = true;
+					commands[transpose_index + 1].labels.insert(commands[transpose_index + 1].labels.begin(), RANGE(commands[transpose_index].labels));
+					commands.erase(commands.begin() + transpose_index);
+					i -= 1;
+					if (rest_index > transpose_index) {
+						rest_index -= 1;
+					}
+					if (octave_index > transpose_index) {
+						octave_index -= 1;
+					}
+					if (tempo_index > transpose_index) {
+						tempo_index -= 1;
+					}
+					if (duty_index > transpose_index) {
+						duty_index -= 1;
+					}
+					if (slide_index > transpose_index) {
+						slide_index -= 1;
+					}
+					if (vibrato_index > transpose_index) {
+						vibrato_index -= 1;
+					}
+
+					view.transpose_octaves = commands[i].transpose.num_octaves;
+					view.transpose_pitches = commands[i].transpose.num_pitches;
+					transpose_index = i;
+				}
 			}
 
 			else if (commands[i].type == Command_Type::TEMPO) {
@@ -657,12 +722,63 @@ void postprocess(std::vector<Command> &commands) {
 					if (octave_index > tempo_index) {
 						octave_index -= 1;
 					}
+					if (transpose_index > tempo_index) {
+						transpose_index -= 1;
+					}
+					if (duty_index > tempo_index) {
+						duty_index -= 1;
+					}
 					if (slide_index > tempo_index) {
 						slide_index -= 1;
+					}
+					if (vibrato_index > tempo_index) {
+						vibrato_index -= 1;
 					}
 
 					view.tempo = commands[i].tempo.tempo;
 					tempo_index = i;
+				}
+			}
+
+			else if (commands[i].type == Command_Type::DUTY_CYCLE) {
+				if (duty_index == -1) {
+					if (view.duty == commands[i].duty_cycle.duty) {
+						deleted = true;
+						assert(commands[i].labels.size() == 0);
+						commands.erase(commands.begin() + i);
+						i -= 1;
+					}
+					else {
+						view.duty = commands[i].duty_cycle.duty;
+						duty_index = i;
+					}
+				}
+				else {
+					deleted = true;
+					commands[duty_index + 1].labels.insert(commands[duty_index + 1].labels.begin(), RANGE(commands[duty_index].labels));
+					commands.erase(commands.begin() + duty_index);
+					i -= 1;
+					if (rest_index > duty_index) {
+						rest_index -= 1;
+					}
+					if (octave_index > duty_index) {
+						octave_index -= 1;
+					}
+					if (transpose_index > duty_index) {
+						transpose_index -= 1;
+					}
+					if (tempo_index > duty_index) {
+						tempo_index -= 1;
+					}
+					if (slide_index > duty_index) {
+						slide_index -= 1;
+					}
+					if (vibrato_index > duty_index) {
+						vibrato_index -= 1;
+					}
+
+					view.duty = commands[i].duty_cycle.duty;
+					duty_index = i;
 				}
 			}
 
@@ -684,14 +800,73 @@ void postprocess(std::vector<Command> &commands) {
 					if (octave_index > slide_index) {
 						octave_index -= 1;
 					}
+					if (transpose_index > slide_index) {
+						transpose_index -= 1;
+					}
 					if (tempo_index > slide_index) {
 						tempo_index -= 1;
+					}
+					if (duty_index > slide_index) {
+						duty_index -= 1;
+					}
+					if (vibrato_index > slide_index) {
+						vibrato_index -= 1;
 					}
 
 					view.slide_duration = commands[i].pitch_slide.duration;
 					view.slide_octave = commands[i].pitch_slide.octave;
 					view.slide_pitch = commands[i].pitch_slide.pitch;
 					slide_index = i;
+				}
+			}
+
+			else if (commands[i].type == Command_Type::VIBRATO) {
+				if (vibrato_index == -1) {
+					if (
+						view.vibrato_delay == commands[i].vibrato.delay &&
+						view.vibrato_extent == commands[i].vibrato.extent &&
+						view.vibrato_rate == commands[i].vibrato.rate
+					) {
+						deleted = true;
+						assert(commands[i].labels.size() == 0);
+						commands.erase(commands.begin() + i);
+						i -= 1;
+					}
+					else {
+						view.vibrato_delay = commands[i].vibrato.delay;
+						view.vibrato_extent = commands[i].vibrato.extent;
+						view.vibrato_rate = commands[i].vibrato.rate;
+						vibrato_index = i;
+					}
+				}
+				else {
+					deleted = true;
+					commands[vibrato_index + 1].labels.insert(commands[vibrato_index + 1].labels.begin(), RANGE(commands[vibrato_index].labels));
+					commands.erase(commands.begin() + vibrato_index);
+					i -= 1;
+					if (rest_index > vibrato_index) {
+						rest_index -= 1;
+					}
+					if (octave_index > vibrato_index) {
+						octave_index -= 1;
+					}
+					if (transpose_index > vibrato_index) {
+						transpose_index -= 1;
+					}
+					if (tempo_index > vibrato_index) {
+						tempo_index -= 1;
+					}
+					if (duty_index > vibrato_index) {
+						duty_index -= 1;
+					}
+					if (slide_index > vibrato_index) {
+						slide_index -= 1;
+					}
+
+					view.vibrato_delay = commands[i].vibrato.delay;
+					view.vibrato_extent = commands[i].vibrato.extent;
+					view.vibrato_rate = commands[i].vibrato.rate;
+					vibrato_index = i;
 				}
 			}
 		}
@@ -863,7 +1038,6 @@ void Song::set_vibrato_delay(const int selected_channel, const std::set<int32_t>
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	// TODO: merge redundant vibrato commands
 	postprocess(commands);
 
 	_modified = true;
@@ -884,7 +1058,6 @@ void Song::set_vibrato_extent(const int selected_channel, const std::set<int32_t
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	// TODO: merge redundant vibrato commands
 	postprocess(commands);
 
 	_modified = true;
@@ -905,7 +1078,6 @@ void Song::set_vibrato_rate(const int selected_channel, const std::set<int32_t> 
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	// TODO: merge redundant vibrato commands
 	postprocess(commands);
 
 	_modified = true;
@@ -943,7 +1115,6 @@ void Song::set_duty(const int selected_channel, const std::set<int32_t> &selecte
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	// TODO: merge redundant duty_cycle commands
 	postprocess(commands);
 
 	_modified = true;
@@ -980,7 +1151,6 @@ void Song::set_transpose_octaves(const int selected_channel, const std::set<int3
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	// TODO: merge redundant transpose commands
 	postprocess(commands);
 
 	_modified = true;
@@ -1000,7 +1170,6 @@ void Song::set_transpose_pitches(const int selected_channel, const std::set<int3
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	// TODO: merge redundant transpose commands
 	postprocess(commands);
 
 	_modified = true;
