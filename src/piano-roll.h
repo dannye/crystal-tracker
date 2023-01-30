@@ -395,7 +395,7 @@ public:
 	int handle(int event) override;
 	bool handle_mouse_click(int event);
 
-	void on_selection_change();
+	void refresh_note_properties();
 
 	void set_continuous_scroll(bool c) { _continuous = c; }
 

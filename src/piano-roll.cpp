@@ -644,7 +644,7 @@ bool Piano_Timeline::handle_note_selection(int event) {
 		}
 	}
 
-	parent()->on_selection_change();
+	parent()->refresh_note_properties();
 
 	return clicked_note;
 }
@@ -663,7 +663,7 @@ bool Piano_Timeline::select_all() {
 		}
 	}
 
-	parent()->on_selection_change();
+	parent()->refresh_note_properties();
 
 	return note_selected;
 }
@@ -682,7 +682,7 @@ bool Piano_Timeline::select_none() {
 		}
 	}
 
-	parent()->on_selection_change();
+	parent()->refresh_note_properties();
 
 	return note_deselected;
 }
@@ -731,7 +731,7 @@ void Piano_Timeline::select_note_at_tick(std::vector<Note_Box *> &notes, int32_t
 		}
 		if (t_right > tick) {
 			note->selected(true);
-			parent()->on_selection_change();
+			parent()->refresh_note_properties();
 			return;
 		}
 	}
@@ -1160,7 +1160,7 @@ bool Piano_Roll::handle_mouse_click(int event) {
 	return false;
 }
 
-void Piano_Roll::on_selection_change() {
+void Piano_Roll::refresh_note_properties() {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (channel && !parent()->pencil_mode() && !_following && !_paused) {
 		std::vector<const Note_View *> selected_notes;
@@ -1396,7 +1396,7 @@ void Piano_Roll::set_active_channel_selection(const std::set<int32_t> &selection
 		channel->at(index)->selected(true);
 	}
 
-	on_selection_change();
+	refresh_note_properties();
 }
 
 void Piano_Roll::select_note_at_tick() {
@@ -1794,7 +1794,7 @@ void Piano_Roll::update_channel_detail(int channel_number) {
 	_piano_timeline.set_channel_2_detail(channel_number == 2 ? 2 : channel_number == 0 ? 1 : 0);
 	_piano_timeline.set_channel_3_detail(channel_number == 3 ? 2 : channel_number == 0 ? 1 : 0);
 	_piano_timeline.set_channel_4_detail(channel_number == 4 ? 2 : channel_number == 0 ? 1 : 0);
-	on_selection_change();
+	refresh_note_properties();
 }
 
 void Piano_Roll::align_cursor() {
@@ -1837,7 +1837,7 @@ void Piano_Roll::start_following() {
 		scroll_to(0, yposition());
 		sticky_keys();
 	}
-	on_selection_change();
+	refresh_note_properties();
 	redraw();
 }
 
@@ -1852,7 +1852,7 @@ void Piano_Roll::stop_following() {
 	_tick = -1;
 	_piano_timeline.reset_note_colors();
 	_piano_timeline._keys.reset_channel_pitches();
-	on_selection_change();
+	refresh_note_properties();
 	redraw();
 }
 
@@ -2678,7 +2678,7 @@ bool Piano_Roll::delete_selection(Song &song) {
 
 	song.delete_selection(selected_channel(), selected_notes, selected_boxes);
 	set_active_channel_timeline(song);
-	on_selection_change();
+	refresh_note_properties();
 
 	return true;
 }
@@ -2704,7 +2704,7 @@ bool Piano_Roll::snip_selection(Song &song) {
 
 	song.snip_selection(selected_channel(), selected_notes, selected_boxes);
 	set_active_channel_timeline(song);
-	on_selection_change();
+	refresh_note_properties();
 
 	align_cursor();
 

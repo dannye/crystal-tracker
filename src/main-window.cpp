@@ -1628,7 +1628,7 @@ void Main_Window::continuous_cb(Fl_Menu_ *m, Main_Window *mw) {
 void Main_Window::pencil_mode_cb(Fl_Menu_ *m, Main_Window *mw) {
 	SYNC_TB_WITH_M(mw->_pencil_mode_tb, m);
 	if (mw->pencil_mode() && mw->selected_channel() == 0) next_channel_cb(nullptr, mw);
-	mw->_piano_roll->on_selection_change();
+	mw->_piano_roll->refresh_note_properties();
 	fl_cursor(mw->pencil_mode() ? FL_CURSOR_CROSS : FL_CURSOR_DEFAULT);
 	mw->redraw();
 }
@@ -1659,7 +1659,7 @@ void Main_Window::continuous_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 void Main_Window::pencil_mode_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 	SYNC_MI_WITH_TB(mw->_pencil_mode_tb, mw->_pencil_mode_mi);
 	if (mw->pencil_mode() && mw->selected_channel() == 0) next_channel_cb(nullptr, mw);
-	mw->_piano_roll->on_selection_change();
+	mw->_piano_roll->refresh_note_properties();
 	fl_cursor(mw->pencil_mode() ? FL_CURSOR_CROSS : FL_CURSOR_DEFAULT);
 	mw->_menu_bar->update();
 	mw->redraw();
