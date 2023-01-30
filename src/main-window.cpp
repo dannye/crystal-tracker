@@ -1934,6 +1934,17 @@ void Main_Window::set_slide_pitch(Pitch pitch) {
 	}
 }
 
+void Main_Window::set_slide(int32_t duration, int32_t octave, Pitch pitch) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_slide(_song, duration, octave, pitch)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
 void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 

@@ -425,8 +425,22 @@ void Note_Properties::slide_duration_input_cb(OS_Spinner *s, Note_Properties *np
 
 	int32_t val = (int32_t)s->value();
 	if (val != np->_note.slide_duration) {
-		Main_Window *mw = (Main_Window *)np->user_data();
-		mw->set_slide_duration(val);
+		if (val != 0 && (np->_slide_octave_input->value() == 0 || np->_slide_pitch_input->value() == 0)) {
+			if (np->_slide_octave_input->value() == 0) np->_slide_octave_input->value(1);
+			if (np->_slide_pitch_input->value() == 0) np->_slide_pitch_input->value(1);
+			Main_Window *mw = (Main_Window *)np->user_data();
+			mw->set_slide(val, np->_slide_octave_input->value(), (Pitch)np->_slide_pitch_input->value());
+		}
+		else if (val == 0 && (np->_slide_octave_input->value() != 0 || np->_slide_pitch_input->value() != 0)) {
+			np->_slide_octave_input->value(0);
+			np->_slide_pitch_input->value(0);
+			Main_Window *mw = (Main_Window *)np->user_data();
+			mw->set_slide(val, np->_slide_octave_input->value(), (Pitch)np->_slide_pitch_input->value());
+		}
+		else {
+			Main_Window *mw = (Main_Window *)np->user_data();
+			mw->set_slide_duration(val);
+		}
 	}
 	else if (val == 0) s->value(0);
 }
@@ -436,8 +450,22 @@ void Note_Properties::slide_octave_input_cb(OS_Spinner *s, Note_Properties *np) 
 
 	int32_t val = (int32_t)s->value();
 	if (val != np->_note.slide_octave) {
-		Main_Window *mw = (Main_Window *)np->user_data();
-		mw->set_slide_octave(val);
+		if (val != 0 && (np->_slide_duration_input->value() == 0 || np->_slide_pitch_input->value() == 0)) {
+			if (np->_slide_duration_input->value() == 0) np->_slide_duration_input->value(1);
+			if (np->_slide_pitch_input->value() == 0) np->_slide_pitch_input->value(1);
+			Main_Window *mw = (Main_Window *)np->user_data();
+			mw->set_slide(np->_slide_duration_input->value(), val, (Pitch)np->_slide_pitch_input->value());
+		}
+		else if (val == 0 && (np->_slide_duration_input->value() != 0 || np->_slide_pitch_input->value() != 0)) {
+			np->_slide_duration_input->value(0);
+			np->_slide_pitch_input->value(0);
+			Main_Window *mw = (Main_Window *)np->user_data();
+			mw->set_slide(np->_slide_duration_input->value(), val, (Pitch)np->_slide_pitch_input->value());
+		}
+		else {
+			Main_Window *mw = (Main_Window *)np->user_data();
+			mw->set_slide_octave(val);
+		}
 	}
 	else if (val == 0) s->value(0);
 }
@@ -447,8 +475,22 @@ void Note_Properties::slide_pitch_input_cb(Dropdown *s, Note_Properties *np) {
 
 	Pitch val = (Pitch)s->value();
 	if (val != np->_note.slide_pitch) {
-		Main_Window *mw = (Main_Window *)np->user_data();
-		mw->set_slide_pitch(val);
+		if (val != Pitch::REST && (np->_slide_duration_input->value() == 0 || np->_slide_octave_input->value() == 0)) {
+			if (np->_slide_duration_input->value() == 0) np->_slide_duration_input->value(1);
+			if (np->_slide_octave_input->value() == 0) np->_slide_octave_input->value(1);
+			Main_Window *mw = (Main_Window *)np->user_data();
+			mw->set_slide(np->_slide_duration_input->value(), np->_slide_octave_input->value(), val);
+		}
+		else if (val == Pitch::REST && (np->_slide_duration_input->value() != 0 || np->_slide_octave_input->value() != 0)) {
+			np->_slide_duration_input->value(0);
+			np->_slide_octave_input->value(0);
+			Main_Window *mw = (Main_Window *)np->user_data();
+			mw->set_slide(np->_slide_duration_input->value(), np->_slide_octave_input->value(), val);
+		}
+		else {
+			Main_Window *mw = (Main_Window *)np->user_data();
+			mw->set_slide_pitch(val);
+		}
 	}
 }
 

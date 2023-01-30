@@ -111,12 +111,9 @@ static inline bool is_note_command(Command_Type type) {
 	);
 }
 
-// excludes speed changes until that is handled specially
 static inline bool is_note_setting_command(Command_Type type) {
 	return (
 		type == Command_Type::OCTAVE ||
-		// type == Command_Type::NOTE_TYPE ||
-		// type == Command_Type::DRUM_SPEED ||
 		type == Command_Type::TRANSPOSE ||
 		type == Command_Type::DUTY_CYCLE ||
 		type == Command_Type::VOLUME_ENVELOPE ||
@@ -132,24 +129,32 @@ static inline bool is_note_setting_command(Command_Type type) {
 		type == Command_Type::LOAD_WAVE ||
 		type == Command_Type::INC_OCTAVE ||
 		type == Command_Type::DEC_OCTAVE ||
-		// type == Command_Type::SPEED ||
 		type == Command_Type::CHANNEL_VOLUME ||
 		type == Command_Type::FADE_WAVE
 	);
 }
 
-// includes speed changes until that is handled specially
-static inline bool is_control_command(Command_Type type) {
+static inline bool is_speed_command(Command_Type type) {
 	return (
 		type == Command_Type::NOTE_TYPE ||
 		type == Command_Type::DRUM_SPEED ||
+		type == Command_Type::SPEED
+	);
+}
+
+static inline bool is_global_command(Command_Type type) {
+	return (
 		type == Command_Type::TEMPO ||
-		type == Command_Type::VOLUME ||
+		type == Command_Type::VOLUME
+	);
+}
+
+static inline bool is_control_command(Command_Type type) {
+	return (
 		type == Command_Type::SOUND_JUMP ||
 		type == Command_Type::SOUND_LOOP ||
 		type == Command_Type::SOUND_CALL ||
-		type == Command_Type::SOUND_RET ||
-		type == Command_Type::SPEED
+		type == Command_Type::SOUND_RET
 	);
 }
 

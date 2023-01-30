@@ -2324,6 +2324,32 @@ bool Piano_Roll::set_slide_pitch(Song &song, Pitch pitch) {
 	return true;
 }
 
+bool Piano_Roll::set_slide(Song &song, int32_t duration, int32_t octave, Pitch pitch) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_slide(selected_channel(), selected_notes, selected_boxes, duration, octave, pitch);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
 bool Piano_Roll::pitch_up(Song &song) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;

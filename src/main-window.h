@@ -221,6 +221,7 @@ public:
 	void set_slide_duration(int32_t duration);
 	void set_slide_octave(int32_t octave);
 	void set_slide_pitch(Pitch pitch);
+	void set_slide(int32_t duration, int32_t octave, Pitch pitch);
 private:
 	inline void selected_channel(int i) { _selected_channel = i; }
 	void update_active_controls(void);

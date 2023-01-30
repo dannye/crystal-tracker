@@ -47,6 +47,7 @@ public:
 			SET_SLIDE_DURATION,
 			SET_SLIDE_OCTAVE,
 			SET_SLIDE_PITCH,
+			SET_SLIDE,
 			PITCH_UP,
 			PITCH_DOWN,
 			OCTAVE_UP,
@@ -153,7 +154,8 @@ public:
 	void set_transpose_pitches(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t pitches);
 	void set_slide_duration(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t duration);
 	void set_slide_octave(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t octave);
-	void set_slide_pitch(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxe, const std::vector<Note_View> &views, Pitch pitch);
+	void set_slide_pitch(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxe, const std::vector<Note_View> &view, Pitch pitch);
+	void set_slide(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxe, int32_t duration, int32_t octave, Pitch pitch);
 
 	void pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);

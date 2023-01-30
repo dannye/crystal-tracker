@@ -537,20 +537,40 @@ void postprocess(std::vector<Command> &commands) {
 		Note_View view;
 		int32_t rest_index = -1;
 		int32_t octave_index = -1;
+		int32_t tempo_index = -1;
+		int32_t slide_index = -1;
 		deleted = false;
 		for (uint32_t i = 0; i < commands.size(); ++i) {
-			if (commands[i].labels.size() > 0 || is_control_command(commands[i].type)) {
+			if (
+				commands[i].labels.size() > 0 ||
+				is_control_command(commands[i].type)
+			) {
 				view = Note_View{};
 				rest_index = -1;
 				octave_index = -1;
+				tempo_index = -1;
+				slide_index = -1;
 			}
-
+			if (
+				is_global_command(commands[i].type) ||
+				is_speed_command(commands[i].type)
+			) {
+				rest_index = -1;
+			}
+			if (commands[i].type == Command_Type::REST) {
+				tempo_index = -1;
+			}
 			if (is_note_command(commands[i].type)) {
+				view.slide_duration = 0;
+				view.slide_octave = 0;
+				view.slide_pitch = Pitch::REST;
 				rest_index = -1;
 				octave_index = -1;
+				tempo_index = -1;
+				slide_index = -1;
 			}
 
-			else if (commands[i].type == Command_Type::REST) {
+			if (commands[i].type == Command_Type::REST) {
 				if (rest_index == -1) {
 					if (commands[i].rest.length < 16) {
 						rest_index = i;
@@ -563,6 +583,7 @@ void postprocess(std::vector<Command> &commands) {
 						rest_index = i;
 					}
 					else {
+						deleted = true;
 						commands[rest_index].rest.length = commands[rest_index].rest.length + commands[i].rest.length;
 						assert(commands[i].labels.size() == 0);
 						commands.erase(commands.begin() + i);
@@ -596,6 +617,12 @@ void postprocess(std::vector<Command> &commands) {
 					if (rest_index > octave_index) {
 						rest_index -= 1;
 					}
+					if (tempo_index > octave_index) {
+						tempo_index -= 1;
+					}
+					if (slide_index > octave_index) {
+						slide_index -= 1;
+					}
 
 					view.octave = commands[i].octave.octave;
 					octave_index = i;
@@ -605,8 +632,88 @@ void postprocess(std::vector<Command> &commands) {
 				view.octave = 0;
 				octave_index = -1;
 			}
+
+			else if (commands[i].type == Command_Type::TEMPO) {
+				if (tempo_index == -1) {
+					if (view.tempo == commands[i].tempo.tempo) {
+						deleted = true;
+						assert(commands[i].labels.size() == 0);
+						commands.erase(commands.begin() + i);
+						i -= 1;
+					}
+					else {
+						view.tempo = commands[i].tempo.tempo;
+						tempo_index = i;
+					}
+				}
+				else {
+					deleted = true;
+					commands[tempo_index + 1].labels.insert(commands[tempo_index + 1].labels.begin(), RANGE(commands[tempo_index].labels));
+					commands.erase(commands.begin() + tempo_index);
+					i -= 1;
+					if (rest_index > tempo_index) {
+						rest_index -= 1;
+					}
+					if (octave_index > tempo_index) {
+						octave_index -= 1;
+					}
+					if (slide_index > tempo_index) {
+						slide_index -= 1;
+					}
+
+					view.tempo = commands[i].tempo.tempo;
+					tempo_index = i;
+				}
+			}
+
+			else if (commands[i].type == Command_Type::PITCH_SLIDE) {
+				if (slide_index == -1) {
+					view.slide_duration = commands[i].pitch_slide.duration;
+					view.slide_octave = commands[i].pitch_slide.octave;
+					view.slide_pitch = commands[i].pitch_slide.pitch;
+					slide_index = i;
+				}
+				else {
+					deleted = true;
+					commands[slide_index + 1].labels.insert(commands[slide_index + 1].labels.begin(), RANGE(commands[slide_index].labels));
+					commands.erase(commands.begin() + slide_index);
+					i -= 1;
+					if (rest_index > slide_index) {
+						rest_index -= 1;
+					}
+					if (octave_index > slide_index) {
+						octave_index -= 1;
+					}
+					if (tempo_index > slide_index) {
+						tempo_index -= 1;
+					}
+
+					view.slide_duration = commands[i].pitch_slide.duration;
+					view.slide_octave = commands[i].pitch_slide.octave;
+					view.slide_pitch = commands[i].pitch_slide.pitch;
+					slide_index = i;
+				}
+			}
 		}
 	} while (deleted);
+
+	for (uint32_t i = 0; i < commands.size(); ++i) {
+		if (commands[i].type == Command_Type::TEMPO && commands[i].tempo.tempo == 0) {
+			commands[i + 1].labels.insert(commands[i + 1].labels.begin(), RANGE(commands[i].labels));
+			commands.erase(commands.begin() + i);
+			i -= 1;
+		}
+		else if (
+			commands[i].type == Command_Type::PITCH_SLIDE &&
+			(commands[i].pitch_slide.duration == 0 ||
+			commands[i].pitch_slide.octave == 0 ||
+			commands[i].pitch_slide.pitch == Pitch::REST)
+		) {
+			commands[i + 1].labels.insert(commands[i + 1].labels.begin(), RANGE(commands[i].labels));
+			commands.erase(commands.begin() + i);
+			i -= 1;
+		}
+	}
 }
 
 void Song::put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t octave, int32_t old_octave, int32_t index, int32_t tick, int32_t tick_offset) {
@@ -854,7 +961,6 @@ void Song::set_tempo(const int selected_channel, const std::set<int32_t> &select
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	// TODO: merge redundant tempo commands
 	postprocess(commands);
 
 	_modified = true;
@@ -915,7 +1021,6 @@ void Song::set_slide_duration(const int selected_channel, const std::set<int32_t
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	// TODO: merge redundant pitch_slide commands
 	postprocess(commands);
 
 	_modified = true;
@@ -936,7 +1041,6 @@ void Song::set_slide_octave(const int selected_channel, const std::set<int32_t> 
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	// TODO: merge redundant pitch_slide commands
 	postprocess(commands);
 
 	_modified = true;
@@ -957,7 +1061,25 @@ void Song::set_slide_pitch(const int selected_channel, const std::set<int32_t> &
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	// TODO: merge redundant pitch_slide commands
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::set_slide(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t duration, int32_t octave, Pitch pitch) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_SLIDE);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Command command = Command(Command_Type::PITCH_SLIDE);
+		command.pitch_slide.duration = duration;
+		command.pitch_slide.octave = octave;
+		command.pitch_slide.pitch = pitch;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
 	postprocess(commands);
 
 	_modified = true;
@@ -1560,6 +1682,8 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Set slide octave";
 	case Song_State::Action::SET_SLIDE_PITCH:
 		return "Set slide pitch";
+	case Song_State::Action::SET_SLIDE:
+		return "Set slide";
 	case Song_State::Action::PITCH_UP:
 		return "Pitch up";
 	case Song_State::Action::PITCH_DOWN:
