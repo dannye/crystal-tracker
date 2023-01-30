@@ -429,13 +429,13 @@ void Note_Properties::slide_duration_input_cb(OS_Spinner *s, Note_Properties *np
 			if (np->_slide_octave_input->value() == 0) np->_slide_octave_input->value(1);
 			if (np->_slide_pitch_input->value() == 0) np->_slide_pitch_input->value(1);
 			Main_Window *mw = (Main_Window *)np->user_data();
-			mw->set_slide(val, np->_slide_octave_input->value(), (Pitch)np->_slide_pitch_input->value());
+			mw->set_slide(val, (int32_t)np->_slide_octave_input->value(), (Pitch)np->_slide_pitch_input->value());
 		}
 		else if (val == 0 && (np->_slide_octave_input->value() != 0 || np->_slide_pitch_input->value() != 0)) {
 			np->_slide_octave_input->value(0);
 			np->_slide_pitch_input->value(0);
 			Main_Window *mw = (Main_Window *)np->user_data();
-			mw->set_slide(val, np->_slide_octave_input->value(), (Pitch)np->_slide_pitch_input->value());
+			mw->set_slide(val, (int32_t)np->_slide_octave_input->value(), (Pitch)np->_slide_pitch_input->value());
 		}
 		else {
 			Main_Window *mw = (Main_Window *)np->user_data();
@@ -454,13 +454,13 @@ void Note_Properties::slide_octave_input_cb(OS_Spinner *s, Note_Properties *np) 
 			if (np->_slide_duration_input->value() == 0) np->_slide_duration_input->value(1);
 			if (np->_slide_pitch_input->value() == 0) np->_slide_pitch_input->value(1);
 			Main_Window *mw = (Main_Window *)np->user_data();
-			mw->set_slide(np->_slide_duration_input->value(), val, (Pitch)np->_slide_pitch_input->value());
+			mw->set_slide((int32_t)np->_slide_duration_input->value(), val, (Pitch)np->_slide_pitch_input->value());
 		}
 		else if (val == 0 && (np->_slide_duration_input->value() != 0 || np->_slide_pitch_input->value() != 0)) {
 			np->_slide_duration_input->value(0);
 			np->_slide_pitch_input->value(0);
 			Main_Window *mw = (Main_Window *)np->user_data();
-			mw->set_slide(np->_slide_duration_input->value(), val, (Pitch)np->_slide_pitch_input->value());
+			mw->set_slide((int32_t)np->_slide_duration_input->value(), val, (Pitch)np->_slide_pitch_input->value());
 		}
 		else {
 			Main_Window *mw = (Main_Window *)np->user_data();
@@ -479,13 +479,13 @@ void Note_Properties::slide_pitch_input_cb(Dropdown *s, Note_Properties *np) {
 			if (np->_slide_duration_input->value() == 0) np->_slide_duration_input->value(1);
 			if (np->_slide_octave_input->value() == 0) np->_slide_octave_input->value(1);
 			Main_Window *mw = (Main_Window *)np->user_data();
-			mw->set_slide(np->_slide_duration_input->value(), np->_slide_octave_input->value(), val);
+			mw->set_slide((int32_t)np->_slide_duration_input->value(), (int32_t)np->_slide_octave_input->value(), val);
 		}
 		else if (val == Pitch::REST && (np->_slide_duration_input->value() != 0 || np->_slide_octave_input->value() != 0)) {
 			np->_slide_duration_input->value(0);
 			np->_slide_octave_input->value(0);
 			Main_Window *mw = (Main_Window *)np->user_data();
-			mw->set_slide(np->_slide_duration_input->value(), np->_slide_octave_input->value(), val);
+			mw->set_slide((int32_t)np->_slide_duration_input->value(), (int32_t)np->_slide_octave_input->value(), val);
 		}
 		else {
 			Main_Window *mw = (Main_Window *)np->user_data();
