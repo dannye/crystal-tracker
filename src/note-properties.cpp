@@ -57,7 +57,8 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 		_slide_pitch_input->add(PITCH_NAMES[i]);
 	}
 
-	_basic_button = new OS_Button(x() + dx + wgt_m, y() + wgt_m, text_width("Basic", 8), wgt_h, "Basic");
+	_basic_button = new OS_Button(x() + dx + wgt_m, y() + wgt_m, text_width("Advanced", 8), wgt_h, "Basic");
+	_advanced_button->position(_basic_button->x(), _basic_button->y());
 
 	_speed_input->callback((Fl_Callback *)speed_input_cb, this);
 	_speed_input->clear_visible_focus();
