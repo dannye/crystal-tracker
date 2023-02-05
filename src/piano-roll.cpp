@@ -573,7 +573,7 @@ bool Piano_Timeline::handle_note_eraser(int event) {
 	if (!channel) return false;
 
 	for (Note_Box *note : *channel) {
-		if (Fl::event_inside(note)) {
+		if (Fl::event_inside(note) && !note->ghost()) {
 			select_none();
 			note->selected(true);
 			parent()->parent()->delete_selection();
