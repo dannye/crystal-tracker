@@ -657,7 +657,7 @@ bool Piano_Timeline::select_all() {
 
 	bool note_selected = false;
 	for (Note_Box *note : *channel) {
-		if (!note->selected()) {
+		if (!note->selected() && !note->ghost()) {
 			note->selected(true);
 			note->redraw();
 			_keys.redraw();
