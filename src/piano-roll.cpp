@@ -1065,6 +1065,12 @@ int Piano_Roll::tick_width() const {
 
 int Piano_Roll::handle(int event) {
 	switch (event) {
+	case FL_ENTER:
+		fl_cursor(parent()->pencil_mode() ? FL_CURSOR_CROSS : FL_CURSOR_DEFAULT);
+		return 1;
+	case FL_LEAVE:
+		fl_cursor(FL_CURSOR_DEFAULT);
+		return 1;
 	case FL_MOUSEWHEEL:
 		if (Fl::event_shift()) {
 			std::swap(Fl::e_dx, Fl::e_dy);
