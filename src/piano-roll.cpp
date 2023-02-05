@@ -729,14 +729,14 @@ void Piano_Timeline::select_note_at_tick(std::vector<Note_Box *> &notes, int32_t
 		int32_t t_left = note->tick();
 		int32_t t_right = t_left + view.length * view.speed;
 		if (t_left > tick) {
-			return;
+			break;
 		}
 		if (t_right > tick) {
 			note->selected(true);
-			parent()->refresh_note_properties();
-			return;
+			break;
 		}
 	}
+	parent()->refresh_note_properties();
 }
 
 void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<Flag_Box *> &flags, int channel_number, const std::vector<Note_View> &notes, Fl_Color color) {
