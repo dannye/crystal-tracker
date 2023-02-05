@@ -1172,7 +1172,7 @@ bool Piano_Roll::handle_mouse_click(int event) {
 
 void Piano_Roll::refresh_note_properties() {
 	auto channel = _piano_timeline.active_channel_boxes();
-	if (channel && !parent()->pencil_mode() && !_following && !_paused) {
+	if (channel && !_following && !_paused) {
 		std::vector<const Note_View *> selected_notes;
 		for (Note_Box *note : *channel) {
 			if (note->selected()) {

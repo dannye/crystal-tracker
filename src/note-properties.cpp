@@ -289,6 +289,17 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	redraw();
 }
 
+int Note_Properties::handle(int event) {
+	switch (event) {
+	case FL_SHORTCUT:
+	case FL_KEYBOARD:
+		if (Fl::event_key() == FL_Escape) {
+			Fl::focus(nullptr);
+		}
+	}
+	return Fl_Group::handle(event);
+}
+
 void Note_Properties::speed_input_cb(OS_Spinner *s, Note_Properties *np) {
 	if (!s->active()) return;
 

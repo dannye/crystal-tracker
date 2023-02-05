@@ -33,6 +33,7 @@ public:
 	Note_Properties(int X, int Y, int W, int H, const char *l = nullptr);
 	~Note_Properties();
 	void set_note_properties(const std::vector<const Note_View *> &notes, int channel_number);
+	int handle(int event);
 private:
 	static void speed_input_cb(OS_Spinner *s, Note_Properties *np);
 	static void volume_input_cb(OS_Spinner *s, Note_Properties *np);

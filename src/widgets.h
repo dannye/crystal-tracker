@@ -97,6 +97,8 @@ protected:
 class OS_Spinner : public Fl_Spinner {
 public:
 	OS_Spinner(int x, int y, int w, int h, const char *l = NULL);
+protected:
+	int handle(int event);
 };
 
 class OS_Hex_Spinner : public Hex_Spinner {

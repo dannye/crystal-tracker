@@ -204,6 +204,15 @@ OS_Spinner::OS_Spinner(int x, int y, int w, int h, const char *l) : Fl_Spinner(x
 	down_button_.down_box(OS_MINI_DEPRESSED_DOWN_BOX);
 }
 
+int OS_Spinner::handle(int event) {
+	switch (event) {
+	case FL_FOCUS:
+		if (input_.take_focus()) return 1;
+		else return 0;
+	}
+	return Fl_Group::handle(event);
+}
+
 OS_Hex_Spinner::OS_Hex_Spinner(int x, int y, int w, int h, const char *l) : Hex_Spinner(x, y, w, h, l) {
 	labelfont(OS_FONT);
 	labelsize(OS_FONT_SIZE);
