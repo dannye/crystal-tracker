@@ -470,9 +470,11 @@ void Piano_Timeline::calc_sizes() {
 			const Note_Box *note = notes[flag->note_index()];
 			flag->resize(
 				note->x(),
-				note->y() - note->h() * flag->row_offset() * (note->note_view().octave == 8 ? -1 : 1),
+				note->note_view().octave == 8 ?
+					note->y() + note->h() + tick_width * 4 * flag->row_offset() :
+					note->y() - tick_width * 4 - tick_width * 4 * flag->row_offset(),
 				tick_width * 4,
-				note->h()
+				tick_width * 4
 			);
 		}
 	};
@@ -767,15 +769,17 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 			box->color(color);
 			channel.push_back(box);
 
-			int32_t row_offset = 1;
+			int32_t row_offset = 0;
 			const auto add_flag = [&](Fl_Color c) {
 				Flag_Box *flag = new Flag_Box(
 					channel.size() - 1,
 					row_offset,
 					box->x(),
-					box->y() - box->h() * row_offset * (note.octave == 8 ? -1 : 1),
+					note.octave == 8 ?
+						box->y() + box->h() + tick_width * 4 * row_offset :
+						box->y() - tick_width * 4 - tick_width * 4 * row_offset,
 					tick_width * 4,
-					box->h()
+					tick_width * 4
 				);
 				flag->box(FL_BORDER_BOX);
 				flag->color(c);
