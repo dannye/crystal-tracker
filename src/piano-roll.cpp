@@ -1970,8 +1970,70 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick)
 }
 
 bool Piano_Roll::set_speed(Song &song, int32_t speed) {
-	// TODO
-	return false;
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	const std::vector<Command> &commands = song.channel_commands(selected_channel());
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			auto command_itr = commands.begin() + note_view.index;
+
+			const auto is_followed_by_n_ticks_of_rest = [&](decltype(command_itr) itr, int32_t n, int32_t speed) {
+				int32_t ticks = 0;
+				++itr;
+				while (itr != commands.end()) {
+					if (
+						itr->labels.size() > 0 ||
+						is_note_command(itr->type) ||
+						is_global_command(itr->type) ||
+						is_control_command(itr->type)
+					) {
+						return false;
+					}
+					if (is_speed_command(itr->type)) {
+						speed = itr->note_type.speed;
+					}
+					if (itr->type == Command_Type::REST) {
+						ticks += speed * itr->rest.length;
+						if (ticks >= n) {
+							return true;
+						}
+					}
+					++itr;
+				}
+				return false;
+			};
+
+			int ticks_to_erase = (note_view.length * speed) - (note_view.length * note_view.speed);
+			if (
+				speed > note_view.speed &&
+				!is_followed_by_n_ticks_of_rest(command_itr, ticks_to_erase, note_view.speed)
+			) {
+				return false;
+			}
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_speed(selected_channel(), selected_notes, selected_boxes, *view, speed);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	align_cursor();
+
+	return true;
 }
 
 bool Piano_Roll::set_volume(Song &song, int32_t volume) {

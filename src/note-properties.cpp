@@ -253,7 +253,7 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	_slide_duration_input->range(0, 256);
 	_slide_octave_input->range(0, 8);
 
-	_speed_input->deactivate(); // TODO: handle speed change
+	_speed_input->activate();
 	_volume_input->activate();
 	_fade_input->activate();
 	_vibrato_delay_input->activate();

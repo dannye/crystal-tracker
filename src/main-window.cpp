@@ -1787,6 +1787,7 @@ void Main_Window::set_speed(int32_t speed) {
 		update_active_controls();
 		redraw();
 	}
+	_piano_roll->refresh_note_properties();
 }
 
 void Main_Window::set_volume(int32_t volume) {

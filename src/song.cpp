@@ -1179,9 +1179,77 @@ void Song::set_speed(const int selected_channel, const std::set<int32_t> &select
 	remember(selected_channel, selected_boxes, Song_State::Action::SET_SPEED);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
+	auto insert_ticks = [selected_channel](std::vector<Command> &commands, int32_t ticks_to_insert, int32_t index, int32_t speed, int32_t volume, int32_t fade) {
+		int32_t speed_ticks_to_insert = ticks_to_insert / speed;
+		int32_t rem_ticks_to_insert = ticks_to_insert % speed;
+
+		Command rest = Command(Command_Type::REST);
+		rest.rest.length = 16;
+
+		while (speed_ticks_to_insert) {
+			if (speed_ticks_to_insert < 16) rest.rest.length = speed_ticks_to_insert;
+			commands.insert(commands.begin() + index, rest);
+			speed_ticks_to_insert -= rest.rest.length;
+		}
+		if (rem_ticks_to_insert > 0) {
+			Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+			command.note_type.speed = speed;
+			command.note_type.volume = volume;
+			command.note_type.fade = fade;
+			commands.insert(commands.begin() + index, command);
+
+			rest.rest.length = rem_ticks_to_insert;
+			commands.insert(commands.begin() + index, rest);
+
+			command.note_type.speed = 1;
+			commands.insert(commands.begin() + index, command);
+		}
+	};
+
+	auto erase_ticks = [selected_channel, insert_ticks](std::vector<Command> &commands, int32_t ticks_to_erase, int32_t index, int32_t speed, int32_t volume, int32_t fade) {
+		int32_t ticks = 0;
+		index += 1;
+		while (index < (int32_t)commands.size()) {
+			assert(commands[index].labels.size() == 0);
+			assert(!is_note_command(commands[index].type));
+			assert(!is_global_command(commands[index].type));
+			assert(!is_control_command(commands[index].type));
+			if (is_speed_command(commands[index].type)) {
+				speed = commands[index].note_type.speed;
+			}
+			if (commands[index].type == Command_Type::REST) {
+				ticks += speed * commands[index].rest.length;
+				commands.erase(commands.begin() + index);
+				index -= 1;
+				if (ticks > ticks_to_erase) {
+					insert_ticks(commands, ticks - ticks_to_erase, index + 1, speed, volume, fade);
+					break;
+				}
+				if (ticks == ticks_to_erase) {
+					break;
+				}
+			}
+			index += 1;
+		}
+	};
+
 	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
 		if (selected_channel == 4) {
+			Note_View note_view = find_note_view(view, *note_itr);
+
 			Command command = Command(Command_Type::DRUM_SPEED);
+			command.drum_speed.speed = note_view.speed;
+			commands.insert(commands.begin() + *note_itr + 1, command);
+
+			if (speed < note_view.speed) {
+				int ticks_to_insert = (note_view.length * note_view.speed) - (note_view.length * speed);
+				insert_ticks(commands, ticks_to_insert, *note_itr + 1, speed, 0, 0);
+			}
+			else if (speed > note_view.speed) {
+				int ticks_to_erase = (note_view.length * speed) - (note_view.length * note_view.speed);
+				erase_ticks(commands, ticks_to_erase, *note_itr, note_view.speed, 0, 0);
+			}
+
 			command.drum_speed.speed = speed;
 			command.labels = std::move(commands[*note_itr].labels);
 			commands[*note_itr].labels.clear();
@@ -1189,10 +1257,23 @@ void Song::set_speed(const int selected_channel, const std::set<int32_t> &select
 		}
 		else {
 			Note_View note_view = find_note_view(view, *note_itr);
+
 			Command command = Command(Command_Type::NOTE_TYPE);
-			command.note_type.speed = speed;
+			command.note_type.speed = note_view.speed;
 			command.note_type.volume = note_view.volume;
 			command.note_type.fade = note_view.fade;
+			commands.insert(commands.begin() + *note_itr + 1, command);
+
+			if (speed < note_view.speed) {
+				int ticks_to_insert = (note_view.length * note_view.speed) - (note_view.length * speed);
+				insert_ticks(commands, ticks_to_insert, *note_itr + 1, speed, note_view.volume, note_view.fade);
+			}
+			else if (speed > note_view.speed) {
+				int ticks_to_erase = (note_view.length * speed) - (note_view.length * note_view.speed);
+				erase_ticks(commands, ticks_to_erase, *note_itr, note_view.speed, note_view.volume, note_view.fade);
+			}
+
+			command.note_type.speed = speed;
 			command.labels = std::move(commands[*note_itr].labels);
 			commands[*note_itr].labels.clear();
 			commands.insert(commands.begin() + *note_itr, command);
