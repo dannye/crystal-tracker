@@ -7,6 +7,97 @@ R"(<html>
 <p>Copyright © )" CURRENT_YEAR " " PROGRAM_AUTHOR R"(</p>
 <p>A song and sound editor for <a href="https://github.com/pret/pokecrystal">pokecrystal</a>, <a href="https://github.com/pret/pokegold">pokegold</a>, <a href="https://github.com/dannye/pokeyellow-crysaudio">pokeyellow-crysaudio</a>, <a href="https://github.com/dannye/pokered-crysaudio">pokered-crysaudio</a>, and <a href="https://github.com/pret/pokepinball">pokepinball</a>.</p>
 <p>Inspired by <a href="https://github.com/Rangi42/polished-map">Polished Map</a>.</p>
+<p>Built using <a href="https://www.fltk.org/">FLTK</a> and <a href="https://lib.openmpt.org/libopenmpt/">libopenmpt</a>.
 <p>Source code is available at <a href="https://github.com/dannye/crystal-tracker">https://github.com/dannye/crystal-tracker</a> under the <a href="https://github.com/dannye/crystal-tracker/blob/main/LICENSE.md">LGPL v3.0</a> license.</p>
+<hr>
+<h2>Files</h2>
+<p>To open a song, select the pokecrystal-based *.asm song file from within your project directory. The editor will first locate your project's Makefile by checking the directory of the selected *.asm file and checking every parent directory until the Makefile is found. This is treated as the root of your project for the sake of loading your project's custom channel 3 waveforms. The locations checked, in order of priority, are:</p>
+<ul>
+<li>.)" DIR_SEP R"(crysaudio)" DIR_SEP R"(wave_samples.asm</li>
+<li>.)" DIR_SEP R"(audio)" DIR_SEP R"(wave_samples.asm</li>
+<li>.)" DIR_SEP R"(wave_samples.asm</li>
+</ul>
+<p>Starting a new song will immediately prompt to choose a project directory (unless a song is already open) so that channel 3 waveforms can be loaded.</p>
+<p>Next is the Song Options dialog window. This dialog window specifies:</p>
+<ul>
+<li>The title of the song</li>
+<li>Whether the song loops</li>
+<li>Which channels are used in the song</li>
+<li>The loop point for each channel (if applicable)</li>
+<li>The end point for each channel</li>
+</ul>
+<p>Use the "Synchronize Channels" checkbox to keep the loop point and end point for all channels locked together.</p>
+<p>The unit of measurement for loop point and end point is a "tick" -- the smallest time step in the audio engine. This is good for having the greatest level of control but, admittedly, is a bit annoying to work with. The number of ticks can be converted to number of beats by dividing the number of ticks by the default speed of 12 (ie, 12 ticks per sixteenth note) divided by 4 sixteenth notes per beat, to make it easier to understand. In other words, the number of ticks is the result of multiplying the desired number of beats by 4 sixteenth notes per beat multiplied by 12 ticks per sixteenth note. So for example, the default end point is: 64 beats × 4 sixteenth notes per beat × 12 ticks per sixteenth note = 3072 ticks -- which is exactly 16 measures at a 4/4 time signature.</p>
+<p><b>Note:</b> When loading a file, if some pattern of notes is called by multiple channels then this pattern will be duplicated in-memory so that each channel is entirely independent. This has the side effect of creating duplicate labels in the file when re-saved. These duplicated labels will have to be fixed afterward in a text editor. This only has to be done once for a particular song that is affected by this.</p>
+<p><b>Note:</b> When saving a file, the song data is serialized and no comments or formatting details from the original file are preserved.</p>
+<hr>
+<h2>The Timeline</h2>
+<p>Once a song is loaded, the editor's timeline is filled with the notes for all channels. The channels are color-coded as follows:</p>
+<ul>
+<li><font color="#d90000"><b>Red: Channel 1</b></font></li>
+<li><font color="#0075fd"><b>Blue: Channel 2</b></font></li>
+<li><font color="#03b403"><b>Green: Channel 3</b></font></li>
+<li><font color="#8c3c19"><b>Brown: Channel 4</b></font></li>
+</ul>
+<p>Loops and calls are shown with color-coded boxes that wrap the notes. Light boxes are loops and dark boxes are calls. When no channel is selected, all wrapper boxes for all channels are shown at once. When a channel is selected, only the selected channel's wrapper boxes are shown; wrapper boxes for all other channels are hidden and their notes become colored outlines.</p>
+<p>If all channels' end points are the same, this point is shown with a white or black line (depending on theme). If at least one channel's end point is different than the others, each individual channel's end point is shown with a color-coded line. The same applies to the loop points, if the song loops.</p>
+<p>If the song loops and the loop points or end points are not exactly the same for all channels, then the shorter channels continue to repeat their main loop until such a point that all channels arrive at the beginning of their loop at the same time (ie, until the song truly repeats). These repeated notes have a thick gray border and cannot be selected or edited. This repeating may continue for an exceptionally long time if the lengths of the channels' main loops have a large least common multiple.</p>
+<p>If a channel is selected, some of the notes for that channel may have color-coded "flags" attached to the note which indicate that the note is played with some different settings than the previous note. The flags are color-coded as follows:</p>
+<ul>
+<li><font color="#00ecec"><b>Cyan: Speed</b></font></li>
+<li><font color="#ec00ec"><b>Magenta: Volume envelope</b></font></li>
+<li><font color="#ecec00"><b>Yellow: Vibrato</b></font></li>
+<li><font color="#ff8000"><b>Orange: Duty cycle or wave</b></font></li>
+</ul>
+<p>The lesser used commands (tempo, transpose, pitch slide, etc) don't have flags to indicate when they are changed.</p>
+<hr>
+<h2>Playback</h2>
+<p>The menu bar is extremely useful as a reference for all the keyboard shortcuts.</p>
+<p>For example, the Play menu shows that the song can be played/paused with the Spacebar and stopped with the Escape key.</p>
+<p><b>Note:</b> When editing note properties (which is explained in more detail below), Spacebar will not play the song while a property text box is selected. The text box can be deselected by pressing Escape.</p>
+<p><b>Note:</b> Playback is reasonably accurate but does not sound exactly how it sounds on the Game Boy. Things like tempo, volume fade, vibrato, etc, are only approximations. There is also currently no emulated playback for channel 4, although channel 4 is still completely editable.</p>
+<p>The playhead (yellow or magenta line, depending on theme) can be moved with the mouse. Middle-click or hold )" COMMAND_KEY R"( and right-click to move the playhead. This is useful for starting playback at a specific point rather than playing from the very beginning.</p>
+<p>While the song is playing, left-click anywhere on the timeline to toggle continuous scroll mode.</p>
+<p>Left-click on the piano keys on the left to hear any note on-demand. These interactive notes currently always play a 50% square wave at full volume.</p>
+<p>Each channel can be individually muted in order to focus on only specific channels. The mute statuses for each channel are also shown in the status bar at the bottom, which also act as buttons to toggle the mute status.</p>
+<p>If a channel is selected (explained below), "Step Backward/Forward" moves the playhead by the selected channel's <i>speed</i> at that point. "Skip Backward/Forward" moves the playhead to the start/end of the note or rest (of the selected channel) at the playhead's current position.</p>
+<p>If no channel is selected, "Step Backward/Forward" moves the playhead by the current grid spacing while "Skip Backward/Forward" moves by four times that distance.</p>
+<hr>
+<h2>Editing</h2>
+<p>Before anything can be edited, a channel must be selected. Only the currently selected channel can be edited. Channels can be selected with the 1, 2, 3, and 4 keys, as well as )" TAB_SYMBOL R"( and )" SHIFT_KEY_PLUS TAB_SYMBOL R"( to cycle through the channels. Selecting the same channel which is already selected will deselect it and editing will essentially be disabled.</p>
+<p>Left-click on a note (of the selected channel) to select the note. Hold )" COMMAND_KEY R"( while clicking to add (or remove) the note to (or from) the current selection. Hold )" SHIFT_KEY R"( while clicking to select all notes between the left-most selected note and the right-most selected note.</p>
+<p>The Enter key can also be used to select the note at the playhead. )" COMMAND_KEY R"( and )" SHIFT_KEY R"( work the same in combination with the Enter key.</p>
+<p>The menu options under Edit&nbsp;→&nbsp;Selection… can be used to manipulate the selected notes. The operation only succeeds if it succeeds for all selected notes. If the operation fails for a single note, such as "Octave Up" on a note which is already in the highest octave, the whole operation is cancelled.</p>
+<p>"Select All" is useful for quickly changing the entire channel, such as moving the entire channel up or down.</p>
+<p>"Delete Selection" replaces the selected notes with rests. "Snip Selection" removes the selected notes, adding the appropriate amount of rest at the end of the channel. This operation always preserves the position of the loop point and end point.</p>
+<p>"Split Note" is useful for changing note properties, such as volume envelope or vibrato, part way through a note. It places the split at the playhead's position</p>
+<p>The computer keyboard can also be used as a piano keyboard for placing notes. The key mapping is as follows:</p>
+<ul>
+<li><code>z</code>&nbsp;→&nbsp;C</li>
+<li><code>s</code>&nbsp;→&nbsp;D♭/C♯</li>
+<li><code>x</code>&nbsp;→&nbsp;D</li>
+<li><code>d</code>&nbsp;→&nbsp;E♭/D</li>
+<li><code>c</code>&nbsp;→&nbsp;E</li>
+<li><code>v</code>&nbsp;→&nbsp;F</li>
+<li><code>g</code>&nbsp;→&nbsp;G♭/F♯</li>
+<li><code>b</code>&nbsp;→&nbsp;G</li>
+<li><code>h</code>&nbsp;→&nbsp;A♭/G♯</li>
+<li><code>n</code>&nbsp;→&nbsp;A</li>
+<li><code>j</code>&nbsp;→&nbsp;B♭/A♯</li>
+<li><code>m</code>&nbsp;→&nbsp;B</li>
+<li><code>r</code>&nbsp;→&nbsp;Rest</li>
+</ul>
+<p>These shortcuts place the corresponding note at the playhead's current position and automatically advance the playhead to the next position. This isn't as convenient as Pencil Mode (explained below) but is useful as a keyboard-only alternative which doesn't require the mouse.</p>
+<p>With one or more notes selected, the Note Properties Panel opens. From here, the most common settings can be edited: Speed, Volume Envelope, Vibrato, and Duty Cycle/Wave. Use the "Advanced" button to edit the uncommon settings: Tempo, Transpose, and Pitch Slide. The remaining commands, such as Pitch Sweep, Pitch Offset, and Stereo Panning, are currently not supported by the editor, although those commands will be preserved if already part of an existing song file.</p>
+<p>If more than one note is selected, an asterisk (*) will appear next to any property which has multiple values among the selected notes. In such a case, the displayed value is that of the left-most selected note.</p>
+<p>The up and down arrow buttons next to a property are applied immediately if clicked. If typing into a property text box, apply the change with the Enter key or Escape key. The change will not be applied if the selected channel or selected notes are changed without pressing Enter or Escape.</p>
+<p>Use )" COMMAND_KEY_PLUS R"(P to toggle Pencil Mode. While in Pencil Mode, left-click to place notes (instead of selecting notes). When a note is placed, it is automatically selected so that it may quickly be manipulated (ie, )" COMMAND_SHIFT_KEYS_PLUS RIGHT_SYMBOL R"( to lengthen the note) and have its properties edited. Right-click and drag to erase notes.</p>
+<p><b>Note:</b> Since the mouse cannot be used to select notes while in Pencil Mode, it is useful to use the Enter key to manage the selection without needing to exit Pencil Mode.</p>
+<p>Loops and calls cannot be fully managed. Editing any note inside a loop or a call will simultaneously update all instances of that loop or call, but loops and calls themselves cannot currently be created or removed.</p>
+<p>To quickly create and test custom channel 3 waveforms, check out <a href="https://github.com/dannye/waveform-gb">waveform-gb</a>.</p>
+<hr>
+<h2>View</h2>
+<p>The Ruler (toggled with )" COMMAND_SHIFT_KEYS_PLUS R"(R) is also controlled by the grid spacing setting. The grid spacing can be adjusted to make the ruler better fit the speed or time signature of the song.</p>
+<p>The Zoom setting ()" COMMAND_KEY_PLUS R"(=) is useful when working with a sequence of very small notes.</p>
 </body>
 </html>)"

@@ -30,6 +30,7 @@
 #define CONTROL_KEY "\xE2\x8C\x83" // UTF-8 encoding of U+2303 "UP ARROWHEAD"
 #define ALT_KEY "\xE2\x8C\xA5" // UTF-8 encoding of U+2325 "OPTION KEY"
 #define SHIFT_KEY "\xE2\x87\xA7" // UTF-8 encoding of U+21E7 "UPWARDS WHITE ARROW"
+#define COMMAND_KEY "\xE2\x8C\x98" // UTF-8 encoding of U+2318 "PLACE OF INTEREST SIGN"
 
 #define COMMAND_KEY_PLUS "\xE2\x8C\x98" // UTF-8 encoding of U+2318 "PLACE OF INTEREST SIGN"
 #define ALT_KEY_PLUS ALT_KEY
@@ -48,10 +49,14 @@
 
 #define GLUE_KEY '?'
 #define FULLSCREEN_KEY FL_COMMAND + FL_SHIFT + 'f'
+
+#define TAB_SYMBOL "\xE2\x87\xA5"
+#define RIGHT_SYMBOL "\xE2\x86\x92"
 #else
 #define CONTROL_KEY "Ctrl"
 #define ALT_KEY "Alt"
 #define SHIFT_KEY "Shift"
+#define COMMAND_KEY CONTROL_KEY
 
 #define COMMAND_KEY_PLUS CONTROL_KEY "+"
 #define ALT_KEY_PLUS ALT_KEY "+"
@@ -70,6 +75,9 @@
 
 #define GLUE_KEY FL_SHIFT + '/'
 #define FULLSCREEN_KEY FL_F + 11
+
+#define TAB_SYMBOL "Tab"
+#define RIGHT_SYMBOL "Right"
 #endif
 
 #ifndef _countof
