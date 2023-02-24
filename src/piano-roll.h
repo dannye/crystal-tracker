@@ -458,16 +458,16 @@ public:
 	bool set_slide_pitch(Song &song, Pitch pitch);
 	bool set_slide(Song &song, int32_t duration, int32_t octave, Pitch pitch);
 
-	bool pitch_up(Song &song);
-	bool pitch_down(Song &song);
-	bool octave_up(Song &song);
-	bool octave_down(Song &song);
-	bool move_left(Song &song);
-	bool move_right(Song &song);
-	bool shorten(Song &song);
-	bool lengthen(Song &song);
-	bool delete_selection(Song &song);
-	bool snip_selection(Song &song);
+	bool pitch_up(Song &song, bool dry_run = false);
+	bool pitch_down(Song &song, bool dry_run = false);
+	bool octave_up(Song &song, bool dry_run = false);
+	bool octave_down(Song &song, bool dry_run = false);
+	bool move_left(Song &song, bool dry_run = false);
+	bool move_right(Song &song, bool dry_run = false);
+	bool shorten(Song &song, bool dry_run = false);
+	bool lengthen(Song &song, bool dry_run = false);
+	bool delete_selection(Song &song, bool dry_run = false);
+	bool snip_selection(Song &song, bool dry_run = false);
 	bool split_note(Song &song);
 	bool glue_note(Song &song);
 

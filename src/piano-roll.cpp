@@ -2422,7 +2422,7 @@ bool Piano_Roll::set_slide(Song &song, int32_t duration, int32_t octave, Pitch p
 	return true;
 }
 
-bool Piano_Roll::pitch_up(Song &song) {
+bool Piano_Roll::pitch_up(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -2445,6 +2445,9 @@ bool Piano_Roll::pitch_up(Song &song) {
 	if (selected_notes.size() == 0) {
 		return false;
 	}
+	if (dry_run) {
+		return true;
+	}
 
 	song.pitch_up(selected_channel(), selected_notes, selected_boxes, *view);
 	set_active_channel_timeline(song);
@@ -2453,7 +2456,7 @@ bool Piano_Roll::pitch_up(Song &song) {
 	return true;
 }
 
-bool Piano_Roll::pitch_down(Song &song) {
+bool Piano_Roll::pitch_down(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -2476,6 +2479,9 @@ bool Piano_Roll::pitch_down(Song &song) {
 	if (selected_notes.size() == 0) {
 		return false;
 	}
+	if (dry_run) {
+		return true;
+	}
 
 	song.pitch_down(selected_channel(), selected_notes, selected_boxes, *view);
 	set_active_channel_timeline(song);
@@ -2484,7 +2490,7 @@ bool Piano_Roll::pitch_down(Song &song) {
 	return true;
 }
 
-bool Piano_Roll::octave_up(Song &song) {
+bool Piano_Roll::octave_up(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -2507,6 +2513,9 @@ bool Piano_Roll::octave_up(Song &song) {
 	if (selected_notes.size() == 0) {
 		return false;
 	}
+	if (dry_run) {
+		return true;
+	}
 
 	song.octave_up(selected_channel(), selected_notes, selected_boxes, *view);
 	set_active_channel_timeline(song);
@@ -2515,7 +2524,7 @@ bool Piano_Roll::octave_up(Song &song) {
 	return true;
 }
 
-bool Piano_Roll::octave_down(Song &song) {
+bool Piano_Roll::octave_down(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -2538,6 +2547,9 @@ bool Piano_Roll::octave_down(Song &song) {
 	if (selected_notes.size() == 0) {
 		return false;
 	}
+	if (dry_run) {
+		return true;
+	}
 
 	song.octave_down(selected_channel(), selected_notes, selected_boxes, *view);
 	set_active_channel_timeline(song);
@@ -2546,7 +2558,7 @@ bool Piano_Roll::octave_down(Song &song) {
 	return true;
 }
 
-bool Piano_Roll::move_left(Song &song) {
+bool Piano_Roll::move_left(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -2591,6 +2603,9 @@ bool Piano_Roll::move_left(Song &song) {
 	if (selected_notes.size() == 0) {
 		return false;
 	}
+	if (dry_run) {
+		return true;
+	}
 
 	song.move_left(selected_channel(), selected_notes, selected_boxes);
 	set_active_channel_timeline(song);
@@ -2599,7 +2614,7 @@ bool Piano_Roll::move_left(Song &song) {
 	return true;
 }
 
-bool Piano_Roll::move_right(Song &song) {
+bool Piano_Roll::move_right(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -2645,6 +2660,9 @@ bool Piano_Roll::move_right(Song &song) {
 	if (selected_notes.size() == 0) {
 		return false;
 	}
+	if (dry_run) {
+		return true;
+	}
 
 	song.move_right(selected_channel(), selected_notes, selected_boxes);
 	set_active_channel_timeline(song);
@@ -2653,7 +2671,7 @@ bool Piano_Roll::move_right(Song &song) {
 	return true;
 }
 
-bool Piano_Roll::shorten(Song &song) {
+bool Piano_Roll::shorten(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -2674,6 +2692,9 @@ bool Piano_Roll::shorten(Song &song) {
 	if (selected_notes.size() == 0) {
 		return false;
 	}
+	if (dry_run) {
+		return true;
+	}
 
 	song.shorten(selected_channel(), selected_notes, selected_boxes);
 	set_active_channel_timeline(song);
@@ -2682,7 +2703,7 @@ bool Piano_Roll::shorten(Song &song) {
 	return true;
 }
 
-bool Piano_Roll::lengthen(Song &song) {
+bool Piano_Roll::lengthen(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -2721,6 +2742,9 @@ bool Piano_Roll::lengthen(Song &song) {
 	if (selected_notes.size() == 0) {
 		return false;
 	}
+	if (dry_run) {
+		return true;
+	}
 
 	song.lengthen(selected_channel(), selected_notes, selected_boxes);
 	set_active_channel_timeline(song);
@@ -2729,7 +2753,7 @@ bool Piano_Roll::lengthen(Song &song) {
 	return true;
 }
 
-bool Piano_Roll::delete_selection(Song &song) {
+bool Piano_Roll::delete_selection(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -2746,6 +2770,9 @@ bool Piano_Roll::delete_selection(Song &song) {
 	}
 	if (selected_notes.size() == 0) {
 		return false;
+	}
+	if (dry_run) {
+		return true;
 	}
 
 	song.delete_selection(selected_channel(), selected_notes, selected_boxes);
@@ -2755,7 +2782,7 @@ bool Piano_Roll::delete_selection(Song &song) {
 	return true;
 }
 
-bool Piano_Roll::snip_selection(Song &song) {
+bool Piano_Roll::snip_selection(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -2772,6 +2799,9 @@ bool Piano_Roll::snip_selection(Song &song) {
 	}
 	if (selected_notes.size() == 0) {
 		return false;
+	}
+	if (dry_run) {
+		return true;
 	}
 
 	song.snip_selection(selected_channel(), selected_notes, selected_boxes);

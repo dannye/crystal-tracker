@@ -726,6 +726,7 @@ bool Main_Window::stop_note() {
 }
 
 void Main_Window::open_note_properties() {
+	update_active_controls();
 	if (note_properties()) return;
 	_note_properties->activate();
 	_note_properties->show();
@@ -735,6 +736,7 @@ void Main_Window::open_note_properties() {
 }
 
 void Main_Window::close_note_properties() {
+	update_active_controls();
 	if (!note_properties()) return;
 	_note_properties->hide();
 	_note_properties->deactivate();
@@ -805,16 +807,66 @@ void Main_Window::update_active_controls() {
 		if (stopped) {
 			_select_all_mi->activate();
 			_select_none_mi->activate();
-			_pitch_up_mi->activate();
-			_pitch_down_mi->activate();
-			_octave_up_mi->activate();
-			_octave_down_mi->activate();
-			_move_left_mi->activate();
-			_move_right_mi->activate();
-			_shorten_mi->activate();
-			_lengthen_mi->activate();
-			_delete_mi->activate();
-			_snip_mi->activate();
+			if (_piano_roll->pitch_up(_song, true)) {
+				_pitch_up_mi->activate();
+			}
+			else {
+				_pitch_up_mi->deactivate();
+			}
+			if (_piano_roll->pitch_down(_song, true)) {
+				_pitch_down_mi->activate();
+			}
+			else {
+				_pitch_down_mi->deactivate();
+			}
+			if (_piano_roll->octave_up(_song, true)) {
+				_octave_up_mi->activate();
+			}
+			else {
+				_octave_up_mi->deactivate();
+			}
+			if (_piano_roll->octave_down(_song, true)) {
+				_octave_down_mi->activate();
+			}
+			else {
+				_octave_down_mi->deactivate();
+			}
+			if (_piano_roll->move_left(_song, true)) {
+				_move_left_mi->activate();
+			}
+			else {
+				_move_left_mi->deactivate();
+			}
+			if (_piano_roll->move_right(_song, true)) {
+				_move_right_mi->activate();
+			}
+			else {
+				_move_right_mi->deactivate();
+			}
+			if (_piano_roll->shorten(_song, true)) {
+				_shorten_mi->activate();
+			}
+			else {
+				_shorten_mi->deactivate();
+			}
+			if (_piano_roll->lengthen(_song, true)) {
+				_lengthen_mi->activate();
+			}
+			else {
+				_lengthen_mi->deactivate();
+			}
+			if (_piano_roll->delete_selection(_song, true)) {
+				_delete_mi->activate();
+			}
+			else {
+				_delete_mi->deactivate();
+			}
+			if (_piano_roll->snip_selection(_song, true)) {
+				_snip_mi->activate();
+			}
+			else {
+				_snip_mi->deactivate();
+			}
 			_split_note_mi->activate();
 			_glue_note_mi->activate();
 			_pencil_mode_mi->activate();
