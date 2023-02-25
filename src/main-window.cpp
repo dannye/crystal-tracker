@@ -236,7 +236,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		{},
 		OS_MENU_ITEM("Spli&t Note", '/', (Fl_Callback *)split_note_cb, this, 0),
 		OS_MENU_ITEM("&Glue Note", GLUE_KEY, (Fl_Callback *)glue_note_cb, this, FL_MENU_DIVIDER),
-		OS_MENU_ITEM("Pencil &Mode", FL_COMMAND + 'p', (Fl_Callback *)pencil_mode_cb, this, FL_MENU_TOGGLE | FL_MENU_DIVIDER),
+		OS_MENU_ITEM("Pencil &Mode", '`', (Fl_Callback *)pencil_mode_cb, this, FL_MENU_TOGGLE | FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Channel &1", '1', (Fl_Callback *)channel_1_cb, this,
 			FL_MENU_RADIO | (selected_channel() == 1 ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Channel &2", '2', (Fl_Callback *)channel_2_cb, this,
@@ -438,7 +438,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_redo_tb->callback((Fl_Callback *)redo_cb, this);
 	_redo_tb->image(REDO_ICON);
 
-	_pencil_mode_tb->tooltip("Pencil Mode (" COMMAND_KEY_PLUS "P)");
+	_pencil_mode_tb->tooltip("Pencil Mode (`)");
 	_pencil_mode_tb->callback((Fl_Callback *)pencil_mode_tb_cb, this);
 	_pencil_mode_tb->image(PENCIL_ICON);
 	_pencil_mode_tb->value(pencil_mode());
