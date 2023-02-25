@@ -1048,16 +1048,22 @@ void Main_Window::open_song(const char *filename) {
 void Main_Window::open_song(const char *directory, const char *filename) {
 	Song_Options_Dialog::Song_Options options;
 	if (!filename) {
-		_song_options_dialog->show(this);
-		bool canceled = _song_options_dialog->canceled();
-		if (canceled) { return; }
+		bool reset = true;
+		while (true) {
+			_song_options_dialog->show(this, reset);
+			bool canceled = _song_options_dialog->canceled();
+			if (canceled) { return; }
 
-		options = _song_options_dialog->get_options();
-		if (options.result != Song_Options_Dialog::Result::RESULT_OK) {
-			std::string msg = _song_options_dialog->get_error_message(options.result);
-			_error_dialog->message(msg);
-			_error_dialog->show(this);
-			return;
+			options = _song_options_dialog->get_options();
+			if (options.result != Song_Options_Dialog::Result::RESULT_OK) {
+				std::string msg = _song_options_dialog->get_error_message(options.result);
+				_error_dialog->message(msg);
+				_error_dialog->show(this);
+				reset = false;
+			}
+			else {
+				break;
+			}
 		}
 	}
 

@@ -40,13 +40,13 @@ void Option_Dialog::initialize() {
 	Fl_Group::current(prev_current);
 }
 
-void Option_Dialog::refresh() {
+void Option_Dialog::refresh(bool reset) {
 	_canceled = false;
 	_dialog->copy_label(_title);
 	// Refresh widget positions and sizes
 	fl_font(OS_FONT, OS_FONT_SIZE);
 	int dy = 10;
-	dy += refresh_content(_width - 20, dy) + 16;
+	dy += refresh_content(_width - 20, dy, reset) + 16;
 #ifdef _WIN32
 	_ok_button->resize(_width - 184, dy, 80, 22);
 	_cancel_button->resize(_width - 90, dy, 80, 22);
@@ -60,9 +60,9 @@ void Option_Dialog::refresh() {
 	_dialog->redraw();
 }
 
-void Option_Dialog::show(const Fl_Widget *p) {
+void Option_Dialog::show(const Fl_Widget *p, bool reset) {
 	initialize();
-	refresh();
+	refresh(reset);
 	int x = p->x() + (p->w() - _dialog->w()) / 2;
 	int y = p->y() + (p->h() - _dialog->h()) / 2;
 	_dialog->position(x, y);
@@ -120,6 +120,7 @@ Song_Options_Dialog::Song_Options Song_Options_Dialog::get_options() {
 
 	if (
 		options.song_name.size() == 0 ||
+		(options.song_name[0] >= '0' && options.song_name[0] <= '9') ||
 		options.song_name.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_") != std::string::npos
 	) {
 		options.result = Result::RESULT_BAD_TITLE;
@@ -149,7 +150,7 @@ const char *Song_Options_Dialog::get_error_message(Result r) {
 	case Result::RESULT_OK:
 		return "OK.";
 	case Result::RESULT_BAD_TITLE:
-		return "Title is invalid!";
+		return "Title is invalid! Title can only contain letters, numbers, and underscores, and must not start with a number.";
 	case Result::RESULT_BAD_END:
 		return "Channel length must not be zero!";
 	case Result::RESULT_BAD_LOOP:
@@ -210,7 +211,7 @@ void Song_Options_Dialog::initialize_content() {
 	_synchronize_checkbox->callback((Fl_Callback *)synchronize_checkbox_cb, this);
 }
 
-int Song_Options_Dialog::refresh_content(int ww, int dy) {
+int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
 	int wgt_h = 22, win_m = 10, wgt_m = 4;
 	int dx = win_m;
 	int ch = wgt_h * 6 + wgt_m * 5;
@@ -219,81 +220,81 @@ int Song_Options_Dialog::refresh_content(int ww, int dy) {
 	dx += text_width(_song_name->label(), 2) + wgt_h;
 	int wgt_w = 200;
 	_song_name->resize(dx, dy, wgt_w, wgt_h);
-	_song_name->value("UntitledSong");
+	if (reset) _song_name->value("UntitledSong");
 	dx += wgt_w + wgt_h;
 	wgt_w = text_width(_looping_checkbox->label(), 2) + wgt_h;
 	_looping_checkbox->resize(dx, dy, wgt_w, wgt_h);
-	_looping_checkbox->set();
+	if (reset) _looping_checkbox->set();
 
 	dx = win_m;
 	dy += wgt_h + wgt_m;
 	wgt_w = text_width(_channel_4_checkbox->label(), 2) + wgt_h;
 	_channel_1_checkbox->resize(dx, dy, wgt_w, wgt_h);
-	_channel_1_checkbox->set();
+	if (reset) _channel_1_checkbox->set();
 	dx += wgt_w + wgt_h + text_width(_channel_1_loop_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_1_loop_tick->resize(dx, dy, wgt_w, wgt_h);
-	_channel_1_loop_tick->value("0");
-	_channel_1_loop_tick->activate();
+	if (reset) _channel_1_loop_tick->value("0");
+	if (reset) _channel_1_loop_tick->activate();
 	dx += wgt_w + wgt_h + text_width(_channel_1_end_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_1_end_tick->resize(dx, dy, wgt_w, wgt_h);
-	_channel_1_end_tick->value("3072");
-	_channel_1_end_tick->activate();
+	if (reset) _channel_1_end_tick->value("3072");
+	if (reset) _channel_1_end_tick->activate();
 
 	dx = win_m;
 	dy += wgt_h + wgt_m;
 	wgt_w = text_width(_channel_4_checkbox->label(), 2) + wgt_h;
 	_channel_2_checkbox->resize(dx, dy, wgt_w, wgt_h);
-	_channel_2_checkbox->set();
+	if (reset) _channel_2_checkbox->set();
 	dx += wgt_w + wgt_h + text_width(_channel_2_loop_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_2_loop_tick->resize(dx, dy, wgt_w, wgt_h);
-	_channel_2_loop_tick->value("0");
-	_channel_2_loop_tick->activate();
+	if (reset) _channel_2_loop_tick->value("0");
+	if (reset) _channel_2_loop_tick->activate();
 	dx += wgt_w + wgt_h + text_width(_channel_2_end_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_2_end_tick->resize(dx, dy, wgt_w, wgt_h);
-	_channel_2_end_tick->value("3072");
-	_channel_2_end_tick->activate();
+	if (reset) _channel_2_end_tick->value("3072");
+	if (reset) _channel_2_end_tick->activate();
 
 	dx = win_m;
 	dy += wgt_h + wgt_m;
 	wgt_w = text_width(_channel_4_checkbox->label(), 2) + wgt_h;
 	_channel_3_checkbox->resize(dx, dy, wgt_w, wgt_h);
-	_channel_3_checkbox->set();
+	if (reset) _channel_3_checkbox->set();
 	dx += wgt_w + wgt_h + text_width(_channel_3_loop_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_3_loop_tick->resize(dx, dy, wgt_w, wgt_h);
-	_channel_3_loop_tick->value("0");
-	_channel_3_loop_tick->activate();
+	if (reset) _channel_3_loop_tick->value("0");
+	if (reset) _channel_3_loop_tick->activate();
 	dx += wgt_w + wgt_h + text_width(_channel_3_end_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_3_end_tick->resize(dx, dy, wgt_w, wgt_h);
-	_channel_3_end_tick->value("3072");
-	_channel_3_end_tick->activate();
+	if (reset) _channel_3_end_tick->value("3072");
+	if (reset) _channel_3_end_tick->activate();
 
 	dx = win_m;
 	dy += wgt_h + wgt_m;
 	wgt_w = text_width(_channel_4_checkbox->label(), 2) + wgt_h;
 	_channel_4_checkbox->resize(dx, dy, wgt_w, wgt_h);
-	_channel_4_checkbox->set();
+	if (reset) _channel_4_checkbox->set();
 	dx += wgt_w + wgt_h + text_width(_channel_4_loop_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_4_loop_tick->resize(dx, dy, wgt_w, wgt_h);
-	_channel_4_loop_tick->value("0");
-	_channel_4_loop_tick->activate();
+	if (reset) _channel_4_loop_tick->value("0");
+	if (reset) _channel_4_loop_tick->activate();
 	dx += wgt_w + wgt_h + text_width(_channel_4_end_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_4_end_tick->resize(dx, dy, wgt_w, wgt_h);
-	_channel_4_end_tick->value("3072");
-	_channel_4_end_tick->activate();
+	if (reset) _channel_4_end_tick->value("3072");
+	if (reset) _channel_4_end_tick->activate();
 
 	dx = win_m;
 	dy += wgt_h + wgt_m;
 	wgt_w = text_width(_synchronize_checkbox->label(), 2) + wgt_h;
 	_synchronize_checkbox->resize(dx, dy, wgt_w, wgt_h);
-	_synchronize_checkbox->set();
+	if (reset) _synchronize_checkbox->set();
 
 	return ch;
 }

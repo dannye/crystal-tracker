@@ -23,13 +23,13 @@ public:
 	inline void canceled(bool c) { _canceled = c; }
 protected:
 	void initialize(void);
-	void refresh(void);
+	void refresh(bool reset);
 	virtual void initialize_content(void) = 0;
-	virtual int refresh_content(int ww, int dy) = 0;
+	virtual int refresh_content(int ww, int dy, bool reset) = 0;
 	virtual void finish(void) {}
 public:
 	inline bool initialized(void) const { return !!_dialog; }
-	void show(const Fl_Widget *p);
+	void show(const Fl_Widget *p, bool reset = true);
 private:
 	static void close_cb(Fl_Widget *, Option_Dialog *od);
 	static void cancel_cb(Fl_Widget *, Option_Dialog *od);
@@ -78,7 +78,7 @@ public:
 	const char *get_error_message(Result r);
 protected:
 	void initialize_content(void);
-	int refresh_content(int ww, int dy);
+	int refresh_content(int ww, int dy, bool reset);
 private:
 	static void looping_checkbox_cb(OS_Check_Button *c, Song_Options_Dialog *sod);
 	static void channel_checkbox_cb(OS_Check_Button *c, Song_Options_Dialog *sod);
