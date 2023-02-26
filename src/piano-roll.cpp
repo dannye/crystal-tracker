@@ -2562,6 +2562,8 @@ bool Piano_Roll::move_left(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
+	auto view = active_channel_view();
+
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
@@ -2576,16 +2578,21 @@ bool Piano_Roll::move_left(Song &song, bool dry_run) {
 			const auto is_preceded_by_rest = [&](decltype(command_itr) itr) {
 				++itr;
 				while (itr != commands.rend()) {
-					if (itr->type == Command_Type::REST) {
-						return true;
-					}
 					if (
 						is_note_command(itr->type) &&
 						selected_notes.count((itr.base() - 1) - commands.begin()) > 0
 					) {
 						return true;
 					}
-					if (!is_note_setting_command(itr->type) || itr->labels.size() > 0) {
+					if (itr->type == Command_Type::REST) {
+						return true;
+					}
+					if (
+						itr->labels.size() > 0 ||
+						is_note_command(itr->type) ||
+						is_global_command(itr->type) ||
+						is_control_command(itr->type)
+					) {
 						return false;
 					}
 					++itr;
@@ -2607,9 +2614,11 @@ bool Piano_Roll::move_left(Song &song, bool dry_run) {
 		return true;
 	}
 
-	song.move_left(selected_channel(), selected_notes, selected_boxes);
+	song.move_left(selected_channel(), selected_notes, selected_boxes, *view);
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
+
+	align_cursor();
 
 	return true;
 }
@@ -2617,6 +2626,8 @@ bool Piano_Roll::move_left(Song &song, bool dry_run) {
 bool Piano_Roll::move_right(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
+
+	auto view = active_channel_view();
 
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
@@ -2632,9 +2643,6 @@ bool Piano_Roll::move_right(Song &song, bool dry_run) {
 			const auto is_followed_by_rest = [&](decltype(command_itr) itr) {
 				++itr;
 				while (itr != commands.end()) {
-					if (itr->type == Command_Type::REST && itr->labels.size() == 0) {
-						return true;
-					}
 					if (
 						is_note_command(itr->type) &&
 						itr->labels.size() == 0 &&
@@ -2642,8 +2650,16 @@ bool Piano_Roll::move_right(Song &song, bool dry_run) {
 					) {
 						return true;
 					}
-					if (!is_note_setting_command(itr->type) || itr->labels.size() > 0) {
+					if (
+						itr->labels.size() > 0 ||
+						is_note_command(itr->type) ||
+						is_global_command(itr->type) ||
+						is_control_command(itr->type)
+					) {
 						return false;
+					}
+					if (itr->type == Command_Type::REST) {
+						return true;
 					}
 					++itr;
 				}
@@ -2664,9 +2680,11 @@ bool Piano_Roll::move_right(Song &song, bool dry_run) {
 		return true;
 	}
 
-	song.move_right(selected_channel(), selected_notes, selected_boxes);
+	song.move_right(selected_channel(), selected_notes, selected_boxes, *view);
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
+
+	align_cursor();
 
 	return true;
 }
@@ -2707,6 +2725,8 @@ bool Piano_Roll::lengthen(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
+	auto view = active_channel_view();
+
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
@@ -2718,21 +2738,36 @@ bool Piano_Roll::lengthen(Song &song, bool dry_run) {
 			Note_View note_view = note->note_view();
 			auto command_itr = commands.begin() + note_view.index;
 
-			const auto is_followed_by_rest = [&](decltype(command_itr) itr) {
+			const auto is_followed_by_n_ticks_of_rest = [&](decltype(command_itr) itr, int32_t n, int32_t speed) {
+				int32_t ticks = 0;
 				++itr;
 				while (itr != commands.end()) {
-					if (itr->type == Command_Type::REST && itr->labels.size() == 0) {
-						return true;
-					}
-					if (!is_note_setting_command(itr->type) || itr->labels.size() > 0) {
+					if (
+						itr->labels.size() > 0 ||
+						is_note_command(itr->type) ||
+						is_global_command(itr->type) ||
+						is_control_command(itr->type)
+					) {
 						return false;
+					}
+					if (is_speed_command(itr->type)) {
+						speed = itr->note_type.speed;
+					}
+					if (itr->type == Command_Type::REST) {
+						ticks += speed * itr->rest.length;
+						if (ticks >= n) {
+							return true;
+						}
 					}
 					++itr;
 				}
 				return false;
 			};
 
-			if (note_view.length == 16 || !is_followed_by_rest(command_itr)) {
+			if (
+				note_view.length == 16 ||
+				!is_followed_by_n_ticks_of_rest(command_itr, note_view.speed, note_view.speed)
+			) {
 				return false;
 			}
 			selected_notes.insert(note_view.index);
@@ -2746,9 +2781,11 @@ bool Piano_Roll::lengthen(Song &song, bool dry_run) {
 		return true;
 	}
 
-	song.lengthen(selected_channel(), selected_notes, selected_boxes);
+	song.lengthen(selected_channel(), selected_notes, selected_boxes, *view);
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
+
+	align_cursor();
 
 	return true;
 }
