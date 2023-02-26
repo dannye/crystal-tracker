@@ -2061,9 +2061,9 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 	if (action == Song::Song_State::Action::PUT_NOTE) {
 		mw->_piano_roll->tick(tick);
 		mw->_piano_roll->select_note_at_tick();
-		mw->_piano_roll->step_forward();
+		mw->_piano_roll->skip_forward();
 		mw->_piano_roll->focus_cursor(true);
-		mw->set_song_position(tick);
+		mw->set_song_position(mw->_piano_roll->tick());
 	}
 	else if (
 		action == Song::Song_State::Action::SPLIT_NOTE ||

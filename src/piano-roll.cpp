@@ -1959,11 +1959,11 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick)
 		}
 	}
 
-	song.put_note(selected_channel(), selected_boxes, pitch, octave, old_octave, index, tick, tick_offset / speed);
+	int32_t length = song.put_note(selected_channel(), selected_boxes, pitch, octave, old_octave, index, tick, tick_offset / speed);
 	set_active_channel_timeline(song);
 	_piano_timeline.select_note_at_tick(*channel, tick);
 
-	_tick = tick + speed;
+	_tick = tick + (length * speed);
 	focus_cursor(true);
 
 	return true;
