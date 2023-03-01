@@ -100,7 +100,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	// Status bar
 	_status_bar = new Toolbar(wx, h - STATUS_BAR_HEIGHT, ww, STATUS_BAR_HEIGHT);
 	wh -= _status_bar->h();
-	_timestamp_label = new Label(0, 0, text_width("00:00:00 / 00:00:00", 8), STATUS_BAR_HEIGHT - 2, "00:00:00 / 00:00:00");
+	_timestamp_label = new Label(0, 0, text_width("00:00.00 / 00:00.00", 8), STATUS_BAR_HEIGHT - 2, "00:00.00 / 00:00.00");
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
 	_channel_1_status_label = new Label_Button(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
@@ -1371,14 +1371,14 @@ void Main_Window::update_layout() {
 
 void Main_Window::update_timestamp() {
 	if (!_song.loaded()) {
-		_timestamp_label->label("00:00:00 / 00:00:00");
+		_timestamp_label->label("00:00.00 / 00:00.00");
 	}
 	else {
 		char buffer[64] = {};
 		double position_seconds = _it_module->get_position_seconds();
 		double duration_seconds = _it_module->get_duration_seconds();
 		sprintf(
-			buffer, "%02d:%02d:%02d / %02d:%02d:%02d",
+			buffer, "%02d:%02d.%02d / %02d:%02d.%02d",
 			(int)position_seconds / 60,
 			(int)position_seconds % 60,
 			(int)(position_seconds * 100) % 100,
