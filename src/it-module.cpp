@@ -390,20 +390,6 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 		);
 	};
 
-	auto duty = [](const Note_View &view) {
-		return (uint8_t)(
-			view.duty_cycle_loop ? view.duty1 : view.duty
-		);
-	};
-
-	auto duty_loop = [](const Note_View &view, int32_t duration) {
-		int32_t duty = (duration / 2) % 4;
-		if (duty == 0) return view.duty1;
-		if (duty == 1) return view.duty2;
-		if (duty == 2) return view.duty3;
-		return view.duty4;
-	};
-
 	auto channel_3_volume = [](int32_t volume) {
 		return (uint8_t)(
 			volume == 1 ? 64 :
@@ -468,7 +454,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					pattern_data.push_back(CHANNEL + CH1);
 					pattern_data.push_back(NOTE + SAMPLE + VOLUME);
 					pattern_data.push_back(note(*channel_1_itr)); // note
-					pattern_data.push_back(duty(*channel_1_itr) + 1); // sample
+					pattern_data.push_back(channel_1_itr->duty + 1); // sample
 					pattern_data.push_back((channel_1_itr->volume + 1) * 4); // volume
 				}
 				else {
@@ -482,13 +468,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 			else if (channel_1_note_length > 0) {
 				if (channel_1_prev_note.fade && row % 8 == 1) {
 					pattern_data.push_back(CHANNEL + CH1);
-					if (channel_1_prev_note.duty_cycle_loop) {
-						pattern_data.push_back(SAMPLE + COMMAND);
-						pattern_data.push_back(duty_loop(channel_1_prev_note, channel_1_note_duration) + 1);
-					}
-					else {
-						pattern_data.push_back(COMMAND);
-					}
+					pattern_data.push_back(COMMAND);
 					if (channel_1_prev_note.slide_pitch != Pitch::REST) {
 						pattern_data.push_back(FADE_PITCH_SLIDE);
 					}
@@ -522,20 +502,9 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					channel_1_note_duration >= channel_1_prev_note.vibrato_delay * (channel_1_prev_note.speed / 4)
 				) {
 					pattern_data.push_back(CHANNEL + CH1);
-					if (channel_1_prev_note.duty_cycle_loop) {
-						pattern_data.push_back(SAMPLE + COMMAND);
-						pattern_data.push_back(duty_loop(channel_1_prev_note, channel_1_note_duration) + 1);
-					}
-					else {
-						pattern_data.push_back(COMMAND);
-					}
+					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(VIBRATO);
 					pattern_data.push_back((8 - std::min(channel_1_prev_note.vibrato_rate, 7)) << 4 | (channel_1_prev_note.vibrato_extent));
-				}
-				else if (channel_1_prev_note.duty_cycle_loop) {
-					pattern_data.push_back(CHANNEL + CH1);
-					pattern_data.push_back(SAMPLE);
-					pattern_data.push_back(duty_loop(channel_1_prev_note, channel_1_note_duration) + 1);
 				}
 				channel_1_note_length -= 1;
 				channel_1_note_duration += 1;
@@ -560,7 +529,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					pattern_data.push_back(CHANNEL + CH2);
 					pattern_data.push_back(NOTE + SAMPLE + VOLUME);
 					pattern_data.push_back(note(*channel_2_itr)); // note
-					pattern_data.push_back(duty(*channel_2_itr) + 1); // sample
+					pattern_data.push_back(channel_2_itr->duty + 1); // sample
 					pattern_data.push_back((channel_2_itr->volume + 1) * 4); // volume
 				}
 				else {
@@ -574,13 +543,7 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 			else if (channel_2_note_length > 0) {
 				if (channel_2_prev_note.fade && row % 8 == 1) {
 					pattern_data.push_back(CHANNEL + CH2);
-					if (channel_2_prev_note.duty_cycle_loop) {
-						pattern_data.push_back(SAMPLE + COMMAND);
-						pattern_data.push_back(duty_loop(channel_2_prev_note, channel_2_note_duration) + 1);
-					}
-					else {
-						pattern_data.push_back(COMMAND);
-					}
+					pattern_data.push_back(COMMAND);
 					if (channel_2_prev_note.slide_pitch != Pitch::REST) {
 						pattern_data.push_back(FADE_PITCH_SLIDE);
 					}
@@ -614,20 +577,9 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					channel_2_note_duration >= channel_2_prev_note.vibrato_delay * (channel_2_prev_note.speed / 4)
 				) {
 					pattern_data.push_back(CHANNEL + CH2);
-					if (channel_2_prev_note.duty_cycle_loop) {
-						pattern_data.push_back(SAMPLE + COMMAND);
-						pattern_data.push_back(duty_loop(channel_2_prev_note, channel_2_note_duration) + 1);
-					}
-					else {
-						pattern_data.push_back(COMMAND);
-					}
+					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(VIBRATO);
 					pattern_data.push_back((8 - std::min(channel_2_prev_note.vibrato_rate, 7)) << 4 | (channel_2_prev_note.vibrato_extent));
-				}
-				else if (channel_2_prev_note.duty_cycle_loop) {
-					pattern_data.push_back(CHANNEL + CH2);
-					pattern_data.push_back(SAMPLE + COMMAND);
-					pattern_data.push_back(duty_loop(channel_2_prev_note, channel_2_note_duration) + 1);
 				}
 				channel_2_note_length -= 1;
 				channel_2_note_duration += 1;
