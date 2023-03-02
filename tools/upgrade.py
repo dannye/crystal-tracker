@@ -6,7 +6,8 @@ import argparse
 import os
 import re
 
-global args
+successes = 0
+failures = 0
 
 notes = {
 	"__": 0x0,
@@ -347,6 +348,8 @@ def upgrade_macro(command, state):
 	return command
 
 def upgrade_file(file_path):
+	global successes
+	global failures
 	if args.verbose:
 		print("Upgrading {}...".format(file_path), end="")
 
@@ -386,12 +389,14 @@ def upgrade_file(file_path):
 		with open(file_path, "w") as f:
 			f.writelines(new_lines)
 	except:
+		failures += 1
 		if args.verbose:
 			print("failed")
 		if args.strict:
 			raise
 		return
 
+	successes += 1
 	if args.verbose:
 		print("done")
 
@@ -415,3 +420,5 @@ if __name__ == "__main__":
 				upgrade_files(files, root)
 		else:
 			upgrade_files([path])
+	if args.verbose:
+		print("{} processed ({} succeeded, {} failed)".format(successes + failures, successes, failures))
