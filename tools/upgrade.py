@@ -101,7 +101,7 @@ def upgrade_macro(command, state):
 		state["num_channels"] = parse_value(command_stripped[len("channel_count"):])
 
 	# channel
-	if re.match(channel_pattern, command_stripped):
+	elif re.match(channel_pattern, command_stripped):
 		macro_args = command_stripped.split(",")
 		assert(len(macro_args) == 2)
 		channel_number = parse_value(macro_args[0][len("channel"):])
@@ -109,7 +109,7 @@ def upgrade_macro(command, state):
 		state["channel_{}_label".format(channel_number)] = channel_label
 
 	# musicheader/channel_count+channel
-	if re.match(musicheader_pattern, command_stripped):
+	elif re.match(musicheader_pattern, command_stripped):
 		macro_args = command_stripped.split(",")
 		assert(len(macro_args) == 3)
 		num_channels = parse_value(macro_args[0][len("musicheader"):])
@@ -122,7 +122,7 @@ def upgrade_macro(command, state):
 		state["channel_{}_label".format(channel_number)] = channel_label
 
 	# dbw/channel_count+channel
-	if re.match(dbw_pattern, command_stripped):
+	elif re.match(dbw_pattern, command_stripped):
 		macro_args = command_stripped.split(",")
 		assert(len(macro_args) == 2)
 		arg0 = parse_value(macro_args[0][len("dbw"):])
