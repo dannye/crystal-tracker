@@ -221,7 +221,7 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
 			note.slide_octave = 0;
 			note.slide_pitch = Pitch::REST;
 
-			if (note.index >= index) {
+			if (note.index == index) {
 				return note;
 			}
 		}
@@ -231,7 +231,7 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
 			tick += note.length * note.speed;
 			note.index = command_itr - commands.begin();
 
-			if (note.index >= index) {
+			if (note.index == index) {
 				return note;
 			}
 		}
@@ -241,7 +241,7 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
 			tick += note.length * note.speed;
 			note.index = command_itr - commands.begin();
 
-			if (note.index >= index) {
+			if (note.index == index) {
 				return note;
 			}
 		}
