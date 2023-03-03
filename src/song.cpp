@@ -2214,8 +2214,9 @@ std::string Song::commands_str(const std::vector<Command> &commands, int32_t cha
 		}
 
 		else if (command.type == Command_Type::TOGGLE_NOISE) {
-			// TODO: handle true toggling
-			str = str + " " + std::to_string(command.toggle_noise.drumkit);
+			if (command.toggle_noise.drumkit != -1) {
+				str = str + " " + std::to_string(command.toggle_noise.drumkit);
+			}
 		}
 
 		else if (command.type == Command_Type::FORCE_STEREO_PANNING) {

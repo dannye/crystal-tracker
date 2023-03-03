@@ -716,9 +716,9 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					command.type = Command_Type::TOGGLE_NOISE;
 					if (!get_number(lss, command.toggle_noise.drumkit)) {
 						// TODO: handle true toggling
-						return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
+						command.toggle_noise.drumkit = -1;
 					}
-					if (command.toggle_noise.drumkit < 0 || command.toggle_noise.drumkit > 6) {
+					else if (command.toggle_noise.drumkit < 0 || command.toggle_noise.drumkit > 6) {
 						return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
 					}
 					current_channel_commands->push_back(command);
