@@ -2041,6 +2041,7 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+	if (!mw->_redo_mi->active()) { return; }
 
 	mw->_status_message = "Redo: ";
 	mw->_status_message += mw->_song.redo_action_message();
