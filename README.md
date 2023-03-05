@@ -28,6 +28,8 @@ To build from source, follow the Linux instructions in [INSTALL.md](INSTALL.md) 
 
 ---
 
+The [example/](example/) directory contains crystaltracked.asm, an original composition by Mickey-A 42.
+
 Be sure to see the Help menu for a full explanation on how to use the editor.
 
 ## What Crystal Tracker doesn't do well, yet
