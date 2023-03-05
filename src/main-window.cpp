@@ -1240,6 +1240,18 @@ void Main_Window::toggle_playback() {
 			_warning_dialog->show(this);
 			_showed_it_warning = true;
 		}
+		if (_it_module->tempo_change_wrong_channel() != -1) {
+			std::string warning = "Detected tempo change on channel " + std::to_string(_it_module->tempo_change_wrong_channel()) + ".\n\n"
+				"Tempo changes should only be used on the first channel in the song. A desync in-game may occur.";
+			_warning_dialog->message(warning);
+			_warning_dialog->show(this);
+		}
+		else if (_it_module->tempo_change_mid_note() != -1) {
+			std::string warning = "Detected mid-note tempo change on channel " + std::to_string(_it_module->tempo_change_mid_note()) + ".\n\n"
+				"Tempo changes should only be used when all active channels are simultaneously triggering a note or a rest. A desync in-game may occur.";
+			_warning_dialog->message(warning);
+			_warning_dialog->show(this);
+		}
 
 		if (_it_module->ready() && _it_module->start()) {
 			_tick = _piano_roll->tick();

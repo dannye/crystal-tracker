@@ -142,12 +142,12 @@ static inline void patch_int(std::vector<uint8_t> &data, const uint32_t i, const
 	data[i + 3] = (v >> 24);
 }
 
-static std::vector<std::vector<uint8_t>> get_instruments() {
+std::vector<std::vector<uint8_t>> IT_Module::get_instruments() {
 	std::vector<std::vector<uint8_t>> instruments;
 	return instruments;
 }
 
-static std::vector<std::vector<uint8_t>> get_samples(const std::vector<Wave> &waves) {
+std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave> &waves) {
 	const uint32_t sample_filename_length = 12;
 	const uint32_t sample_global_volume = 64;
 	const uint32_t sample_flags = 0b00010001;
@@ -306,7 +306,7 @@ static std::vector<std::vector<uint8_t>> get_samples(const std::vector<Wave> &wa
 	return samples;
 }
 
-static std::vector<std::vector<uint8_t>> get_patterns(
+std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 	const std::vector<Note_View> &channel_1_notes,
 	const std::vector<Note_View> &channel_2_notes,
 	const std::vector<Note_View> &channel_3_notes,
@@ -370,6 +370,12 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 	int32_t channel_4_tempo = 0;
 
 	int32_t wave = 0;
+
+	int32_t first_channel =
+		channel_1_notes.size() > 0 ? 1 :
+		channel_2_notes.size() > 0 ? 2 :
+		channel_3_notes.size() > 0 ? 3 :
+		4;
 
 	auto song_finished = [&]() {
 		return
@@ -449,6 +455,14 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(TEMPO);
 					pattern_data.push_back(channel_1_tempo / 256);
+
+					if (
+						channel_2_note_length > 0 ||
+						channel_3_note_length > 0 ||
+						channel_4_note_length > 0
+					) {
+						_tempo_change_mid_note = 1;
+					}
 				}
 				if (channel_1_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(CHANNEL + CH1);
@@ -524,6 +538,17 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(TEMPO);
 					pattern_data.push_back(channel_2_tempo / 256);
+
+					if (first_channel != 2) {
+						_tempo_change_wrong_channel = 2;
+					}
+					if (
+						channel_1_note_length > 0 ||
+						channel_3_note_length > 0 ||
+						channel_4_note_length > 0
+					) {
+						_tempo_change_mid_note = 2;
+					}
 				}
 				if (channel_2_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(CHANNEL + CH2);
@@ -602,6 +627,17 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(TEMPO);
 					pattern_data.push_back(channel_3_tempo / 256);
+
+					if (first_channel != 3) {
+						_tempo_change_wrong_channel = 3;
+					}
+					if (
+						channel_1_note_length > 0 ||
+						channel_2_note_length > 0 ||
+						channel_4_note_length > 0
+					) {
+						_tempo_change_mid_note = 3;
+					}
 				}
 				if (channel_3_itr->pitch != Pitch::REST) {
 					pattern_data.push_back(CHANNEL + CH3);
@@ -653,6 +689,17 @@ static std::vector<std::vector<uint8_t>> get_patterns(
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(TEMPO);
 					pattern_data.push_back(channel_4_tempo / 256);
+
+					if (first_channel != 4) {
+						_tempo_change_wrong_channel = 4;
+					}
+					if (
+						channel_1_note_length > 0 ||
+						channel_2_note_length > 0 ||
+						channel_3_note_length > 0
+					) {
+						_tempo_change_mid_note = 4;
+					}
 				}
 				channel_4_prev_note = *channel_4_itr;
 				++channel_4_itr;
