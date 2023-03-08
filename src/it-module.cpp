@@ -7,6 +7,9 @@ IT_Module::IT_Module() {
 
 	_mod = new openmpt::module_ext(_data);
 	_mod->set_repeat_count(-1);
+	_mod->set_render_param(
+		openmpt::module::render_param::RENDER_INTERPOLATIONFILTER_LENGTH, 1
+	);
 
 	_is_interleaved = false;
 	if (!try_open()) {
@@ -26,6 +29,10 @@ IT_Module::IT_Module(
 	generate_it_module(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, waves, loop_tick);
 
 	_mod = new openmpt::module_ext(_data);
+	_mod->set_render_param(
+		openmpt::module::render_param::RENDER_INTERPOLATIONFILTER_LENGTH, 1
+	);
+
 	if (loop_tick != -1) {
 		_mod->set_repeat_count(-1);
 	}
