@@ -293,8 +293,9 @@ int Note_Properties::handle(int event) {
 	switch (event) {
 	case FL_SHORTCUT:
 	case FL_KEYBOARD:
-		if (Fl::event_key() == FL_Escape) {
+		if (Fl::event_key() == FL_Escape && contains(Fl::focus())) {
 			Fl::focus(nullptr);
+			return 1;
 		}
 	}
 	return Fl_Group::handle(event);
