@@ -155,10 +155,10 @@ std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave>
 	const uint32_t sample_default_volume = 64;
 	const uint32_t sample_name_length = 26;
 	const uint32_t sample_default_panning = 32;
-	const uint32_t sample_length = 64;
+	const uint32_t sample_length = 512;
 	const uint32_t sample_loop_begin = 0;
-	const uint32_t sample_loop_end = 64;
-	const uint32_t sample_speed = 33886;
+	const uint32_t sample_loop_end = 512;
+	const uint32_t sample_speed = 271088;
 	const uint32_t sample_sustain_loop_begin = 0;
 	const uint32_t sample_sustain_loop_end = 0;
 	const uint32_t sample_vibrato_speed = 0;
@@ -297,8 +297,9 @@ std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave>
 		sample_header(sample);
 
 		for (uint32_t i = 0; i < NUM_WAVE_SAMPLES; ++i) {
-			sample.push_back(wave[i] * 8);
-			sample.push_back(wave[i] * 8);
+			for (uint32_t j = 0; j < sample_length / 32; ++j) {
+				sample.push_back(wave[i] * 8);
+			}
 		}
 
 		samples.push_back(std::move(sample));
