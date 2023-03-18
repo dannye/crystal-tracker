@@ -35,7 +35,6 @@ Be sure to see the Help menu for a full explanation on how to use the editor.
 ## What Crystal Tracker doesn't do well, yet
 
 This editor is still a WIP. Some of the most notable missing features are:
-* Channel 4 sound playback
 * Creation and deletion of loops and calls
 * Copy & Paste
 * Resizing a song

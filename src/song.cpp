@@ -24,6 +24,7 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 	int32_t speed = 1;
 	int32_t volume = 0;
 	int32_t fade = 0;
+	int32_t drumkit = -1;
 
 	struct Label_Info {
 		int32_t tick = 0;
@@ -52,6 +53,9 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 			tick += command_itr->note.length * speed;
 		}
 		else if (command_itr->type == Command_Type::DRUM_NOTE) {
+			if (drumkit == -1) {
+				return Parsed_Song::Result::SONG_NO_DRUMKIT_SELECTED;
+			}
 			tick += command_itr->drum_note.length * speed;
 		}
 		else if (command_itr->type == Command_Type::REST) {
@@ -68,6 +72,15 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 		else if (command_itr->type == Command_Type::VOLUME_ENVELOPE) {
 			volume = command_itr->volume_envelope.volume;
 			fade = command_itr->volume_envelope.fade;
+		}
+		else if (command_itr->type == Command_Type::TOGGLE_NOISE) {
+			if (drumkit == -1 && command_itr->toggle_noise.drumkit == -1) {
+				return Parsed_Song::Result::SONG_TOGGLE_NOISE_ALREADY_DISABLED;
+			}
+			if (drumkit != -1 && command_itr->toggle_noise.drumkit != -1) {
+				return Parsed_Song::Result::SONG_TOGGLE_NOISE_ALREADY_ENABLED;
+			}
+			drumkit = command_itr->toggle_noise.drumkit;
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			if (
@@ -279,6 +292,9 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
 			note.vibrato_delay = command_itr->vibrato.delay;
 			note.vibrato_extent = command_itr->vibrato.extent;
 			note.vibrato_rate = command_itr->vibrato.rate;
+		}
+		else if (command_itr->type == Command_Type::TOGGLE_NOISE) {
+			note.drumkit = command_itr->toggle_noise.drumkit;
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			if (
@@ -2312,6 +2328,15 @@ std::string Song::get_error_message(Parsed_Song parsed_song) const {
 	case Parsed_Song::Result::SONG_NESTED_CALL:
 		return "Channel " + std::to_string(parsed_song.channel_number()) +
 			": Nested calls not allowed.";
+	case Parsed_Song::Result::SONG_NO_DRUMKIT_SELECTED:
+		return "Channel " + std::to_string(parsed_song.channel_number()) +
+			": drum_note: no drumkit selected.";
+	case Parsed_Song::Result::SONG_TOGGLE_NOISE_ALREADY_DISABLED:
+		return "Channel " + std::to_string(parsed_song.channel_number()) +
+			": toggle_noise: noise already disabled.";
+	case Parsed_Song::Result::SONG_TOGGLE_NOISE_ALREADY_ENABLED:
+		return "Channel " + std::to_string(parsed_song.channel_number()) +
+			": toggle_noise: noise already enabled.";
 	case Parsed_Song::Result::SONG_ENDED_PREMATURELY:
 		return "Channel " + std::to_string(parsed_song.channel_number()) +
 			": File ended prematurely.";
@@ -2475,4 +2500,17 @@ int32_t Song::max_wave_id() const {
 		}
 	}
 	return max_wave;
+}
+
+int32_t Song::max_drumkit_id() const {
+	int32_t max_drumkit = -1;
+	for (const Command &command : _channel_4_commands) {
+		if (
+			command.type == Command_Type::TOGGLE_NOISE &&
+			command.toggle_noise.drumkit > max_drumkit
+		) {
+			max_drumkit = command.toggle_noise.drumkit;
+		}
+	}
+	return max_drumkit;
 }

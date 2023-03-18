@@ -114,6 +114,7 @@
     <ClCompile Include="..\src\modal-dialog.cpp" />
     <ClCompile Include="..\src\note-properties.cpp" />
     <ClCompile Include="..\src\option-dialogs.cpp" />
+    <ClCompile Include="..\src\parse-drumkits.cpp" />
     <ClCompile Include="..\src\parse-song.cpp" />
     <ClCompile Include="..\src\parse-waves.cpp" />
     <ClCompile Include="..\src\piano-roll.cpp" />
@@ -136,6 +137,7 @@
     <ClInclude Include="..\src\modal-dialog.h" />
     <ClInclude Include="..\src\note-properties.h" />
     <ClInclude Include="..\src\option-dialogs.h" />
+    <ClInclude Include="..\src\parse-drumkits.h" />
     <ClInclude Include="..\src\parse-song.h" />
     <ClInclude Include="..\src\parse-waves.h" />
     <ClInclude Include="..\src\piano-roll.h" />

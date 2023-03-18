@@ -1592,6 +1592,9 @@ void Piano_Roll::build_note_view(
 			note.vibrato_extent = command_itr->vibrato.extent;
 			note.vibrato_rate = command_itr->vibrato.rate;
 		}
+		else if (command_itr->type == Command_Type::TOGGLE_NOISE) {
+			note.drumkit = command_itr->toggle_noise.drumkit;
+		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			if (
 				!label_positions.count(command_itr->target) ||

@@ -175,6 +175,7 @@ public:
 	int32_t channel_end_tick(const int selected_channel) const;
 
 	int32_t max_wave_id() const;
+	int32_t max_drumkit_id() const;
 private:
 	std::string commands_str(const std::vector<Command> &commands, int32_t channel_number) const;
 	std::string get_error_message(Parsed_Song parsed_song) const;

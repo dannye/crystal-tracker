@@ -18,6 +18,7 @@
 #include "note-properties.h"
 #include "it-module.h"
 #include "parse-waves.h"
+#include "parse-drumkits.h"
 #include "help-window.h"
 #include "directory-chooser.h"
 
@@ -143,6 +144,9 @@ private:
 	std::string _recent[NUM_RECENT];
 	Song _song;
 	std::vector<Wave> _waves;
+	std::vector<Drumkit> _drumkits;
+	std::vector<Drum> _drums;
+	std::vector<std::vector<uint8_t>> _drum_samples;
 	IT_Module *_it_module = nullptr;
 	int32_t _tick = -1;
 	bool _showed_it_warning = false;

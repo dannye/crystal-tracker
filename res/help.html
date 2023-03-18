@@ -11,11 +11,19 @@ R"(<html>
 <p>Source code is available at <a href="https://github.com/dannye/crystal-tracker">https://github.com/dannye/crystal-tracker</a> under the <a href="https://github.com/dannye/crystal-tracker/blob/main/LICENSE.md">LGPL v3.0</a> license.</p>
 <hr>
 <h2>Files</h2>
-<p>To open a song, select the pokecrystal-based *.asm song file from within your project directory. The editor will first locate your project's Makefile by checking the directory of the selected *.asm file and checking every parent directory until the Makefile is found. This is treated as the root of your project for the sake of loading your project's custom channel 3 waveforms. The locations checked, in order of priority, are:</p>
+<p>To open a song, select the pokecrystal-based *.asm song file from within your project directory. The editor will first locate your project's Makefile by checking the directory of the selected *.asm file and checking every parent directory until the Makefile is found. This is treated as the root of your project for the sake of loading your project's custom channel 3 waveforms and channel 4 drumkits.</p>
+<p>The locations checked, in order of priority, for the waveforms are:</p>
 <ul>
 <li>.)" DIR_SEP R"(crysaudio)" DIR_SEP R"(wave_samples.asm</li>
 <li>.)" DIR_SEP R"(audio)" DIR_SEP R"(wave_samples.asm</li>
 <li>.)" DIR_SEP R"(wave_samples.asm</li>
+</ul>
+<p>Similarly, for the drumkits:</p>
+<ul>
+<li>.)" DIR_SEP R"(crysaudio)" DIR_SEP R"(drumkits.asm</li>
+<li>.)" DIR_SEP R"(audio)" DIR_SEP R"(drumkits.asm</li>
+<li>.)" DIR_SEP R"(audio)" DIR_SEP R"(drumkits_0f.asm (for pokepinball)</li>
+<li>.)" DIR_SEP R"(drumkits.asm</li>
 </ul>
 <p>Creating a new song will immediately prompt to choose a project directory (unless a song is already open) so that channel 3 waveforms can be loaded.</p>
 <p>Next is the Song Options dialog window. This dialog window specifies:</p>
@@ -55,7 +63,7 @@ R"(<html>
 <p>The menu bar is extremely useful as a reference for all the keyboard shortcuts.</p>
 <p>For example, the Play menu shows that the song can be played/paused with the Spacebar and stopped with the Escape key.</p>
 <p><b>Note:</b> When editing note properties (which is explained in more detail below), Spacebar will not play the song while a property text box is selected. The text box can be deselected by pressing Escape.</p>
-<p><b>Note:</b> Playback is reasonably accurate but does not sound exactly how it sounds on the Game Boy. Things like tempo, volume fade, vibrato, etc, are only approximations. There is also currently no emulated playback for channel 4, although channel 4 is still completely editable.</p>
+<p><b>Note:</b> Playback is reasonably accurate but does not sound exactly how it sounds on the Game Boy. Things like tempo, volume fade, vibrato, etc, are only approximations.</p>
 <p>The playhead (yellow or magenta line, depending on theme) can be moved with the mouse. Middle-click or hold )" COMMAND_KEY R"( and right-click to move the playhead. This is useful for starting playback at a specific point rather than playing from the very beginning.</p>
 <p>While the song is playing, left-click anywhere on the timeline to toggle continuous scroll mode.</p>
 <p>Left-click on the piano keys on the left to hear any note on-demand. These interactive notes currently always play a 50% square wave at full volume.</p>

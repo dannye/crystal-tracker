@@ -10,6 +10,7 @@
 
 #include "command.h"
 #include "parse-waves.h"
+#include "parse-drumkits.h"
 
 constexpr std::size_t BUFFER_SIZE = 2048;
 constexpr std::int32_t SAMPLE_RATE = 48000;
@@ -40,6 +41,8 @@ public:
 		const std::vector<Note_View> &channel_3_notes,
 		const std::vector<Note_View> &channel_4_notes,
 		const std::vector<Wave> &waves,
+		const std::vector<Drumkit> &drumkits,
+		const std::vector<std::vector<uint8_t>> &drums,
 		int32_t loop_tick = -1
 	);
 	~IT_Module() noexcept;
@@ -75,12 +78,13 @@ public:
 private:
 	bool try_open();
 	std::vector<std::vector<uint8_t>> get_instruments();
-	std::vector<std::vector<uint8_t>> get_samples(const std::vector<Wave> &waves);
+	std::vector<std::vector<uint8_t>> get_samples(const std::vector<Wave> &waves, const std::vector<std::vector<uint8_t>> &drums);
 	std::vector<std::vector<uint8_t>> get_patterns(
 		const std::vector<Note_View> &channel_1_notes,
 		const std::vector<Note_View> &channel_2_notes,
 		const std::vector<Note_View> &channel_3_notes,
 		const std::vector<Note_View> &channel_4_notes,
+		const std::vector<Drumkit> &drumkits,
 		int32_t loop_tick,
 		bool inline_waves
 	);
@@ -90,8 +94,12 @@ private:
 		const std::vector<Note_View> &channel_3_notes = {},
 		const std::vector<Note_View> &channel_4_notes = {},
 		const std::vector<Wave> &waves = {},
+		const std::vector<Drumkit> &drumkits = {},
+		const std::vector<std::vector<uint8_t>> &drums = {},
 		int32_t loop_tick = -1
 	);
 };
+
+std::vector<std::vector<uint8_t>> generate_noise_samples(const std::vector<Drum> &drums);
 
 #endif

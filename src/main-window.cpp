@@ -1089,6 +1089,26 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	}
 	_waves = parsed_waves.waves();
 
+	Parsed_Drumkits parsed_drumkits(directory);
+	if (parsed_drumkits.result() != Parsed_Drumkits::Result::DRUMKITS_OK) {
+		_directory.clear();
+		std::string msg = "Error reading drumkit definitions!";
+		_error_dialog->message(msg);
+		_error_dialog->show(this);
+		return;
+	}
+	if (parsed_drumkits.num_parsed_drums() > 64) {
+		_directory.clear();
+		std::string msg = "Drumkits file uses too many drums: " + std::to_string(parsed_drumkits.num_parsed_drums()) + "\n\n"
+			"A maximum of 64 drums are allowed.";
+		_error_dialog->message(msg);
+		_error_dialog->show(this);
+		return;
+	}
+	_drumkits = parsed_drumkits.drumkits();
+	_drums = parsed_drumkits.drums();
+	_drum_samples = generate_noise_samples(_drums);
+
 	const char *basename;
 
 	if (filename) {
@@ -1098,6 +1118,16 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 			_song.clear();
 			std::string msg = "Error reading ";
 			msg = msg + basename + "!\n\n" + _song.error_message();
+			_error_dialog->message(msg);
+			_error_dialog->show(this);
+			return;
+		}
+		int32_t max_drumkit_id = _song.max_drumkit_id();
+		if (max_drumkit_id >= parsed_drumkits.num_parsed_drumkits()) {
+			_song.clear();
+			std::string msg = basename;
+			msg = msg + " uses undefined drumkit: " + std::to_string(max_drumkit_id) + "\n\n"
+				"Valid drumkit IDs are: 0-" + std::to_string(parsed_drumkits.num_parsed_drumkits() - 1);
 			_error_dialog->message(msg);
 			_error_dialog->show(this);
 			return;
@@ -1118,6 +1148,8 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 		_piano_roll->channel_3_notes(),
 		_piano_roll->channel_4_notes(),
 		_waves,
+		_drumkits,
+		_drum_samples,
 		loop_tick
 	);
 
@@ -1227,6 +1259,8 @@ void Main_Window::toggle_playback() {
 			_piano_roll->channel_3_notes(),
 			_piano_roll->channel_4_notes(),
 			_waves,
+			_drumkits,
+			_drum_samples,
 			loop_tick
 		);
 		_it_module->mute_channel(1, channel_1_muted());
@@ -1516,6 +1550,9 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->clear();
 	mw->_song.clear();
 	mw->_waves.clear();
+	mw->_drumkits.clear();
+	mw->_drums.clear();
+	mw->_drum_samples.clear();
 	if (mw->_it_module) {
 		delete mw->_it_module;
 		mw->_it_module = nullptr;

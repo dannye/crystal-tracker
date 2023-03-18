@@ -356,6 +356,7 @@ struct Note_View {
 	union {
 		int32_t fade = 0;
 		int32_t wave;
+		int32_t drumkit;
 	};
 
 	int32_t tempo  = 0;
