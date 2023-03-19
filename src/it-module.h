@@ -17,7 +17,7 @@ constexpr std::int32_t SAMPLE_RATE = 48000;
 
 constexpr uint32_t ROWS_PER_PATTERN = 192;
 
-constexpr uint32_t NOISE_SAMPLE_SPEED_FACTOR = 8;
+constexpr uint32_t NOISE_SAMPLE_SPEED_FACTOR = 4;
 
 class IT_Module {
 private:
