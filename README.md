@@ -48,6 +48,10 @@ Run the upgrade script on your music folder, like:
 ```sh
 python3 upgrade.py -v audio/music/
 ```
+It can also be used to upgrade individual files, like:
+```sh
+python3 upgrade.py -v audio/drumkits.asm
+```
 The script also works with python2. Run `./upgrade.py -h` for all options.
 
 Be sure to make adequate backups of your song files (via git or otherwise) before upgrading, just in case.
