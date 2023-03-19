@@ -196,7 +196,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave>
 		put_int(sample, sample_size);
 		put_int(sample, sample_loop_begin);
 		put_int(sample, noise ? 0 : sample_loop_end);
-		put_int(sample, sample_speed);
+		put_int(sample, noise ? sample_speed * NOISE_SAMPLE_SPEED_FACTOR : sample_speed);
 		put_int(sample, sample_sustain_loop_begin);
 		put_int(sample, sample_sustain_loop_end);
 		put_int(sample, 0); // sample offset (index 72)
@@ -949,12 +949,12 @@ std::vector<std::vector<uint8_t>> generate_noise_samples(const std::vector<Drum>
 			const Noise_Note &note = drum.noise_notes[i];
 			bool last = i == drum.noise_notes.size() - 1;
 
-			uint32_t sample_len = note.length * 48;
+			uint32_t sample_len = note.length * 48 * NOISE_SAMPLE_SPEED_FACTOR;
 			uint32_t lfsr_period = std::max(
-				(uint32_t)(((note.clock_divider == 0 ? 0.5f : note.clock_divider) * (1 << note.clock_shift)) * 32768.0f / 262144.0f),
+				(uint32_t)(((note.clock_divider == 0 ? 0.5f : note.clock_divider) * (1 << note.clock_shift)) * (32768.0f * NOISE_SAMPLE_SPEED_FACTOR / 262144.0f)),
 				(uint32_t)1
 			);
-			uint32_t envelope_period = note.sweep_pace * 512;
+			uint32_t envelope_period = note.sweep_pace * 512 * NOISE_SAMPLE_SPEED_FACTOR;
 
 			uint16_t lfsr = 0;
 			int32_t volume = note.volume;
