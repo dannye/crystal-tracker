@@ -32,6 +32,8 @@ musicheader_pattern          = re.compile(r"musicheader\s")
 musicheader_pattern_full     = re.compile(r"musicheader\s+\S*?\s*,\s*\S*?\s*,\s*\S*")
 dbw_pattern                  = re.compile(r"dbw\s")
 dbw_pattern_full             = re.compile(r"dbw\s+\S*?\s*,\s*\S*")
+noise_pattern                = re.compile(r"noise\s")
+noise_pattern_full           = re.compile(r"noise\s+\S*?\s*,\s*\S*?\s*,\s*\S*?\s*,\s*\S*")
 note_pattern                 = re.compile(r"note\s")
 note_pattern_full            = re.compile(r"note\s+\S*?\s*,\s*\S*")
 rest_pattern                 = re.compile(r"note\s+__\s*,")
@@ -134,6 +136,19 @@ def upgrade_macro(command, state):
 			state["num_channels"] = num_channels
 			command = "\tchannel_count {}\n".format(num_channels) + command
 		state["channel_{}_label".format(channel_number)] = channel_label
+
+	# noise/noise_note
+	elif re.match(noise_pattern, command_stripped):
+		macro_args = command_stripped.split(",")
+		assert(len(macro_args) == 4)
+		pitch = macro_args[0][len("noise"):].strip()
+		length = parse_value(macro_args[1])
+		envelope = parse_value(macro_args[2])
+		frequency = parse_value(macro_args[3])
+		length = ((notes[pitch] if pitch in notes else parse_value(pitch)) << 4) + length - 1
+		volume = envelope >> 4
+		fade = envelope & 0x0f if envelope & 0x0f <= 8 else (envelope & 0b0111) * -1
+		command = re.sub(noise_pattern_full, "noise_note {}, {}, {}, {}".format(length, volume, fade, frequency), command, 1)
 
 	# drum_note
 	elif state["current_channel"] == 4 and re.match(note_pattern, command_stripped):
