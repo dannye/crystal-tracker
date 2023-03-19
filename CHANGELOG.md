@@ -1,6 +1,11 @@
 Changelog
 =========
 
+### Crystal Tracker v0.2.1 (2023-03-19)
+
+ * Slightly improved quality of channel 4 playback.
+ * drumkits.asm supports `dr` as well as `dw`.
+
 ### Crystal Tracker v0.2.0 (2023-03-18)
 
  * Parse drumkits and synthesize channel 4 playback.
