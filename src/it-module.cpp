@@ -658,7 +658,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					pattern_data.push_back(CHANNEL + CH3);
 					pattern_data.push_back(NOTE + SAMPLE + VOLUME);
 					pattern_data.push_back(note(*channel_3_itr)); // note
-					pattern_data.push_back(wave + 5); // sample
+					pattern_data.push_back(wave + 1 + 4); // sample
 					pattern_data.push_back(channel_3_volume(channel_3_itr->volume)); // volume
 				}
 				else {
@@ -720,7 +720,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					pattern_data.push_back(CHANNEL + CH4);
 					pattern_data.push_back(NOTE + SAMPLE + VOLUME);
 					pattern_data.push_back(60); // note
-					pattern_data.push_back(21 + drumkits[channel_4_itr->drumkit].drums[(int32_t)channel_4_itr->pitch]); // sample
+					pattern_data.push_back(drumkits[channel_4_itr->drumkit].drums[(int32_t)channel_4_itr->pitch] + 1 + 4 + 16); // sample
 					pattern_data.push_back(64); // volume
 				}
 				channel_4_prev_note = *channel_4_itr;

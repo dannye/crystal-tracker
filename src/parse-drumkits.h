@@ -26,7 +26,7 @@ constexpr size_t NUM_DRUMS_PER_DRUMKIT = 13;
 
 struct Drumkit {
 	std::string label;
-	std::array<size_t, NUM_DRUMS_PER_DRUMKIT> drums;
+	std::array<int32_t, NUM_DRUMS_PER_DRUMKIT> drums;
 };
 
 class Parsed_Drumkits {
