@@ -241,7 +241,7 @@ def upgrade_macro(command, state):
 	elif re.match(soundinput_pattern, command_stripped):
 		soundinput = parse_value(command_stripped[len("soundinput"):])
 		duration = soundinput >> 4
-		sweep = soundinput & 0x0f
+		sweep = soundinput & 0x0f if soundinput & 0x0f <= 8 else (soundinput & 0b0111) * -1
 		command = re.sub(soundinput_pattern_full, "pitch_sweep {}, {}".format(duration, sweep), command, 1)
 
 	# sound_duty/duty_cycle_pattern
