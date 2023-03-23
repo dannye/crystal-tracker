@@ -32,6 +32,8 @@ musicheader_pattern          = re.compile(r"musicheader\s")
 musicheader_pattern_full     = re.compile(r"musicheader\s+\S*?\s*,\s*\S*?\s*,\s*\S*")
 dbw_pattern                  = re.compile(r"dbw\s")
 dbw_pattern_full             = re.compile(r"dbw\s+\S*?\s*,\s*\S*")
+sound_pattern                = re.compile(r"sound\s")
+sound_pattern_full           = re.compile(r"sound\s+\S*?\s*,\s*\S*?\s*,\s*\S*?\s*,\s*\S*")
 noise_pattern                = re.compile(r"noise\s")
 noise_pattern_full           = re.compile(r"noise\s+\S*?\s*,\s*\S*?\s*,\s*\S*?\s*,\s*\S*")
 note_pattern                 = re.compile(r"note\s")
@@ -108,6 +110,8 @@ def upgrade_macro(command, state):
 		assert(len(macro_args) == 2)
 		channel_number = parse_value(macro_args[0][len("channel"):])
 		channel_label = macro_args[1].strip()
+		if state["num_channels"] > 0:
+			state["num_channels"] -= 1
 		state["channel_{}_label".format(channel_number)] = channel_label
 
 	# musicheader/channel_count+channel
@@ -118,8 +122,10 @@ def upgrade_macro(command, state):
 		channel_number = parse_value(macro_args[1])
 		channel_label = macro_args[2].strip()
 		command = re.sub(musicheader_pattern_full, "channel {}, {}".format(channel_number, channel_label), command, 1)
-		if state["num_channels"] is None:
-			state["num_channels"] = num_channels
+		if state["num_channels"] > 0:
+			state["num_channels"] -= 1
+		else:
+			state["num_channels"] = num_channels - 1
 			command = "\tchannel_count {}\n".format(num_channels) + command
 		state["channel_{}_label".format(channel_number)] = channel_label
 
@@ -132,10 +138,25 @@ def upgrade_macro(command, state):
 		channel_number = (arg0 & 0b11) + 1
 		channel_label = macro_args[1].strip()
 		command = re.sub(dbw_pattern_full, "channel {}, {}".format(channel_number, channel_label), command, 1)
-		if state["num_channels"] is None:
-			state["num_channels"] = num_channels
+		if state["num_channels"] > 0:
+			state["num_channels"] -= 1
+		else:
+			state["num_channels"] = num_channels - 1
 			command = "\tchannel_count {}\n".format(num_channels) + command
 		state["channel_{}_label".format(channel_number)] = channel_label
+
+	# sound/square_note
+	elif re.match(sound_pattern, command_stripped):
+		macro_args = command_stripped.split(",")
+		assert(len(macro_args) == 4)
+		pitch = macro_args[0][len("sound"):].strip()
+		length = parse_value(macro_args[1])
+		envelope = parse_value(macro_args[2])
+		frequency = parse_value(macro_args[3])
+		length = ((notes[pitch] if pitch in notes else parse_value(pitch)) << 4) + length - 1
+		volume = envelope >> 4
+		fade = envelope & 0x0f if envelope & 0x0f <= 8 else (envelope & 0b0111) * -1
+		command = re.sub(sound_pattern_full, "square_note {}, {}, {}, {}".format(length, volume, fade, frequency), command, 1)
 
 	# noise/noise_note
 	elif re.match(noise_pattern, command_stripped):
@@ -369,7 +390,7 @@ def upgrade_file(file_path):
 		print("Upgrading {}...".format(file_path), end="")
 
 	state = {
-		"num_channels": None,
+		"num_channels": 0,
 		"channel_1_label": None,
 		"channel_2_label": None,
 		"channel_3_label": None,
