@@ -44,15 +44,16 @@ You will need [Microsoft Visual Studio](https://visualstudio.microsoft.com/vs/);
 24. Clone [libopenmpt-0.6.3](https://github.com/OpenMPT/openmpt/tree/libopenmpt-0.6.3) into lib\\**openmpt**. (ie, `git clone -b libopenmpt-0.6.3 https://github.com/OpenMPT/openmpt.git lib/openmpt`)
 25. Open lib\openmpt\build\vs2022win10\\**libopenmpt-small.sln** in Visual Studio 2022.
 26. Retarget the 4 projects to your installed version of the Windows 10 SDK if necessary.
-27. Set the Solution Configuration to Release and set the Solution Platform to Win32 then press **Build → Build Solution**. You may also build Debug|Win32 if desired.
-28. Move the 4 .lib files from lib\openmpt\build\lib\vs2022win10\x86\Release to lib (or from lib\openmpt\build\lib\vs2022win10\x86\Debug to lib\Debug if Debug build).
-29. Copy the public interface header files from lib\openmpt\libopenmpt into a new include\\**libopenmpt** folder. (Only libopenmpt.hpp, libopenmpt_ext.hpp, libopenmpt_config.h, and libopenmpt_version.h are required.)
+27. For each of the 4 projects, go to **Configuration Properties → C/C++ → Code Generation** and change **Spectre Mitigation** to "Disabled". Do this for the Release configuration, and also the Debug configuration if desired.
+28. Set the Solution Configuration to Release and set the Solution Platform to Win32 then press **Build → Build Solution**. You may also build Debug|Win32 if desired.
+29. Move the 4 .lib files from lib\openmpt\build\lib\vs2022win10\x86\Release to lib (or from lib\openmpt\build\lib\vs2022win10\x86\Debug to lib\Debug if Debug build).
+30. Copy the public interface header files from lib\openmpt\libopenmpt into a new include\\**libopenmpt** folder. (Only libopenmpt.hpp, libopenmpt_ext.hpp, libopenmpt_config.h, and libopenmpt_version.h are required.)
 
 #### Building Crystal Tracker
 
-30. Open ide\\**crystal-tracker.sln** in Visual Studio 2022.
-31. If the Solution Configuration dropdown on the toolbar says Debug, set it to **Release**.
-32. Go to **Build → Build Solution** or press `Ctrl+Shift+B` to build the project. This will create bin\Release\\**crystaltracker.exe**. (A Debug build will create bin\Debug\\**crystaltrackerd.exe**.)
+31. Open ide\\**crystal-tracker.sln** in Visual Studio 2022.
+32. If the Solution Configuration dropdown on the toolbar says Debug, set it to **Release**.
+33. Go to **Build → Build Solution** or press `Ctrl+Shift+B` to build the project. This will create bin\Release\\**crystaltracker.exe**. (A Debug build will create bin\Debug\\**crystaltrackerd.exe**.)
 
 
 ## Linux
