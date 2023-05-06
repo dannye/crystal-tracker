@@ -53,7 +53,10 @@ You will need [Microsoft Visual Studio](https://visualstudio.microsoft.com/vs/);
 
 31. Open ide\\**crystal-tracker.sln** in Visual Studio 2022.
 32. If the Solution Configuration dropdown on the toolbar says Debug, set it to **Release**.
-33. Go to **Build → Build Solution** or press `Ctrl+Shift+B` to build the project. This will create bin\Release\\**crystaltracker.exe**. (A Debug build will create bin\Debug\\**crystaltrackerd.exe**.)
+33. Go to **Build → Build Solution** to build the project. This will create bin\Release\\**crystaltracker.exe**. (A Debug build will create bin\Debug\\**crystaltrackerd.exe**.)
+
+**Note:** To build a 64-bit executable, you will need to create the x64 Solution Platform for fltk (fltk.sln) and portaudiocpp (static_library.sln). To do this, go to **Build → Configuration Manager…** and in the **Active solution platform:** dropdown select **<New…>**. Set the new platform to "x64" and copy settings from the 32-bit platform (either Win32 or x86). Make sure the "Create new project platforms" checkbox is checked and then click OK. Make sure the project configuration changes described above are also applied to this platform. portaudio.sln and libopenmpt-small.sln already have an x64 target.  
+After building the x64 libs for fltk, portaudio, portaudiocpp, and openmpt, copy the .lib files to lib\\**x64** and lib\Debug\\**x64**.
 
 
 ## Linux
