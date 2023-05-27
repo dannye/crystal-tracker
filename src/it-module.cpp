@@ -379,6 +379,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 	Note_View channel_3_prev_note;
 	Note_View channel_4_prev_note;
 
+	int32_t global_tempo    = 256;
 	int32_t channel_1_tempo = 0;
 	int32_t channel_2_tempo = 0;
 	int32_t channel_3_tempo = 0;
@@ -427,6 +428,10 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 		return std::max(bpm, 64);
 	};
 
+	auto convert_fade_period = [](int32_t tempo, int32_t fade) {
+		return std::abs(fade) + std::max(192 - tempo, 0) / 32;
+	};
+
 	do {
 		std::vector<uint8_t> pattern;
 
@@ -465,6 +470,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 				channel_1_note_length = channel_1_itr->length * channel_1_itr->speed - 1;
 				channel_1_note_duration = 0;
 				if (channel_1_itr->tempo != channel_1_prev_note.tempo) {
+					global_tempo = channel_1_itr->tempo;
 					channel_1_tempo = convert_tempo(channel_1_itr->tempo);
 					pattern_data.push_back(CHANNEL + CH5);
 					pattern_data.push_back(COMMAND);
@@ -495,7 +501,8 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 				++channel_1_itr;
 			}
 			else if (channel_1_note_length > 0) {
-				if (channel_1_prev_note.fade && row % 8 == 1) {
+				uint32_t volume_fade_period = convert_fade_period(global_tempo, channel_1_prev_note.fade);
+				if (channel_1_prev_note.fade && row % volume_fade_period == 0) {
 					pattern_data.push_back(CHANNEL + CH1);
 					pattern_data.push_back(COMMAND);
 					if (channel_1_prev_note.slide_pitch != Pitch::REST) {
@@ -512,10 +519,10 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 						pattern_data.push_back(FADE);
 					}
 					if (channel_1_prev_note.fade > 0) {
-						pattern_data.push_back((FINELY << 4) | (10 - channel_1_prev_note.fade));
+						pattern_data.push_back((FINELY << 4) | 4);
 					}
 					else {
-						pattern_data.push_back(((10 + channel_1_prev_note.fade) << 4) | FINELY);
+						pattern_data.push_back((4 << 4) | FINELY);
 					}
 				}
 				else if (channel_1_prev_note.slide_pitch != Pitch::REST) {
@@ -548,6 +555,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 				channel_2_note_length = channel_2_itr->length * channel_2_itr->speed - 1;
 				channel_2_note_duration = 0;
 				if (channel_2_itr->tempo != channel_2_prev_note.tempo) {
+					global_tempo = channel_2_itr->tempo;
 					channel_2_tempo = convert_tempo(channel_2_itr->tempo);
 					pattern_data.push_back(CHANNEL + CH6);
 					pattern_data.push_back(COMMAND);
@@ -581,7 +589,8 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 				++channel_2_itr;
 			}
 			else if (channel_2_note_length > 0) {
-				if (channel_2_prev_note.fade && row % 8 == 1) {
+				uint32_t volume_fade_period = convert_fade_period(global_tempo, channel_2_prev_note.fade);
+				if (channel_2_prev_note.fade && row % volume_fade_period == 0) {
 					pattern_data.push_back(CHANNEL + CH2);
 					pattern_data.push_back(COMMAND);
 					if (channel_2_prev_note.slide_pitch != Pitch::REST) {
@@ -598,10 +607,10 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 						pattern_data.push_back(FADE);
 					}
 					if (channel_2_prev_note.fade > 0) {
-						pattern_data.push_back((FINELY << 4) | (10 - channel_2_prev_note.fade));
+						pattern_data.push_back((FINELY << 4) | 4);
 					}
 					else {
-						pattern_data.push_back(((10 + channel_2_prev_note.fade) << 4) | FINELY);
+						pattern_data.push_back((4 << 4) | FINELY);
 					}
 				}
 				else if (channel_2_prev_note.slide_pitch != Pitch::REST) {
@@ -637,6 +646,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					wave = channel_3_itr->wave;
 				}
 				if (channel_3_itr->tempo != channel_3_prev_note.tempo) {
+					global_tempo = channel_3_itr->tempo;
 					channel_3_tempo = convert_tempo(channel_3_itr->tempo);
 					pattern_data.push_back(CHANNEL + CH7);
 					pattern_data.push_back(COMMAND);
@@ -699,6 +709,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 			if (channel_4_note_length == 0 && channel_4_itr != channel_4_notes.end()) {
 				channel_4_note_length = channel_4_itr->length * channel_4_itr->speed - 1;
 				if (channel_4_itr->tempo != channel_4_prev_note.tempo) {
+					global_tempo = channel_4_itr->tempo;
 					channel_4_tempo = convert_tempo(channel_4_itr->tempo);
 					pattern_data.push_back(CHANNEL + CH8);
 					pattern_data.push_back(COMMAND);
@@ -789,7 +800,7 @@ void IT_Module::generate_it_module(
 	const uint32_t global_volume = 128;
 	const uint32_t mix_volume = 48;
 	const uint32_t initial_speed = 1;
-	const uint32_t initial_tempo = 160;
+	const uint32_t initial_tempo = 150;
 	const uint32_t panning_separation = 128;
 	const uint32_t pitch_wheel_depth = 0;
 	const uint32_t default_channel_panning = 32;
