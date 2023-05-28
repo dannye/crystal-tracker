@@ -1,6 +1,12 @@
 Changelog
 =========
 
+### Crystal Tracker v0.3.0 (2023-05-28)
+
+ * Improve accuracy of volume fade during playback.
+ * Add 64-bit build on Windows.
+ * New app icon. Thanks to nyanpasu64 for the pixelart versions of the icon.
+
 ### Crystal Tracker v0.2.1 (2023-03-19)
 
  * Slightly improved quality of channel 4 playback.
