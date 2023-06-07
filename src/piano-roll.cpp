@@ -117,7 +117,7 @@ Piano_Keys::Piano_Keys(int X, int Y, int W, int H, const char *l) : Fl_Group(X, 
 				_keys[i]->color(BACKGROUND3_COLOR);
 				_keys[i]->labelcolor(FL_FOREGROUND_COLOR);
 				if (NOTE_KEYS[_x].pitch == Pitch::C_NAT) {
-					_keys[i]->label(C_Key_Labels[NUM_OCTAVES - _y - 1]);
+					_keys[i]->label(C_KEY_LABELS[NUM_OCTAVES - _y - 1]);
 				}
 			}
 			else {
@@ -310,6 +310,13 @@ void Piano_Timeline::clear() {
 	_channel_2_flags.clear();
 	_channel_3_flags.clear();
 	_channel_4_flags.clear();
+
+	_selection_region.x = -1;
+	_selection_region.y = -1;
+	_selection_region.w = 0;
+	_selection_region.h = 0;
+	_erasing = false;
+	_positioning = false;
 }
 
 void Piano_Timeline::clear_channel_1() {
@@ -489,13 +496,31 @@ int Piano_Timeline::handle(int event) {
 	bool pencil_mode = parent()->parent()->pencil_mode();
 	switch (event) {
 	case FL_PUSH:
+		_erasing = false;
+		_positioning = false;
 		if (
 			!Fl::event_inside(&_keys) &&
-			parent()->handle_mouse_click(event)
+			parent()->handle_mouse_click_song_position(event)
+		) {
+			handle_note_selection_cancel(event);
+			_positioning = true;
+			return 1;
+		}
+		if (
+			!Fl::event_inside(&_keys) &&
+			parent()->handle_mouse_click_continuous_scroll(event)
 		) {
 			return 1;
 		}
 		if (
+			!pencil_mode &&
+			Fl::event_button() == FL_LEFT_MOUSE &&
+			!Fl::event_inside(&_keys) &&
+			handle_note_selection_start(event)
+		) {
+			return 1;
+		}
+		else if (
 			pencil_mode &&
 			Fl::event_button() == FL_LEFT_MOUSE &&
 			!Fl::event_inside(&_keys) &&
@@ -513,24 +538,49 @@ int Piano_Timeline::handle(int event) {
 			!parent()->paused() &&
 			handle_note_eraser(event)
 		) {
+			_erasing = true;
+			return 1;
+		}
+		break;
+	case FL_RELEASE:
+		_erasing = false;
+		_positioning = false;
+		if (
+			!pencil_mode &&
+			Fl::event_button() == FL_LEFT_MOUSE &&
+			handle_note_selection_end(event)
+		) {
+			handle_note_selection_cancel(event);
 			return 1;
 		}
 		else if (
 			!pencil_mode &&
 			Fl::event_button() == FL_LEFT_MOUSE &&
 			!Fl::event_inside(&_keys) &&
+			_selection_region.x != -1 && _selection_region.y != -1 &&
 			handle_note_selection(event)
+		) {
+			handle_note_selection_cancel(event);
+			return 1;
+		}
+		handle_note_selection_cancel(event);
+		break;
+	case FL_DRAG:
+		if (
+			_positioning &&
+			parent()->handle_mouse_click_song_position(event)
 		) {
 			return 1;
 		}
-		break;
-	case FL_DRAG:
-		if (parent()->handle_mouse_click(event)) {
+		else if (
+			!pencil_mode &&
+			handle_note_selection_update(event)
+		) {
 			return 1;
 		}
-		if (
+		else if (
 			pencil_mode &&
-			Fl::event_button() == FL_RIGHT_MOUSE &&
+			_erasing &&
 			!Fl::event_inside(&_keys) &&
 			!parent()->following() &&
 			!parent()->paused() &&
@@ -546,6 +596,13 @@ int Piano_Timeline::handle(int event) {
 			!parent()->following() &&
 			!parent()->paused() &&
 			handle_note_selection(event)
+		) {
+			return 1;
+		}
+		else if (
+			!pencil_mode &&
+			Fl::event_key() == FL_Escape &&
+			handle_note_selection_cancel(event)
 		) {
 			return 1;
 		}
@@ -609,8 +666,8 @@ bool Piano_Timeline::handle_note_selection(int event) {
 		int32_t t_left = note->tick();
 		int32_t t_right = t_left + view.length * view.speed;
 		if (
-			(event == FL_PUSH && Fl::event_inside(note)) ||
-			(event != FL_PUSH && t_left <= tick && tick < t_right)
+			(event == FL_RELEASE && Fl::event_inside(note)) ||
+			(event != FL_RELEASE && t_left <= tick && tick < t_right)
 		) {
 			note->selected(!note->selected() || !Fl::event_command());
 			note->redraw();
@@ -649,6 +706,115 @@ bool Piano_Timeline::handle_note_selection(int event) {
 	parent()->refresh_note_properties();
 
 	return clicked_note;
+}
+
+bool Piano_Timeline::handle_note_selection_start(int event) {
+	_selection_region.x = Fl::event_x() - x();
+	_selection_region.y = Fl::event_y() - y();
+	_selection_region.w = 0;
+	_selection_region.h = 0;
+	redraw();
+	return true;
+}
+
+bool Piano_Timeline::handle_note_selection_update(int event) {
+	if (_selection_region.x == -1 && _selection_region.y == -1) return false;
+	_selection_region.w = Fl::event_x() - x() - _selection_region.x;
+	_selection_region.h = Fl::event_y() - y() - _selection_region.y;
+	redraw();
+	return true;
+}
+
+bool Piano_Timeline::handle_note_selection_end(int event) {
+	if (_selection_region.x == -1 && _selection_region.y == -1) return false;
+	bool made_selection =
+		std::abs(_selection_region.w) > SELECTION_REGION_MIN ||
+		std::abs(_selection_region.h) > SELECTION_REGION_MIN;
+	if (!made_selection) return false;
+
+	auto channel = active_channel_boxes();
+	if (!channel) return false;
+
+	if (!Fl::event_shift() && !Fl::event_command()) {
+		// clear selection first
+		for (Note_Box *note : *channel) {
+			if (note->selected()) {
+				note->selected(false);
+				note->redraw();
+				_keys.redraw();
+			}
+		}
+	}
+
+	int selection_x = _selection_region.x + x();
+	int selection_y = _selection_region.y + y();
+	int selection_w = _selection_region.w;
+	int selection_h = _selection_region.h;
+	if (selection_w < 0) {
+		selection_x += selection_w;
+		selection_w *= -1;
+	}
+	if (selection_h < 0) {
+		selection_y += selection_h;
+		selection_h *= -1;
+	}
+
+	bool selected_note = false;
+	for (Note_Box *note : *channel) {
+		if (note->ghost()) break;
+
+		if (
+			selection_x < note->x() + note->w() &&
+			note->x() < selection_x + selection_w &&
+			selection_y < note->y() + note->h() &&
+			note->y() < selection_y + selection_h
+		) {
+			note->selected(true);
+			note->redraw();
+			_keys.redraw();
+			selected_note = true;
+		}
+	}
+
+	const auto find_selection_start = [](std::vector<Note_Box *> *channel) {
+		for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+			if ((*note_itr)->selected()) {
+				return note_itr;
+			}
+		}
+		return channel->end();
+	};
+	const auto find_selection_end = [](std::vector<Note_Box *> *channel) {
+		for (auto note_itr = channel->rbegin(); note_itr != channel->rend(); ++note_itr) {
+			if ((*note_itr)->selected()) {
+				return note_itr.base();
+			}
+		}
+		return channel->end();
+	};
+
+	if (Fl::event_shift() && selected_note) {
+		const auto selection_start = find_selection_start(channel);
+		const auto selection_end = find_selection_end(channel);
+		for (auto note_itr = selection_start; note_itr != selection_end; ++note_itr) {
+			(*note_itr)->selected(true);
+			(*note_itr)->redraw();
+		}
+	}
+
+	parent()->refresh_note_properties();
+
+	return selected_note;
+}
+
+bool Piano_Timeline::handle_note_selection_cancel(int event) {
+	if (_selection_region.x == -1 && _selection_region.y == -1) return false;
+	_selection_region.x = -1;
+	_selection_region.y = -1;
+	_selection_region.w = 0;
+	_selection_region.h = 0;
+	redraw();
+	return true;
 }
 
 bool Piano_Timeline::select_all() {
@@ -1018,6 +1184,13 @@ void Piano_Timeline::draw() {
 		fl_yxline(x_pos, y(), y() + h());
 	}
 	draw_children();
+
+	if (
+		_selection_region.x != -1 && _selection_region.y != -1 &&
+		(std::abs(_selection_region.w) > SELECTION_REGION_MIN || std::abs(_selection_region.h) > SELECTION_REGION_MIN)
+	) {
+		fl_overlay_rect(_selection_region.x + x(), _selection_region.y + y(), _selection_region.w, _selection_region.h);
+	}
 }
 
 Piano_Roll::Piano_Roll(int X, int Y, int W, int H, const char *l) :
@@ -1146,10 +1319,13 @@ int Piano_Roll::handle(int event) {
 	return OS_Scroll::handle(event);
 }
 
-bool Piano_Roll::handle_mouse_click(int event) {
+bool Piano_Roll::handle_mouse_click_song_position(int event) {
 	if (
-		(Fl::event_button() == FL_MIDDLE_MOUSE || (Fl::event_command() && Fl::event_button() == FL_RIGHT_MOUSE)) &&
-		(!_following || event == FL_PUSH)
+		(event == FL_PUSH && (
+			Fl::event_button() == FL_MIDDLE_MOUSE ||
+			(Fl::event_command() && Fl::event_button() == FL_RIGHT_MOUSE)
+		)) ||
+		(event != FL_PUSH && !_following)
 	) {
 		int32_t t = (Fl::event_x() - _piano_timeline.x() - WHITE_KEY_WIDTH) / tick_width();
 		t = std::max(quantize_tick(t), 0);
@@ -1162,7 +1338,11 @@ bool Piano_Roll::handle_mouse_click(int event) {
 
 		return true;
 	}
-	else if (_following && event == FL_PUSH) {
+	return false;
+}
+
+bool Piano_Roll::handle_mouse_click_continuous_scroll(int event) {
+	if (_following) {
 		parent()->continuous_scroll(!_continuous);
 		parent()->redraw();
 		return true;
@@ -1839,6 +2019,10 @@ void Piano_Roll::start_following() {
 	_paused = false;
 	_piano_timeline.reset_note_colors();
 	_piano_timeline._keys.reset_channel_pitches();
+	_piano_timeline._selection_region.x = -1;
+	_piano_timeline._selection_region.y = -1;
+	_piano_timeline._selection_region.w = 0;
+	_piano_timeline._selection_region.h = 0;
 	if (_tick == -1) {
 		scroll_to(0, yposition());
 		sticky_keys();
@@ -1850,6 +2034,10 @@ void Piano_Roll::start_following() {
 void Piano_Roll::unpause_following() {
 	_following = true;
 	_paused = false;
+	_piano_timeline._selection_region.x = -1;
+	_piano_timeline._selection_region.y = -1;
+	_piano_timeline._selection_region.w = 0;
+	_piano_timeline._selection_region.h = 0;
 }
 
 void Piano_Roll::stop_following() {

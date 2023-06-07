@@ -51,6 +51,8 @@ constexpr int TICK_WIDTH_ZOOMED = 4;
 constexpr int TICK_WIDTH_UNZOOMED = 3;
 constexpr int TICKS_PER_STEP = 12;
 
+constexpr int SELECTION_REGION_MIN = 5;
+
 struct Note_Key {
 	int y, delta1, delta2;
 	const char *label;
@@ -87,7 +89,7 @@ constexpr size_t PITCH_TO_KEY_INDEX[NUM_NOTES_PER_OCTAVE] {
 	0,  // B
 };
 
-constexpr char const *C_Key_Labels[] = {
+constexpr char const *C_KEY_LABELS[] {
 	"C1",
 	"C2",
 	"C3",
@@ -156,6 +158,7 @@ protected:
 };
 
 class Flag_Box : public Fl_Box {
+private:
 	int32_t _note_index = 0;
 	int32_t _row_offset = 0;
 public:
@@ -259,6 +262,13 @@ private:
 	std::vector<Flag_Box *> _channel_4_flags;
 
 	int32_t _cursor_tick = -1;
+
+	struct Selection_Region {
+		int x, y, w, h;
+	};
+	Selection_Region _selection_region { -1, -1, 0, 0 };
+	bool _erasing = false;
+	bool _positioning = false;
 public:
 	Piano_Timeline(int X, int Y, int W, int H, const char *l = nullptr);
 	~Piano_Timeline() noexcept;
@@ -281,6 +291,10 @@ public:
 	bool handle_note_pencil(int event);
 	bool handle_note_eraser(int event);
 	bool handle_note_selection(int event);
+	bool handle_note_selection_start(int event);
+	bool handle_note_selection_update(int event);
+	bool handle_note_selection_end(int event);
+	bool handle_note_selection_cancel(int event);
 	bool select_all();
 	bool select_none();
 
@@ -393,7 +407,8 @@ public:
 	inline int32_t song_length(void) const { return _song_length; }
 
 	int handle(int event) override;
-	bool handle_mouse_click(int event);
+	bool handle_mouse_click_song_position(int event);
+	bool handle_mouse_click_continuous_scroll(int event);
 
 	void refresh_note_properties();
 
