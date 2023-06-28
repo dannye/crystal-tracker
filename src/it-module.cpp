@@ -424,8 +424,8 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 	auto convert_tempo = [](int32_t tempo) {
 		// this is a purely empirical approximation.
 		// i have no idea what the real formula is.
-		int32_t bpm = (int32_t)(std::log2(std::max(tempo, 76) - 75.0) * -75.0 + 720.0);
-		return std::max(bpm, 64);
+		int32_t bpm = (int32_t)(38177.0f / tempo + 0.5f);
+		return std::max(bpm, 32);
 	};
 
 	auto convert_fade_period = [](int32_t tempo, int32_t fade) {
