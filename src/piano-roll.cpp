@@ -1189,7 +1189,16 @@ void Piano_Timeline::draw() {
 		_selection_region.x != -1 && _selection_region.y != -1 &&
 		(std::abs(_selection_region.w) > SELECTION_REGION_MIN || std::abs(_selection_region.h) > SELECTION_REGION_MIN)
 	) {
+#ifdef __APPLE__
+		// fix crash on mac
+		int x1 = std::clamp(_selection_region.x + x(), parent()->x(), parent()->x() + parent()->w() - Fl::scrollbar_size());
+		int y1 = std::clamp(_selection_region.y + y(), parent()->y(), parent()->y() + parent()->h() - Fl::scrollbar_size());
+		int x2 = std::clamp(_selection_region.x + _selection_region.w + x(), parent()->x(), parent()->x() + parent()->w() - Fl::scrollbar_size());
+		int y2 = std::clamp(_selection_region.y + _selection_region.h + y(), parent()->y(), parent()->y() + parent()->h() - Fl::scrollbar_size());
+		fl_overlay_rect(x1, y1, x2 - x1, y2 - y1);
+#else
 		fl_overlay_rect(_selection_region.x + x(), _selection_region.y + y(), _selection_region.w, _selection_region.h);
+#endif
 	}
 }
 
