@@ -973,9 +973,7 @@ std::vector<std::vector<uint8_t>> generate_noise_samples(const std::vector<Drum>
 			uint32_t j = 0;
 			while (
 				j < sample_len ||
-				(last && envelope_period &&
-				((note.envelope_direction == 0 && volume != 0) ||
-				(note.envelope_direction == 1 && volume != 15)))
+				(last && volume != 0 && j < 255 * 48 * NOISE_SAMPLE_SPEED_FACTOR * 8)
 			) {
 				if (j % lfsr_period == 0) {
 					uint16_t xnor = (~(((lfsr >> 1) & 1) ^ (lfsr & 1))) & 1;
