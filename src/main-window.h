@@ -208,6 +208,7 @@ public:
 	void open_note_properties();
 	void close_note_properties();
 	void set_note_properties(const std::vector<const Note_View *> &notes) { _note_properties->set_note_properties(notes, selected_channel()); }
+	void refresh_note_properties();
 
 	void delete_selection() { delete_cb(nullptr, this); }
 	bool put_note(Pitch pitch, int32_t octave = 0, int32_t tick = -1);

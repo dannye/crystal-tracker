@@ -746,6 +746,10 @@ void Main_Window::close_note_properties() {
 	redraw();
 }
 
+void Main_Window::refresh_note_properties() {
+	_piano_roll->refresh_note_properties();
+}
+
 void Main_Window::update_active_controls() {
 	if (_song.loaded()) {
 		bool playing = _it_module && _it_module->playing();

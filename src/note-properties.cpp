@@ -294,6 +294,7 @@ int Note_Properties::handle(int event) {
 	case FL_SHORTCUT:
 	case FL_KEYBOARD:
 		if (Fl::event_key() == FL_Escape && contains(Fl::focus())) {
+			((Main_Window *)user_data())->refresh_note_properties();
 			Fl::focus(nullptr);
 			return 1;
 		}
@@ -309,6 +310,7 @@ void Note_Properties::speed_input_cb(OS_Spinner *s, Note_Properties *np) {
 		Main_Window *mw = (Main_Window *)np->user_data();
 		mw->set_speed(val);
 	}
+	Fl::focus(nullptr);
 }
 
 void Note_Properties::volume_input_cb(OS_Spinner *s, Note_Properties *np) {
@@ -320,6 +322,7 @@ void Note_Properties::volume_input_cb(OS_Spinner *s, Note_Properties *np) {
 		mw->set_volume(val);
 	}
 	else if (val == 0) s->value(0);
+	Fl::focus(nullptr);
 }
 
 void Note_Properties::fade_input_cb(OS_Spinner *s, Note_Properties *np) {
@@ -331,6 +334,7 @@ void Note_Properties::fade_input_cb(OS_Spinner *s, Note_Properties *np) {
 		mw->set_fade(val);
 	}
 	else if (val == 0) s->value(0);
+	Fl::focus(nullptr);
 }
 
 void Note_Properties::vibrato_delay_input_cb(OS_Spinner *s, Note_Properties *np) {
@@ -342,6 +346,7 @@ void Note_Properties::vibrato_delay_input_cb(OS_Spinner *s, Note_Properties *np)
 		mw->set_vibrato_delay(val);
 	}
 	else if (val == 0) s->value(0);
+	Fl::focus(nullptr);
 }
 
 void Note_Properties::vibrato_depth_input_cb(OS_Spinner *s, Note_Properties *np) {
@@ -353,6 +358,7 @@ void Note_Properties::vibrato_depth_input_cb(OS_Spinner *s, Note_Properties *np)
 		mw->set_vibrato_extent(val);
 	}
 	else if (val == 0) s->value(0);
+	Fl::focus(nullptr);
 }
 
 void Note_Properties::vibrato_rate_input_cb(OS_Spinner *s, Note_Properties *np) {
@@ -364,6 +370,7 @@ void Note_Properties::vibrato_rate_input_cb(OS_Spinner *s, Note_Properties *np) 
 		mw->set_vibrato_rate(val);
 	}
 	else if (val == 0) s->value(0);
+	Fl::focus(nullptr);
 }
 
 void Note_Properties::duty_wave_input_cb(OS_Spinner *s, Note_Properties *np) {
@@ -379,6 +386,7 @@ void Note_Properties::duty_wave_input_cb(OS_Spinner *s, Note_Properties *np) {
 		mw->set_duty(val);
 	}
 	else if (val == 0) s->value(0);
+	Fl::focus(nullptr);
 }
 
 void Note_Properties::advanced_button_cb(OS_Button *, Note_Properties *np) {
@@ -409,6 +417,7 @@ void Note_Properties::tempo_input_cb(OS_Spinner *s, Note_Properties *np) {
 		mw->set_tempo(val);
 	}
 	else if (val == 0) s->value(0);
+	Fl::focus(nullptr);
 }
 
 void Note_Properties::transpose_octaves_input_cb(OS_Spinner *s, Note_Properties *np) {
@@ -420,6 +429,7 @@ void Note_Properties::transpose_octaves_input_cb(OS_Spinner *s, Note_Properties 
 		mw->set_transpose_octaves(val);
 	}
 	else if (val == 0) s->value(0);
+	Fl::focus(nullptr);
 }
 
 void Note_Properties::transpose_pitches_input_cb(OS_Spinner *s, Note_Properties *np) {
@@ -431,6 +441,7 @@ void Note_Properties::transpose_pitches_input_cb(OS_Spinner *s, Note_Properties 
 		mw->set_transpose_pitches(val);
 	}
 	else if (val == 0) s->value(0);
+	Fl::focus(nullptr);
 }
 
 void Note_Properties::slide_duration_input_cb(OS_Spinner *s, Note_Properties *np) {
@@ -456,6 +467,7 @@ void Note_Properties::slide_duration_input_cb(OS_Spinner *s, Note_Properties *np
 		}
 	}
 	else if (val == 0) s->value(0);
+	Fl::focus(nullptr);
 }
 
 void Note_Properties::slide_octave_input_cb(OS_Spinner *s, Note_Properties *np) {
@@ -481,6 +493,7 @@ void Note_Properties::slide_octave_input_cb(OS_Spinner *s, Note_Properties *np) 
 		}
 	}
 	else if (val == 0) s->value(0);
+	Fl::focus(nullptr);
 }
 
 void Note_Properties::slide_pitch_input_cb(Dropdown *s, Note_Properties *np) {
@@ -505,6 +518,7 @@ void Note_Properties::slide_pitch_input_cb(Dropdown *s, Note_Properties *np) {
 			mw->set_slide_pitch(val);
 		}
 	}
+	Fl::focus(nullptr);
 }
 
 void Note_Properties::basic_button_cb(OS_Button *, Note_Properties *np) {
