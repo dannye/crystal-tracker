@@ -13,7 +13,7 @@ Music_CrystalTracked_Ch1:
 	duty_cycle 0
 	note_type 12, 10, 8
 	octave 3
-	tempo 242
+	tempo 230
 	vibrato 0, 0, 0
 	note G#, 1
 	rest 1
@@ -121,21 +121,21 @@ Music_CrystalTracked_Ch1:
 	note G#, 6
 	note G_, 2
 	note F_, 4
-	tempo 256
+	tempo 243
 	note E_, 8
 	octave 3
 	note G_, 4
-	tempo 270
+	tempo 256
 	note B_, 2
-	tempo 300
+	tempo 286
 	note B_, 2
 	octave 4
-	tempo 360
+	tempo 354
 	note C_, 2
-	tempo 420
+	tempo 440
 	note D_, 2
 	volume_envelope 5, 8
-	tempo 242
+	tempo 230
 	note G#, 1
 	rest 1
 	note G#, 1
@@ -233,18 +233,18 @@ Music_CrystalTracked_Ch1:
 	note G_, 2
 	note F_, 4
 	note E_, 6
-	tempo 256
+	tempo 243
 	note E_, 2
 	octave 2
 	note G_, 4
-	tempo 270
+	tempo 256
 	note G#, 2
-	tempo 300
+	tempo 286
 	note B_, 2
-	tempo 360
+	tempo 354
 	note A#, 2
 	octave 3
-	tempo 456
+	tempo 500
 	note C#, 2
 	pitch_slide 1, 3, G#
 	octave 8
