@@ -1189,16 +1189,25 @@ void Piano_Timeline::draw() {
 		_selection_region.x != -1 && _selection_region.y != -1 &&
 		(std::abs(_selection_region.w) > SELECTION_REGION_MIN || std::abs(_selection_region.h) > SELECTION_REGION_MIN)
 	) {
-#ifdef __APPLE__
-		// fix crash on mac
-		int x1 = std::clamp(_selection_region.x + x(), parent()->x(), parent()->x() + parent()->w() - Fl::scrollbar_size());
-		int y1 = std::clamp(_selection_region.y + y(), parent()->y(), parent()->y() + parent()->h() - Fl::scrollbar_size());
-		int x2 = std::clamp(_selection_region.x + _selection_region.w + x(), parent()->x(), parent()->x() + parent()->w() - Fl::scrollbar_size());
-		int y2 = std::clamp(_selection_region.y + _selection_region.h + y(), parent()->y(), parent()->y() + parent()->h() - Fl::scrollbar_size());
-		fl_overlay_rect(x1, y1, x2 - x1, y2 - y1);
-#else
-		fl_overlay_rect(_selection_region.x + x(), _selection_region.y + y(), _selection_region.w, _selection_region.h);
-#endif
+		int selection_x = _selection_region.x + x();
+		int selection_y = _selection_region.y + y();
+		int selection_w = _selection_region.w;
+		int selection_h = _selection_region.h;
+		if (selection_w < 0) {
+			selection_x += selection_w;
+			selection_w *= -1;
+		}
+		if (selection_h < 0) {
+			selection_y += selection_h;
+			selection_h *= -1;
+		}
+		fl_color(FL_WHITE);
+		fl_line_style(FL_SOLID);
+		fl_rect(selection_x, selection_y, selection_w, selection_h);
+		fl_color(FL_BLACK);
+		fl_line_style((dark || hc) ? FL_DOT : FL_DASH);
+		fl_rect(selection_x, selection_y, selection_w, selection_h);
+		fl_line_style(FL_SOLID);
 	}
 }
 
