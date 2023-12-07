@@ -88,7 +88,7 @@ private:
 		const std::vector<Note_View> &channel_4_notes,
 		const std::vector<Drumkit> &drumkits,
 		int32_t loop_tick,
-		bool inline_waves
+		int32_t num_inline_waves
 	);
 	void generate_it_module(
 		const std::vector<Note_View> &channel_1_notes = {},
