@@ -1102,12 +1102,10 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 		return;
 	}
 	if (parsed_drumkits.num_parsed_drums() > 64) {
-		_directory.clear();
-		std::string msg = "Drumkits file uses too many drums: " + std::to_string(parsed_drumkits.num_parsed_drums()) + "\n\n"
-			"A maximum of 64 drums are allowed.";
-		_error_dialog->message(msg);
-		_error_dialog->show(this);
-		return;
+		std::string msg = "Drumkits file contains too many drums: " + std::to_string(parsed_drumkits.num_parsed_drums()) + "\n\n"
+			"Immediate playback only supports up to 64 drums. Some notes may not play correctly in the editor.";
+		_warning_dialog->message(msg);
+		_warning_dialog->show(this);
 	}
 	_drumkits = parsed_drumkits.drumkits();
 	_drums = parsed_drumkits.drums();

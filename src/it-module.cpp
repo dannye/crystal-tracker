@@ -727,7 +727,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 						_tempo_change_mid_note = 4;
 					}
 				}
-				if (channel_4_itr->pitch != Pitch::REST && channel_4_itr->drumkit != -1) {
+				if (channel_4_itr->pitch != Pitch::REST && channel_4_itr->drumkit != -1 && drumkits[channel_4_itr->drumkit].drums[(int32_t)channel_4_itr->pitch] < 64) {
 					pattern_data.push_back(CHANNEL + CH4);
 					pattern_data.push_back(NOTE + SAMPLE + VOLUME);
 					pattern_data.push_back(60); // note
