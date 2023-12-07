@@ -1136,7 +1136,18 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 			_error_dialog->show(this);
 			return;
 		}
-		_waves.insert(_waves.end(), RANGE(_song.waves()));
+		if (_song.waves().size() > 15) {
+			std::string msg = basename;
+			msg = msg + " contains too many inline waves!\n\n"
+				"Immediate playback only supports up to 15 inline waves. Some notes may not play correctly in the editor.";
+			_warning_dialog->message(msg);
+			_warning_dialog->show(this);
+
+			_waves.insert(_waves.end(), _song.waves().begin(), _song.waves().begin() + 15);
+		}
+		else {
+			_waves.insert(_waves.end(), RANGE(_song.waves()));
+		}
 		_piano_roll->set_timeline(_song);
 	}
 	else {

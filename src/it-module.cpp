@@ -664,7 +664,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 						_tempo_change_mid_note = 3;
 					}
 				}
-				if (channel_3_itr->pitch != Pitch::REST) {
+				if (channel_3_itr->pitch != Pitch::REST && wave < 16 + 15) {
 					pattern_data.push_back(CHANNEL + CH3);
 					pattern_data.push_back(NOTE + SAMPLE + VOLUME);
 					pattern_data.push_back(note(*channel_3_itr)); // note
