@@ -956,10 +956,11 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 
 			if (
 				!note.ghost &&
-				(note.duty != prev_note.duty ||
-				(channel_number == 3 && note.wave != prev_note.wave))
+				(((channel_number == 1 || channel_number == 2) && note.duty != prev_note.duty) ||
+				(channel_number == 3 && note.wave != prev_note.wave) ||
+				(channel_number == 4 && note.drumkit != prev_note.drumkit))
 			) {
-				add_flag(FLAG_DUTY_WAVE);
+				add_flag(FLAG_DUTY_WAVE_DRUMKIT);
 			}
 			if (
 				!note.ghost &&
