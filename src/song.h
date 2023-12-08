@@ -40,6 +40,7 @@ public:
 			SET_VIBRATO_EXTENT,
 			SET_VIBRATO_RATE,
 			SET_WAVE,
+			SET_DRUMKIT,
 			SET_DUTY,
 			SET_TEMPO,
 			SET_TRANSPOSE_OCTAVES,
@@ -148,6 +149,7 @@ public:
 	void set_vibrato_extent(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t extent);
 	void set_vibrato_rate(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t rate);
 	void set_wave(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t wave);
+	void set_drumkit(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t drumkit);
 	void set_duty(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t duty);
 	void set_tempo(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t tempo);
 	void set_transpose_octaves(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t octaves);

@@ -1656,6 +1656,27 @@ void Song::set_wave(const int selected_channel, const std::set<int32_t> &selecte
 	_modified = true;
 }
 
+void Song::set_drumkit(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t drumkit) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_DRUMKIT);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Command command = Command(Command_Type::TOGGLE_NOISE);
+		command.toggle_noise.drumkit = -1;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+
+		command = Command(Command_Type::TOGGLE_NOISE);
+		command.toggle_noise.drumkit = drumkit;
+		commands.insert(commands.begin() + *note_itr + 1, command);
+	}
+
+	postprocess(commands);
+
+	_modified = true;
+}
+
 void Song::set_duty(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t duty) {
 	remember(selected_channel, selected_boxes, Song_State::Action::SET_DUTY);
 	std::vector<Command> &commands = channel_commands(selected_channel);
@@ -2380,6 +2401,8 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Set vibrato rate";
 	case Song_State::Action::SET_WAVE:
 		return "Set wave";
+	case Song_State::Action::SET_DRUMKIT:
+		return "Set drumkit";
 	case Song_State::Action::SET_DUTY:
 		return "Set duty";
 	case Song_State::Action::SET_TEMPO:

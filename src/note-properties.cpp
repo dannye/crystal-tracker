@@ -29,8 +29,8 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 	_vibrato_rate_input = new OS_Spinner(x() + dx + text_width("Vibrato rate:", 2), y() + wgt_m, wgt_w, wgt_h, "Vibrato rate:");
 	dx += wgt_w + wgt_m + text_width("Vibrato rate:", 2);
 
-	_duty_wave_input = new OS_Spinner(x() + dx + text_width("Wave:", 2), y() + wgt_m, wgt_w, wgt_h, "Wave:");
-	dx += wgt_w + wgt_m + text_width("Wave:", 2);
+	_duty_wave_drumkit_input = new OS_Spinner(x() + dx + text_width("Drumkit:", 2), y() + wgt_m, wgt_w, wgt_h, "Drumkit:");
+	dx += wgt_w + wgt_m + text_width("Drumkit:", 2);
 
 	_advanced_button = new OS_Button(x() + dx + wgt_m, y() + wgt_m, text_width("Advanced", 8), wgt_h, "Advanced");
 
@@ -78,8 +78,8 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 	_vibrato_rate_input->callback((Fl_Callback *)vibrato_rate_input_cb, this);
 	_vibrato_rate_input->clear_visible_focus();
 
-	_duty_wave_input->callback((Fl_Callback *)duty_wave_input_cb, this);
-	_duty_wave_input->clear_visible_focus();
+	_duty_wave_drumkit_input->callback((Fl_Callback *)duty_wave_drumkit_input_cb, this);
+	_duty_wave_drumkit_input->clear_visible_focus();
 
 	_advanced_button->callback((Fl_Callback *)advanced_button_cb, this);
 
@@ -113,7 +113,7 @@ Note_Properties::~Note_Properties() {
 	delete _vibrato_delay_input;
 	delete _vibrato_depth_input;
 	delete _vibrato_rate_input;
-	delete _duty_wave_input;
+	delete _duty_wave_drumkit_input;
 	delete _advanced_button;
 
 	delete _tempo_input;
@@ -125,7 +125,7 @@ Note_Properties::~Note_Properties() {
 	delete _basic_button;
 }
 
-void Note_Properties::set_note_properties(const std::vector<const Note_View *> &notes, int channel_number) {
+void Note_Properties::set_note_properties(const std::vector<const Note_View *> &notes, int channel_number, int num_waves, int num_drumkits) {
 	assert(notes.size() > 0);
 	_note = *notes.front();
 	_channel_number = channel_number;
@@ -141,10 +141,13 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	_vibrato_depth_input->value(_note.vibrato_extent);
 	_vibrato_rate_input->value(_note.vibrato_rate);
 	if (channel_number == 3) {
-		_duty_wave_input->value(_note.wave);
+		_duty_wave_drumkit_input->value(_note.wave);
+	}
+	else if (channel_number == 4) {
+		_duty_wave_drumkit_input->value(_note.drumkit);
 	}
 	else {
-		_duty_wave_input->value(_note.duty);
+		_duty_wave_drumkit_input->value(_note.duty);
 	}
 
 	_tempo_input->value(_note.tempo);
@@ -161,10 +164,13 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	_vibrato_depth_input->label("Vibrato depth:");
 	_vibrato_rate_input->label("Vibrato rate:");
 	if (channel_number == 3) {
-		_duty_wave_input->label("Wave:");
+		_duty_wave_drumkit_input->label("Wave:");
+	}
+	else if (channel_number == 4) {
+		_duty_wave_drumkit_input->label("Drumkit:");
 	}
 	else {
-		_duty_wave_input->label("Duty:");
+		_duty_wave_drumkit_input->label("Duty:");
 	}
 
 	_tempo_input->label("Tempo:");
@@ -198,15 +204,21 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 		}
 		if (
 			channel_number == 3 &&
-			note->wave != (int32_t)_duty_wave_input->value()
+			note->wave != (int32_t)_duty_wave_drumkit_input->value()
 		) {
-			_duty_wave_input->label("*Wave:");
+			_duty_wave_drumkit_input->label("*Wave:");
 		}
 		else if (
-			channel_number != 3 &&
-			note->duty != (int32_t)_duty_wave_input->value()
+			channel_number == 4 &&
+			note->drumkit != (int32_t)_duty_wave_drumkit_input->value()
 		) {
-			_duty_wave_input->label("*Duty:");
+			_duty_wave_drumkit_input->label("*Drumkit:");
+		}
+		else if (
+			(channel_number == 1 || channel_number == 2) &&
+			note->duty != (int32_t)_duty_wave_drumkit_input->value()
+		) {
+			_duty_wave_drumkit_input->label("*Duty:");
 		}
 
 		if (note->tempo != (int32_t)_tempo_input->value()) {
@@ -241,10 +253,13 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	_vibrato_depth_input->range(0, 15);
 	_vibrato_rate_input->range(0, 15);
 	if (channel_number == 3) {
-		_duty_wave_input->range(0, 15);
+		_duty_wave_drumkit_input->range(0, num_waves - 1);
+	}
+	else if (channel_number == 4) {
+		_duty_wave_drumkit_input->range(0, num_drumkits - 1);
 	}
 	else {
-		_duty_wave_input->range(0, 3);
+		_duty_wave_drumkit_input->range(0, 3);
 	}
 
 	_tempo_input->range(0, 1024);
@@ -259,7 +274,7 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	_vibrato_delay_input->activate();
 	_vibrato_depth_input->activate();
 	_vibrato_rate_input->activate();
-	_duty_wave_input->activate();
+	_duty_wave_drumkit_input->activate();
 
 	_tempo_input->activate();
 	_transpose_octaves_input->activate();
@@ -277,7 +292,6 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 		_vibrato_delay_input->deactivate();
 		_vibrato_depth_input->deactivate();
 		_vibrato_rate_input->deactivate();
-		_duty_wave_input->deactivate();
 
 		_transpose_octaves_input->deactivate();
 		_transpose_pitches_input->deactivate();
@@ -373,7 +387,7 @@ void Note_Properties::vibrato_rate_input_cb(OS_Spinner *s, Note_Properties *np) 
 	Fl::focus(nullptr);
 }
 
-void Note_Properties::duty_wave_input_cb(OS_Spinner *s, Note_Properties *np) {
+void Note_Properties::duty_wave_drumkit_input_cb(OS_Spinner *s, Note_Properties *np) {
 	if (!s->active()) return;
 
 	int32_t val = (int32_t)s->value();
@@ -381,7 +395,11 @@ void Note_Properties::duty_wave_input_cb(OS_Spinner *s, Note_Properties *np) {
 		Main_Window *mw = (Main_Window *)np->user_data();
 		mw->set_wave(val);
 	}
-	else if (np->_channel_number != 3 && val != np->_note.duty) {
+	else if (np->_channel_number == 4 && val != np->_note.drumkit) {
+		Main_Window *mw = (Main_Window *)np->user_data();
+		mw->set_drumkit(val);
+	}
+	else if ((np->_channel_number == 1 || np->_channel_number == 2) && val != np->_note.duty) {
 		Main_Window *mw = (Main_Window *)np->user_data();
 		mw->set_duty(val);
 	}
@@ -396,7 +414,7 @@ void Note_Properties::advanced_button_cb(OS_Button *, Note_Properties *np) {
 	np->_vibrato_delay_input->hide();
 	np->_vibrato_depth_input->hide();
 	np->_vibrato_rate_input->hide();
-	np->_duty_wave_input->hide();
+	np->_duty_wave_drumkit_input->hide();
 	np->_advanced_button->hide();
 
 	np->_tempo_input->show();
@@ -528,7 +546,7 @@ void Note_Properties::basic_button_cb(OS_Button *, Note_Properties *np) {
 	np->_vibrato_delay_input->show();
 	np->_vibrato_depth_input->show();
 	np->_vibrato_rate_input->show();
-	np->_duty_wave_input->show();
+	np->_duty_wave_drumkit_input->show();
 	np->_advanced_button->show();
 
 	np->_tempo_input->hide();

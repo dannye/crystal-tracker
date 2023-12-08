@@ -2406,6 +2406,32 @@ bool Piano_Roll::set_wave(Song &song, int32_t wave) {
 	return true;
 }
 
+bool Piano_Roll::set_drumkit(Song &song, int32_t drumkit) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_drumkit(selected_channel(), selected_notes, selected_boxes, drumkit);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
 bool Piano_Roll::set_duty(Song &song, int32_t duty) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;

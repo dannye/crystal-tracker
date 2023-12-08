@@ -207,7 +207,7 @@ public:
 
 	void open_note_properties();
 	void close_note_properties();
-	void set_note_properties(const std::vector<const Note_View *> &notes) { _note_properties->set_note_properties(notes, selected_channel()); }
+	void set_note_properties(const std::vector<const Note_View *> &notes) { _note_properties->set_note_properties(notes, selected_channel(), 16 + (int)_song.waves().size(), (int)_drumkits.size()); }
 	void refresh_note_properties();
 
 	void delete_selection() { delete_cb(nullptr, this); }
@@ -219,6 +219,7 @@ public:
 	void set_vibrato_extent(int32_t extent);
 	void set_vibrato_rate(int32_t rate);
 	void set_wave(int32_t wave);
+	void set_drumkit(int32_t drumkit);
 	void set_duty(int32_t duty);
 	void set_tempo(int32_t tempo);
 	void set_transpose_octaves(int32_t octaves);

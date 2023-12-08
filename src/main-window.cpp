@@ -1976,6 +1976,17 @@ void Main_Window::set_wave(int32_t wave) {
 	}
 }
 
+void Main_Window::set_drumkit(int32_t drumkit) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->set_drumkit(_song, drumkit)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+}
+
 void Main_Window::set_duty(int32_t duty) {
 	if (!_song.loaded()) { return; }
 	if (_piano_roll->set_duty(_song, duty)) {

@@ -464,6 +464,7 @@ public:
 	bool set_vibrato_extent(Song &song, int32_t extent);
 	bool set_vibrato_rate(Song &song, int32_t rate);
 	bool set_wave(Song &song, int32_t wave);
+	bool set_drumkit(Song &song, int32_t drumkit);
 	bool set_duty(Song &song, int32_t duty);
 	bool set_tempo(Song &song, int32_t tempo);
 	bool set_transpose_octaves(Song &song, int32_t octaves);

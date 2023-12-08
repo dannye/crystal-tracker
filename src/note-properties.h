@@ -16,7 +16,7 @@ private:
 	OS_Spinner *_vibrato_delay_input = nullptr;
 	OS_Spinner *_vibrato_depth_input = nullptr;
 	OS_Spinner *_vibrato_rate_input = nullptr;
-	OS_Spinner *_duty_wave_input = nullptr;
+	OS_Spinner *_duty_wave_drumkit_input = nullptr;
 	OS_Button *_advanced_button = nullptr;
 
 	OS_Spinner *_tempo_input = nullptr;
@@ -32,7 +32,7 @@ private:
 public:
 	Note_Properties(int X, int Y, int W, int H, const char *l = nullptr);
 	~Note_Properties();
-	void set_note_properties(const std::vector<const Note_View *> &notes, int channel_number);
+	void set_note_properties(const std::vector<const Note_View *> &notes, int channel_number, int num_waves, int num_drumkits);
 	int handle(int event);
 private:
 	static void speed_input_cb(OS_Spinner *s, Note_Properties *np);
@@ -41,7 +41,7 @@ private:
 	static void vibrato_delay_input_cb(OS_Spinner *s, Note_Properties *np);
 	static void vibrato_depth_input_cb(OS_Spinner *s, Note_Properties *np);
 	static void vibrato_rate_input_cb(OS_Spinner *s, Note_Properties *np);
-	static void duty_wave_input_cb(OS_Spinner *s, Note_Properties *np);
+	static void duty_wave_drumkit_input_cb(OS_Spinner *s, Note_Properties *np);
 	static void advanced_button_cb(OS_Button *b, Note_Properties *np);
 
 	static void tempo_input_cb(OS_Spinner *s, Note_Properties *np);
