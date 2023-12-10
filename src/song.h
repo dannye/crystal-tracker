@@ -12,7 +12,7 @@
 
 #define MAX_HISTORY_SIZE 100
 
-std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, std::string label);
+std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, const std::string &label);
 
 struct Extra_Info {
 	int32_t loop_index = 0;

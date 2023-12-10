@@ -7,7 +7,7 @@
 
 #include "song.h"
 
-std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, std::string label) {
+std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, const std::string &label) {
 	for (auto command_itr = commands.begin(); command_itr != commands.end(); ++command_itr) {
 		if (std::count(RANGE(command_itr->labels), label) > 0) {
 			return command_itr;
@@ -740,25 +740,72 @@ int32_t find_previous_note_index(const std::vector<Command> &commands, int32_t i
 	return -1;
 }
 
+struct Command_Indexes {
+	int32_t rest_index = -1;
+	int32_t octave_index = -1;
+	int32_t speed_index = -1;
+	int32_t transpose_index = -1;
+	int32_t tempo_index = -1;
+	int32_t duty_index = -1;
+	int32_t vol_env_index = -1;
+	int32_t slide_index = -1;
+	int32_t vibrato_index = -1;
+	int32_t toggle_noise_off_index = -1;
+	int32_t toggle_noise_on_index = -1;
+	int32_t toggle_noise_off_again_index = -1;
+};
+
+void shift_indexes(Command_Indexes &indexes, int32_t index) {
+	if (indexes.rest_index > index) {
+		indexes.rest_index -= 1;
+	}
+	if (indexes.octave_index > index) {
+		indexes.octave_index -= 1;
+	}
+	if (indexes.speed_index > index) {
+		indexes.speed_index -= 1;
+	}
+	if (indexes.transpose_index > index) {
+		indexes.transpose_index -= 1;
+	}
+	if (indexes.tempo_index > index) {
+		indexes.tempo_index -= 1;
+	}
+	if (indexes.duty_index > index) {
+		indexes.duty_index -= 1;
+	}
+	if (indexes.vol_env_index > index) {
+		indexes.vol_env_index -= 1;
+	}
+	if (indexes.slide_index > index) {
+		indexes.slide_index -= 1;
+	}
+	if (indexes.vibrato_index > index) {
+		indexes.vibrato_index -= 1;
+	}
+	if (indexes.toggle_noise_off_index > index) {
+		indexes.toggle_noise_off_index -= 1;
+	}
+	if (indexes.toggle_noise_on_index > index) {
+		indexes.toggle_noise_on_index -= 1;
+	}
+	if (indexes.toggle_noise_off_again_index > index) {
+		indexes.toggle_noise_off_again_index -= 1;
+	}
+}
+
 void postprocess(std::vector<Command> &commands) {
 	bool deleted = false;
 	do {
 		Note_View view;
-		int32_t rest_index = -1;
-		int32_t octave_index = -1;
-		int32_t speed_index = -1;
-		int32_t transpose_index = -1;
-		int32_t tempo_index = -1;
-		int32_t duty_index = -1;
-		int32_t vol_env_index = -1;
-		int32_t slide_index = -1;
-		int32_t vibrato_index = -1;
+		Command_Indexes indexes;
 		deleted = false;
 		for (uint32_t i = 0; i < commands.size(); ++i) {
 			if (
 				commands[i].labels.size() > 0 ||
 				is_control_command(commands[i].type)
 			) {
+				// on hard boundary, forget everything
 				view = Note_View{};
 				view.volume = -1;
 				view.fade = -1;
@@ -768,124 +815,120 @@ void postprocess(std::vector<Command> &commands) {
 				view.vibrato_delay = -1;
 				view.vibrato_extent = -1;
 				view.vibrato_rate = -1;
-				rest_index = -1;
-				octave_index = -1;
-				speed_index = -1;
-				transpose_index = -1;
-				tempo_index = -1;
-				duty_index = -1;
-				vol_env_index = -1;
-				slide_index = -1;
-				vibrato_index = -1;
+				indexes.rest_index = -1;
+				indexes.octave_index = -1;
+				indexes.speed_index = -1;
+				indexes.transpose_index = -1;
+				indexes.tempo_index = -1;
+				indexes.duty_index = -1;
+				indexes.vol_env_index = -1;
+				indexes.slide_index = -1;
+				indexes.vibrato_index = -1;
+				indexes.toggle_noise_off_index = -1;
+				indexes.toggle_noise_on_index = -1;
+				indexes.toggle_noise_off_again_index = -1;
 			}
 			if (
 				is_global_command(commands[i].type) ||
 				is_speed_command(commands[i].type)
 			) {
-				rest_index = -1;
+				// on tempo or speed change, don't tamper with previous rest
+				indexes.rest_index = -1;
 			}
 			if (commands[i].type == Command_Type::NOTE_TYPE) {
-				vol_env_index = -1;
+				// on note type change, don't tamper with previous envelope
+				indexes.vol_env_index = -1;
 			}
 			if (commands[i].type == Command_Type::REST) {
-				speed_index = -1;
-				tempo_index = -1;
+				// on rest, don't tamper with previous speed or tempo
+				indexes.speed_index = -1;
+				indexes.tempo_index = -1;
 			}
 			if (is_note_command(commands[i].type)) {
+				// on note, don't tamper with any previous commands
 				view.slide_duration = 0;
 				view.slide_octave = 0;
 				view.slide_pitch = Pitch::REST;
-				rest_index = -1;
-				octave_index = -1;
-				speed_index = -1;
-				transpose_index = -1;
-				tempo_index = -1;
-				duty_index = -1;
-				vol_env_index = -1;
-				slide_index = -1;
-				vibrato_index = -1;
+				indexes.rest_index = -1;
+				indexes.octave_index = -1;
+				indexes.speed_index = -1;
+				indexes.transpose_index = -1;
+				indexes.tempo_index = -1;
+				indexes.duty_index = -1;
+				indexes.vol_env_index = -1;
+				indexes.slide_index = -1;
+				indexes.vibrato_index = -1;
+				indexes.toggle_noise_off_index = -1;
+				indexes.toggle_noise_on_index = -1;
+				indexes.toggle_noise_off_again_index = -1;
 			}
 
 			if (commands[i].type == Command_Type::REST) {
-				if (rest_index == -1) {
+				if (indexes.rest_index == -1) {
+					// track this rest to possibly add to later, if it is not maxed out
 					if (commands[i].rest.length < 16) {
-						rest_index = i;
+						indexes.rest_index = i;
 					}
 				}
 				else {
-					if (commands[rest_index].rest.length + commands[i].rest.length > 16) {
-						commands[i].rest.length = commands[rest_index].rest.length + commands[i].rest.length - 16;
-						commands[rest_index].rest.length = 16;
-						rest_index = i;
+					// if the previous rest and current rest can't fit into one rest command...
+					if (commands[indexes.rest_index].rest.length + commands[i].rest.length > 16) {
+						// then max out the previous rest, put the remainder into the current rest, and start tracking the current rest
+						commands[i].rest.length = commands[indexes.rest_index].rest.length + commands[i].rest.length - 16;
+						commands[indexes.rest_index].rest.length = 16;
+						indexes.rest_index = i;
 					}
+					// otherwise, combine into the previous rest and delete the current rest
 					else {
 						deleted = true;
-						commands[rest_index].rest.length = commands[rest_index].rest.length + commands[i].rest.length;
+						commands[indexes.rest_index].rest.length = commands[indexes.rest_index].rest.length + commands[i].rest.length;
 						assert(commands[i].labels.size() == 0);
 						commands.erase(commands.begin() + i);
 						i -= 1;
 
-						if (commands[rest_index].rest.length == 16) {
-							rest_index = -1;
+						// stop tracking the previous rest if it is now maxed out
+						if (commands[indexes.rest_index].rest.length == 16) {
+							indexes.rest_index = -1;
 						}
 					}
 				}
 			}
 
 			else if (commands[i].type == Command_Type::OCTAVE) {
-				if (octave_index == -1) {
+				if (indexes.octave_index == -1) {
+					// if the octave isn't changing, delete it
 					if (view.octave == commands[i].octave.octave) {
 						deleted = true;
 						assert(commands[i].labels.size() == 0);
 						commands.erase(commands.begin() + i);
 						i -= 1;
 					}
+					// otherwise, track it
 					else {
 						view.octave = commands[i].octave.octave;
-						octave_index = i;
+						indexes.octave_index = i;
 					}
 				}
 				else {
+					// octave changed twice in a row, so delete the old one
 					deleted = true;
-					commands[octave_index + 1].labels.insert(commands[octave_index + 1].labels.begin(), RANGE(commands[octave_index].labels));
-					commands.erase(commands.begin() + octave_index);
+					commands[indexes.octave_index + 1].labels.insert(commands[indexes.octave_index + 1].labels.begin(), RANGE(commands[indexes.octave_index].labels));
+					commands.erase(commands.begin() + indexes.octave_index);
 					i -= 1;
-					if (rest_index > octave_index) {
-						rest_index -= 1;
-					}
-					if (speed_index > octave_index) {
-						speed_index -= 1;
-					}
-					if (transpose_index > octave_index) {
-						transpose_index -= 1;
-					}
-					if (tempo_index > octave_index) {
-						tempo_index -= 1;
-					}
-					if (duty_index > octave_index) {
-						duty_index -= 1;
-					}
-					if (vol_env_index > octave_index) {
-						vol_env_index -= 1;
-					}
-					if (slide_index > octave_index) {
-						slide_index -= 1;
-					}
-					if (vibrato_index > octave_index) {
-						vibrato_index -= 1;
-					}
+					shift_indexes(indexes, indexes.octave_index);
 
 					view.octave = commands[i].octave.octave;
-					octave_index = i;
+					indexes.octave_index = i;
 				}
 			}
 			else if (commands[i].type == Command_Type::INC_OCTAVE || commands[i].type == Command_Type::DEC_OCTAVE) {
 				view.octave = 0;
-				octave_index = -1;
+				indexes.octave_index = -1;
 			}
 
 			else if (commands[i].type == Command_Type::NOTE_TYPE) {
-				if (speed_index == -1) {
+				if (indexes.speed_index == -1) {
+					// if the note type isn't changing, delete it
 					if (
 						view.speed == commands[i].note_type.speed &&
 						view.volume == commands[i].note_type.volume &&
@@ -896,103 +939,63 @@ void postprocess(std::vector<Command> &commands) {
 						commands.erase(commands.begin() + i);
 						i -= 1;
 					}
+					// otherwise, track it
 					else {
 						view.speed = commands[i].note_type.speed;
 						view.volume = commands[i].note_type.volume;
 						view.fade = commands[i].note_type.fade;
-						speed_index = i;
+						indexes.speed_index = i;
 					}
 				}
 				else {
+					// note type changed twice in a row, so delete the old one
 					deleted = true;
-					commands[speed_index + 1].labels.insert(commands[speed_index + 1].labels.begin(), RANGE(commands[speed_index].labels));
-					commands.erase(commands.begin() + speed_index);
+					commands[indexes.speed_index + 1].labels.insert(commands[indexes.speed_index + 1].labels.begin(), RANGE(commands[indexes.speed_index].labels));
+					commands.erase(commands.begin() + indexes.speed_index);
 					i -= 1;
-					if (rest_index > speed_index) {
-						rest_index -= 1;
-					}
-					if (octave_index > speed_index) {
-						octave_index -= 1;
-					}
-					if (transpose_index > speed_index) {
-						transpose_index -= 1;
-					}
-					if (tempo_index > speed_index) {
-						tempo_index -= 1;
-					}
-					if (duty_index > speed_index) {
-						duty_index -= 1;
-					}
-					if (vol_env_index > speed_index) {
-						vol_env_index -= 1;
-					}
-					if (slide_index > speed_index) {
-						slide_index -= 1;
-					}
-					if (vibrato_index > speed_index) {
-						vibrato_index -= 1;
-					}
+					shift_indexes(indexes, indexes.speed_index);
 
 					view.speed = commands[i].note_type.speed;
 					view.volume = commands[i].note_type.volume;
 					view.fade = commands[i].note_type.fade;
-					speed_index = i;
+					indexes.speed_index = i;
 				}
 			}
 			else if (commands[i].type == Command_Type::DRUM_SPEED) {
-				if (speed_index == -1) {
+				if (indexes.speed_index == -1) {
+					// if the speed isn't changing, delete it
 					if (view.speed == commands[i].drum_speed.speed) {
 						deleted = true;
 						assert(commands[i].labels.size() == 0);
 						commands.erase(commands.begin() + i);
 						i -= 1;
 					}
+					// otherwise, track it
 					else {
 						view.speed = commands[i].drum_speed.speed;
-						speed_index = i;
+						indexes.speed_index = i;
 					}
 				}
 				else {
+					// speed changed twice in a row, so delete the old one
 					deleted = true;
-					commands[speed_index + 1].labels.insert(commands[speed_index + 1].labels.begin(), RANGE(commands[speed_index].labels));
-					commands.erase(commands.begin() + speed_index);
+					commands[indexes.speed_index + 1].labels.insert(commands[indexes.speed_index + 1].labels.begin(), RANGE(commands[indexes.speed_index].labels));
+					commands.erase(commands.begin() + indexes.speed_index);
 					i -= 1;
-					if (rest_index > speed_index) {
-						rest_index -= 1;
-					}
-					if (octave_index > speed_index) {
-						octave_index -= 1;
-					}
-					if (transpose_index > speed_index) {
-						transpose_index -= 1;
-					}
-					if (tempo_index > speed_index) {
-						tempo_index -= 1;
-					}
-					if (duty_index > speed_index) {
-						duty_index -= 1;
-					}
-					if (vol_env_index > speed_index) {
-						vol_env_index -= 1;
-					}
-					if (slide_index > speed_index) {
-						slide_index -= 1;
-					}
-					if (vibrato_index > speed_index) {
-						vibrato_index -= 1;
-					}
+					shift_indexes(indexes, indexes.speed_index);
 
 					view.speed = commands[i].drum_speed.speed;
-					speed_index = i;
+					indexes.speed_index = i;
 				}
 			}
 			else if (commands[i].type == Command_Type::SPEED) {
 				view.speed = commands[i].speed.speed;
-				speed_index = i;
+				indexes.speed_index = i;
 			}
 
 			else if (commands[i].type == Command_Type::TRANSPOSE) {
-				if (transpose_index == -1) {
+				if (indexes.transpose_index == -1) {
+					// if the transpose isn't changing, delete it
 					if (
 						view.transpose_octaves == commands[i].transpose.num_octaves &&
 						view.transpose_pitches == commands[i].transpose.num_pitches
@@ -1002,146 +1005,86 @@ void postprocess(std::vector<Command> &commands) {
 						commands.erase(commands.begin() + i);
 						i -= 1;
 					}
+					// otherwise, track it
 					else {
 						view.transpose_octaves = commands[i].transpose.num_octaves;
 						view.transpose_pitches = commands[i].transpose.num_pitches;
-						transpose_index = i;
+						indexes.transpose_index = i;
 					}
 				}
 				else {
+					// transpose changed twice in a row, so delete the old one
 					deleted = true;
-					commands[transpose_index + 1].labels.insert(commands[transpose_index + 1].labels.begin(), RANGE(commands[transpose_index].labels));
-					commands.erase(commands.begin() + transpose_index);
+					commands[indexes.transpose_index + 1].labels.insert(commands[indexes.transpose_index + 1].labels.begin(), RANGE(commands[indexes.transpose_index].labels));
+					commands.erase(commands.begin() + indexes.transpose_index);
 					i -= 1;
-					if (rest_index > transpose_index) {
-						rest_index -= 1;
-					}
-					if (octave_index > transpose_index) {
-						octave_index -= 1;
-					}
-					if (speed_index > transpose_index) {
-						speed_index -= 1;
-					}
-					if (tempo_index > transpose_index) {
-						tempo_index -= 1;
-					}
-					if (duty_index > transpose_index) {
-						duty_index -= 1;
-					}
-					if (vol_env_index > transpose_index) {
-						vol_env_index -= 1;
-					}
-					if (slide_index > transpose_index) {
-						slide_index -= 1;
-					}
-					if (vibrato_index > transpose_index) {
-						vibrato_index -= 1;
-					}
+					shift_indexes(indexes, indexes.transpose_index);
 
 					view.transpose_octaves = commands[i].transpose.num_octaves;
 					view.transpose_pitches = commands[i].transpose.num_pitches;
-					transpose_index = i;
+					indexes.transpose_index = i;
 				}
 			}
 
 			else if (commands[i].type == Command_Type::TEMPO) {
-				if (tempo_index == -1) {
+				if (indexes.tempo_index == -1) {
+					// if the tempo isn't changing, delete it
 					if (view.tempo == commands[i].tempo.tempo) {
 						deleted = true;
 						assert(commands[i].labels.size() == 0);
 						commands.erase(commands.begin() + i);
 						i -= 1;
 					}
+					// otherwise, track it
 					else {
 						view.tempo = commands[i].tempo.tempo;
-						tempo_index = i;
+						indexes.tempo_index = i;
 					}
 				}
 				else {
+					// tempo changed twice in a row, so delete the old one
 					deleted = true;
-					commands[tempo_index + 1].labels.insert(commands[tempo_index + 1].labels.begin(), RANGE(commands[tempo_index].labels));
-					commands.erase(commands.begin() + tempo_index);
+					commands[indexes.tempo_index + 1].labels.insert(commands[indexes.tempo_index + 1].labels.begin(), RANGE(commands[indexes.tempo_index].labels));
+					commands.erase(commands.begin() + indexes.tempo_index);
 					i -= 1;
-					if (rest_index > tempo_index) {
-						rest_index -= 1;
-					}
-					if (octave_index > tempo_index) {
-						octave_index -= 1;
-					}
-					if (speed_index > tempo_index) {
-						speed_index -= 1;
-					}
-					if (transpose_index > tempo_index) {
-						transpose_index -= 1;
-					}
-					if (duty_index > tempo_index) {
-						duty_index -= 1;
-					}
-					if (vol_env_index > tempo_index) {
-						vol_env_index -= 1;
-					}
-					if (slide_index > tempo_index) {
-						slide_index -= 1;
-					}
-					if (vibrato_index > tempo_index) {
-						vibrato_index -= 1;
-					}
+					shift_indexes(indexes, indexes.tempo_index);
 
 					view.tempo = commands[i].tempo.tempo;
-					tempo_index = i;
+					indexes.tempo_index = i;
 				}
 			}
 
 			else if (commands[i].type == Command_Type::DUTY_CYCLE) {
-				if (duty_index == -1) {
+				if (indexes.duty_index == -1) {
+					// if the duty isn't changing, delete it
 					if (view.duty == commands[i].duty_cycle.duty) {
 						deleted = true;
 						assert(commands[i].labels.size() == 0);
 						commands.erase(commands.begin() + i);
 						i -= 1;
 					}
+					// otherwise, track it
 					else {
 						view.duty = commands[i].duty_cycle.duty;
-						duty_index = i;
+						indexes.duty_index = i;
 					}
 				}
 				else {
+					// duty changed twice in a row, so delete the old one
 					deleted = true;
-					commands[duty_index + 1].labels.insert(commands[duty_index + 1].labels.begin(), RANGE(commands[duty_index].labels));
-					commands.erase(commands.begin() + duty_index);
+					commands[indexes.duty_index + 1].labels.insert(commands[indexes.duty_index + 1].labels.begin(), RANGE(commands[indexes.duty_index].labels));
+					commands.erase(commands.begin() + indexes.duty_index);
 					i -= 1;
-					if (rest_index > duty_index) {
-						rest_index -= 1;
-					}
-					if (octave_index > duty_index) {
-						octave_index -= 1;
-					}
-					if (speed_index > duty_index) {
-						speed_index -= 1;
-					}
-					if (transpose_index > duty_index) {
-						transpose_index -= 1;
-					}
-					if (tempo_index > duty_index) {
-						tempo_index -= 1;
-					}
-					if (vol_env_index > duty_index) {
-						vol_env_index -= 1;
-					}
-					if (slide_index > duty_index) {
-						slide_index -= 1;
-					}
-					if (vibrato_index > duty_index) {
-						vibrato_index -= 1;
-					}
+					shift_indexes(indexes, indexes.duty_index);
 
 					view.duty = commands[i].duty_cycle.duty;
-					duty_index = i;
+					indexes.duty_index = i;
 				}
 			}
 
 			else if (commands[i].type == Command_Type::VOLUME_ENVELOPE) {
-				if (vol_env_index == -1) {
+				if (indexes.vol_env_index == -1) {
+					// if the envelope isn't changing, delete it
 					if (
 						view.volume == commands[i].volume_envelope.volume &&
 						view.fade == commands[i].volume_envelope.fade
@@ -1151,102 +1094,67 @@ void postprocess(std::vector<Command> &commands) {
 						commands.erase(commands.begin() + i);
 						i -= 1;
 					}
+					// otherwise, track it
 					else {
 						view.volume = commands[i].volume_envelope.volume;
 						view.fade = commands[i].volume_envelope.fade;
-						vol_env_index = i;
+						indexes.vol_env_index = i;
+
+						// allow note type commands to delete this envelope too
+						// TODO: if speed_index is already != -1, delete this envelope and copy
+						//   the envelope parameters into the note type command.
+						indexes.speed_index = i;
 					}
 				}
 				else {
+					// envelope changed twice in a row, so delete the old one
 					deleted = true;
-					commands[vol_env_index + 1].labels.insert(commands[vol_env_index + 1].labels.begin(), RANGE(commands[vol_env_index].labels));
-					commands.erase(commands.begin() + vol_env_index);
+					commands[indexes.vol_env_index + 1].labels.insert(commands[indexes.vol_env_index + 1].labels.begin(), RANGE(commands[indexes.vol_env_index].labels));
+					commands.erase(commands.begin() + indexes.vol_env_index);
 					i -= 1;
-					if (rest_index > vol_env_index) {
-						rest_index -= 1;
-					}
-					if (octave_index > vol_env_index) {
-						octave_index -= 1;
-					}
-					if (speed_index > vol_env_index) {
-						speed_index -= 1;
-					}
-					if (transpose_index > vol_env_index) {
-						transpose_index -= 1;
-					}
-					if (tempo_index > vol_env_index) {
-						tempo_index -= 1;
-					}
-					if (duty_index > vol_env_index) {
-						duty_index -= 1;
-					}
-					if (slide_index > vol_env_index) {
-						slide_index -= 1;
-					}
-					if (vibrato_index > vol_env_index) {
-						vibrato_index -= 1;
-					}
+					shift_indexes(indexes, indexes.vol_env_index);
 
 					view.volume = commands[i].volume_envelope.volume;
 					view.fade = commands[i].volume_envelope.fade;
-					vol_env_index = i;
+					indexes.vol_env_index = i;
+
+					// allow note type commands to delete this envelope too
+					indexes.speed_index = i;
 				}
 			}
 			else if (commands[i].type == Command_Type::CHANNEL_VOLUME) {
 				view.volume = commands[i].channel_volume.volume;
-				vol_env_index = i;
+				indexes.vol_env_index = i;
 			}
 			else if (commands[i].type == Command_Type::FADE_WAVE) {
 				view.fade = commands[i].fade_wave.fade;
-				vol_env_index = i;
+				indexes.vol_env_index = i;
 			}
 
 			else if (commands[i].type == Command_Type::PITCH_SLIDE) {
-				if (slide_index == -1) {
+				if (indexes.slide_index == -1) {
 					view.slide_duration = commands[i].pitch_slide.duration;
 					view.slide_octave = commands[i].pitch_slide.octave;
 					view.slide_pitch = commands[i].pitch_slide.pitch;
-					slide_index = i;
+					indexes.slide_index = i;
 				}
 				else {
 					deleted = true;
-					commands[slide_index + 1].labels.insert(commands[slide_index + 1].labels.begin(), RANGE(commands[slide_index].labels));
-					commands.erase(commands.begin() + slide_index);
+					commands[indexes.slide_index + 1].labels.insert(commands[indexes.slide_index + 1].labels.begin(), RANGE(commands[indexes.slide_index].labels));
+					commands.erase(commands.begin() + indexes.slide_index);
 					i -= 1;
-					if (rest_index > slide_index) {
-						rest_index -= 1;
-					}
-					if (octave_index > slide_index) {
-						octave_index -= 1;
-					}
-					if (speed_index > slide_index) {
-						speed_index -= 1;
-					}
-					if (transpose_index > slide_index) {
-						transpose_index -= 1;
-					}
-					if (tempo_index > slide_index) {
-						tempo_index -= 1;
-					}
-					if (duty_index > slide_index) {
-						duty_index -= 1;
-					}
-					if (vol_env_index > slide_index) {
-						vol_env_index -= 1;
-					}
-					if (vibrato_index > slide_index) {
-						vibrato_index -= 1;
-					}
+					shift_indexes(indexes, indexes.slide_index);
 
 					view.slide_duration = commands[i].pitch_slide.duration;
 					view.slide_octave = commands[i].pitch_slide.octave;
 					view.slide_pitch = commands[i].pitch_slide.pitch;
-					slide_index = i;
+					indexes.slide_index = i;
 				}
 			}
 
 			else if (commands[i].type == Command_Type::VIBRATO) {
-				if (vibrato_index == -1) {
+				if (indexes.vibrato_index == -1) {
+					// if the vibrato isn't changing, delete it
 					if (
 						view.vibrato_delay == commands[i].vibrato.delay &&
 						view.vibrato_extent == commands[i].vibrato.extent &&
@@ -1257,47 +1165,93 @@ void postprocess(std::vector<Command> &commands) {
 						commands.erase(commands.begin() + i);
 						i -= 1;
 					}
+					// otherwise, track it
 					else {
 						view.vibrato_delay = commands[i].vibrato.delay;
 						view.vibrato_extent = commands[i].vibrato.extent;
 						view.vibrato_rate = commands[i].vibrato.rate;
-						vibrato_index = i;
+						indexes.vibrato_index = i;
 					}
 				}
 				else {
+					// vibrato changed twice in a row, so delete the old one
 					deleted = true;
-					commands[vibrato_index + 1].labels.insert(commands[vibrato_index + 1].labels.begin(), RANGE(commands[vibrato_index].labels));
-					commands.erase(commands.begin() + vibrato_index);
+					commands[indexes.vibrato_index + 1].labels.insert(commands[indexes.vibrato_index + 1].labels.begin(), RANGE(commands[indexes.vibrato_index].labels));
+					commands.erase(commands.begin() + indexes.vibrato_index);
 					i -= 1;
-					if (rest_index > vibrato_index) {
-						rest_index -= 1;
-					}
-					if (octave_index > vibrato_index) {
-						octave_index -= 1;
-					}
-					if (speed_index > vibrato_index) {
-						speed_index -= 1;
-					}
-					if (transpose_index > vibrato_index) {
-						transpose_index -= 1;
-					}
-					if (tempo_index > vibrato_index) {
-						tempo_index -= 1;
-					}
-					if (duty_index > vibrato_index) {
-						duty_index -= 1;
-					}
-					if (vol_env_index > vibrato_index) {
-						vol_env_index -= 1;
-					}
-					if (slide_index > vibrato_index) {
-						slide_index -= 1;
-					}
+					shift_indexes(indexes, indexes.vibrato_index);
 
 					view.vibrato_delay = commands[i].vibrato.delay;
 					view.vibrato_extent = commands[i].vibrato.extent;
 					view.vibrato_rate = commands[i].vibrato.rate;
-					vibrato_index = i;
+					indexes.vibrato_index = i;
+				}
+			}
+
+			else if (commands[i].type == Command_Type::TOGGLE_NOISE) {
+				// off command
+				if (commands[i].toggle_noise.drumkit == -1) {
+					if (indexes.toggle_noise_off_index == -1) {
+						assert(indexes.toggle_noise_on_index == -1);
+						assert(indexes.toggle_noise_off_again_index == -1);
+						indexes.toggle_noise_off_index = i;
+					}
+					else {
+						assert(indexes.toggle_noise_on_index != -1);
+						assert(indexes.toggle_noise_off_again_index == -1);
+						indexes.toggle_noise_off_again_index = i;
+					}
+				}
+				// on command
+				else {
+					if (indexes.toggle_noise_on_index == -1) {
+						if (indexes.toggle_noise_off_index == -1) {
+							// probably the initial drumkit setting...
+							view.drumkit = commands[i].toggle_noise.drumkit;
+						}
+						else {
+							assert(indexes.toggle_noise_off_index != -1);
+							assert(indexes.toggle_noise_off_again_index == -1);
+							// if the drumkit isn't changing, delete it (off and on commands)
+							if (view.drumkit == commands[i].toggle_noise.drumkit) {
+								deleted = true;
+								assert(commands[i].labels.size() == 0);
+								commands.erase(commands.begin() + i);
+								i -= 1;
+
+								assert(commands[indexes.toggle_noise_off_index].labels.size() == 0);
+								commands.erase(commands.begin() + indexes.toggle_noise_off_index);
+								i -= 1;
+								shift_indexes(indexes, indexes.toggle_noise_off_index);
+								indexes.toggle_noise_off_index = -1;
+							}
+							// otherwise, track it
+							else {
+								view.drumkit = commands[i].toggle_noise.drumkit;
+								indexes.toggle_noise_on_index = i;
+							}
+						}
+					}
+					else {
+						assert(indexes.toggle_noise_off_index != -1);
+						assert(indexes.toggle_noise_off_again_index != -1);
+						// drumkit changed twice in a row, so delete the old one (off and on commands)
+						deleted = true;
+						assert(commands[indexes.toggle_noise_on_index].labels.size() == 0);
+						commands.erase(commands.begin() + indexes.toggle_noise_on_index);
+						i -= 1;
+						shift_indexes(indexes, indexes.toggle_noise_on_index);
+
+						commands[indexes.toggle_noise_off_index + 1].labels.insert(commands[indexes.toggle_noise_off_index + 1].labels.begin(), RANGE(commands[indexes.toggle_noise_off_index].labels));
+						commands.erase(commands.begin() + indexes.toggle_noise_off_index);
+						i -= 1;
+						shift_indexes(indexes, indexes.toggle_noise_off_index);
+
+						view.drumkit = commands[i].toggle_noise.drumkit;
+						indexes.toggle_noise_off_index = indexes.toggle_noise_off_again_index;
+						indexes.toggle_noise_on_index = i;
+						indexes.toggle_noise_off_again_index = -1;
+					}
 				}
 			}
 		}
