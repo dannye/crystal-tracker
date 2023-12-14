@@ -1,6 +1,19 @@
 Changelog
 =========
 
+### Crystal Tracker v0.4.0 (2023-12-14)
+
+ * Add rectangle select.
+ * Improve tempo to bpm approximation for playback.
+ * Improve playback of noise samples that never fade out. (See: Pinball's seelstage.asm)
+ * More intuitive keyboard controls for the Note Properties panel.
+   * Escape now aborts note property changes.
+   * Enter now also deselects the textbox.
+ * Fix playback of drum samples for songs that also use inline waves.
+ * Warn for songs that use too many inline waves.
+ * Using too many drums is now a warning and not an error.
+ * Allow setting drumkit from Note Properties panel.
+
 ### Crystal Tracker v0.3.0 (2023-05-28)
 
  * Improve accuracy of volume fade during playback.
