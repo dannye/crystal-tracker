@@ -684,6 +684,26 @@ void Song::new_song(Song_Options_Dialog::Song_Options options) {
 	_result = Parsed_Song::Result::SONG_OK;
 }
 
+Song_Options_Dialog::Song_Options Song::get_options() {
+	Song_Options_Dialog::Song_Options options;
+	options.song_name = _song_name;
+	options.looping = _channel_1_loop_tick != -1 || _channel_2_loop_tick != -1 || _channel_3_loop_tick != -1 || _channel_4_loop_tick != -1;
+	options.channel_1 = _channel_1_end_tick != -1;
+	options.channel_2 = _channel_2_end_tick != -1;
+	options.channel_3 = _channel_3_end_tick != -1;
+	options.channel_4 = _channel_4_end_tick != -1;
+	options.channel_1_loop_tick = std::max(_channel_1_loop_tick, 0);
+	options.channel_2_loop_tick = std::max(_channel_2_loop_tick, 0);
+	options.channel_3_loop_tick = std::max(_channel_3_loop_tick, 0);
+	options.channel_4_loop_tick = std::max(_channel_4_loop_tick, 0);
+	options.channel_1_end_tick = std::max(_channel_1_end_tick, 0);
+	options.channel_2_end_tick = std::max(_channel_2_end_tick, 0);
+	options.channel_3_end_tick = std::max(_channel_3_end_tick, 0);
+	options.channel_4_end_tick = std::max(_channel_4_end_tick, 0);
+	options.result = Song_Options_Dialog::Result::RESULT_OK;
+	return options;
+}
+
 bool Song::write_song(const char *f) {
 	std::ofstream ofs;
 	open_ofstream(ofs, f);
@@ -2110,6 +2130,50 @@ void Song::glue_note(const int selected_channel, const std::set<int32_t> &select
 	commands.erase(commands.begin() + index);
 
 	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::resize_song(const Song_Options_Dialog::Song_Options &options) {
+	_history.clear();
+	_future.clear();
+
+	const auto lengthen_channel = [this](int channel, int32_t new_loop_tick, int32_t new_end_tick) {
+		std::vector<Command> &commands = channel_commands(channel);
+
+		int32_t old_loop_tick, old_end_tick;
+		Extra_Info info;
+		calc_channel_length(commands, old_loop_tick, old_end_tick, &info);
+
+		int32_t ticks_to_insert_at_loop = new_loop_tick != -1 ? new_loop_tick - old_loop_tick : 0;
+		int32_t ticks_to_insert_at_end = new_end_tick - old_end_tick - ticks_to_insert_at_loop;
+
+		insert_ticks(channel, commands, ticks_to_insert_at_end,  info.end_index,  info.speed_at_end,  info.volume_at_end,  info.fade_at_end);
+		insert_ticks(channel, commands, ticks_to_insert_at_loop, info.loop_index, info.speed_at_loop, info.volume_at_loop, info.fade_at_loop);
+
+		postprocess(commands);
+	};
+
+	if (options.channel_1) {
+		lengthen_channel(1, options.looping ? options.channel_1_loop_tick : -1, options.channel_1_end_tick);
+		if (options.looping) _channel_1_loop_tick = options.channel_1_loop_tick;
+		_channel_1_end_tick  = options.channel_1_end_tick;
+	}
+	if (options.channel_2) {
+		lengthen_channel(2, options.looping ? options.channel_2_loop_tick : -1, options.channel_2_end_tick);
+		if (options.looping) _channel_2_loop_tick = options.channel_2_loop_tick;
+		_channel_2_end_tick  = options.channel_2_end_tick;
+	}
+	if (options.channel_3) {
+		lengthen_channel(3, options.looping ? options.channel_3_loop_tick : -1, options.channel_3_end_tick);
+		if (options.looping) _channel_3_loop_tick = options.channel_3_loop_tick;
+		_channel_3_end_tick  = options.channel_3_end_tick;
+	}
+	if (options.channel_4) {
+		lengthen_channel(4, options.looping ? options.channel_4_loop_tick : -1, options.channel_4_end_tick);
+		if (options.looping) _channel_4_loop_tick = options.channel_4_loop_tick;
+		_channel_4_end_tick  = options.channel_4_end_tick;
+	}
 
 	_modified = true;
 }

@@ -145,6 +145,91 @@ Song_Options_Dialog::Song_Options Song_Options_Dialog::get_options() {
 	return options;
 }
 
+void Song_Options_Dialog::set_options(const Song_Options &options) {
+	initialize();
+
+	_synchronize_checkbox->clear();
+
+	_channel_1_checkbox->set();
+	_channel_2_checkbox->set();
+	_channel_3_checkbox->set();
+	_channel_4_checkbox->set();
+
+	_song_name->value(options.song_name.c_str());
+	_song_name->deactivate();
+
+	std::string channel_1_loop_tick_str = std::to_string(options.channel_1_loop_tick);
+	std::string channel_2_loop_tick_str = std::to_string(options.channel_2_loop_tick);
+	std::string channel_3_loop_tick_str = std::to_string(options.channel_3_loop_tick);
+	std::string channel_4_loop_tick_str = std::to_string(options.channel_4_loop_tick);
+
+	_channel_1_loop_tick->value(channel_1_loop_tick_str.c_str());
+	_channel_1_loop_tick->activate();
+	_channel_2_loop_tick->value(channel_2_loop_tick_str.c_str());
+	_channel_2_loop_tick->activate();
+	_channel_3_loop_tick->value(channel_3_loop_tick_str.c_str());
+	_channel_3_loop_tick->activate();
+	_channel_4_loop_tick->value(channel_4_loop_tick_str.c_str());
+	_channel_4_loop_tick->activate();
+
+	std::string channel_1_end_tick_str = std::to_string(options.channel_1_end_tick);
+	std::string channel_2_end_tick_str = std::to_string(options.channel_2_end_tick);
+	std::string channel_3_end_tick_str = std::to_string(options.channel_3_end_tick);
+	std::string channel_4_end_tick_str = std::to_string(options.channel_4_end_tick);
+
+	_channel_1_end_tick->value(channel_1_end_tick_str.c_str());
+	_channel_1_end_tick->activate();
+	_channel_2_end_tick->value(channel_2_end_tick_str.c_str());
+	_channel_2_end_tick->activate();
+	_channel_3_end_tick->value(channel_3_end_tick_str.c_str());
+	_channel_3_end_tick->activate();
+	_channel_4_end_tick->value(channel_4_end_tick_str.c_str());
+	_channel_4_end_tick->activate();
+
+	_channel_1_checkbox->value(options.channel_1);
+	_channel_1_checkbox->deactivate();
+	if (!options.channel_1) channel_checkbox_cb(_channel_1_checkbox, this);
+	_channel_2_checkbox->value(options.channel_2);
+	_channel_2_checkbox->deactivate();
+	if (!options.channel_2) channel_checkbox_cb(_channel_2_checkbox, this);
+	_channel_3_checkbox->value(options.channel_3);
+	_channel_3_checkbox->deactivate();
+	if (!options.channel_3) channel_checkbox_cb(_channel_3_checkbox, this);
+	_channel_4_checkbox->value(options.channel_4);
+	_channel_4_checkbox->deactivate();
+	if (!options.channel_4) channel_checkbox_cb(_channel_4_checkbox, this);
+
+	_looping_checkbox->value(options.looping);
+	_looping_checkbox->deactivate();
+	if (!options.looping) looping_checkbox_cb(nullptr, this);
+
+	int32_t max_loop_tick = std::max({
+		options.channel_1_loop_tick,
+		options.channel_2_loop_tick,
+		options.channel_3_loop_tick,
+		options.channel_4_loop_tick
+	});
+	bool loop_synced =
+		(!options.channel_1 || options.channel_1_loop_tick == max_loop_tick) &&
+		(!options.channel_2 || options.channel_2_loop_tick == max_loop_tick) &&
+		(!options.channel_3 || options.channel_3_loop_tick == max_loop_tick) &&
+		(!options.channel_4 || options.channel_4_loop_tick == max_loop_tick);
+
+	int32_t max_end_tick = std::max({
+		options.channel_1_end_tick,
+		options.channel_2_end_tick,
+		options.channel_3_end_tick,
+		options.channel_4_end_tick
+	});
+	bool end_synced =
+		(!options.channel_1 || options.channel_1_end_tick == max_end_tick) &&
+		(!options.channel_2 || options.channel_2_end_tick == max_end_tick) &&
+		(!options.channel_3 || options.channel_3_end_tick == max_end_tick) &&
+		(!options.channel_4 || options.channel_4_end_tick == max_end_tick);
+
+	_synchronize_checkbox->value((!options.looping || loop_synced) && end_synced);
+}
+
 const char *Song_Options_Dialog::get_error_message(Result r) {
 	switch (r) {
 	case Result::RESULT_OK:
@@ -221,16 +306,19 @@ int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
 	int wgt_w = 200;
 	_song_name->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _song_name->value("UntitledSong");
+	if (reset) _song_name->activate();
 	dx += wgt_w + wgt_h;
 	wgt_w = text_width(_looping_checkbox->label(), 2) + wgt_h;
 	_looping_checkbox->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _looping_checkbox->set();
+	if (reset) _looping_checkbox->activate();
 
 	dx = win_m;
 	dy += wgt_h + wgt_m;
 	wgt_w = text_width(_channel_4_checkbox->label(), 2) + wgt_h;
 	_channel_1_checkbox->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _channel_1_checkbox->set();
+	if (reset) _channel_1_checkbox->activate();
 	dx += wgt_w + wgt_h + text_width(_channel_1_loop_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_1_loop_tick->resize(dx, dy, wgt_w, wgt_h);
@@ -247,6 +335,7 @@ int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
 	wgt_w = text_width(_channel_4_checkbox->label(), 2) + wgt_h;
 	_channel_2_checkbox->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _channel_2_checkbox->set();
+	if (reset) _channel_2_checkbox->activate();
 	dx += wgt_w + wgt_h + text_width(_channel_2_loop_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_2_loop_tick->resize(dx, dy, wgt_w, wgt_h);
@@ -263,6 +352,7 @@ int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
 	wgt_w = text_width(_channel_4_checkbox->label(), 2) + wgt_h;
 	_channel_3_checkbox->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _channel_3_checkbox->set();
+	if (reset) _channel_3_checkbox->activate();
 	dx += wgt_w + wgt_h + text_width(_channel_3_loop_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_3_loop_tick->resize(dx, dy, wgt_w, wgt_h);
@@ -279,6 +369,7 @@ int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
 	wgt_w = text_width(_channel_4_checkbox->label(), 2) + wgt_h;
 	_channel_4_checkbox->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _channel_4_checkbox->set();
+	if (reset) _channel_4_checkbox->activate();
 	dx += wgt_w + wgt_h + text_width(_channel_4_loop_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_4_loop_tick->resize(dx, dy, wgt_w, wgt_h);

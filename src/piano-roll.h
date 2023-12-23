@@ -486,6 +486,7 @@ public:
 	bool snip_selection(Song &song, bool dry_run = false);
 	bool split_note(Song &song);
 	bool glue_note(Song &song);
+	bool resize_song(Song &song, const Song_Options_Dialog::Song_Options &options);
 
 	bool select_all() { return _piano_timeline.select_all(); }
 	bool select_none() { return _piano_timeline.select_none(); }

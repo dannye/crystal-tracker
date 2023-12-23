@@ -75,6 +75,7 @@ public:
 	Song_Options_Dialog(const char *t);
 	~Song_Options_Dialog();
 	Song_Options get_options();
+	void set_options(const Song_Options &options);
 	const char *get_error_message(Result r);
 protected:
 	void initialize_content(void);

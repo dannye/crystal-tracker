@@ -137,7 +137,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_error_dialog = new Modal_Dialog(this, "Error", Modal_Dialog::Icon::ERROR_ICON);
 	_warning_dialog = new Modal_Dialog(this, "Warning", Modal_Dialog::Icon::WARNING_ICON);
 	_success_dialog = new Modal_Dialog(this, "Success", Modal_Dialog::Icon::SUCCESS_ICON);
-	_unsaved_dialog = new Modal_Dialog(this, "Warning", Modal_Dialog::Icon::WARNING_ICON, true);
+	_confirm_dialog = new Modal_Dialog(this, "Warning", Modal_Dialog::Icon::WARNING_ICON, true);
 	_about_dialog = new Modal_Dialog(this, "About " PROGRAM_NAME, Modal_Dialog::Icon::APP_ICON);
 	_song_options_dialog = new Song_Options_Dialog("Song Options");
 	_help_window = new Help_Window(48, 48, 700, 500, PROGRAM_NAME " Help");
@@ -236,6 +236,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		{},
 		OS_MENU_ITEM("Spli&t Note", '/', (Fl_Callback *)split_note_cb, this, 0),
 		OS_MENU_ITEM("&Glue Note", GLUE_KEY, (Fl_Callback *)glue_note_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("R&esize Song...", FL_COMMAND + 'e', (Fl_Callback *)resize_song_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Pencil &Mode", '`', (Fl_Callback *)pencil_mode_cb, this, FL_MENU_TOGGLE | FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Channel &1", '1', (Fl_Callback *)channel_1_cb, this,
 			FL_MENU_RADIO | (selected_channel() == 1 ? FL_MENU_VALUE : 0)),
@@ -362,6 +363,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_snip_mi = CT_FIND_MENU_ITEM_CB(snip_cb);
 	_split_note_mi = CT_FIND_MENU_ITEM_CB(split_note_cb);
 	_glue_note_mi = CT_FIND_MENU_ITEM_CB(glue_note_cb);
+	_resize_song_mi = CT_FIND_MENU_ITEM_CB(resize_song_cb);
 	_pencil_mode_mi = CT_FIND_MENU_ITEM_CB(pencil_mode_cb);
 	_channel_1_mi = CT_FIND_MENU_ITEM_CB(channel_1_cb);
 	_channel_2_mi = CT_FIND_MENU_ITEM_CB(channel_2_cb);
@@ -497,7 +499,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_error_dialog->width_range(280, 500);
 	_warning_dialog->width_range(280, 500);
 	_success_dialog->width_range(280, 500);
-	_unsaved_dialog->width_range(280, 500);
+	_confirm_dialog->width_range(280, 500);
 
 	std::string subject(PROGRAM_NAME " " PROGRAM_VERSION_STRING), message(
 		"Copyright \xc2\xa9 " CURRENT_YEAR " " PROGRAM_AUTHOR ".\n"
@@ -541,7 +543,7 @@ Main_Window::~Main_Window() {
 	delete _error_dialog;
 	delete _warning_dialog;
 	delete _success_dialog;
-	delete _unsaved_dialog;
+	delete _confirm_dialog;
 	delete _about_dialog;
 	delete _song_options_dialog;
 	delete _help_window;
@@ -873,6 +875,7 @@ void Main_Window::update_active_controls() {
 			}
 			_split_note_mi->activate();
 			_glue_note_mi->activate();
+			_resize_song_mi->activate();
 			_pencil_mode_mi->activate();
 			_pencil_mode_tb->activate();
 		}
@@ -891,6 +894,7 @@ void Main_Window::update_active_controls() {
 			_snip_mi->deactivate();
 			_split_note_mi->deactivate();
 			_glue_note_mi->deactivate();
+			_resize_song_mi->deactivate();
 			_pencil_mode_mi->deactivate();
 			_pencil_mode_tb->deactivate();
 		}
@@ -965,6 +969,7 @@ void Main_Window::update_active_controls() {
 		_snip_mi->deactivate();
 		_split_note_mi->deactivate();
 		_glue_note_mi->deactivate();
+		_resize_song_mi->deactivate();
 		_pencil_mode_mi->deactivate();
 		_pencil_mode_tb->deactivate();
 		_channel_1_mi->deactivate();
@@ -1154,17 +1159,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 		_song.new_song(options);
 		_piano_roll->set_timeline(_song);
 	}
-	int32_t loop_tick = loop() ? _piano_roll->get_loop_tick() : -1;
-	_it_module = new IT_Module(
-		_piano_roll->channel_1_notes(),
-		_piano_roll->channel_2_notes(),
-		_piano_roll->channel_3_notes(),
-		_piano_roll->channel_4_notes(),
-		_waves,
-		_drumkits,
-		_drum_samples,
-		loop_tick
-	);
+	regenerate_it_module();
 
 	// set filenames
 	char buffer[FL_PATH_MAX] = {};
@@ -1208,9 +1203,9 @@ void Main_Window::open_recent(int n) {
 		std::string msg = modified_filename();
 		msg = msg + " has unsaved changes!\n\n"
 			"Open another song anyway?";
-		_unsaved_dialog->message(msg);
-		_unsaved_dialog->show(this);
-		if (_unsaved_dialog->canceled()) { return; }
+		_confirm_dialog->message(msg);
+		_confirm_dialog->show(this);
+		if (_confirm_dialog->canceled()) { return; }
 	}
 
 	const char *filename = _recent[n].c_str();
@@ -1225,9 +1220,9 @@ bool Main_Window::save_song(bool force) {
 		std::string msg = basename;
 		msg = msg + " was modified by another program!\n\n"
 			"Save the song and overwrite it anyway?";
-		_unsaved_dialog->message(msg);
-		_unsaved_dialog->show(this);
-		if (_unsaved_dialog->canceled()) { return true; }
+		_confirm_dialog->message(msg);
+		_confirm_dialog->show(this);
+		if (_confirm_dialog->canceled()) { return true; }
 	}
 
 	if (_song.modified() || force) {
@@ -1258,24 +1253,27 @@ bool Main_Window::save_song(bool force) {
 	return true;
 }
 
+void Main_Window::regenerate_it_module() {
+	if (_it_module) {
+		delete _it_module;
+	}
+	_it_module = new IT_Module(
+		_piano_roll->channel_1_notes(),
+		_piano_roll->channel_2_notes(),
+		_piano_roll->channel_3_notes(),
+		_piano_roll->channel_4_notes(),
+		_waves,
+		_drumkits,
+		_drum_samples,
+		loop() ? _piano_roll->get_loop_tick() : -1
+	);
+}
+
 void Main_Window::toggle_playback() {
 	stop_audio_thread();
 
 	if (!_it_module || _it_module->stopped()) {
-		if (_it_module) {
-			delete _it_module;
-		}
-		int32_t loop_tick = loop() ? _piano_roll->get_loop_tick() : -1;
-		_it_module = new IT_Module(
-			_piano_roll->channel_1_notes(),
-			_piano_roll->channel_2_notes(),
-			_piano_roll->channel_3_notes(),
-			_piano_roll->channel_4_notes(),
-			_waves,
-			_drumkits,
-			_drum_samples,
-			loop_tick
-		);
+		regenerate_it_module();
 		_it_module->mute_channel(1, channel_1_muted());
 		_it_module->mute_channel(2, channel_2_muted());
 		_it_module->mute_channel(3, channel_3_muted());
@@ -1466,9 +1464,9 @@ void Main_Window::new_cb(Fl_Widget *, Main_Window *mw) {
 		std::string msg = mw->modified_filename();
 		msg = msg + " has unsaved changes!\n\n"
 			"Create a new song anyway?";
-		mw->_unsaved_dialog->message(msg);
-		mw->_unsaved_dialog->show(mw);
-		if (mw->_unsaved_dialog->canceled()) { return; }
+		mw->_confirm_dialog->message(msg);
+		mw->_confirm_dialog->show(mw);
+		if (mw->_confirm_dialog->canceled()) { return; }
 	}
 
 	char directory[FL_PATH_MAX] = {};
@@ -1500,9 +1498,9 @@ void Main_Window::open_cb(Fl_Widget *, Main_Window *mw) {
 		std::string msg = mw->modified_filename();
 		msg = msg + " has unsaved changes!\n\n"
 			"Open another song anyway?";
-		mw->_unsaved_dialog->message(msg);
-		mw->_unsaved_dialog->show(mw);
-		if (mw->_unsaved_dialog->canceled()) { return; }
+		mw->_confirm_dialog->message(msg);
+		mw->_confirm_dialog->show(mw);
+		if (mw->_confirm_dialog->canceled()) { return; }
 	}
 
 	int status = mw->_asm_open_chooser->show();
@@ -1542,9 +1540,9 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 		std::string msg = mw->modified_filename();
 		msg = msg + " has unsaved changes!\n\n"
 			"Close it anyway?";
-		mw->_unsaved_dialog->message(msg);
-		mw->_unsaved_dialog->show(mw);
-		if (mw->_unsaved_dialog->canceled()) { return; }
+		mw->_confirm_dialog->message(msg);
+		mw->_confirm_dialog->show(mw);
+		if (mw->_confirm_dialog->canceled()) { return; }
 	}
 
 	mw->stop_audio_thread();
@@ -1649,9 +1647,9 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 		std::string msg = mw->modified_filename();
 		msg = msg + " has unsaved changes!\n\n"
 			"Exit anyway?";
-		mw->_unsaved_dialog->message(msg);
-		mw->_unsaved_dialog->show(mw);
-		if (mw->_unsaved_dialog->canceled()) { return; }
+		mw->_confirm_dialog->message(msg);
+		mw->_confirm_dialog->show(mw);
+		if (mw->_confirm_dialog->canceled()) { return; }
 	}
 
 	// Save global config
@@ -2300,6 +2298,73 @@ void Main_Window::glue_note_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
+		mw->redraw();
+	}
+}
+
+void Main_Window::resize_song_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+
+	std::string msg = "This operation cannot be undone.\n\n"
+		"Continue?";
+	mw->_confirm_dialog->message(msg);
+	mw->_confirm_dialog->show(mw);
+	if (mw->_confirm_dialog->canceled()) { return; }
+
+	Song_Options_Dialog::Song_Options options = mw->_song.get_options();
+	mw->_song_options_dialog->set_options(options);
+	mw->_song_options_dialog->show(mw, false);
+	if (mw->_song_options_dialog->canceled()) { return; }
+
+	Song_Options_Dialog::Song_Options new_options = mw->_song_options_dialog->get_options();
+	if (new_options.result != Song_Options_Dialog::Result::RESULT_OK) {
+		msg = mw->_song_options_dialog->get_error_message(new_options.result);
+		mw->_error_dialog->message(msg);
+		mw->_error_dialog->show(mw);
+		return;
+	}
+
+	if (
+		(!options.channel_1 || new_options.channel_1_loop_tick == options.channel_1_loop_tick) &&
+		(!options.channel_1 || new_options.channel_1_end_tick  == options.channel_1_end_tick)  &&
+		(!options.channel_2 || new_options.channel_2_loop_tick == options.channel_2_loop_tick) &&
+		(!options.channel_2 || new_options.channel_2_end_tick  == options.channel_2_end_tick)  &&
+		(!options.channel_3 || new_options.channel_3_loop_tick == options.channel_3_loop_tick) &&
+		(!options.channel_3 || new_options.channel_3_end_tick  == options.channel_3_end_tick)  &&
+		(!options.channel_4 || new_options.channel_4_loop_tick == options.channel_4_loop_tick) &&
+		(!options.channel_4 || new_options.channel_4_end_tick  == options.channel_4_end_tick)
+	) {
+		return;
+	}
+
+	int32_t channel_1_ticks_to_add_at_loop = options.looping ? new_options.channel_1_loop_tick - options.channel_1_loop_tick : 0;
+	int32_t channel_2_ticks_to_add_at_loop = options.looping ? new_options.channel_2_loop_tick - options.channel_2_loop_tick : 0;
+	int32_t channel_3_ticks_to_add_at_loop = options.looping ? new_options.channel_3_loop_tick - options.channel_3_loop_tick : 0;
+	int32_t channel_4_ticks_to_add_at_loop = options.looping ? new_options.channel_4_loop_tick - options.channel_4_loop_tick : 0;
+	if (
+		(options.channel_1 && new_options.channel_1_loop_tick < options.channel_1_loop_tick) ||
+		(options.channel_1 && new_options.channel_1_end_tick  < options.channel_1_end_tick + channel_1_ticks_to_add_at_loop) ||
+		(options.channel_2 && new_options.channel_2_loop_tick < options.channel_2_loop_tick) ||
+		(options.channel_2 && new_options.channel_2_end_tick  < options.channel_2_end_tick + channel_2_ticks_to_add_at_loop) ||
+		(options.channel_3 && new_options.channel_3_loop_tick < options.channel_3_loop_tick) ||
+		(options.channel_3 && new_options.channel_3_end_tick  < options.channel_3_end_tick + channel_3_ticks_to_add_at_loop) ||
+		(options.channel_4 && new_options.channel_4_loop_tick < options.channel_4_loop_tick) ||
+		(options.channel_4 && new_options.channel_4_end_tick  < options.channel_4_end_tick + channel_4_ticks_to_add_at_loop)
+	) {
+		msg = "Shortening the song is not yet supported!";
+		mw->_error_dialog->message(msg);
+		mw->_error_dialog->show(mw);
+		return;
+	}
+
+	if (mw->_piano_roll->resize_song(mw->_song, new_options)) {
+		mw->_status_message = "Resized song";
+		mw->_status_label->label(mw->_status_message.c_str());
+
+		mw->regenerate_it_module();
+
+		mw->update_active_controls();
+		mw->update_timestamp();
 		mw->redraw();
 	}
 }

@@ -123,6 +123,7 @@ private:
 		*_snip_mi = NULL,
 		*_split_note_mi = NULL,
 		*_glue_note_mi = NULL,
+		*_resize_song_mi = NULL,
 		*_pencil_mode_mi = NULL,
 		*_channel_1_mi = NULL,
 		*_channel_2_mi = NULL,
@@ -135,7 +136,7 @@ private:
 	// Dialogs
 	Directory_Chooser *_new_dir_chooser;
 	Fl_Native_File_Chooser *_asm_open_chooser, *_asm_save_chooser;
-	Modal_Dialog *_error_dialog, *_warning_dialog, *_success_dialog, *_unsaved_dialog, *_about_dialog;
+	Modal_Dialog *_error_dialog, *_warning_dialog, *_success_dialog, *_confirm_dialog, *_about_dialog;
 	Song_Options_Dialog *_song_options_dialog;
 	Help_Window *_help_window;
 	// Data
@@ -237,6 +238,7 @@ private:
 	void open_song(const char *directory, const char *filename);
 	void open_recent(int n);
 	bool save_song(bool force);
+	void regenerate_it_module();
 	void toggle_playback();
 	void stop_playback();
 	void start_audio_thread();
@@ -288,6 +290,7 @@ private:
 	static void snip_cb(Fl_Widget *w, Main_Window *mw);
 	static void split_note_cb(Fl_Widget *w, Main_Window *mw);
 	static void glue_note_cb(Fl_Widget *w, Main_Window *mw);
+	static void resize_song_cb(Fl_Widget *w, Main_Window *mw);
 	static void pencil_mode_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void channel_1_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_2_cb(Fl_Widget *w, Main_Window *mw);

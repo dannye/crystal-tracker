@@ -3171,6 +3171,14 @@ bool Piano_Roll::glue_note(Song &song) {
 	return true;
 }
 
+bool Piano_Roll::resize_song(Song &song, const Song_Options_Dialog::Song_Options &options) {
+	song.resize_song(options);
+	clear();
+	set_timeline(song);
+
+	return true;
+}
+
 int32_t Piano_Roll::quantize_tick(int32_t tick, bool round) {
 	const auto view = active_channel_view();
 	if (view && !_following && !_paused) {

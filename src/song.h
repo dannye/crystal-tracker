@@ -124,6 +124,7 @@ public:
 	void redo();
 	Parsed_Song::Result read_song(const char *f);
 	void new_song(Song_Options_Dialog::Song_Options options);
+	Song_Options_Dialog::Song_Options get_options();
 	bool write_song(const char *f);
 	const char *error_message() const { return _error_message.c_str(); }
 
@@ -171,6 +172,7 @@ public:
 	void snip_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
 	void split_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick, int32_t tick_offset);
 	void glue_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick);
+	void resize_song(const Song_Options_Dialog::Song_Options &options);
 
 	std::vector<Command> &channel_commands(const int selected_channel);
 	int32_t channel_loop_tick(const int selected_channel) const;
