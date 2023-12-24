@@ -3175,6 +3175,7 @@ bool Piano_Roll::resize_song(Song &song, const Song_Options_Dialog::Song_Options
 	song.resize_song(options);
 	clear();
 	set_timeline(song);
+	update_channel_detail(selected_channel());
 
 	return true;
 }

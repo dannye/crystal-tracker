@@ -98,6 +98,8 @@ Song_Options_Dialog::~Song_Options_Dialog() {
 	delete _channel_3_end_tick;
 	delete _channel_4_end_tick;
 	delete _synchronize_checkbox;
+	delete _beats_radio;
+	delete _ticks_radio;
 }
 
 Song_Options_Dialog::Song_Options Song_Options_Dialog::get_options() {
@@ -108,14 +110,14 @@ Song_Options_Dialog::Song_Options Song_Options_Dialog::get_options() {
 	options.channel_2 = _channel_2_checkbox->value();
 	options.channel_3 = _channel_3_checkbox->value();
 	options.channel_4 = _channel_4_checkbox->value();
-	options.channel_1_loop_tick = std::atoi(_channel_1_loop_tick->value());
-	options.channel_2_loop_tick = std::atoi(_channel_2_loop_tick->value());
-	options.channel_3_loop_tick = std::atoi(_channel_3_loop_tick->value());
-	options.channel_4_loop_tick = std::atoi(_channel_4_loop_tick->value());
-	options.channel_1_end_tick = std::atoi(_channel_1_end_tick->value());
-	options.channel_2_end_tick = std::atoi(_channel_2_end_tick->value());
-	options.channel_3_end_tick = std::atoi(_channel_3_end_tick->value());
-	options.channel_4_end_tick = std::atoi(_channel_4_end_tick->value());
+	options.channel_1_loop_tick = std::atoi(_channel_1_loop_tick->value()) * (_beats_radio->value() ? 48 : 1);
+	options.channel_2_loop_tick = std::atoi(_channel_2_loop_tick->value()) * (_beats_radio->value() ? 48 : 1);
+	options.channel_3_loop_tick = std::atoi(_channel_3_loop_tick->value()) * (_beats_radio->value() ? 48 : 1);
+	options.channel_4_loop_tick = std::atoi(_channel_4_loop_tick->value()) * (_beats_radio->value() ? 48 : 1);
+	options.channel_1_end_tick = std::atoi(_channel_1_end_tick->value()) * (_beats_radio->value() ? 48 : 1);
+	options.channel_2_end_tick = std::atoi(_channel_2_end_tick->value()) * (_beats_radio->value() ? 48 : 1);
+	options.channel_3_end_tick = std::atoi(_channel_3_end_tick->value()) * (_beats_radio->value() ? 48 : 1);
+	options.channel_4_end_tick = std::atoi(_channel_4_end_tick->value()) * (_beats_radio->value() ? 48 : 1);
 	options.result = Result::RESULT_OK;
 
 	if (
@@ -149,6 +151,7 @@ void Song_Options_Dialog::set_options(const Song_Options &options) {
 	initialize();
 
 	_synchronize_checkbox->clear();
+	_ticks_radio->setonly();
 
 	_channel_1_checkbox->set();
 	_channel_2_checkbox->set();
@@ -228,6 +231,20 @@ void Song_Options_Dialog::set_options(const Song_Options &options) {
 		(!options.channel_4 || options.channel_4_end_tick == max_end_tick);
 
 	_synchronize_checkbox->value((!options.looping || loop_synced) && end_synced);
+
+	if (
+		(!_channel_1_loop_tick->active() || std::atoi(_channel_1_loop_tick->value()) % 48 == 0) &&
+		(!_channel_2_loop_tick->active() || std::atoi(_channel_2_loop_tick->value()) % 48 == 0) &&
+		(!_channel_3_loop_tick->active() || std::atoi(_channel_3_loop_tick->value()) % 48 == 0) &&
+		(!_channel_4_loop_tick->active() || std::atoi(_channel_4_loop_tick->value()) % 48 == 0) &&
+		(!_channel_1_end_tick->active() || std::atoi(_channel_1_end_tick->value()) % 48 == 0) &&
+		(!_channel_2_end_tick->active() || std::atoi(_channel_2_end_tick->value()) % 48 == 0) &&
+		(!_channel_3_end_tick->active() || std::atoi(_channel_3_end_tick->value()) % 48 == 0) &&
+		(!_channel_4_end_tick->active() || std::atoi(_channel_4_end_tick->value()) % 48 == 0)
+	) {
+		_beats_radio->setonly();
+		beats_ticks_radio_cb(nullptr, this);
+	}
 }
 
 const char *Song_Options_Dialog::get_error_message(Result r) {
@@ -253,15 +270,17 @@ void Song_Options_Dialog::initialize_content() {
 	_channel_2_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel &2");
 	_channel_3_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel &3");
 	_channel_4_checkbox = new OS_Check_Button(0, 0, 0, 0, "Channel &4");
-	_channel_1_loop_tick = new OS_Int_Input(0, 0, 0, 0, "Loop Tick:");
-	_channel_2_loop_tick = new OS_Int_Input(0, 0, 0, 0, "Loop Tick:");
-	_channel_3_loop_tick = new OS_Int_Input(0, 0, 0, 0, "Loop Tick:");
-	_channel_4_loop_tick = new OS_Int_Input(0, 0, 0, 0, "Loop Tick:");
-	_channel_1_end_tick = new OS_Int_Input(0, 0, 0, 0, "End Tick:");
-	_channel_2_end_tick = new OS_Int_Input(0, 0, 0, 0, "End Tick:");
-	_channel_3_end_tick = new OS_Int_Input(0, 0, 0, 0, "End Tick:");
-	_channel_4_end_tick = new OS_Int_Input(0, 0, 0, 0, "End Tick:");
+	_channel_1_loop_tick = new OS_Int_Input(0, 0, 0, 0, "Loop Point:");
+	_channel_2_loop_tick = new OS_Int_Input(0, 0, 0, 0, "Loop Point:");
+	_channel_3_loop_tick = new OS_Int_Input(0, 0, 0, 0, "Loop Point:");
+	_channel_4_loop_tick = new OS_Int_Input(0, 0, 0, 0, "Loop Point:");
+	_channel_1_end_tick = new OS_Int_Input(0, 0, 0, 0, "End Point:");
+	_channel_2_end_tick = new OS_Int_Input(0, 0, 0, 0, "End Point:");
+	_channel_3_end_tick = new OS_Int_Input(0, 0, 0, 0, "End Point:");
+	_channel_4_end_tick = new OS_Int_Input(0, 0, 0, 0, "End Point:");
 	_synchronize_checkbox = new OS_Check_Button(0, 0, 0, 0, "&Synchronize Channels");
+	_beats_radio = new OS_Radio_Button(0, 0, 0, 0, "&Beats");
+	_ticks_radio = new OS_Radio_Button(0, 0, 0, 0, "&Ticks");
 	// Initialize content group's children
 	_song_name->align(FL_ALIGN_LEFT);
 	_looping_checkbox->callback((Fl_Callback *)looping_checkbox_cb, this);
@@ -294,6 +313,8 @@ void Song_Options_Dialog::initialize_content() {
 	_channel_4_end_tick->when(FL_WHEN_CHANGED | FL_WHEN_RELEASE_ALWAYS);
 	_channel_4_end_tick->align(FL_ALIGN_LEFT);
 	_synchronize_checkbox->callback((Fl_Callback *)synchronize_checkbox_cb, this);
+	_beats_radio->callback((Fl_Callback *)beats_ticks_radio_cb, this);
+	_ticks_radio->callback((Fl_Callback *)beats_ticks_radio_cb, this);
 }
 
 int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
@@ -327,7 +348,7 @@ int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
 	dx += wgt_w + wgt_h + text_width(_channel_1_end_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_1_end_tick->resize(dx, dy, wgt_w, wgt_h);
-	if (reset) _channel_1_end_tick->value("3072");
+	if (reset) _channel_1_end_tick->value("64");
 	if (reset) _channel_1_end_tick->activate();
 
 	dx = win_m;
@@ -344,7 +365,7 @@ int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
 	dx += wgt_w + wgt_h + text_width(_channel_2_end_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_2_end_tick->resize(dx, dy, wgt_w, wgt_h);
-	if (reset) _channel_2_end_tick->value("3072");
+	if (reset) _channel_2_end_tick->value("64");
 	if (reset) _channel_2_end_tick->activate();
 
 	dx = win_m;
@@ -361,7 +382,7 @@ int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
 	dx += wgt_w + wgt_h + text_width(_channel_3_end_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_3_end_tick->resize(dx, dy, wgt_w, wgt_h);
-	if (reset) _channel_3_end_tick->value("3072");
+	if (reset) _channel_3_end_tick->value("64");
 	if (reset) _channel_3_end_tick->activate();
 
 	dx = win_m;
@@ -378,14 +399,22 @@ int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
 	dx += wgt_w + wgt_h + text_width(_channel_4_end_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_4_end_tick->resize(dx, dy, wgt_w, wgt_h);
-	if (reset) _channel_4_end_tick->value("3072");
+	if (reset) _channel_4_end_tick->value("64");
 	if (reset) _channel_4_end_tick->activate();
 
 	dx = win_m;
-	dy += wgt_h + wgt_m;
+	dy += wgt_h + wgt_m + wgt_m;
 	wgt_w = text_width(_synchronize_checkbox->label(), 2) + wgt_h;
 	_synchronize_checkbox->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _synchronize_checkbox->set();
+	dx += wgt_w + wgt_h + wgt_h;
+	wgt_w = text_width(_beats_radio->label(), 2) + wgt_h;
+	_beats_radio->resize(dx, dy, wgt_w, wgt_h);
+	if (reset) _beats_radio->set();
+	dx += wgt_w;
+	wgt_w = text_width(_ticks_radio->label(), 2) + wgt_h;
+	_ticks_radio->resize(dx, dy, wgt_w, wgt_h);
+	if (reset) _ticks_radio->clear();
 
 	return ch;
 }
@@ -442,7 +471,7 @@ void Song_Options_Dialog::channel_checkbox_cb(OS_Check_Button *c, Song_Options_D
 			}
 			sod->_channel_1_end_tick->activate();
 			if (!sod->_synchronize_checkbox->value()) {
-				sod->_channel_1_end_tick->value("3072");
+				sod->_channel_1_end_tick->value(sod->_beats_radio->value() ? "64" : "3072");
 			}
 		}
 		if (c == sod->_channel_2_checkbox) {
@@ -454,7 +483,7 @@ void Song_Options_Dialog::channel_checkbox_cb(OS_Check_Button *c, Song_Options_D
 			}
 			sod->_channel_2_end_tick->activate();
 			if (!sod->_synchronize_checkbox->value()) {
-				sod->_channel_2_end_tick->value("3072");
+				sod->_channel_2_end_tick->value(sod->_beats_radio->value() ? "64" : "3072");
 			}
 		}
 		if (c == sod->_channel_3_checkbox) {
@@ -466,7 +495,7 @@ void Song_Options_Dialog::channel_checkbox_cb(OS_Check_Button *c, Song_Options_D
 			}
 			sod->_channel_3_end_tick->activate();
 			if (!sod->_synchronize_checkbox->value()) {
-				sod->_channel_3_end_tick->value("3072");
+				sod->_channel_3_end_tick->value(sod->_beats_radio->value() ? "64" : "3072");
 			}
 		}
 		if (c == sod->_channel_4_checkbox) {
@@ -478,7 +507,7 @@ void Song_Options_Dialog::channel_checkbox_cb(OS_Check_Button *c, Song_Options_D
 			}
 			sod->_channel_4_end_tick->activate();
 			if (!sod->_synchronize_checkbox->value()) {
-				sod->_channel_4_end_tick->value("3072");
+				sod->_channel_4_end_tick->value(sod->_beats_radio->value() ? "64" : "3072");
 			}
 		}
 		synchronize_checkbox_cb(nullptr, sod);
@@ -590,7 +619,7 @@ void Song_Options_Dialog::synchronize_checkbox_cb(OS_Check_Button *, Song_Option
 		if (sod->_channel_4_checkbox->value() && strlen(sod->_channel_4_end_tick->value())) {
 			return sod->_channel_4_end_tick->value();
 		}
-		return "3072";
+		return sod->_beats_radio->value() ? "64" : "3072";
 	};
 
 	if (sod->_synchronize_checkbox->value()) {
@@ -622,5 +651,39 @@ void Song_Options_Dialog::synchronize_checkbox_cb(OS_Check_Button *, Song_Option
 		if (sod->_channel_4_checkbox->value()) {
 			sod->_channel_4_end_tick->value(end_tick);
 		}
+	}
+}
+
+void Song_Options_Dialog::beats_ticks_radio_cb(OS_Radio_Button *, Song_Options_Dialog *sod) {
+	const auto ticks_to_beats = [](OS_Int_Input *i) {
+		if (!i->active()) return;
+		std::string val = std::to_string(std::atoi(i->value()) / 48);
+		i->value(val.c_str());
+	};
+	const auto beats_to_ticks = [](OS_Int_Input *i) {
+		if (!i->active()) return;
+		std::string val = std::to_string(std::atoi(i->value()) * 48);
+		i->value(val.c_str());
+	};
+
+	if (sod->_beats_radio->value()) {
+		ticks_to_beats(sod->_channel_1_loop_tick);
+		ticks_to_beats(sod->_channel_2_loop_tick);
+		ticks_to_beats(sod->_channel_3_loop_tick);
+		ticks_to_beats(sod->_channel_4_loop_tick);
+		ticks_to_beats(sod->_channel_1_end_tick);
+		ticks_to_beats(sod->_channel_2_end_tick);
+		ticks_to_beats(sod->_channel_3_end_tick);
+		ticks_to_beats(sod->_channel_4_end_tick);
+	}
+	else {
+		beats_to_ticks(sod->_channel_1_loop_tick);
+		beats_to_ticks(sod->_channel_2_loop_tick);
+		beats_to_ticks(sod->_channel_3_loop_tick);
+		beats_to_ticks(sod->_channel_4_loop_tick);
+		beats_to_ticks(sod->_channel_1_end_tick);
+		beats_to_ticks(sod->_channel_2_end_tick);
+		beats_to_ticks(sod->_channel_3_end_tick);
+		beats_to_ticks(sod->_channel_4_end_tick);
 	}
 }

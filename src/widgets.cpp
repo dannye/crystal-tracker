@@ -187,6 +187,81 @@ void OS_Check_Button::draw() {
 	if (Fl::focus() == this) { draw_focus(); }
 }
 
+OS_Radio_Button::OS_Radio_Button(int x, int y, int w, int h, const char *l) : Fl_Radio_Round_Button(x, y, w, h, l) {
+	labelfont(OS_FONT);
+	labelsize(OS_FONT_SIZE);
+	box(OS_BG_BOX);
+	align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
+	selection_color(FL_SELECTION_COLOR);
+}
+
+int OS_Radio_Button::handle(int event) {
+	if (event == FL_PUSH) {
+		Fl::focus(this);
+	}
+	return Fl_Radio_Round_Button::handle(event);
+}
+
+void OS_Radio_Button::draw() {
+	// Based on Fl_Light_Button::draw()
+	draw_box(this == Fl::pushed() ? fl_down(box()) : box(), active_r() ? color() : fl_inactive(color()));
+	int W = labelsize();
+#ifdef _WIN32
+	W++;
+#endif
+	int dx = Fl::box_dx(box()) + 2;
+	int dy = (h() - W) / 2;
+	draw_box(down_box(), x()+dx, y()+dy, W, W, FL_BACKGROUND2_COLOR);
+	if (value()) {
+		Fl_Color sc = Fl::scheme() && Fl::is_scheme("gtk+") ? selection_color() : FL_FOREGROUND_COLOR;
+		sc = active_r() ? sc : fl_inactive(sc);
+		int tW = (W - Fl::box_dw(down_box())) / 2 + 1;
+		if ((W - tW) & 1) tW++; // Make sure difference is even to center
+		int tdx = dx + (W - tW) / 2;
+		int tdy = dy + (W - tW) / 2;
+
+		if (Fl::is_scheme("gtk+")) {
+			fl_color(sc);
+			tW--;
+			fl_pie(x() + tdx - 1, y() + tdy - 1, tW + 3, tW + 3, 0.0, 360.0);
+			fl_color(fl_color_average(FL_WHITE, sc, 0.2f));
+		} else fl_color(sc);
+
+		switch (tW) {
+		// Larger circles draw fine...
+		default:
+			fl_pie(x() + tdx, y() + tdy, tW, tW, 0.0, 360.0);
+			break;
+
+		// Small circles don't draw well on many systems...
+		case 6:
+			fl_rectf(x() + tdx + 2, y() + tdy, tW - 4, tW);
+			fl_rectf(x() + tdx + 1, y() + tdy + 1, tW - 2, tW - 2);
+			fl_rectf(x() + tdx, y() + tdy + 2, tW, tW - 4);
+			break;
+
+		case 5:
+		case 4:
+		case 3:
+			fl_rectf(x() + tdx + 1, y() + tdy, tW - 2, tW);
+			fl_rectf(x() + tdx, y() + tdy + 1, tW, tW - 2);
+			break;
+
+		case 2:
+		case 1:
+			fl_rectf(x() + tdx, y() + tdy, tW, tW);
+			break;
+		}
+
+		if (Fl::is_scheme("gtk+")) {
+			fl_color(fl_color_average(FL_WHITE, sc, 0.5f));
+			fl_arc(x() + tdx, y() + tdy, tW + 1, tW + 1, 60.0, 180.0);
+		}
+	}
+	draw_label(x()+W+2*dx, y(), w()-W-2*dx, h());
+	if (Fl::focus() == this) { draw_focus(); }
+}
+
 OS_Spinner::OS_Spinner(int x, int y, int w, int h, const char *l) : Fl_Spinner(x, y, w, h, l) {
 	labelfont(OS_FONT);
 	labelsize(OS_FONT_SIZE);

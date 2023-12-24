@@ -94,6 +94,14 @@ protected:
 	int handle(int event);
 };
 
+class OS_Radio_Button : public Fl_Radio_Round_Button {
+public:
+	OS_Radio_Button(int x, int y, int w, int h, const char *l = NULL);
+	void draw(void);
+protected:
+	int handle(int event);
+};
+
 class OS_Spinner : public Fl_Spinner {
 public:
 	OS_Spinner(int x, int y, int w, int h, const char *l = NULL);

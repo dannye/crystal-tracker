@@ -25,7 +25,7 @@ R"(<html>
 <li>.)" DIR_SEP R"(audio)" DIR_SEP R"(drumkits_0f.asm (for pokepinball)</li>
 <li>.)" DIR_SEP R"(drumkits.asm</li>
 </ul>
-<p>Creating a new song will immediately prompt to choose a project directory (unless a song is already open) so that channel 3 waveforms can be loaded.</p>
+<p>Creating a new song will immediately prompt to choose a project directory (unless a song is already open) so that channel 3 waveforms and channel 4 drumkits can be loaded.</p>
 <p>Next is the Song Options dialog window. This dialog window specifies:</p>
 <ul>
 <li>The title of the song</li>
@@ -35,7 +35,9 @@ R"(<html>
 <li>The end point for each channel</li>
 </ul>
 <p>Use the "Synchronize Channels" checkbox to keep the loop point and end point for all channels locked together.</p>
-<p>The unit of measurement for loop point and end point is a "tick" — the smallest time step in the audio engine. This is good for having the greatest level of control but, admittedly, is a bit annoying to work with. The number of ticks can be converted to number of beats by dividing the number of ticks by the default speed of 12 (ie, 12 ticks per sixteenth note) divided by 4 sixteenth notes per beat, to make it easier to understand. In other words, the number of ticks is the result of multiplying the desired number of beats by 4 sixteenth notes per beat multiplied by 12 ticks per sixteenth note. So for example, the default end point is: 64 beats × 4 sixteenth notes per beat × 12 ticks per sixteenth note = 3072 ticks — which is exactly 16 measures at a 4/4 time signature.</p>
+<p>The default unit of measurement for loop point and end point is a "beat". This is rather intuitive but may not be precise enough for song lengths more granular than a beat.</p>
+<p>The alternate unit of measurement is a "tick" — the smallest time step in the audio engine. This is good for having the greatest level of control but, admittedly, is a bit annoying to work with.</p>
+<p>One beat is equal to 48 ticks. The number of beats can be converted to number of ticks by multiplying the number of beats by 4 sixteenth notes per beat multiplied by the default speed of 12 (ie, 12 ticks per sixteenth note). So for example, the default end point is: 64 beats × 4 sixteenth notes per beat × 12 ticks per sixteenth note = 3072 ticks — which is exactly 16 measures at a 4/4 time signature.</p>
 <p><b>Note:</b> When loading a file, if some pattern of notes is called by multiple channels then this pattern will be duplicated in-memory so that each channel is entirely independent. This has the side effect of creating duplicate labels in the file when re-saved. These duplicated labels will have to be fixed afterward in a text editor. This only has to be done once for a particular song that is affected by this.</p>
 <p><b>Note:</b> When saving a file, the song data is serialized and no comments or formatting details from the original file are preserved.</p>
 <hr>

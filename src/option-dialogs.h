@@ -71,6 +71,8 @@ private:
 	OS_Int_Input *_channel_3_end_tick = nullptr;
 	OS_Int_Input *_channel_4_end_tick = nullptr;
 	OS_Check_Button *_synchronize_checkbox = nullptr;
+	OS_Radio_Button *_beats_radio = nullptr;
+	OS_Radio_Button *_ticks_radio = nullptr;
 public:
 	Song_Options_Dialog(const char *t);
 	~Song_Options_Dialog();
@@ -86,6 +88,7 @@ private:
 	static void channel_loop_tick_cb(OS_Int_Input *i, Song_Options_Dialog *sod);
 	static void channel_end_tick_cb(OS_Int_Input *i, Song_Options_Dialog *sod);
 	static void synchronize_checkbox_cb(OS_Check_Button *c, Song_Options_Dialog *sod);
+	static void beats_ticks_radio_cb(OS_Radio_Button *r, Song_Options_Dialog *sod);
 };
 
 #endif
