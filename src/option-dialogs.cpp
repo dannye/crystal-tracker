@@ -320,7 +320,7 @@ void Song_Options_Dialog::initialize_content() {
 int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
 	int wgt_h = 22, win_m = 10, wgt_m = 4;
 	int dx = win_m;
-	int ch = wgt_h * 6 + wgt_m * 5;
+	int ch = wgt_h * 6 + wgt_m * 7;
 	_content->resize(dx, dy, ww, ch);
 
 	dx += text_width(_song_name->label(), 2) + wgt_h;
