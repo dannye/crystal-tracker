@@ -335,12 +335,12 @@ int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
 	if (reset) _looping_checkbox->activate();
 
 	dx = win_m;
-	dy += wgt_h + wgt_m;
+	dy += wgt_h + wgt_m + wgt_m;
 	wgt_w = text_width(_channel_4_checkbox->label(), 2) + wgt_h;
 	_channel_1_checkbox->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _channel_1_checkbox->set();
 	if (reset) _channel_1_checkbox->activate();
-	dx += wgt_w + wgt_h + text_width(_channel_1_loop_tick->label(), 2);
+	dx += wgt_w + wgt_m + text_width(_channel_1_loop_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_1_loop_tick->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _channel_1_loop_tick->value("0");
@@ -357,7 +357,7 @@ int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
 	_channel_2_checkbox->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _channel_2_checkbox->set();
 	if (reset) _channel_2_checkbox->activate();
-	dx += wgt_w + wgt_h + text_width(_channel_2_loop_tick->label(), 2);
+	dx += wgt_w + wgt_m + text_width(_channel_2_loop_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_2_loop_tick->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _channel_2_loop_tick->value("0");
@@ -374,7 +374,7 @@ int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
 	_channel_3_checkbox->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _channel_3_checkbox->set();
 	if (reset) _channel_3_checkbox->activate();
-	dx += wgt_w + wgt_h + text_width(_channel_3_loop_tick->label(), 2);
+	dx += wgt_w + wgt_m + text_width(_channel_3_loop_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_3_loop_tick->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _channel_3_loop_tick->value("0");
@@ -391,7 +391,7 @@ int Song_Options_Dialog::refresh_content(int ww, int dy, bool reset) {
 	_channel_4_checkbox->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _channel_4_checkbox->set();
 	if (reset) _channel_4_checkbox->activate();
-	dx += wgt_w + wgt_h + text_width(_channel_4_loop_tick->label(), 2);
+	dx += wgt_w + wgt_m + text_width(_channel_4_loop_tick->label(), 2);
 	wgt_w = text_width("9999", 2) + wgt_h;
 	_channel_4_loop_tick->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _channel_4_loop_tick->value("0");
