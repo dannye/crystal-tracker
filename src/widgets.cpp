@@ -196,6 +196,9 @@ OS_Radio_Button::OS_Radio_Button(int x, int y, int w, int h, const char *l) : Fl
 }
 
 int OS_Radio_Button::handle(int event) {
+	if ((event == FL_SHORTCUT || event == FL_KEYBOARD) && value()) {
+		return 0;
+	}
 	if (event == FL_PUSH) {
 		Fl::focus(this);
 	}
