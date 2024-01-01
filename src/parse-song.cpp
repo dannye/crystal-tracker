@@ -489,10 +489,6 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				}
 
 				else if (macro == "octave") {
-					// too many real songs violate this rule
-					/* if (_channel_number == 4) {
-						return (_result = Result::SONG_ILLEGAL_MACRO);
-					} */
 					command.type = Command_Type::OCTAVE;
 					if (!get_number(lss, command.octave.octave)) {
 						return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);

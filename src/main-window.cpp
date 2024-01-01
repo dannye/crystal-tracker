@@ -2325,35 +2325,15 @@ void Main_Window::resize_song_cb(Fl_Widget *, Main_Window *mw) {
 	}
 
 	if (
-		(!options.channel_1 || new_options.channel_1_loop_tick == options.channel_1_loop_tick) &&
-		(!options.channel_1 || new_options.channel_1_end_tick  == options.channel_1_end_tick)  &&
-		(!options.channel_2 || new_options.channel_2_loop_tick == options.channel_2_loop_tick) &&
-		(!options.channel_2 || new_options.channel_2_end_tick  == options.channel_2_end_tick)  &&
-		(!options.channel_3 || new_options.channel_3_loop_tick == options.channel_3_loop_tick) &&
-		(!options.channel_3 || new_options.channel_3_end_tick  == options.channel_3_end_tick)  &&
-		(!options.channel_4 || new_options.channel_4_loop_tick == options.channel_4_loop_tick) &&
+		(!options.channel_1 || new_options.channel_1_loop_tick == options.channel_1_loop_tick || !options.looping) &&
+		(!options.channel_1 || new_options.channel_1_end_tick  == options.channel_1_end_tick) &&
+		(!options.channel_2 || new_options.channel_2_loop_tick == options.channel_2_loop_tick || !options.looping) &&
+		(!options.channel_2 || new_options.channel_2_end_tick  == options.channel_2_end_tick) &&
+		(!options.channel_3 || new_options.channel_3_loop_tick == options.channel_3_loop_tick || !options.looping) &&
+		(!options.channel_3 || new_options.channel_3_end_tick  == options.channel_3_end_tick) &&
+		(!options.channel_4 || new_options.channel_4_loop_tick == options.channel_4_loop_tick || !options.looping) &&
 		(!options.channel_4 || new_options.channel_4_end_tick  == options.channel_4_end_tick)
 	) {
-		return;
-	}
-
-	int32_t channel_1_ticks_to_add_at_loop = options.looping ? new_options.channel_1_loop_tick - options.channel_1_loop_tick : 0;
-	int32_t channel_2_ticks_to_add_at_loop = options.looping ? new_options.channel_2_loop_tick - options.channel_2_loop_tick : 0;
-	int32_t channel_3_ticks_to_add_at_loop = options.looping ? new_options.channel_3_loop_tick - options.channel_3_loop_tick : 0;
-	int32_t channel_4_ticks_to_add_at_loop = options.looping ? new_options.channel_4_loop_tick - options.channel_4_loop_tick : 0;
-	if (
-		(options.channel_1 && new_options.channel_1_loop_tick < options.channel_1_loop_tick) ||
-		(options.channel_1 && new_options.channel_1_end_tick  < options.channel_1_end_tick + channel_1_ticks_to_add_at_loop) ||
-		(options.channel_2 && new_options.channel_2_loop_tick < options.channel_2_loop_tick) ||
-		(options.channel_2 && new_options.channel_2_end_tick  < options.channel_2_end_tick + channel_2_ticks_to_add_at_loop) ||
-		(options.channel_3 && new_options.channel_3_loop_tick < options.channel_3_loop_tick) ||
-		(options.channel_3 && new_options.channel_3_end_tick  < options.channel_3_end_tick + channel_3_ticks_to_add_at_loop) ||
-		(options.channel_4 && new_options.channel_4_loop_tick < options.channel_4_loop_tick) ||
-		(options.channel_4 && new_options.channel_4_end_tick  < options.channel_4_end_tick + channel_4_ticks_to_add_at_loop)
-	) {
-		msg = "Shortening the song is not yet supported!";
-		mw->_error_dialog->message(msg);
-		mw->_error_dialog->show(mw);
 		return;
 	}
 
