@@ -1495,6 +1495,184 @@ void erase_ticks(int32_t selected_channel, std::vector<Command> &commands, int32
 	}
 }
 
+void resize_channel(int32_t selected_channel, std::vector<Command> &commands, int32_t new_loop_tick, int32_t new_end_tick) {
+	int32_t old_loop_tick, old_end_tick;
+	Extra_Info info;
+	calc_channel_length(commands, old_loop_tick, old_end_tick, &info);
+
+	const int32_t original_intro_length = old_loop_tick != -1 ? old_loop_tick : 0;
+	const int32_t final_intro_length    = new_loop_tick != -1 ? new_loop_tick : 0;
+	int32_t ticks_to_insert_at_loop = final_intro_length - original_intro_length;
+
+	const int32_t original_body_length = old_end_tick - original_intro_length;
+	const int32_t final_body_length    = new_end_tick - final_intro_length;
+	int32_t ticks_to_insert_at_end = final_body_length - original_body_length;
+
+	if (ticks_to_insert_at_loop < 0) {
+		int32_t loop_index = info.loop_index;
+		int32_t base_loop_index = get_base_index(commands, final_intro_length);
+		if (base_loop_index == -1) {
+			// no base could be found, so start from the beginning...
+			base_loop_index = 0;
+			// ...but advance to first potential note or rest
+			while (
+				commands[base_loop_index].type != Command_Type::NOTE &&
+				commands[base_loop_index].type != Command_Type::DRUM_NOTE &&
+				commands[base_loop_index].type != Command_Type::REST &&
+				commands[base_loop_index].type != Command_Type::SOUND_CALL &&
+				!(commands[base_loop_index].type == Command_Type::SOUND_LOOP && commands[base_loop_index].sound_loop.loop_count != 0)
+			) {
+				assert(commands[base_loop_index].type != Command_Type::SOUND_RET);
+				if (
+					commands[base_loop_index].type == Command_Type::SOUND_JUMP ||
+					commands[base_loop_index].type == Command_Type::SOUND_LOOP
+				) {
+					base_loop_index = find_note_with_label(commands, commands[base_loop_index].target) - commands.begin();
+					continue;
+				}
+				base_loop_index += 1;
+			}
+		}
+		else {
+			base_loop_index += 1;
+		}
+
+		// if the whole intro is being deleted, preserve the position of the channel label
+		int32_t temp_cmd_index = -1;
+		if (base_loop_index == 0) {
+			Command command = Command(Command_Type::VOLUME); // temporary
+			command.labels = std::move(commands[base_loop_index].labels);
+			commands[base_loop_index].labels.clear();
+			commands.insert(commands.begin() + base_loop_index, command);
+			temp_cmd_index = base_loop_index;
+			base_loop_index += 1;
+			loop_index += 1;
+		}
+
+		while (loop_index != base_loop_index) {
+			if (
+				(commands[base_loop_index].type == Command_Type::SOUND_JUMP) ||
+				(commands[base_loop_index].type == Command_Type::SOUND_LOOP && commands[base_loop_index].sound_loop.loop_count == 0)
+			) {
+				base_loop_index = find_note_with_label(commands, commands[base_loop_index].target) - commands.begin();
+				continue;
+			}
+			commands[base_loop_index + 1].labels.insert(commands[base_loop_index + 1].labels.begin(), RANGE(commands[base_loop_index].labels));
+			commands.erase(commands.begin() + base_loop_index);
+			if (loop_index > base_loop_index) {
+				loop_index -= 1;
+			}
+		}
+
+		int32_t current_loop_tick, current_end_tick;
+		calc_channel_length(commands, current_loop_tick, current_end_tick, &info);
+		assert(current_loop_tick < old_loop_tick);
+
+		ticks_to_insert_at_loop = final_intro_length - current_loop_tick;
+		assert(ticks_to_insert_at_loop >= 0);
+
+		insert_ticks(selected_channel, commands, ticks_to_insert_at_loop, info.loop_index, info.speed_at_loop, info.volume_at_loop, info.fade_at_loop);
+
+		if (temp_cmd_index != -1) {
+			commands[temp_cmd_index + 1].labels.insert(commands[temp_cmd_index + 1].labels.begin(), RANGE(commands[temp_cmd_index].labels));
+			commands.erase(commands.begin() + temp_cmd_index);
+		}
+	}
+	else {
+		insert_ticks(selected_channel, commands, ticks_to_insert_at_loop, info.loop_index, info.speed_at_loop, info.volume_at_loop, info.fade_at_loop);
+	}
+
+	calc_channel_length(commands, old_loop_tick, old_end_tick, &info);
+
+	const int32_t current_intro_length = old_loop_tick != -1 ? old_loop_tick : 0;
+	assert(current_intro_length == final_intro_length);
+
+	const int32_t current_body_length = old_end_tick - current_intro_length;
+	ticks_to_insert_at_end = final_body_length - current_body_length;
+
+	if (ticks_to_insert_at_end < 0) {
+		int32_t end_index = info.end_index;
+		int32_t base_end_index = get_base_index(commands, current_intro_length + final_body_length);
+		if (base_end_index == -1) {
+			// no base could be found, so start from the beginning...
+			base_end_index = std::max(info.loop_index, 0);
+			// ...but advance to first potential note or rest
+			while (
+				commands[base_end_index].type != Command_Type::NOTE &&
+				commands[base_end_index].type != Command_Type::DRUM_NOTE &&
+				commands[base_end_index].type != Command_Type::REST &&
+				commands[base_end_index].type != Command_Type::SOUND_CALL &&
+				!(commands[base_end_index].type == Command_Type::SOUND_LOOP && commands[base_end_index].sound_loop.loop_count != 0)
+			) {
+				assert(commands[base_end_index].type != Command_Type::SOUND_RET);
+				if (
+					commands[base_end_index].type == Command_Type::SOUND_JUMP ||
+					commands[base_end_index].type == Command_Type::SOUND_LOOP
+				) {
+					base_end_index = find_note_with_label(commands, commands[base_end_index].target) - commands.begin();
+					continue;
+				}
+				base_end_index += 1;
+			}
+		}
+		else {
+			base_end_index += 1;
+			assert(base_end_index >= info.loop_index);
+		}
+
+		// if the whole body is being deleted, preserve the position of the loop label
+		int32_t temp_cmd_index = -1;
+		if (base_end_index == std::max(info.loop_index, 0)) {
+			Command command = Command(Command_Type::VOLUME); // temporary
+			command.labels = std::move(commands[base_end_index].labels);
+			commands[base_end_index].labels.clear();
+			commands.insert(commands.begin() + base_end_index, command);
+			temp_cmd_index = base_end_index;
+			base_end_index += 1;
+			if (end_index > temp_cmd_index) {
+				end_index += 1;
+			}
+		}
+
+		while (end_index != base_end_index) {
+			if (
+				(commands[base_end_index].type == Command_Type::SOUND_JUMP) ||
+				(commands[base_end_index].type == Command_Type::SOUND_LOOP && commands[base_end_index].sound_loop.loop_count == 0)
+			) {
+				base_end_index = find_note_with_label(commands, commands[base_end_index].target) - commands.begin();
+				continue;
+			}
+			commands[base_end_index + 1].labels.insert(commands[base_end_index + 1].labels.begin(), RANGE(commands[base_end_index].labels));
+			commands.erase(commands.begin() + base_end_index);
+			if (end_index > base_end_index) {
+				end_index -= 1;
+			}
+		}
+
+		int32_t current_loop_tick, current_end_tick;
+		calc_channel_length(commands, current_loop_tick, current_end_tick, &info);
+		assert(current_loop_tick == old_loop_tick);
+		assert(current_end_tick < old_end_tick);
+
+		const int32_t current_intro_length = current_loop_tick != -1 ? current_loop_tick : 0;
+		assert(current_intro_length == final_intro_length);
+
+		const int32_t current_body_length = current_end_tick - current_intro_length;
+		ticks_to_insert_at_end = final_body_length - current_body_length;
+		assert(ticks_to_insert_at_end >= 0);
+
+		insert_ticks(selected_channel, commands, ticks_to_insert_at_end, info.end_index, info.speed_at_end, info.volume_at_end, info.fade_at_end);
+
+		if (temp_cmd_index != -1) {
+			commands[temp_cmd_index + 1].labels.insert(commands[temp_cmd_index + 1].labels.begin(), RANGE(commands[temp_cmd_index].labels));
+			commands.erase(commands.begin() + temp_cmd_index);
+		}
+	}
+	else {
+		insert_ticks(selected_channel, commands, ticks_to_insert_at_end, info.end_index, info.speed_at_end, info.volume_at_end, info.fade_at_end);
+	}
+}
+
 int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t octave, int32_t old_octave, int32_t index, int32_t tick, int32_t tick_offset) {
 	remember(selected_channel, selected_boxes, Song_State::Action::PUT_NOTE, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
@@ -2212,22 +2390,7 @@ void Song::snip_selection(const int selected_channel, const std::set<int32_t> &s
 		commands.erase(commands.begin() + *note_itr);
 	}
 
-	int32_t loop_tick = channel_loop_tick(selected_channel);
-	int32_t end_tick = channel_end_tick(selected_channel);
-
-	int32_t new_loop_tick, new_end_tick;
-	Extra_Info info;
-	calc_channel_length(commands, new_loop_tick, new_end_tick, &info);
-	assert(new_loop_tick != -1 || loop_tick == -1);
-	assert(new_loop_tick <= loop_tick);
-	assert(new_end_tick != -1);
-	assert(new_end_tick < end_tick);
-
-	int32_t ticks_to_insert_at_loop = loop_tick - new_loop_tick;
-	int32_t ticks_to_insert_at_end = end_tick - new_end_tick - ticks_to_insert_at_loop;
-
-	insert_ticks(selected_channel, commands, ticks_to_insert_at_end,  info.end_index,  info.speed_at_end,  info.volume_at_end,  info.fade_at_end);
-	insert_ticks(selected_channel, commands, ticks_to_insert_at_loop, info.loop_index, info.speed_at_loop, info.volume_at_loop, info.fade_at_loop);
+	resize_channel(selected_channel, commands, channel_loop_tick(selected_channel), channel_end_tick(selected_channel));
 
 	postprocess(commands);
 
@@ -2283,205 +2446,31 @@ void Song::resize_song(const Song_Options_Dialog::Song_Options &options) {
 	_history.clear();
 	_future.clear();
 
-	const auto resize_channel = [this](int channel, int32_t new_loop_tick, int32_t new_end_tick) {
-		std::vector<Command> &commands = channel_commands(channel);
-
-		int32_t old_loop_tick, old_end_tick;
-		Extra_Info info;
-		calc_channel_length(commands, old_loop_tick, old_end_tick, &info);
-
-		const int32_t original_intro_length = old_loop_tick != -1 ? old_loop_tick : 0;
-		const int32_t final_intro_length    = new_loop_tick != -1 ? new_loop_tick : 0;
-		int32_t ticks_to_insert_at_loop = final_intro_length - original_intro_length;
-
-		const int32_t original_body_length = old_end_tick - original_intro_length;
-		const int32_t final_body_length    = new_end_tick - final_intro_length;
-		int32_t ticks_to_insert_at_end = final_body_length - original_body_length;
-
-		if (ticks_to_insert_at_loop < 0) {
-			int32_t loop_index = info.loop_index;
-			int32_t base_loop_index = get_base_index(commands, final_intro_length);
-			if (base_loop_index == -1) {
-				// no base could be found, so start from the beginning...
-				base_loop_index = 0;
-				// ...but advance to first potential note or rest
-				while (
-					commands[base_loop_index].type != Command_Type::NOTE &&
-					commands[base_loop_index].type != Command_Type::DRUM_NOTE &&
-					commands[base_loop_index].type != Command_Type::REST &&
-					commands[base_loop_index].type != Command_Type::SOUND_CALL &&
-					!(commands[base_loop_index].type == Command_Type::SOUND_LOOP && commands[base_loop_index].sound_loop.loop_count != 0)
-				) {
-					assert(commands[base_loop_index].type != Command_Type::SOUND_RET);
-					if (
-						commands[base_loop_index].type == Command_Type::SOUND_JUMP ||
-						commands[base_loop_index].type == Command_Type::SOUND_LOOP
-					) {
-						base_loop_index = find_note_with_label(commands, commands[base_loop_index].target) - commands.begin();
-						continue;
-					}
-					base_loop_index += 1;
-				}
-			}
-			else {
-				base_loop_index += 1;
-			}
-
-			// if the whole intro is being deleted, preserve the position of the channel label
-			int32_t temp_cmd_index = -1;
-			if (base_loop_index == 0) {
-				Command command = Command(Command_Type::VOLUME); // temporary
-				command.labels = std::move(commands[base_loop_index].labels);
-				commands[base_loop_index].labels.clear();
-				commands.insert(commands.begin() + base_loop_index, command);
-				temp_cmd_index = base_loop_index;
-				base_loop_index += 1;
-				loop_index += 1;
-			}
-
-			while (loop_index != base_loop_index) {
-				if (
-					(commands[base_loop_index].type == Command_Type::SOUND_JUMP) ||
-					(commands[base_loop_index].type == Command_Type::SOUND_LOOP && commands[base_loop_index].sound_loop.loop_count == 0)
-				) {
-					base_loop_index = find_note_with_label(commands, commands[base_loop_index].target) - commands.begin();
-					continue;
-				}
-				commands[base_loop_index + 1].labels.insert(commands[base_loop_index + 1].labels.begin(), RANGE(commands[base_loop_index].labels));
-				commands.erase(commands.begin() + base_loop_index);
-				if (loop_index > base_loop_index) {
-					loop_index -= 1;
-				}
-			}
-
-			int32_t current_loop_tick, current_end_tick;
-			calc_channel_length(commands, current_loop_tick, current_end_tick, &info);
-			assert(current_loop_tick < old_loop_tick);
-
-			ticks_to_insert_at_loop = final_intro_length - current_loop_tick;
-			assert(ticks_to_insert_at_loop >= 0);
-
-			insert_ticks(channel, commands, ticks_to_insert_at_loop, info.loop_index, info.speed_at_loop, info.volume_at_loop, info.fade_at_loop);
-
-			if (temp_cmd_index != -1) {
-				commands[temp_cmd_index + 1].labels.insert(commands[temp_cmd_index + 1].labels.begin(), RANGE(commands[temp_cmd_index].labels));
-				commands.erase(commands.begin() + temp_cmd_index);
-			}
-		}
-		else {
-			insert_ticks(channel, commands, ticks_to_insert_at_loop, info.loop_index, info.speed_at_loop, info.volume_at_loop, info.fade_at_loop);
-		}
-
-		calc_channel_length(commands, old_loop_tick, old_end_tick, &info);
-
-		const int32_t current_intro_length = old_loop_tick != -1 ? old_loop_tick : 0;
-		assert(current_intro_length == final_intro_length);
-
-		const int32_t current_body_length = old_end_tick - current_intro_length;
-		ticks_to_insert_at_end = final_body_length - current_body_length;
-
-		if (ticks_to_insert_at_end < 0) {
-			int32_t end_index = info.end_index;
-			int32_t base_end_index = get_base_index(commands, current_intro_length + final_body_length);
-			if (base_end_index == -1) {
-				// no base could be found, so start from the beginning...
-				base_end_index = std::max(info.loop_index, 0);
-				// ...but advance to first potential note or rest
-				while (
-					commands[base_end_index].type != Command_Type::NOTE &&
-					commands[base_end_index].type != Command_Type::DRUM_NOTE &&
-					commands[base_end_index].type != Command_Type::REST &&
-					commands[base_end_index].type != Command_Type::SOUND_CALL &&
-					!(commands[base_end_index].type == Command_Type::SOUND_LOOP && commands[base_end_index].sound_loop.loop_count != 0)
-				) {
-					assert(commands[base_end_index].type != Command_Type::SOUND_RET);
-					if (
-						commands[base_end_index].type == Command_Type::SOUND_JUMP ||
-						commands[base_end_index].type == Command_Type::SOUND_LOOP
-					) {
-						base_end_index = find_note_with_label(commands, commands[base_end_index].target) - commands.begin();
-						continue;
-					}
-					base_end_index += 1;
-				}
-			}
-			else {
-				base_end_index += 1;
-				assert(base_end_index >= info.loop_index);
-			}
-
-			// if the whole body is being deleted, preserve the position of the loop label
-			int32_t temp_cmd_index = -1;
-			if (base_end_index == std::max(info.loop_index, 0)) {
-				Command command = Command(Command_Type::VOLUME); // temporary
-				command.labels = std::move(commands[base_end_index].labels);
-				commands[base_end_index].labels.clear();
-				commands.insert(commands.begin() + base_end_index, command);
-				temp_cmd_index = base_end_index;
-				base_end_index += 1;
-				if (end_index > temp_cmd_index) {
-					end_index += 1;
-				}
-			}
-
-			while (end_index != base_end_index) {
-				if (
-					(commands[base_end_index].type == Command_Type::SOUND_JUMP) ||
-					(commands[base_end_index].type == Command_Type::SOUND_LOOP && commands[base_end_index].sound_loop.loop_count == 0)
-				) {
-					base_end_index = find_note_with_label(commands, commands[base_end_index].target) - commands.begin();
-					continue;
-				}
-				commands[base_end_index + 1].labels.insert(commands[base_end_index + 1].labels.begin(), RANGE(commands[base_end_index].labels));
-				commands.erase(commands.begin() + base_end_index);
-				if (end_index > base_end_index) {
-					end_index -= 1;
-				}
-			}
-
-			int32_t current_loop_tick, current_end_tick;
-			calc_channel_length(commands, current_loop_tick, current_end_tick, &info);
-			assert(current_loop_tick == old_loop_tick);
-			assert(current_end_tick < old_end_tick);
-
-			const int32_t current_intro_length = current_loop_tick != -1 ? current_loop_tick : 0;
-			assert(current_intro_length == final_intro_length);
-
-			const int32_t current_body_length = current_end_tick - current_intro_length;
-			ticks_to_insert_at_end = final_body_length - current_body_length;
-			assert(ticks_to_insert_at_end >= 0);
-
-			insert_ticks(channel, commands, ticks_to_insert_at_end, info.end_index, info.speed_at_end, info.volume_at_end, info.fade_at_end);
-
-			if (temp_cmd_index != -1) {
-				commands[temp_cmd_index + 1].labels.insert(commands[temp_cmd_index + 1].labels.begin(), RANGE(commands[temp_cmd_index].labels));
-				commands.erase(commands.begin() + temp_cmd_index);
-			}
-		}
-		else {
-			insert_ticks(channel, commands, ticks_to_insert_at_end, info.end_index, info.speed_at_end, info.volume_at_end, info.fade_at_end);
-		}
-
-		postprocess(commands);
-	};
-
 	if (options.channel_1) {
-		resize_channel(1, options.looping ? options.channel_1_loop_tick : -1, options.channel_1_end_tick);
+		std::vector<Command> &commands = channel_commands(1);
+		resize_channel(1, commands, options.looping ? options.channel_1_loop_tick : -1, options.channel_1_end_tick);
+		postprocess(commands);
 		if (options.looping) _channel_1_loop_tick = options.channel_1_loop_tick;
 		_channel_1_end_tick  = options.channel_1_end_tick;
 	}
 	if (options.channel_2) {
-		resize_channel(2, options.looping ? options.channel_2_loop_tick : -1, options.channel_2_end_tick);
+		std::vector<Command> &commands = channel_commands(2);
+		resize_channel(2, commands, options.looping ? options.channel_2_loop_tick : -1, options.channel_2_end_tick);
+		postprocess(commands);
 		if (options.looping) _channel_2_loop_tick = options.channel_2_loop_tick;
 		_channel_2_end_tick  = options.channel_2_end_tick;
 	}
 	if (options.channel_3) {
-		resize_channel(3, options.looping ? options.channel_3_loop_tick : -1, options.channel_3_end_tick);
+		std::vector<Command> &commands = channel_commands(3);
+		resize_channel(3, commands, options.looping ? options.channel_3_loop_tick : -1, options.channel_3_end_tick);
+		postprocess(commands);
 		if (options.looping) _channel_3_loop_tick = options.channel_3_loop_tick;
 		_channel_3_end_tick  = options.channel_3_end_tick;
 	}
 	if (options.channel_4) {
-		resize_channel(4, options.looping ? options.channel_4_loop_tick : -1, options.channel_4_end_tick);
+		std::vector<Command> &commands = channel_commands(4);
+		resize_channel(4, commands, options.looping ? options.channel_4_loop_tick : -1, options.channel_4_end_tick);
+		postprocess(commands);
 		if (options.looping) _channel_4_loop_tick = options.channel_4_loop_tick;
 		_channel_4_end_tick  = options.channel_4_end_tick;
 	}
