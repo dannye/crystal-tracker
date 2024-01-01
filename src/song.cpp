@@ -2298,84 +2298,6 @@ void Song::resize_song(const Song_Options_Dialog::Song_Options &options) {
 		const int32_t final_body_length    = new_end_tick - final_intro_length;
 		int32_t ticks_to_insert_at_end = final_body_length - original_body_length;
 
-		if (ticks_to_insert_at_end < 0) {
-			int32_t end_index = info.end_index;
-			int32_t base_end_index = get_base_index(commands, original_intro_length + final_body_length);
-			if (base_end_index == -1) {
-				// no base could be found, so start from loop_index...
-				base_end_index = info.loop_index;
-				// ...but advance to first potential note or rest
-				while (
-					commands[base_end_index].type != Command_Type::NOTE &&
-					commands[base_end_index].type != Command_Type::DRUM_NOTE &&
-					commands[base_end_index].type != Command_Type::REST &&
-					commands[base_end_index].type != Command_Type::SOUND_CALL &&
-					!(commands[base_end_index].type == Command_Type::SOUND_LOOP && commands[base_end_index].sound_loop.loop_count != 0)
-				) {
-					assert(commands[base_end_index].type != Command_Type::SOUND_RET);
-					if (
-						commands[base_end_index].type == Command_Type::SOUND_JUMP ||
-						commands[base_end_index].type == Command_Type::SOUND_LOOP
-					) {
-						base_end_index = find_note_with_label(commands, commands[base_end_index].target) - commands.begin();
-						continue;
-					}
-					base_end_index += 1;
-				}
-			}
-			else {
-				base_end_index += 1;
-			}
-
-			// if the whole body is being deleted, preserve the position of the loop label
-			int32_t temp_cmd_index = -1;
-			if (base_end_index == info.loop_index) {
-				Command command = Command(Command_Type::VOLUME); // temporary
-				command.labels = std::move(commands[base_end_index].labels);
-				commands[base_end_index].labels.clear();
-				commands.insert(commands.begin() + base_end_index, command);
-				temp_cmd_index = base_end_index;
-				base_end_index += 1;
-				if (end_index > temp_cmd_index) {
-					end_index += 1;
-				}
-			}
-
-			while (end_index != base_end_index) {
-				if (
-					(commands[base_end_index].type == Command_Type::SOUND_JUMP) ||
-					(commands[base_end_index].type == Command_Type::SOUND_LOOP && commands[base_end_index].sound_loop.loop_count == 0)
-				) {
-					base_end_index = find_note_with_label(commands, commands[base_end_index].target) - commands.begin();
-					continue;
-				}
-				commands[base_end_index + 1].labels.insert(commands[base_end_index + 1].labels.begin(), RANGE(commands[base_end_index].labels));
-				commands.erase(commands.begin() + base_end_index);
-				if (end_index > base_end_index) {
-					end_index -= 1;
-				}
-			}
-
-			int32_t current_loop_tick, current_end_tick;
-			calc_channel_length(commands, current_loop_tick, current_end_tick, &info);
-			assert(current_loop_tick == old_loop_tick);
-			assert(current_end_tick < old_end_tick);
-
-			const int32_t current_body_length = current_end_tick - original_intro_length;
-			ticks_to_insert_at_end = final_body_length - current_body_length;
-			assert(ticks_to_insert_at_end >= 0);
-
-			insert_ticks(channel, commands, ticks_to_insert_at_end, info.end_index, info.speed_at_end, info.volume_at_end, info.fade_at_end);
-
-			if (temp_cmd_index != -1) {
-				commands[temp_cmd_index + 1].labels.insert(commands[temp_cmd_index + 1].labels.begin(), RANGE(commands[temp_cmd_index].labels));
-				commands.erase(commands.begin() + temp_cmd_index);
-			}
-		}
-		else {
-			insert_ticks(channel, commands, ticks_to_insert_at_end, info.end_index, info.speed_at_end, info.volume_at_end, info.fade_at_end);
-		}
-
 		if (ticks_to_insert_at_loop < 0) {
 			int32_t loop_index = info.loop_index;
 			int32_t base_loop_index = get_base_index(commands, final_intro_length);
@@ -2448,6 +2370,96 @@ void Song::resize_song(const Song_Options_Dialog::Song_Options &options) {
 		}
 		else {
 			insert_ticks(channel, commands, ticks_to_insert_at_loop, info.loop_index, info.speed_at_loop, info.volume_at_loop, info.fade_at_loop);
+		}
+
+		calc_channel_length(commands, old_loop_tick, old_end_tick, &info);
+
+		const int32_t current_intro_length = old_loop_tick != -1 ? old_loop_tick : 0;
+		assert(current_intro_length == final_intro_length);
+
+		const int32_t current_body_length = old_end_tick - current_intro_length;
+		ticks_to_insert_at_end = final_body_length - current_body_length;
+
+		if (ticks_to_insert_at_end < 0) {
+			int32_t end_index = info.end_index;
+			int32_t base_end_index = get_base_index(commands, current_intro_length + final_body_length);
+			if (base_end_index == -1) {
+				// no base could be found, so start from the beginning...
+				base_end_index = std::max(info.loop_index, 0);
+				// ...but advance to first potential note or rest
+				while (
+					commands[base_end_index].type != Command_Type::NOTE &&
+					commands[base_end_index].type != Command_Type::DRUM_NOTE &&
+					commands[base_end_index].type != Command_Type::REST &&
+					commands[base_end_index].type != Command_Type::SOUND_CALL &&
+					!(commands[base_end_index].type == Command_Type::SOUND_LOOP && commands[base_end_index].sound_loop.loop_count != 0)
+				) {
+					assert(commands[base_end_index].type != Command_Type::SOUND_RET);
+					if (
+						commands[base_end_index].type == Command_Type::SOUND_JUMP ||
+						commands[base_end_index].type == Command_Type::SOUND_LOOP
+					) {
+						base_end_index = find_note_with_label(commands, commands[base_end_index].target) - commands.begin();
+						continue;
+					}
+					base_end_index += 1;
+				}
+			}
+			else {
+				base_end_index += 1;
+				assert(base_end_index >= info.loop_index);
+			}
+
+			// if the whole body is being deleted, preserve the position of the loop label
+			int32_t temp_cmd_index = -1;
+			if (base_end_index == std::max(info.loop_index, 0)) {
+				Command command = Command(Command_Type::VOLUME); // temporary
+				command.labels = std::move(commands[base_end_index].labels);
+				commands[base_end_index].labels.clear();
+				commands.insert(commands.begin() + base_end_index, command);
+				temp_cmd_index = base_end_index;
+				base_end_index += 1;
+				if (end_index > temp_cmd_index) {
+					end_index += 1;
+				}
+			}
+
+			while (end_index != base_end_index) {
+				if (
+					(commands[base_end_index].type == Command_Type::SOUND_JUMP) ||
+					(commands[base_end_index].type == Command_Type::SOUND_LOOP && commands[base_end_index].sound_loop.loop_count == 0)
+				) {
+					base_end_index = find_note_with_label(commands, commands[base_end_index].target) - commands.begin();
+					continue;
+				}
+				commands[base_end_index + 1].labels.insert(commands[base_end_index + 1].labels.begin(), RANGE(commands[base_end_index].labels));
+				commands.erase(commands.begin() + base_end_index);
+				if (end_index > base_end_index) {
+					end_index -= 1;
+				}
+			}
+
+			int32_t current_loop_tick, current_end_tick;
+			calc_channel_length(commands, current_loop_tick, current_end_tick, &info);
+			assert(current_loop_tick == old_loop_tick);
+			assert(current_end_tick < old_end_tick);
+
+			const int32_t current_intro_length = current_loop_tick != -1 ? current_loop_tick : 0;
+			assert(current_intro_length == final_intro_length);
+
+			const int32_t current_body_length = current_end_tick - current_intro_length;
+			ticks_to_insert_at_end = final_body_length - current_body_length;
+			assert(ticks_to_insert_at_end >= 0);
+
+			insert_ticks(channel, commands, ticks_to_insert_at_end, info.end_index, info.speed_at_end, info.volume_at_end, info.fade_at_end);
+
+			if (temp_cmd_index != -1) {
+				commands[temp_cmd_index + 1].labels.insert(commands[temp_cmd_index + 1].labels.begin(), RANGE(commands[temp_cmd_index].labels));
+				commands.erase(commands.begin() + temp_cmd_index);
+			}
+		}
+		else {
+			insert_ticks(channel, commands, ticks_to_insert_at_end, info.end_index, info.speed_at_end, info.volume_at_end, info.fade_at_end);
 		}
 
 		postprocess(commands);
