@@ -5,7 +5,7 @@
 
 #define PROGRAM_AUTHOR "dannye"
 
-#define CURRENT_YEAR "2023"
+#define CURRENT_YEAR "2024"
 
 #define PROGRAM_VERSION 0,4,0
 #ifdef _DEBUG
