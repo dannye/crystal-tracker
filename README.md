@@ -2,7 +2,8 @@
 
 A song and sound editor for [pokecrystal](https://github.com/pret/pokecrystal), [pokegold](https://github.com/pret/pokegold), [pokeyellow-crysaudio](https://github.com/dannye/pokeyellow-crysaudio), [pokered-crysaudio](https://github.com/dannye/pokered-crysaudio), and [pokepinball](https://github.com/pret/pokepinball).
 
-Crystal Tracker can create/open/save pokecrystal-based song files and supports immediate playback and basic editing features.
+Crystal Tracker provides the ability to directly create and modify pokecrystal-based asm song files, with in-app immediate playback by dynamically loading and synthesizing custom channel 3 waveforms and channel 4 drumkits.  
+The editor exports fully complete asm song files, so that you can "Save" your changes and then immediately `make` your project and instantly have a new ROM file with your modifications included — no additional conversion tools or steps required.
 
 ![Screenshot](screenshot.png)
 
@@ -35,9 +36,8 @@ Be sure to see the Help menu for a full explanation on how to use the editor.
 ## What Crystal Tracker doesn't do well, yet
 
 This editor is still a WIP. Some of the most notable missing features are:
-* Creation and deletion of loops and calls
+* Creation and deletion of inner loops and calls
 * Copy & Paste
-* Resizing a song
 
 ## Upgrading a legacy project
 
