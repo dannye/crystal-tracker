@@ -79,7 +79,7 @@ R"(<html>
 <p>Left-click on a note (of the selected channel) to select the note. Hold )" COMMAND_KEY R"( while clicking to add (or remove) the note to (or from) the current selection. Hold )" SHIFT_KEY R"( while clicking to select all notes between the left-most selected note and the right-most selected note. Left-click and drag to select multiple notes at once. )" COMMAND_KEY R"( and )" SHIFT_KEY R"( can also be used while dragging.</p>
 <p>The Enter key can also be used to select the note at the playhead. )" COMMAND_KEY R"( and )" SHIFT_KEY R"( work the same in combination with the Enter key.</p>
 <p>"Select All" is useful for quickly changing the entire channel, such as moving the entire channel up or down.</p>
-<h2>Editing Notes</h2>
+<h3>Editing Notes</h3>
 <p>The menu options under Edit&nbsp;→&nbsp;Selection… can be used to manipulate the selected notes. Each menu option is only available if the operation would succeed for all selected notes. If the operation would fail for any of the selected notes, such as "Octave Up" on a note which is already in the highest octave, then the menu option is disabled.</p>
 <p>"Delete Selection" replaces the selected notes with rests. "Snip Selection" removes the selected notes, adding the appropriate amount of rest at the end of the channel. This operation always preserves the position of the loop point and end point.</p>
 <p>"Split Note" is useful for changing note properties, such as volume envelope or vibrato, part way through a note. It places the split at the playhead's position.</p>
@@ -87,7 +87,7 @@ R"(<html>
 <p>If more than one note is selected, an asterisk (*) will appear next to any property which has multiple distinct values among the selected notes. In such a case, the displayed value is that of the left-most selected note.</p>
 <p>The up and down arrow buttons next to a property are applied immediately if clicked. If typing into a property text box, apply the change with the Enter key or cancel the change with the Escape key. The change will not be applied if the selected channel or selected notes are changed without pressing Enter.</p>
 <p>The "Resize Song" dialog works just like the "New" dialog, but is used to adjust the length of each channel of the current song. The loop points can also be adjusted, if the song loops. If every length is a whole multiple of a beat then "Beats" will be preselected, otherwise "Ticks" will be selected. If all channels are already synchronized then the "Synchronize Channels" checkbox will be checked, otherwise it will be unchecked. When the OK button is clicked, every channel will be resized as necessary. If a channel is shortened and an inner loop or call no longer fits, it will be removed. The first iteration of an inner loop will be preserved as much as possible.</p>
-<h2>Placing Notes</h2>
+<h3>Placing Notes</h3>
 <p>The computer keyboard can also be used as a piano keyboard for placing notes. The key mapping is as follows:</p>
 <ul>
 <li><code>z</code>&nbsp;→&nbsp;C</li>
