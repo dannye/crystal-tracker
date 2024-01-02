@@ -401,7 +401,7 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
 }
 
 // get the last note or rest that is before `end_tick` which is not part of a loop or a call
-int32_t get_base_index(const std::vector<Command> &commands, int32_t end_tick) {
+int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick, int32_t end_tick) {
 	int32_t tick = 0;
 	int32_t speed = 1;
 
@@ -425,7 +425,7 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t end_tick) {
 		if (command_itr->type == Command_Type::NOTE) {
 			tick += command_itr->note.length * speed;
 
-			if (tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
+			if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
 				base_index = command_itr - commands.begin();
 			}
 			if (tick > end_tick) {
@@ -435,7 +435,7 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t end_tick) {
 		else if (command_itr->type == Command_Type::DRUM_NOTE) {
 			tick += command_itr->drum_note.length * speed;
 
-			if (tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
+			if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
 				base_index = command_itr - commands.begin();
 			}
 			if (tick > end_tick) {
@@ -445,7 +445,7 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t end_tick) {
 		else if (command_itr->type == Command_Type::REST) {
 			tick += command_itr->rest.length * speed;
 
-			if (tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
+			if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
 				base_index = command_itr - commands.begin();
 			}
 			if (tick > end_tick) {
@@ -473,7 +473,7 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t end_tick) {
 				loop_stack.top().second -= 1;
 				if (loop_stack.top().second == 0) {
 					loop_stack.pop();
-					if (tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
+					if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
 						base_index = command_itr - commands.begin();
 					}
 				}
@@ -519,7 +519,7 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t end_tick) {
 				command_itr = call_stack.top();
 				call_stack.pop();
 				visited_labels_during_call.clear();
-				if (tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
+				if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
 					base_index = command_itr - commands.begin();
 				}
 			}
@@ -1510,7 +1510,7 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 
 	if (ticks_to_insert_at_loop < 0) {
 		int32_t loop_index = info.loop_index;
-		int32_t base_loop_index = get_base_index(commands, final_intro_length);
+		int32_t base_loop_index = get_base_index(commands, 0, final_intro_length);
 		if (base_loop_index == -1) {
 			// no base could be found, so start from the beginning...
 			base_loop_index = 0;
@@ -1607,8 +1607,8 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 
 	if (ticks_to_insert_at_end < 0) {
 		int32_t end_index = info.end_index;
-		int32_t base_end_index = get_base_index(commands, current_intro_length + final_body_length);
-		if (base_end_index < std::max(info.loop_index, 0)) {
+		int32_t base_end_index = get_base_index(commands, current_intro_length, current_intro_length + final_body_length);
+		if (base_end_index == -1) {
 			// no base could be found, so start from the beginning...
 			base_end_index = std::max(info.loop_index, 0);
 			// ...but advance to first potential note or rest
@@ -1632,7 +1632,6 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 		}
 		else {
 			base_end_index += 1;
-			assert(base_end_index >= info.loop_index);
 		}
 
 		// if the whole body is being deleted, preserve the position of the loop label
