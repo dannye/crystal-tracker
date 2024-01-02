@@ -175,6 +175,7 @@ public:
 	void resize_song(const Song_Options_Dialog::Song_Options &options);
 
 	std::vector<Command> &channel_commands(const int selected_channel);
+	const std::string &channel_label(const int selected_channel) const;
 	int32_t channel_loop_tick(const int selected_channel) const;
 	int32_t channel_end_tick(const int selected_channel) const;
 

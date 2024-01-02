@@ -1495,7 +1495,7 @@ void erase_ticks(int32_t selected_channel, std::vector<Command> &commands, int32
 	}
 }
 
-void resize_channel(int32_t selected_channel, std::vector<Command> &commands, int32_t new_loop_tick, int32_t new_end_tick) {
+void resize_channel(int32_t selected_channel, std::vector<Command> &commands, const std::string &channel_label, int32_t new_loop_tick, int32_t new_end_tick) {
 	int32_t old_loop_tick, old_end_tick;
 	Extra_Info info;
 	calc_channel_length(commands, old_loop_tick, old_end_tick, &info);
@@ -1579,7 +1579,22 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, in
 		}
 	}
 	else {
+		if (info.loop_index == 0) {
+			if (commands[info.end_index].target == channel_label) {
+				// TODO: double-check that ".mainLoop" isn't already in use
+				commands[0].labels.push_back(channel_label + ".mainLoop");
+				commands[info.end_index].target = channel_label + ".mainLoop";
+			}
+			for (size_t i = commands[0].labels.size() - 1; i < commands[0].labels.size(); --i) {
+				if (commands[0].labels[i] == channel_label) {
+					commands[0].labels.erase(commands[0].labels.begin() + i);
+				}
+			}
+		}
 		insert_ticks(selected_channel, commands, ticks_to_insert_at_loop, info.loop_index, info.speed_at_loop, info.volume_at_loop, info.fade_at_loop);
+		if (info.loop_index == 0) {
+			commands[0].labels.insert(commands[0].labels.begin(), channel_label);
+		}
 	}
 
 	calc_channel_length(commands, old_loop_tick, old_end_tick, &info);
@@ -1593,7 +1608,7 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, in
 	if (ticks_to_insert_at_end < 0) {
 		int32_t end_index = info.end_index;
 		int32_t base_end_index = get_base_index(commands, current_intro_length + final_body_length);
-		if (base_end_index == -1) {
+		if (base_end_index < std::max(info.loop_index, 0)) {
 			// no base could be found, so start from the beginning...
 			base_end_index = std::max(info.loop_index, 0);
 			// ...but advance to first potential note or rest
@@ -2390,7 +2405,7 @@ void Song::snip_selection(const int selected_channel, const std::set<int32_t> &s
 		commands.erase(commands.begin() + *note_itr);
 	}
 
-	resize_channel(selected_channel, commands, channel_loop_tick(selected_channel), channel_end_tick(selected_channel));
+	resize_channel(selected_channel, commands, channel_label(selected_channel), channel_loop_tick(selected_channel), channel_end_tick(selected_channel));
 
 	postprocess(commands);
 
@@ -2448,28 +2463,28 @@ void Song::resize_song(const Song_Options_Dialog::Song_Options &options) {
 
 	if (options.channel_1) {
 		std::vector<Command> &commands = channel_commands(1);
-		resize_channel(1, commands, options.looping ? options.channel_1_loop_tick : -1, options.channel_1_end_tick);
+		resize_channel(1, commands, channel_label(1), options.looping ? options.channel_1_loop_tick : -1, options.channel_1_end_tick);
 		postprocess(commands);
 		if (options.looping) _channel_1_loop_tick = options.channel_1_loop_tick;
 		_channel_1_end_tick  = options.channel_1_end_tick;
 	}
 	if (options.channel_2) {
 		std::vector<Command> &commands = channel_commands(2);
-		resize_channel(2, commands, options.looping ? options.channel_2_loop_tick : -1, options.channel_2_end_tick);
+		resize_channel(2, commands, channel_label(2), options.looping ? options.channel_2_loop_tick : -1, options.channel_2_end_tick);
 		postprocess(commands);
 		if (options.looping) _channel_2_loop_tick = options.channel_2_loop_tick;
 		_channel_2_end_tick  = options.channel_2_end_tick;
 	}
 	if (options.channel_3) {
 		std::vector<Command> &commands = channel_commands(3);
-		resize_channel(3, commands, options.looping ? options.channel_3_loop_tick : -1, options.channel_3_end_tick);
+		resize_channel(3, commands, channel_label(3), options.looping ? options.channel_3_loop_tick : -1, options.channel_3_end_tick);
 		postprocess(commands);
 		if (options.looping) _channel_3_loop_tick = options.channel_3_loop_tick;
 		_channel_3_end_tick  = options.channel_3_end_tick;
 	}
 	if (options.channel_4) {
 		std::vector<Command> &commands = channel_commands(4);
-		resize_channel(4, commands, options.looping ? options.channel_4_loop_tick : -1, options.channel_4_end_tick);
+		resize_channel(4, commands, channel_label(4), options.looping ? options.channel_4_loop_tick : -1, options.channel_4_end_tick);
 		postprocess(commands);
 		if (options.looping) _channel_4_loop_tick = options.channel_4_loop_tick;
 		_channel_4_end_tick  = options.channel_4_end_tick;
@@ -2782,6 +2797,22 @@ std::vector<Command> &Song::channel_commands(const int selected_channel) {
 	}
 	else {
 		return _channel_4_commands;
+	}
+}
+
+const std::string &Song::channel_label(const int selected_channel) const {
+	assert(selected_channel >= 1 && selected_channel <= 4);
+	if (selected_channel == 1) {
+		return _channel_1_label;
+	}
+	else if (selected_channel == 2) {
+		return _channel_2_label;
+	}
+	else if (selected_channel == 3) {
+		return _channel_3_label;
+	}
+	else {
+		return _channel_4_label;
 	}
 }
 
