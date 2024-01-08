@@ -19,11 +19,13 @@ struct Extra_Info {
 	int32_t speed_at_loop = 1;
 	int32_t volume_at_loop = 0;
 	int32_t fade_at_loop = 0;
+	int32_t drumkit_at_loop = -1;
 
 	int32_t end_index = 0;
 	int32_t speed_at_end = 1;
 	int32_t volume_at_end = 0;
 	int32_t fade_at_end = 0;
+	int32_t drumkit_at_end = -1;
 };
 
 Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, int32_t &loop_tick, int32_t &end_tick, Extra_Info *info = nullptr);

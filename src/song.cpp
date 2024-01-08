@@ -32,6 +32,7 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 		int32_t speed = 0;
 		int32_t volume = 0;
 		int32_t fade = 0;
+		int32_t drumkit = 0;
 	};
 
 	auto command_itr = commands.begin();
@@ -43,7 +44,7 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 
 	while (command_itr != commands.end()) {
 		for (const std::string &label : command_itr->labels) {
-			label_infos.insert({ label, { tick, (int32_t)(command_itr - commands.begin()), speed, volume, fade } });
+			label_infos.insert({ label, { tick, (int32_t)(command_itr - commands.begin()), speed, volume, fade, drumkit } });
 			if (call_stack.size() > 0) {
 				visited_labels_during_call.insert(label);
 			}
@@ -98,11 +99,13 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 				info->speed_at_loop = label_info.speed;
 				info->volume_at_loop = label_info.volume;
 				info->fade_at_loop = label_info.fade;
+				info->drumkit_at_loop = label_info.drumkit;
 
 				info->end_index = command_itr - commands.begin();
 				info->speed_at_end = speed;
 				info->volume_at_end = volume;
 				info->fade_at_end = fade;
+				info->drumkit_at_end = drumkit;
 			}
 			if (loop_tick == end_tick) {
 				return Parsed_Song::Result::SONG_EMPTY_LOOP;
@@ -140,11 +143,13 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 						info->speed_at_loop = label_info.speed;
 						info->volume_at_loop = label_info.volume;
 						info->fade_at_loop = label_info.fade;
+						info->drumkit_at_loop = label_info.drumkit;
 
 						info->end_index = command_itr - commands.begin();
 						info->speed_at_end = speed;
 						info->volume_at_end = volume;
 						info->fade_at_end = fade;
+						info->drumkit_at_end = drumkit;
 					}
 					if (loop_tick == end_tick) {
 						return Parsed_Song::Result::SONG_EMPTY_LOOP;
@@ -184,11 +189,13 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 					info->speed_at_loop = -1;
 					info->volume_at_loop = -1;
 					info->fade_at_loop = -1;
+					info->drumkit_at_loop = -1;
 
 					info->end_index = command_itr - commands.begin();
 					info->speed_at_end = speed;
 					info->volume_at_end = volume;
 					info->fade_at_end = fade;
+					info->drumkit_at_end = drumkit;
 				}
 				break; // song is finished
 			}
@@ -401,11 +408,13 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
 }
 
 // get the last note or rest that is before `end_tick` which is not part of a loop or a call
-int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick, int32_t end_tick) {
+int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick, int32_t end_tick, int32_t &drumkit_at_base) {
 	int32_t tick = 0;
 	int32_t speed = 1;
+	int32_t drumkit = -1;
 
 	int32_t base_index = -1;
+	drumkit_at_base = -1;
 
 	auto command_itr = commands.begin();
 
@@ -427,8 +436,9 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 
 			if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
 				base_index = command_itr - commands.begin();
+				drumkit_at_base = drumkit;
 			}
-			if (tick > end_tick) {
+			if (tick > end_tick || (tick == end_tick && loop_stack.size() == 0 && call_stack.size() == 0)) {
 				return base_index;
 			}
 		}
@@ -437,8 +447,9 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 
 			if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
 				base_index = command_itr - commands.begin();
+				drumkit_at_base = drumkit;
 			}
-			if (tick > end_tick) {
+			if (tick > end_tick || (tick == end_tick && loop_stack.size() == 0 && call_stack.size() == 0)) {
 				return base_index;
 			}
 		}
@@ -447,8 +458,9 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 
 			if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
 				base_index = command_itr - commands.begin();
+				drumkit_at_base = drumkit;
 			}
-			if (tick > end_tick) {
+			if (tick > end_tick || (tick == end_tick && loop_stack.size() == 0 && call_stack.size() == 0)) {
 				return base_index;
 			}
 		}
@@ -457,6 +469,9 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 		}
 		else if (command_itr->type == Command_Type::DRUM_SPEED) {
 			speed = command_itr->drum_speed.speed;
+		}
+		else if (command_itr->type == Command_Type::TOGGLE_NOISE) {
+			drumkit = command_itr->toggle_noise.drumkit;
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			if (
@@ -475,6 +490,10 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 					loop_stack.pop();
 					if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
 						base_index = command_itr - commands.begin();
+						drumkit_at_base = drumkit;
+					}
+					if (tick > end_tick || (tick == end_tick && loop_stack.size() == 0 && call_stack.size() == 0)) {
+						return base_index;
 					}
 				}
 				else {
@@ -521,6 +540,10 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 				visited_labels_during_call.clear();
 				if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
 					base_index = command_itr - commands.begin();
+					drumkit_at_base = drumkit;
+				}
+				if (tick > end_tick || (tick == end_tick && loop_stack.size() == 0 && call_stack.size() == 0)) {
+					return base_index;
 				}
 			}
 		}
@@ -530,7 +553,6 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 		++command_itr;
 	}
 
-	assert(false);
 	return -1;
 }
 
@@ -1441,7 +1463,9 @@ void postprocess(std::vector<Command> &commands) {
 	}
 }
 
-void insert_ticks(int32_t selected_channel, std::vector<Command> &commands, int32_t ticks_to_insert, int32_t index, int32_t speed, int32_t volume, int32_t fade) {
+int32_t insert_ticks(int32_t selected_channel, std::vector<Command> &commands, int32_t ticks_to_insert, int32_t index, int32_t speed, int32_t volume, int32_t fade) {
+	int32_t inserted = 0;
+
 	int32_t speed_ticks_to_insert = ticks_to_insert / speed;
 	int32_t rem_ticks_to_insert = ticks_to_insert % speed;
 
@@ -1450,22 +1474,28 @@ void insert_ticks(int32_t selected_channel, std::vector<Command> &commands, int3
 
 	while (speed_ticks_to_insert) {
 		if (speed_ticks_to_insert < 16) rest.rest.length = speed_ticks_to_insert;
-		commands.insert(commands.begin() + index, rest);
+		commands.insert(commands.begin() + index + inserted, rest);
+		inserted += 1;
 		speed_ticks_to_insert -= rest.rest.length;
 	}
 	if (rem_ticks_to_insert > 0) {
 		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
-		command.note_type.speed = speed;
+		command.note_type.speed = 1;
 		command.note_type.volume = volume;
 		command.note_type.fade = fade;
-		commands.insert(commands.begin() + index, command);
+		commands.insert(commands.begin() + index + inserted, command);
+		inserted += 1;
 
 		rest.rest.length = rem_ticks_to_insert;
-		commands.insert(commands.begin() + index, rest);
+		commands.insert(commands.begin() + index + inserted, rest);
+		inserted += 1;
 
-		command.note_type.speed = 1;
-		commands.insert(commands.begin() + index, command);
+		command.note_type.speed = speed;
+		commands.insert(commands.begin() + index + inserted, command);
+		inserted += 1;
 	}
+
+	return inserted;
 }
 
 void erase_ticks(int32_t selected_channel, std::vector<Command> &commands, int32_t ticks_to_erase, int32_t index, int32_t speed, int32_t volume, int32_t fade) {
@@ -1497,8 +1527,8 @@ void erase_ticks(int32_t selected_channel, std::vector<Command> &commands, int32
 
 void resize_channel(int32_t selected_channel, std::vector<Command> &commands, const std::string &channel_label, int32_t new_loop_tick, int32_t new_end_tick) {
 	int32_t old_loop_tick, old_end_tick;
-	Extra_Info info;
-	calc_channel_length(commands, old_loop_tick, old_end_tick, &info);
+	Extra_Info original_info;
+	calc_channel_length(commands, old_loop_tick, old_end_tick, &original_info);
 
 	const int32_t original_intro_length = old_loop_tick != -1 ? old_loop_tick : 0;
 	const int32_t final_intro_length    = new_loop_tick != -1 ? new_loop_tick : 0;
@@ -1508,9 +1538,11 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 	const int32_t final_body_length    = new_end_tick - final_intro_length;
 	int32_t ticks_to_insert_at_end = final_body_length - original_body_length;
 
-	if (ticks_to_insert_at_loop < 0) {
-		int32_t loop_index = info.loop_index;
-		int32_t base_loop_index = get_base_index(commands, 0, final_intro_length);
+	Extra_Info info = original_info;
+
+	if (ticks_to_insert_at_loop != 0) {
+		int32_t drumkit_at_base;
+		int32_t base_loop_index = get_base_index(commands, 0, ticks_to_insert_at_loop < 0 ? final_intro_length : original_intro_length, drumkit_at_base);
 		if (base_loop_index == -1) {
 			// no base could be found, so start from the beginning...
 			base_loop_index = 0;
@@ -1522,31 +1554,155 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 				commands[base_loop_index].type != Command_Type::SOUND_CALL &&
 				!(commands[base_loop_index].type == Command_Type::SOUND_LOOP && commands[base_loop_index].sound_loop.loop_count != 0)
 			) {
+				if (base_loop_index == original_info.loop_index) {
+					base_loop_index = 0;
+					drumkit_at_base = -1;
+					break;
+				}
 				assert(commands[base_loop_index].type != Command_Type::SOUND_RET);
 				if (
 					commands[base_loop_index].type == Command_Type::SOUND_JUMP ||
 					commands[base_loop_index].type == Command_Type::SOUND_LOOP
 				) {
-					base_loop_index = find_note_with_label(commands, commands[base_loop_index].target) - commands.begin();
+					int32_t next_index = find_note_with_label(commands, commands[base_loop_index].target) - commands.begin();
+					if (next_index == original_info.loop_index) break;
+					base_loop_index = next_index;
 					continue;
 				}
+				if (commands[base_loop_index].type == Command_Type::TOGGLE_NOISE) {
+					drumkit_at_base = commands[base_loop_index].toggle_noise.drumkit;
+				}
+				if (base_loop_index + 1 == original_info.loop_index) break;
 				base_loop_index += 1;
 			}
 		}
 		else {
+			// the first command after the last note that fits
 			base_loop_index += 1;
 		}
 
-		// if the whole intro is being deleted, preserve the position of the channel label
-		int32_t temp_cmd_index = -1;
-		if (base_loop_index == 0) {
-			Command command = Command(Command_Type::VOLUME); // temporary
-			command.labels = std::move(commands[base_loop_index].labels);
-			commands[base_loop_index].labels.clear();
+		if (original_info.loop_index == 0) {
+			if (commands[original_info.end_index].target == channel_label) {
+				// TODO: double-check that ".mainLoop" isn't already in use
+				commands[0].labels.push_back(channel_label + ".mainLoop");
+				commands[original_info.end_index].target = channel_label + ".mainLoop";
+			}
+			for (size_t i = commands[0].labels.size() - 1; i < commands[0].labels.size(); --i) {
+				if (commands[0].labels[i] == channel_label) {
+					commands[0].labels.erase(commands[0].labels.begin() + i);
+				}
+			}
+		}
+
+		int32_t loop_index = original_info.loop_index;
+
+		int32_t insert_index = base_loop_index;
+		int32_t speed_at_insert = original_info.speed_at_loop;
+		int32_t volume_at_insert = original_info.volume_at_loop;
+		int32_t fade_at_insert = original_info.fade_at_loop;
+
+		bool reinitializing = base_loop_index == 0;
+
+		if (reinitializing) {
+			if (selected_channel != 4) {
+				Command command = Command(Command_Type::NOTE_TYPE);
+				command.note_type.speed = 12;
+				command.note_type.volume = selected_channel == 3 ? 1 : 15;
+				command.note_type.fade = 0;
+				if (base_loop_index != loop_index) {
+					command.labels = std::move(commands[base_loop_index].labels);
+					commands[base_loop_index].labels.clear();
+				}
+				commands.insert(commands.begin() + base_loop_index, command);
+				loop_index += 1;
+				insert_index += 1;
+				base_loop_index += 1;
+				speed_at_insert = command.note_type.speed;
+				volume_at_insert = command.note_type.volume;
+				fade_at_insert = command.note_type.fade;
+			}
+			else {
+				Command command = Command(Command_Type::TOGGLE_NOISE);
+				command.toggle_noise.drumkit = 0;
+				if (base_loop_index != loop_index) {
+					command.labels = std::move(commands[base_loop_index].labels);
+					commands[base_loop_index].labels.clear();
+				}
+				commands.insert(commands.begin() + base_loop_index, command);
+				loop_index += 1;
+				insert_index += 1;
+				base_loop_index += 1;
+				drumkit_at_base = command.toggle_noise.drumkit;
+
+				command = Command(Command_Type::DRUM_SPEED);
+				command.drum_speed.speed = 12;
+				commands.insert(commands.begin() + base_loop_index, command);
+				loop_index += 1;
+				insert_index += 1;
+				base_loop_index += 1;
+				speed_at_insert = command.drum_speed.speed;
+			}
+		}
+
+		// preserve loop speed/drumkit
+		if (selected_channel != 4) {
+			Command command = Command(Command_Type::NOTE_TYPE);
+			command.note_type.speed = original_info.speed_at_loop;
+			command.note_type.volume = original_info.volume_at_loop;
+			command.note_type.fade = original_info.fade_at_loop;
+			if (base_loop_index != loop_index) {
+				command.labels = std::move(commands[base_loop_index].labels);
+				commands[base_loop_index].labels.clear();
+			}
 			commands.insert(commands.begin() + base_loop_index, command);
-			temp_cmd_index = base_loop_index;
+			if (loop_index >= base_loop_index) loop_index += 1;
+			if (!reinitializing) insert_index += 1;
 			base_loop_index += 1;
-			loop_index += 1;
+		}
+		else {
+			if (drumkit_at_base != original_info.drumkit_at_loop) {
+				if (drumkit_at_base != -1) {
+					// turn off
+					Command command = Command(Command_Type::TOGGLE_NOISE);
+					command.toggle_noise.drumkit = -1;
+					if (base_loop_index != loop_index) {
+						command.labels = std::move(commands[base_loop_index].labels);
+						commands[base_loop_index].labels.clear();
+					}
+					commands.insert(commands.begin() + base_loop_index, command);
+					if (loop_index >= base_loop_index) loop_index += 1;
+					if (!reinitializing) insert_index += 1;
+					base_loop_index += 1;
+				}
+				if (original_info.drumkit_at_loop != -1) {
+					// turn on
+					Command command = Command(Command_Type::TOGGLE_NOISE);
+					command.toggle_noise.drumkit = original_info.drumkit_at_loop;
+					if (base_loop_index != loop_index) {
+						command.labels = std::move(commands[base_loop_index].labels);
+						commands[base_loop_index].labels.clear();
+					}
+					commands.insert(commands.begin() + base_loop_index, command);
+					if (loop_index >= base_loop_index) loop_index += 1;
+					if (!reinitializing) insert_index += 1;
+					base_loop_index += 1;
+				}
+			}
+
+			Command command = Command(Command_Type::DRUM_SPEED);
+			command.drum_speed.speed = original_info.speed_at_loop;
+			if (base_loop_index != loop_index) {
+				command.labels = std::move(commands[base_loop_index].labels);
+				commands[base_loop_index].labels.clear();
+			}
+			commands.insert(commands.begin() + base_loop_index, command);
+			if (loop_index >= base_loop_index) loop_index += 1;
+			if (!reinitializing) insert_index += 1;
+			base_loop_index += 1;
+		}
+
+		if (original_info.loop_index == 0) {
+			commands[0].labels.insert(commands[0].labels.begin(), channel_label);
 		}
 
 		while (loop_index != base_loop_index) {
@@ -1562,42 +1718,24 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 			if (loop_index > base_loop_index) {
 				loop_index -= 1;
 			}
-		}
-
-		int32_t current_loop_tick, current_end_tick;
-		calc_channel_length(commands, current_loop_tick, current_end_tick, &info);
-		assert(current_loop_tick < old_loop_tick);
-
-		ticks_to_insert_at_loop = final_intro_length - current_loop_tick;
-		assert(ticks_to_insert_at_loop >= 0);
-
-		insert_ticks(selected_channel, commands, ticks_to_insert_at_loop, info.loop_index, info.speed_at_loop, info.volume_at_loop, info.fade_at_loop);
-
-		if (temp_cmd_index != -1) {
-			commands[temp_cmd_index + 1].labels.insert(commands[temp_cmd_index + 1].labels.begin(), RANGE(commands[temp_cmd_index].labels));
-			commands.erase(commands.begin() + temp_cmd_index);
-		}
-	}
-	else {
-		if (info.loop_index == 0) {
-			if (commands[info.end_index].target == channel_label) {
-				// TODO: double-check that ".mainLoop" isn't already in use
-				commands[0].labels.push_back(channel_label + ".mainLoop");
-				commands[info.end_index].target = channel_label + ".mainLoop";
-			}
-			for (size_t i = commands[0].labels.size() - 1; i < commands[0].labels.size(); --i) {
-				if (commands[0].labels[i] == channel_label) {
-					commands[0].labels.erase(commands[0].labels.begin() + i);
-				}
+			if (insert_index > base_loop_index) {
+				insert_index -= 1;
 			}
 		}
-		insert_ticks(selected_channel, commands, ticks_to_insert_at_loop, info.loop_index, info.speed_at_loop, info.volume_at_loop, info.fade_at_loop);
-		if (info.loop_index == 0) {
-			commands[0].labels.insert(commands[0].labels.begin(), channel_label);
-		}
-	}
 
-	calc_channel_length(commands, old_loop_tick, old_end_tick, &info);
+		if (ticks_to_insert_at_loop < 0) {
+			int32_t current_loop_tick, current_end_tick;
+			calc_channel_length(commands, current_loop_tick, current_end_tick);
+			assert(current_loop_tick < old_loop_tick);
+
+			ticks_to_insert_at_loop = final_intro_length - current_loop_tick;
+			assert(ticks_to_insert_at_loop >= 0);
+		}
+
+		insert_ticks(selected_channel, commands, ticks_to_insert_at_loop, insert_index, speed_at_insert, volume_at_insert, fade_at_insert);
+
+		calc_channel_length(commands, old_loop_tick, old_end_tick, &info);
+	}
 
 	const int32_t current_intro_length = old_loop_tick != -1 ? old_loop_tick : 0;
 	assert(current_intro_length == final_intro_length);
@@ -1605,12 +1743,13 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 	const int32_t current_body_length = old_end_tick - current_intro_length;
 	ticks_to_insert_at_end = final_body_length - current_body_length;
 
-	if (ticks_to_insert_at_end < 0) {
-		int32_t end_index = info.end_index;
-		int32_t base_end_index = get_base_index(commands, current_intro_length, current_intro_length + final_body_length);
+	if (ticks_to_insert_at_end != 0) {
+		int32_t drumkit_at_base;
+		int32_t base_end_index = get_base_index(commands, current_intro_length, ticks_to_insert_at_end < 0 ? current_intro_length + final_body_length : current_intro_length + current_body_length, drumkit_at_base);
 		if (base_end_index == -1) {
 			// no base could be found, so start from the beginning...
 			base_end_index = std::max(info.loop_index, 0);
+			drumkit_at_base = info.drumkit_at_loop;
 			// ...but advance to first potential note or rest
 			while (
 				commands[base_end_index].type != Command_Type::NOTE &&
@@ -1619,33 +1758,156 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 				commands[base_end_index].type != Command_Type::SOUND_CALL &&
 				!(commands[base_end_index].type == Command_Type::SOUND_LOOP && commands[base_end_index].sound_loop.loop_count != 0)
 			) {
+				if (base_end_index == info.end_index) {
+					base_end_index = std::max(info.loop_index, 0);
+					drumkit_at_base = info.drumkit_at_loop;
+					break;
+				}
 				assert(commands[base_end_index].type != Command_Type::SOUND_RET);
 				if (
 					commands[base_end_index].type == Command_Type::SOUND_JUMP ||
 					commands[base_end_index].type == Command_Type::SOUND_LOOP
 				) {
-					base_end_index = find_note_with_label(commands, commands[base_end_index].target) - commands.begin();
+					int32_t next_index = find_note_with_label(commands, commands[base_end_index].target) - commands.begin();
+					if (next_index == info.end_index) break;
+					base_end_index = next_index;
 					continue;
 				}
+				if (commands[base_end_index].type == Command_Type::TOGGLE_NOISE) {
+					drumkit_at_base = commands[base_end_index].toggle_noise.drumkit;
+				}
+				if (base_end_index + 1 == info.end_index) break;
 				base_end_index += 1;
 			}
 		}
 		else {
+			// the first command after the last note that fits
 			base_end_index += 1;
 		}
 
-		// if the whole body is being deleted, preserve the position of the loop label
-		int32_t temp_cmd_index = -1;
-		if (base_end_index == std::max(info.loop_index, 0)) {
-			Command command = Command(Command_Type::VOLUME); // temporary
-			command.labels = std::move(commands[base_end_index].labels);
-			commands[base_end_index].labels.clear();
-			commands.insert(commands.begin() + base_end_index, command);
-			temp_cmd_index = base_end_index;
-			base_end_index += 1;
-			if (end_index > temp_cmd_index) {
-				end_index += 1;
+		if (info.end_index == 0) {
+			for (size_t i = commands[0].labels.size() - 1; i < commands[0].labels.size(); --i) {
+				if (commands[0].labels[i] == channel_label) {
+					commands[0].labels.erase(commands[0].labels.begin() + i);
+				}
 			}
+		}
+
+		int32_t end_index = info.end_index;
+
+		int32_t insert_index = base_end_index;
+		int32_t speed_at_insert = info.speed_at_end;
+		int32_t volume_at_insert = info.volume_at_end;
+		int32_t fade_at_insert = info.fade_at_end;
+
+		bool reinitializing = base_end_index == std::max(info.loop_index, 0);
+
+		if (reinitializing) {
+			if (selected_channel != 4) {
+				Command command = Command(Command_Type::NOTE_TYPE);
+				command.note_type.speed = 12;
+				command.note_type.volume = selected_channel == 3 ? 1 : 15;
+				command.note_type.fade = 0;
+				if (base_end_index != end_index) {
+					command.labels = std::move(commands[base_end_index].labels);
+					commands[base_end_index].labels.clear();
+				}
+				commands.insert(commands.begin() + base_end_index, command);
+				if (end_index >= base_end_index) end_index += 1;
+				insert_index += 1;
+				base_end_index += 1;
+				speed_at_insert = command.note_type.speed;
+				volume_at_insert = command.note_type.volume;
+				fade_at_insert = command.note_type.fade;
+			}
+			else {
+				if (info.loop_index == -1) {
+					Command command = Command(Command_Type::TOGGLE_NOISE);
+					command.toggle_noise.drumkit = 0;
+					if (base_end_index != end_index) {
+						command.labels = std::move(commands[base_end_index].labels);
+						commands[base_end_index].labels.clear();
+					}
+					commands.insert(commands.begin() + base_end_index, command);
+					if (end_index >= base_end_index) end_index += 1;
+					insert_index += 1;
+					base_end_index += 1;
+					drumkit_at_base = command.toggle_noise.drumkit;
+				}
+
+				Command command = Command(Command_Type::DRUM_SPEED);
+				command.drum_speed.speed = 12;
+				if (base_end_index != end_index) {
+					command.labels = std::move(commands[base_end_index].labels);
+					commands[base_end_index].labels.clear();
+				}
+				commands.insert(commands.begin() + base_end_index, command);
+				if (end_index >= base_end_index) end_index += 1;
+				insert_index += 1;
+				base_end_index += 1;
+				speed_at_insert = command.drum_speed.speed;
+			}
+		}
+
+		// preserve end speed/drumkit
+		if (selected_channel != 4) {
+			Command command = Command(Command_Type::NOTE_TYPE);
+			command.note_type.speed = info.speed_at_end;
+			command.note_type.volume = info.volume_at_end;
+			command.note_type.fade = info.fade_at_end;
+			if (base_end_index != end_index) {
+				command.labels = std::move(commands[base_end_index].labels);
+				commands[base_end_index].labels.clear();
+			}
+			commands.insert(commands.begin() + base_end_index, command);
+			if (end_index >= base_end_index) end_index += 1;
+			if (!reinitializing) insert_index += 1;
+			base_end_index += 1;
+		}
+		else {
+			if (drumkit_at_base != info.drumkit_at_end) {
+				if (drumkit_at_base != -1) {
+					// turn off
+					Command command = Command(Command_Type::TOGGLE_NOISE);
+					command.toggle_noise.drumkit = -1;
+					if (base_end_index != end_index) {
+						command.labels = std::move(commands[base_end_index].labels);
+						commands[base_end_index].labels.clear();
+					}
+					commands.insert(commands.begin() + base_end_index, command);
+					if (end_index >= base_end_index) end_index += 1;
+					if (!reinitializing) insert_index += 1;
+					base_end_index += 1;
+				}
+				if (info.drumkit_at_end != -1) {
+					// turn on
+					Command command = Command(Command_Type::TOGGLE_NOISE);
+					command.toggle_noise.drumkit = info.drumkit_at_end;
+					if (base_end_index != end_index) {
+						command.labels = std::move(commands[base_end_index].labels);
+						commands[base_end_index].labels.clear();
+					}
+					commands.insert(commands.begin() + base_end_index, command);
+					if (end_index >= base_end_index) end_index += 1;
+					if (!reinitializing) insert_index += 1;
+					base_end_index += 1;
+				}
+			}
+
+			Command command = Command(Command_Type::DRUM_SPEED);
+			command.drum_speed.speed = info.speed_at_end;
+			if (base_end_index != end_index) {
+				command.labels = std::move(commands[base_end_index].labels);
+				commands[base_end_index].labels.clear();
+			}
+			commands.insert(commands.begin() + base_end_index, command);
+			if (end_index >= base_end_index) end_index += 1;
+			if (!reinitializing) insert_index += 1;
+			base_end_index += 1;
+		}
+
+		if (original_info.end_index == 0) {
+			commands[0].labels.insert(commands[0].labels.begin(), channel_label);
 		}
 
 		while (end_index != base_end_index) {
@@ -1661,29 +1923,26 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 			if (end_index > base_end_index) {
 				end_index -= 1;
 			}
+			if (insert_index > base_end_index) {
+				insert_index -= 1;
+			}
 		}
 
-		int32_t current_loop_tick, current_end_tick;
-		calc_channel_length(commands, current_loop_tick, current_end_tick, &info);
-		assert(current_loop_tick == old_loop_tick);
-		assert(current_end_tick < old_end_tick);
+		if (ticks_to_insert_at_end < 0) {
+			int32_t current_loop_tick, current_end_tick;
+			calc_channel_length(commands, current_loop_tick, current_end_tick);
+			assert(current_loop_tick == old_loop_tick);
+			assert(current_end_tick < old_end_tick);
 
-		const int32_t current_intro_length = current_loop_tick != -1 ? current_loop_tick : 0;
-		assert(current_intro_length == final_intro_length);
+			const int32_t current_intro_length = current_loop_tick != -1 ? current_loop_tick : 0;
+			assert(current_intro_length == final_intro_length);
 
-		const int32_t current_body_length = current_end_tick - current_intro_length;
-		ticks_to_insert_at_end = final_body_length - current_body_length;
-		assert(ticks_to_insert_at_end >= 0);
-
-		insert_ticks(selected_channel, commands, ticks_to_insert_at_end, info.end_index, info.speed_at_end, info.volume_at_end, info.fade_at_end);
-
-		if (temp_cmd_index != -1) {
-			commands[temp_cmd_index + 1].labels.insert(commands[temp_cmd_index + 1].labels.begin(), RANGE(commands[temp_cmd_index].labels));
-			commands.erase(commands.begin() + temp_cmd_index);
+			const int32_t current_body_length = current_end_tick - current_intro_length;
+			ticks_to_insert_at_end = final_body_length - current_body_length;
+			assert(ticks_to_insert_at_end >= 0);
 		}
-	}
-	else {
-		insert_ticks(selected_channel, commands, ticks_to_insert_at_end, info.end_index, info.speed_at_end, info.volume_at_end, info.fade_at_end);
+
+		insert_ticks(selected_channel, commands, ticks_to_insert_at_end, insert_index, speed_at_insert, volume_at_insert, fade_at_insert);
 	}
 }
 
