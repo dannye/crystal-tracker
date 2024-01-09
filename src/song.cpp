@@ -996,6 +996,7 @@ void postprocess(std::vector<Command> &commands) {
 				view = Note_View{};
 				view.volume = -1;
 				view.fade = -1;
+				view.drumkit = -1;
 				view.transpose_octaves = -1;
 				view.transpose_pitches = -1;
 				view.duty = -1;
@@ -1946,7 +1947,7 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 	}
 }
 
-int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t octave, int32_t old_octave, int32_t index, int32_t tick, int32_t tick_offset) {
+int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t octave, int32_t old_octave, int32_t index, int32_t tick, int32_t tick_offset, bool set_drumkit) {
 	remember(selected_channel, selected_boxes, Song_State::Action::PUT_NOTE, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
@@ -1993,6 +1994,19 @@ int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &sele
 		index += 1;
 
 		command.octave.octave = old_octave;
+		command.labels.clear();
+		commands.insert(commands.begin() + index + 1, command);
+	}
+
+	if (set_drumkit) {
+		Command command = Command(Command_Type::TOGGLE_NOISE);
+		command.toggle_noise.drumkit = 0;
+		command.labels = std::move(commands[index].labels);
+		commands[index].labels.clear();
+		commands.insert(commands.begin() + index, command);
+		index += 1;
+
+		command.toggle_noise.drumkit = -1;
 		command.labels.clear();
 		commands.insert(commands.begin() + index + 1, command);
 	}

@@ -1625,6 +1625,7 @@ void Piano_Roll::build_note_view(
 	Note_View note;
 	note.octave = 8;
 	note.speed = 1;
+	note.drumkit = -1;
 
 	bool restarted = false;
 	Loop_Box *loop = nullptr;
@@ -2146,6 +2147,7 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick)
 	int32_t index = note_view->index;
 	int32_t speed = note_view->speed;
 	int32_t old_octave = note_view->octave;
+	bool set_drumkit = selected_channel() == 4 && note_view->drumkit == -1;
 
 	if (octave == 0) {
 		octave = old_octave;
@@ -2162,7 +2164,7 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick)
 		}
 	}
 
-	int32_t length = song.put_note(selected_channel(), selected_boxes, pitch, octave, old_octave, index, tick, tick_offset / speed);
+	int32_t length = song.put_note(selected_channel(), selected_boxes, pitch, octave, old_octave, index, tick, tick_offset / speed, set_drumkit);
 	set_active_channel_timeline(song);
 	_piano_timeline.select_note_at_tick(*channel, tick);
 
