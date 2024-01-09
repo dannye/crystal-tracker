@@ -1,6 +1,12 @@
 Changelog
 =========
 
+### Crystal Tracker v0.5.0 (2024-01-08)
+
+ * Add song resizing.
+ * Allow specifying song lengths in beats instead of ticks.
+ * New app icon.
+
 ### Crystal Tracker v0.4.0 (2023-12-14)
 
  * Add rectangle select.
