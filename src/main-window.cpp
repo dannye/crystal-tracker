@@ -2102,6 +2102,17 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_piano_roll->focus_cursor(true);
 		mw->set_song_position(tick);
 	}
+	else if (
+		action == Song::Song_State::Action::SHORTEN ||
+		action == Song::Song_State::Action::LENGTHEN
+	) {
+		if (tick != -1) {
+			mw->_piano_roll->tick(tick);
+			mw->_piano_roll->focus_cursor(true);
+			mw->set_song_position(tick);
+		}
+		mw->_piano_roll->set_active_channel_selection(selection);
+	}
 	else {
 		mw->_piano_roll->set_active_channel_selection(selection);
 	}
@@ -2151,6 +2162,23 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 		action == Song::Song_State::Action::SNIP_SELECTION
 	) {
 		mw->close_note_properties();
+	}
+	else if (
+		action == Song::Song_State::Action::SHORTEN ||
+		action == Song::Song_State::Action::LENGTHEN
+	) {
+		if (tick != -1) {
+			mw->_piano_roll->tick(tick);
+			if (action == Song::Song_State::Action::SHORTEN) {
+				mw->_piano_roll->skip_backward();
+			}
+			else {
+				mw->_piano_roll->skip_forward();
+			}
+			mw->_piano_roll->focus_cursor(true);
+			mw->set_song_position(mw->_piano_roll->tick());
+		}
+		mw->_piano_roll->set_active_channel_selection(selection);
 	}
 	else {
 		mw->_piano_roll->set_active_channel_selection(selection);

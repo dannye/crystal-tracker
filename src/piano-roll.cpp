@@ -2927,6 +2927,8 @@ bool Piano_Roll::shorten(Song &song, bool dry_run) {
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
+	int32_t tick_adjustment = 0;
+
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
@@ -2936,6 +2938,9 @@ bool Piano_Roll::shorten(Song &song, bool dry_run) {
 			}
 			selected_notes.insert(note_view.index);
 			selected_boxes.insert(note_itr - channel->begin());
+			if (note->tick() + note_view.length * note_view.speed == _tick) {
+				tick_adjustment = -note_view.speed;
+			}
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2945,9 +2950,15 @@ bool Piano_Roll::shorten(Song &song, bool dry_run) {
 		return true;
 	}
 
-	song.shorten(selected_channel(), selected_notes, selected_boxes);
+	song.shorten(selected_channel(), selected_notes, selected_boxes, tick_adjustment ? _tick : -1);
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
+
+	if (tick_adjustment) {
+		_tick += tick_adjustment;
+		focus_cursor(true);
+		parent()->set_song_position(_tick);
+	}
 
 	return true;
 }
@@ -2960,6 +2971,8 @@ bool Piano_Roll::lengthen(Song &song, bool dry_run) {
 
 	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
+
+	int32_t tick_adjustment = 0;
 
 	const std::vector<Command> &commands = song.channel_commands(selected_channel());
 
@@ -3003,6 +3016,9 @@ bool Piano_Roll::lengthen(Song &song, bool dry_run) {
 			}
 			selected_notes.insert(note_view.index);
 			selected_boxes.insert(note_itr - channel->begin());
+			if (note->tick() + note_view.length * note_view.speed == _tick) {
+				tick_adjustment = note_view.speed;
+			}
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -3012,10 +3028,15 @@ bool Piano_Roll::lengthen(Song &song, bool dry_run) {
 		return true;
 	}
 
-	song.lengthen(selected_channel(), selected_notes, selected_boxes, *view);
+	song.lengthen(selected_channel(), selected_notes, selected_boxes, *view, tick_adjustment ? _tick : -1);
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
+	if (tick_adjustment) {
+		_tick += tick_adjustment;
+		focus_cursor(true);
+		parent()->set_song_position(_tick);
+	}
 	align_cursor();
 
 	return true;

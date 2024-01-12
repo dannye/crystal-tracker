@@ -2624,8 +2624,8 @@ void Song::move_right(const int selected_channel, const std::set<int32_t> &selec
 	_modified = true;
 }
 
-void Song::shorten(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes) {
-	remember(selected_channel, selected_boxes, Song_State::Action::SHORTEN);
+void Song::shorten(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t tick) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SHORTEN, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
@@ -2640,8 +2640,8 @@ void Song::shorten(const int selected_channel, const std::set<int32_t> &selected
 	_modified = true;
 }
 
-void Song::lengthen(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view) {
-	remember(selected_channel, selected_boxes, Song_State::Action::LENGTHEN);
+void Song::lengthen(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t tick) {
+	remember(selected_channel, selected_boxes, Song_State::Action::LENGTHEN, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
