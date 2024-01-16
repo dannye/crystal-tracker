@@ -703,3 +703,42 @@ Toolbar_Radio_Button::Toolbar_Radio_Button(int x, int y, int w, int h, const cha
 	Toolbar_Button(x, y, w, h, l) {
 	type(FL_RADIO_BUTTON);
 }
+
+Context_Menu::Context_Menu(int x, int y, int w, int h, const char *l) :
+	Fl_Menu_(x, y, w, h, l) {
+	box(OS_PANEL_THIN_UP_BOX);
+	down_box(FL_FLAT_BOX);
+	type(FL_RIGHT_MOUSE);
+	shortcut(FL_SHIFT + FL_F + 10);
+}
+
+int Context_Menu::handle(int event) {
+	if (!menu() || !menu()->text) return 0;
+	switch (event) {
+	case FL_PUSH:
+		if (Fl::event_button() != type()) return 0;
+		picked(menu()->popup(Fl::event_x(), Fl::event_y(), nullptr, nullptr, this));
+		return 1;
+	case FL_SHORTCUT:
+		int X, Y;
+		Fl::get_mouse(X, Y);
+		for (Fl_Window *w = window(); w; w = w->window()) {
+			X -= w->x();
+			Y -= w->y();
+		}
+		if (X >= x() && X < x() + w() && Y >= y() && Y < y() + h()) {
+			if (Fl::test_shortcut(shortcut())) {
+				picked(menu()->popup(X, Y, nullptr, nullptr, this));
+				return 1;
+			}
+			return test_shortcut() != 0;
+		}
+		return 0;
+	default:
+		return 0;
+	}
+}
+
+void Context_Menu::draw(void) {
+	return;
+}

@@ -32,6 +32,7 @@ private:
 	Fl_Sys_Menu_Bar *_menu_bar;
 	Toolbar *_toolbar;
 	Toolbar *_status_bar;
+	Context_Menu *_context_menu;
 	// GUI inputs
 	Fl_Menu_Item *_recent_mis[NUM_RECENT];
 	Fl_Menu_Item

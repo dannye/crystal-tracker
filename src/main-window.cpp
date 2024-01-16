@@ -127,6 +127,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		wh -= _ruler->h();
 	}
 
+	// Context menu
+	_context_menu = new Context_Menu(wx + WHITE_KEY_WIDTH, wy, ww - WHITE_KEY_WIDTH - Fl::scrollbar_size(), wh - Fl::scrollbar_size());
+
 	// Piano Roll
 	_piano_roll = new Piano_Roll(wx, wy, ww, wh);
 
@@ -484,6 +487,12 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_3_status_label->callback((Fl_Callback *)channel_3_mute_cb, this);
 	_channel_4_status_label->callback((Fl_Callback *)channel_4_mute_cb, this);
 
+	// Configure context menu
+	Fl_Menu_Item context_menu_items[] = {
+		{} // TODO
+	};
+	_context_menu->copy(context_menu_items);
+
 	// Configure dialogs
 
 	_new_dir_chooser->title("Choose Project Directory");
@@ -565,6 +574,7 @@ void Main_Window::resize(int X, int Y, int W, int H) {
 	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0));
 	_piano_roll->set_size(W, H - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (note_properties() ? NOTE_PROP_HEIGHT : 0) - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT);
 	_status_bar->resize(0, H - STATUS_BAR_HEIGHT, W, STATUS_BAR_HEIGHT);
+	_context_menu->resize(_piano_roll->x() + WHITE_KEY_WIDTH, _piano_roll->y(), _piano_roll->w() - WHITE_KEY_WIDTH - Fl::scrollbar_size(), _piano_roll->h() - Fl::scrollbar_size());
 }
 
 bool Main_Window::maximized() const {
@@ -1418,6 +1428,7 @@ void Main_Window::update_layout() {
 	_ruler->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0));
 	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0));
 	_piano_roll->set_size(w(), h() - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (note_properties() ? NOTE_PROP_HEIGHT : 0) - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT);
+	_context_menu->resize(_piano_roll->x() + WHITE_KEY_WIDTH, _piano_roll->y(), _piano_roll->w() - WHITE_KEY_WIDTH - Fl::scrollbar_size(), _piano_roll->h() - Fl::scrollbar_size());
 	size_range(
 		WHITE_KEY_WIDTH * 3 + Fl::scrollbar_size(),
 		MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0) + _piano_roll->octave_height() + Fl::scrollbar_size() + STATUS_BAR_HEIGHT,

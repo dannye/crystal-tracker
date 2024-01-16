@@ -14,6 +14,7 @@
 #include <FL/Fl_Scroll.H>
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Radio_Round_Button.H>
+#include <FL/Fl_Menu_.H>
 #include <FL/Fl_Help_View.H>
 #pragma warning(pop)
 
@@ -220,6 +221,18 @@ public:
 class Toolbar_Radio_Button : public Toolbar_Button {
 public:
 	Toolbar_Radio_Button(int x, int y, int w, int h, const char *l = NULL);
+};
+
+class Context_Menu : public Fl_Menu_ {
+private:
+	int _shortcut;
+public:
+	Context_Menu(int x, int y, int w, int h, const char *l = NULL);
+	int shortcut() const { return _shortcut; }
+	void shortcut(int s) { _shortcut = s; }
+	int handle(int event);
+protected:
+	void draw(void);
 };
 
 #endif
