@@ -193,6 +193,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\config.cpp" />
     <ClCompile Include="..\src\directory-chooser.cpp" />
+    <ClCompile Include="..\src\edit-context-menu.cpp" />
     <ClCompile Include="..\src\help-window.cpp" />
     <ClCompile Include="..\src\hex-spinner.cpp" />
     <ClCompile Include="..\src\it-module.cpp" />
@@ -216,6 +217,7 @@
     <ClInclude Include="..\src\command.h" />
     <ClInclude Include="..\src\config.h" />
     <ClInclude Include="..\src\directory-chooser.h" />
+    <ClInclude Include="..\src\edit-context-menu.h" />
     <ClInclude Include="..\src\help-window.h" />
     <ClInclude Include="..\src\hex-spinner.h" />
     <ClInclude Include="..\src\icons.h" />

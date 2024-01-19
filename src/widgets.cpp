@@ -46,7 +46,7 @@ Label_Button::Label_Button(int x, int y, int w, int h, const char *l) : Fl_Butto
 	labelfont(OS_FONT);
 	labelsize(OS_FONT_SIZE);
 	box(FL_NO_BOX);
-	down_box(OS_CHECK_DOWN_BOX);
+	down_box(OS_SPACER_THIN_DOWN_BOX);
 	align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
 }
 
@@ -713,10 +713,10 @@ Context_Menu::Context_Menu(int x, int y, int w, int h, const char *l) :
 }
 
 int Context_Menu::handle(int event) {
-	if (!menu() || !menu()->text) return 0;
 	switch (event) {
 	case FL_PUSH:
 		if (Fl::event_button() != type()) return 0;
+		if (!prepare()) return 0;
 		picked(menu()->popup(Fl::event_x(), Fl::event_y(), nullptr, nullptr, this));
 		return 1;
 	case FL_SHORTCUT:
@@ -728,6 +728,7 @@ int Context_Menu::handle(int event) {
 		}
 		if (X >= x() && X < x() + w() && Y >= y() && Y < y() + h()) {
 			if (Fl::test_shortcut(shortcut())) {
+				if (!prepare()) return 0;
 				picked(menu()->popup(X, Y, nullptr, nullptr, this));
 				return 1;
 			}
@@ -737,6 +738,10 @@ int Context_Menu::handle(int event) {
 	default:
 		return 0;
 	}
+}
+
+bool Context_Menu::prepare() {
+	return menu() && menu()->text;
 }
 
 void Context_Menu::draw(void) {

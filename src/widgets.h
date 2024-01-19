@@ -231,6 +231,7 @@ public:
 	int shortcut() const { return _shortcut; }
 	void shortcut(int s) { _shortcut = s; }
 	int handle(int event);
+	virtual bool prepare();
 protected:
 	void draw(void);
 };

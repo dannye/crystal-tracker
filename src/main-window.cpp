@@ -128,7 +128,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	}
 
 	// Context menu
-	_context_menu = new Context_Menu(wx + WHITE_KEY_WIDTH, wy, ww - WHITE_KEY_WIDTH - Fl::scrollbar_size(), wh - Fl::scrollbar_size());
+	_context_menu = new Edit_Context_Menu(wx + WHITE_KEY_WIDTH, wy, ww - WHITE_KEY_WIDTH - Fl::scrollbar_size(), wh - Fl::scrollbar_size());
 
 	// Piano Roll
 	_piano_roll = new Piano_Roll(wx, wy, ww, wh);
@@ -488,10 +488,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_4_status_label->callback((Fl_Callback *)channel_4_mute_cb, this);
 
 	// Configure context menu
-	Fl_Menu_Item context_menu_items[] = {
-		{} // TODO
-	};
-	_context_menu->copy(context_menu_items);
+	_context_menu->user_data(this);
 
 	// Configure dialogs
 
@@ -760,6 +757,10 @@ void Main_Window::close_note_properties() {
 
 void Main_Window::refresh_note_properties() {
 	_piano_roll->refresh_note_properties();
+}
+
+void Main_Window::set_context_menu() {
+	_context_menu->menu(_undo_mi);
 }
 
 void Main_Window::update_active_controls() {

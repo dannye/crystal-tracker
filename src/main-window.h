@@ -15,6 +15,7 @@
 #include "ruler.h"
 #include "song.h"
 #include "piano-roll.h"
+#include "edit-context-menu.h"
 #include "note-properties.h"
 #include "it-module.h"
 #include "parse-waves.h"
@@ -32,7 +33,7 @@ private:
 	Fl_Sys_Menu_Bar *_menu_bar;
 	Toolbar *_toolbar;
 	Toolbar *_status_bar;
-	Context_Menu *_context_menu;
+	Edit_Context_Menu *_context_menu;
 	// GUI inputs
 	Fl_Menu_Item *_recent_mis[NUM_RECENT];
 	Fl_Menu_Item
@@ -211,6 +212,8 @@ public:
 	void close_note_properties();
 	void set_note_properties(const std::vector<const Note_View *> &notes) { _note_properties->set_note_properties(notes, selected_channel(), 16 + (int)_song.waves().size(), (int)_drumkits.size()); }
 	void refresh_note_properties();
+
+	void set_context_menu();
 
 	void delete_selection() { delete_cb(nullptr, this); }
 	bool put_note(Pitch pitch, int32_t octave = 0, int32_t tick = -1);
