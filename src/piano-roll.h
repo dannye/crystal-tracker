@@ -121,6 +121,8 @@ protected:
 
 class Wrapper_Box : public Fl_Box {
 private:
+	Note_View _start_note_view;
+	Note_View _end_note_view;
 	int32_t _start_tick = 0;
 	int32_t _end_tick = 0;
 	Pitch _min_pitch = Pitch::B_NAT;
@@ -128,8 +130,11 @@ private:
 	Pitch _max_pitch = Pitch::C_NAT;
 	int32_t _max_octave = 1;
 public:
-	using Fl_Box::Fl_Box;
+	Wrapper_Box(const Note_View &n, int32_t t, int X, int Y, int W, int H, const char *l = nullptr)
+		: Fl_Box(X, Y, W, H, l), _start_note_view(n), _start_tick(t) {}
 
+	inline const Note_View &start_note_view(void) const { return _start_note_view; }
+	inline const Note_View &end_note_view(void) const { return _end_note_view; }
 	inline int32_t start_tick(void) const { return _start_tick; }
 	inline int32_t end_tick(void) const { return _end_tick; }
 	inline Pitch min_pitch(void) const { return _min_pitch; }
@@ -137,7 +142,7 @@ public:
 	inline Pitch max_pitch(void) const { return _max_pitch; }
 	inline int32_t max_octave(void) const { return _max_octave; }
 
-	inline void set_start_tick(int32_t t) { _start_tick = t; }
+	inline void set_end_note_view(const Note_View &n) { _end_note_view = n; }
 	inline void set_end_tick(int32_t t) { _end_tick = t; }
 	inline void set_min_pitch(Pitch p, int32_t o) { _min_pitch = p; _min_octave = o; }
 	inline void set_max_pitch(Pitch p, int32_t o) { _max_pitch = p; _max_octave = o; }
@@ -151,8 +156,17 @@ protected:
 };
 
 class Call_Box : public Wrapper_Box {
+private:
+	int32_t _ambiguous_ticks = 0;
+	int32_t _unambiguous_ticks = 0;
 public:
 	using Wrapper_Box::Wrapper_Box;
+
+	inline int32_t ambiguous_ticks(void) const { return _ambiguous_ticks; }
+	inline int32_t unambiguous_ticks(void) const { return _unambiguous_ticks; }
+
+	inline void add_ambiguous_ticks(int32_t t) { _ambiguous_ticks += t; }
+	inline void add_unambiguous_ticks(int32_t t) { _unambiguous_ticks += t; }
 protected:
 	void draw() override;
 };
@@ -321,6 +335,8 @@ private:
 	void set_channel_detail(std::vector<Note_Box *> &notes, std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Flag_Box *> &flags, int detail);
 
 	std::vector<Note_Box *> *active_channel_boxes();
+	std::vector<Loop_Box *> *active_channel_loops();
+	std::vector<Call_Box *> *active_channel_calls();
 protected:
 	void draw() override;
 };
@@ -407,6 +423,7 @@ public:
 	inline int32_t song_length(void) const { return _song_length; }
 
 	int handle(int event) override;
+	void set_tick_from_x_pos(int X);
 	bool handle_mouse_click_song_position(int event);
 	bool handle_mouse_click_continuous_scroll(int event);
 
@@ -487,6 +504,12 @@ public:
 	bool split_note(Song &song);
 	bool glue_note(Song &song);
 	bool resize_song(Song &song, const Song_Options_Dialog::Song_Options &options);
+
+	bool is_point_in_loop(int X, int Y);
+	bool is_point_in_call(int X, int Y);
+
+	bool reduce_loop(Song &song);
+	bool delete_call(Song &song);
 
 	bool select_all() { return _piano_timeline.select_all(); }
 	bool select_none() { return _piano_timeline.select_none(); }

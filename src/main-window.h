@@ -121,8 +121,8 @@ private:
 		*_move_right_mi = NULL,
 		*_shorten_mi = NULL,
 		*_lengthen_mi = NULL,
-		*_delete_mi = NULL,
-		*_snip_mi = NULL,
+		*_delete_selection_mi = NULL,
+		*_snip_selection_mi = NULL,
 		*_split_note_mi = NULL,
 		*_glue_note_mi = NULL,
 		*_resize_song_mi = NULL,
@@ -213,9 +213,9 @@ public:
 	void set_note_properties(const std::vector<const Note_View *> &notes) { _note_properties->set_note_properties(notes, selected_channel(), 16 + (int)_song.waves().size(), (int)_drumkits.size()); }
 	void refresh_note_properties();
 
-	void set_context_menu();
+	void set_context_menu(int X, int Y);
 
-	void delete_selection() { delete_cb(nullptr, this); }
+	void delete_selection() { delete_selection_cb(nullptr, this); }
 	bool put_note(Pitch pitch, int32_t octave = 0, int32_t tick = -1);
 	void set_speed(int32_t speed);
 	void set_volume(int32_t volume);
@@ -290,8 +290,8 @@ private:
 	static void move_right_cb(Fl_Widget *w, Main_Window *mw);
 	static void shorten_cb(Fl_Widget *w, Main_Window *mw);
 	static void lengthen_cb(Fl_Widget *w, Main_Window *mw);
-	static void delete_cb(Fl_Widget *w, Main_Window *mw);
-	static void snip_cb(Fl_Widget *w, Main_Window *mw);
+	static void delete_selection_cb(Fl_Widget *w, Main_Window *mw);
+	static void snip_selection_cb(Fl_Widget *w, Main_Window *mw);
 	static void split_note_cb(Fl_Widget *w, Main_Window *mw);
 	static void glue_note_cb(Fl_Widget *w, Main_Window *mw);
 	static void resize_song_cb(Fl_Widget *w, Main_Window *mw);
@@ -303,6 +303,8 @@ private:
 	static void next_channel_cb(Fl_Widget *w, Main_Window *mw);
 	static void previous_channel_cb(Fl_Widget *w, Main_Window *mw);
 	void sync_channel_buttons();
+	static void reduce_loop_cb(Fl_Widget *w, Main_Window *mw);
+	static void delete_call_cb(Fl_Widget *w, Main_Window *mw);
 	// View menu
 	static void classic_theme_cb(Fl_Widget *w, Main_Window *mw);
 	static void aero_theme_cb(Fl_Widget *w, Main_Window *mw);

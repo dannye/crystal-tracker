@@ -234,8 +234,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("Move Right", FL_COMMAND + RIGHT_KEY, (Fl_Callback *)move_right_cb, this, 0),
 		OS_MENU_ITEM("Shorten", FL_COMMAND + FL_SHIFT + LEFT_KEY, (Fl_Callback *)shorten_cb, this, 0),
 		OS_MENU_ITEM("Lengthen", FL_COMMAND + FL_SHIFT + RIGHT_KEY, (Fl_Callback *)lengthen_cb, this, FL_MENU_DIVIDER),
-		OS_MENU_ITEM("&Delete Selection", DELETE_KEY, (Fl_Callback *)delete_cb, this, 0),
-		OS_MENU_ITEM("&Snip Selection", FL_SHIFT + DELETE_KEY, (Fl_Callback *)snip_cb, this, 0),
+		OS_MENU_ITEM("&Delete Selection", DELETE_KEY, (Fl_Callback *)delete_selection_cb, this, 0),
+		OS_MENU_ITEM("&Snip Selection", FL_SHIFT + DELETE_KEY, (Fl_Callback *)snip_selection_cb, this, 0),
 		{},
 		OS_MENU_ITEM("Spli&t Note", '/', (Fl_Callback *)split_note_cb, this, 0),
 		OS_MENU_ITEM("&Glue Note", GLUE_KEY, (Fl_Callback *)glue_note_cb, this, FL_MENU_DIVIDER),
@@ -362,8 +362,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_move_right_mi = CT_FIND_MENU_ITEM_CB(move_right_cb);
 	_shorten_mi = CT_FIND_MENU_ITEM_CB(shorten_cb);
 	_lengthen_mi = CT_FIND_MENU_ITEM_CB(lengthen_cb);
-	_delete_mi = CT_FIND_MENU_ITEM_CB(delete_cb);
-	_snip_mi = CT_FIND_MENU_ITEM_CB(snip_cb);
+	_delete_selection_mi = CT_FIND_MENU_ITEM_CB(delete_selection_cb);
+	_snip_selection_mi = CT_FIND_MENU_ITEM_CB(snip_selection_cb);
 	_split_note_mi = CT_FIND_MENU_ITEM_CB(split_note_cb);
 	_glue_note_mi = CT_FIND_MENU_ITEM_CB(glue_note_cb);
 	_resize_song_mi = CT_FIND_MENU_ITEM_CB(resize_song_cb);
@@ -488,6 +488,14 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_4_status_label->callback((Fl_Callback *)channel_4_mute_cb, this);
 
 	// Configure context menu
+	Fl_Menu_Item context_menu_items[] = {
+		OS_MENU_ITEM("",            FL_ALT + '-', (Fl_Callback *)reduce_loop_cb, this, FL_MENU_INVISIBLE),
+		OS_MENU_ITEM("Reduce Loop", FL_ALT + '-', (Fl_Callback *)reduce_loop_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("",            FL_ALT + FL_BackSpace, (Fl_Callback *)delete_call_cb, this, FL_MENU_INVISIBLE),
+		OS_MENU_ITEM("Delete Call", FL_ALT + FL_BackSpace, (Fl_Callback *)delete_call_cb, this, 0),
+		{}
+	};
+	_context_menu->copy(context_menu_items);
 	_context_menu->user_data(this);
 
 	// Configure dialogs
@@ -759,8 +767,27 @@ void Main_Window::refresh_note_properties() {
 	_piano_roll->refresh_note_properties();
 }
 
-void Main_Window::set_context_menu() {
-	_context_menu->menu(_undo_mi);
+void Main_Window::set_context_menu(int X, int Y) {
+	_piano_roll->set_tick_from_x_pos(X);
+
+	bool stopped = !_it_module || _it_module->stopped();
+
+	Fl_Menu_Item *reduce_loop_mi = const_cast<Fl_Menu_Item *>(&_context_menu->menu()[_context_menu->find_index(OS_MENU_ITEM_PREFIX "Reduce Loop" OS_MENU_ITEM_SUFFIX)]);
+	Fl_Menu_Item *delete_call_mi = const_cast<Fl_Menu_Item *>(&_context_menu->menu()[_context_menu->find_index(OS_MENU_ITEM_PREFIX "Delete Call" OS_MENU_ITEM_SUFFIX)]);
+
+	if (stopped && _piano_roll->is_point_in_loop(X, Y)) {
+		reduce_loop_mi->activate();
+	}
+	else {
+		reduce_loop_mi->deactivate();
+	}
+	if (stopped && _piano_roll->is_point_in_call(X, Y)) {
+		delete_call_mi->activate();
+	}
+	else {
+		delete_call_mi->deactivate();
+	}
+
 }
 
 void Main_Window::update_active_controls() {
@@ -873,16 +900,16 @@ void Main_Window::update_active_controls() {
 				_lengthen_mi->deactivate();
 			}
 			if (_piano_roll->delete_selection(_song, true)) {
-				_delete_mi->activate();
+				_delete_selection_mi->activate();
 			}
 			else {
-				_delete_mi->deactivate();
+				_delete_selection_mi->deactivate();
 			}
 			if (_piano_roll->snip_selection(_song, true)) {
-				_snip_mi->activate();
+				_snip_selection_mi->activate();
 			}
 			else {
-				_snip_mi->deactivate();
+				_snip_selection_mi->deactivate();
 			}
 			_split_note_mi->activate();
 			_glue_note_mi->activate();
@@ -901,8 +928,8 @@ void Main_Window::update_active_controls() {
 			_move_right_mi->deactivate();
 			_shorten_mi->deactivate();
 			_lengthen_mi->deactivate();
-			_delete_mi->deactivate();
-			_snip_mi->deactivate();
+			_delete_selection_mi->deactivate();
+			_snip_selection_mi->deactivate();
 			_split_note_mi->deactivate();
 			_glue_note_mi->deactivate();
 			_resize_song_mi->deactivate();
@@ -976,8 +1003,8 @@ void Main_Window::update_active_controls() {
 		_move_right_mi->deactivate();
 		_shorten_mi->deactivate();
 		_lengthen_mi->deactivate();
-		_delete_mi->deactivate();
-		_snip_mi->deactivate();
+		_delete_selection_mi->deactivate();
+		_snip_selection_mi->deactivate();
 		_split_note_mi->deactivate();
 		_glue_note_mi->deactivate();
 		_resize_song_mi->deactivate();
@@ -2116,7 +2143,9 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 	}
 	else if (
 		action == Song::Song_State::Action::SHORTEN ||
-		action == Song::Song_State::Action::LENGTHEN
+		action == Song::Song_State::Action::LENGTHEN ||
+		action == Song::Song_State::Action::REDUCE_LOOP ||
+		action == Song::Song_State::Action::DELETE_CALL
 	) {
 		if (tick != -1) {
 			mw->_piano_roll->tick(tick);
@@ -2191,6 +2220,15 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 			mw->set_song_position(mw->_piano_roll->tick());
 		}
 		mw->_piano_roll->set_active_channel_selection(selection);
+	}
+	else if (
+		action == Song::Song_State::Action::REDUCE_LOOP ||
+		action == Song::Song_State::Action::DELETE_CALL
+	) {
+		mw->close_note_properties();
+		mw->_piano_roll->tick(tick);
+		mw->_piano_roll->focus_cursor(true);
+		mw->set_song_position(tick);
 	}
 	else {
 		mw->_piano_roll->set_active_channel_selection(selection);
@@ -2298,7 +2336,7 @@ void Main_Window::lengthen_cb(Fl_Widget *, Main_Window *mw) {
 	}
 }
 
-void Main_Window::delete_cb(Fl_Widget *, Main_Window *mw) {
+void Main_Window::delete_selection_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (mw->_piano_roll->delete_selection(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
@@ -2309,7 +2347,7 @@ void Main_Window::delete_cb(Fl_Widget *, Main_Window *mw) {
 	}
 }
 
-void Main_Window::snip_cb(Fl_Widget *, Main_Window *mw) {
+void Main_Window::snip_selection_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (mw->_piano_roll->snip_selection(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
@@ -2548,6 +2586,32 @@ void Main_Window::channel_4_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 	mw->update_channel_detail();
 	mw->_menu_bar->update();
 	mw->redraw();
+}
+
+void Main_Window::reduce_loop_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	bool stopped = !mw->_it_module || mw->_it_module->stopped();
+	if (!stopped) return;
+	if (mw->_piano_roll->reduce_loop(mw->_song)) {
+		mw->_status_message = mw->_song.undo_action_message();
+		mw->_status_label->label(mw->_status_message.c_str());
+
+		mw->update_active_controls();
+		mw->redraw();
+	}
+}
+
+void Main_Window::delete_call_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	bool stopped = !mw->_it_module || mw->_it_module->stopped();
+	if (!stopped) return;
+	if (mw->_piano_roll->delete_call(mw->_song)) {
+		mw->_status_message = mw->_song.undo_action_message();
+		mw->_status_label->label(mw->_status_message.c_str());
+
+		mw->update_active_controls();
+		mw->redraw();
+	}
 }
 
 void Main_Window::classic_theme_cb(Fl_Widget *, Main_Window *mw) {

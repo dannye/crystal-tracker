@@ -1464,7 +1464,7 @@ void postprocess(std::vector<Command> &commands) {
 	}
 }
 
-int32_t insert_ticks(int32_t selected_channel, std::vector<Command> &commands, int32_t ticks_to_insert, int32_t index, int32_t speed, int32_t volume, int32_t fade) {
+int32_t insert_ticks(int32_t selected_channel, std::vector<Command> &commands, int32_t ticks_to_insert, int32_t index, int32_t speed = 1, int32_t volume = 0, int32_t fade = 0) {
 	int32_t inserted = 0;
 
 	int32_t speed_ticks_to_insert = ticks_to_insert / speed;
@@ -2765,6 +2765,96 @@ void Song::resize_song(const Song_Options_Dialog::Song_Options &options) {
 	_modified = true;
 }
 
+void Song::reduce_loop(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, int32_t loop_length, Note_View start_view, Note_View end_view) {
+	remember(selected_channel, selected_boxes, Song_State::Action::REDUCE_LOOP, tick);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	assert(commands[loop_index].type == Command_Type::SOUND_LOOP);
+	assert(commands[loop_index].sound_loop.loop_count > 1);
+	assert(end_view.speed != 0);
+
+	commands[loop_index].sound_loop.loop_count -= 1;
+
+	insert_ticks(selected_channel, commands, loop_length, loop_index + 1, end_view.speed, end_view.volume, end_view.fade);
+
+	if (commands[loop_index].sound_loop.loop_count == 1) {
+		commands[loop_index + 1].labels.insert(commands[loop_index + 1].labels.begin(), RANGE(commands[loop_index].labels));
+		commands.erase(commands.begin() + loop_index); // TODO: maybe delete target label if now unreferenced
+	}
+
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::delete_call(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view) {
+	remember(selected_channel, selected_boxes, Song_State::Action::DELETE_CALL, tick);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	assert(commands[call_index].type == Command_Type::SOUND_CALL);
+	assert(start_view.speed != 0);
+	assert(end_view.speed != 0);
+
+	insert_ticks(selected_channel, commands, unambiguous_ticks, call_index + 1, end_view.speed, end_view.volume, end_view.fade);
+
+	if (selected_channel != 4) {
+		int32_t index = call_index + 1;
+		if (end_view.speed != start_view.speed || (ambiguous_ticks && unambiguous_ticks)) {
+			Command command = Command(Command_Type::NOTE_TYPE);
+			command.note_type.speed = end_view.speed;
+			command.note_type.volume = end_view.volume;
+			command.note_type.fade = end_view.fade;
+			commands.insert(commands.begin() + index, command);
+			index += 1;
+		}
+
+		Command command = Command(Command_Type::OCTAVE);
+		command.octave.octave = end_view.octave;
+		commands.insert(commands.begin() + index, command);
+		index += 1;
+	}
+	else {
+		int32_t index = call_index + 1;
+		if (start_view.drumkit != end_view.drumkit) {
+			if (start_view.drumkit != -1) {
+				// turn off
+				Command command = Command(Command_Type::TOGGLE_NOISE);
+				command.toggle_noise.drumkit = -1;
+				commands.insert(commands.begin() + index, command);
+				index += 1;
+			}
+			if (end_view.drumkit != -1) {
+				// turn on
+				Command command = Command(Command_Type::TOGGLE_NOISE);
+				command.toggle_noise.drumkit = end_view.drumkit;
+				commands.insert(commands.begin() + index, command);
+				index += 1;
+			}
+		}
+
+		if (end_view.speed != start_view.speed || (ambiguous_ticks && unambiguous_ticks)) {
+			Command command = Command(Command_Type::DRUM_SPEED);
+			command.drum_speed.speed = end_view.speed;
+			commands.insert(commands.begin() + index, command);
+			index += 1;
+		}
+
+		Command command = Command(Command_Type::OCTAVE);
+		command.octave.octave = end_view.octave;
+		commands.insert(commands.begin() + index, command);
+		index += 1;
+	}
+
+	insert_ticks(selected_channel, commands, ambiguous_ticks, call_index + 1);
+
+	commands[call_index + 1].labels.insert(commands[call_index + 1].labels.begin(), RANGE(commands[call_index].labels));
+	commands.erase(commands.begin() + call_index);
+
+	postprocess(commands);
+
+	_modified = true;
+}
+
 std::string Song::commands_str(const std::vector<Command> &commands, int32_t channel_number) const {
 	const auto to_local_label = [](const std::string &label, const std::string &scope) {
 		std::size_t dot = label.find_first_of(".");
@@ -3051,6 +3141,10 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Split note";
 	case Song_State::Action::GLUE_NOTE:
 		return "Glue note";
+	case Song_State::Action::REDUCE_LOOP:
+		return "Reduce loop";
+	case Song_State::Action::DELETE_CALL:
+		return "Delete call";
 	default:
 		return "Unspecified action";
 	}

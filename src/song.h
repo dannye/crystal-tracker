@@ -62,7 +62,9 @@ public:
 			DELETE_SELECTION,
 			SNIP_SELECTION,
 			SPLIT_NOTE,
-			GLUE_NOTE
+			GLUE_NOTE,
+			REDUCE_LOOP,
+			DELETE_CALL
 		};
 		int tick = -1;
 		int channel_number = 0;
@@ -175,6 +177,9 @@ public:
 	void split_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick, int32_t tick_offset);
 	void glue_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick);
 	void resize_song(const Song_Options_Dialog::Song_Options &options);
+
+	void reduce_loop(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, int32_t loop_length, Note_View start_view, Note_View end_view);
+	void delete_call(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view);
 
 	std::vector<Command> &channel_commands(const int selected_channel);
 	const std::string &channel_label(const int selected_channel) const;
