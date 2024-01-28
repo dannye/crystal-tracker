@@ -304,6 +304,7 @@ private:
 	static void previous_channel_cb(Fl_Widget *w, Main_Window *mw);
 	void sync_channel_buttons();
 	static void reduce_loop_cb(Fl_Widget *w, Main_Window *mw);
+	static void extend_loop_cb(Fl_Widget *w, Main_Window *mw);
 	static void delete_call_cb(Fl_Widget *w, Main_Window *mw);
 	// View menu
 	static void classic_theme_cb(Fl_Widget *w, Main_Window *mw);

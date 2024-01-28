@@ -13,6 +13,7 @@
 #define MAX_HISTORY_SIZE 100
 
 std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, const std::string &label);
+bool is_followed_by_n_ticks_of_rest(std::vector<Command>::const_iterator itr, std::vector<Command>::const_iterator end, int32_t n, int32_t speed);
 
 struct Extra_Info {
 	int32_t loop_index = 0;
@@ -64,6 +65,7 @@ public:
 			SPLIT_NOTE,
 			GLUE_NOTE,
 			REDUCE_LOOP,
+			EXTEND_LOOP,
 			DELETE_CALL
 		};
 		int tick = -1;
@@ -178,8 +180,9 @@ public:
 	void glue_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick);
 	void resize_song(const Song_Options_Dialog::Song_Options &options);
 
-	void reduce_loop(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, int32_t loop_length, Note_View start_view, Note_View end_view);
-	void delete_call(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view);
+	void reduce_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, int32_t loop_length, Note_View start_view, Note_View end_view);
+	void extend_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, int32_t loop_length, Note_View start_view, Note_View end_view);
+	void delete_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view);
 
 	std::vector<Command> &channel_commands(const int selected_channel);
 	const std::string &channel_label(const int selected_channel) const;

@@ -508,8 +508,9 @@ public:
 	bool is_point_in_loop(int X, int Y);
 	bool is_point_in_call(int X, int Y);
 
-	bool reduce_loop(Song &song);
-	bool delete_call(Song &song);
+	bool reduce_loop(Song &song, bool dry_run = false);
+	bool extend_loop(Song &song, bool dry_run = false);
+	bool delete_call(Song &song, bool dry_run = false);
 
 	bool select_all() { return _piano_timeline.select_all(); }
 	bool select_none() { return _piano_timeline.select_none(); }

@@ -17,6 +17,32 @@ std::vector<Command>::const_iterator find_note_with_label(const std::vector<Comm
 	return commands.end();
 }
 
+bool is_followed_by_n_ticks_of_rest(std::vector<Command>::const_iterator itr, std::vector<Command>::const_iterator end, int32_t n, int32_t speed) {
+	int32_t ticks = 0;
+	++itr;
+	while (itr != end) {
+		if (
+			itr->labels.size() > 0 ||
+			is_note_command(itr->type) ||
+			is_global_command(itr->type) ||
+			is_control_command(itr->type)
+		) {
+			return false;
+		}
+		if (is_speed_command(itr->type)) {
+			speed = itr->note_type.speed;
+		}
+		if (itr->type == Command_Type::REST) {
+			ticks += speed * itr->rest.length;
+			if (ticks >= n) {
+				return true;
+			}
+		}
+		++itr;
+	}
+	return false;
+}
+
 Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, int32_t &loop_tick, int32_t &end_tick, Extra_Info *info) {
 	int32_t tick = 0;
 	loop_tick = -1;
@@ -2022,37 +2048,11 @@ int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &sele
 	if (prev_note_index != -1) {
 		auto command_itr = commands.begin() + index;
 
-		const auto is_followed_by_n_ticks_of_rest = [&](decltype(command_itr) itr, int32_t n, int32_t speed) {
-			int32_t ticks = 0;
-			++itr;
-			while (itr != commands.end()) {
-				if (
-					itr->labels.size() > 0 ||
-					is_note_command(itr->type) ||
-					is_global_command(itr->type) ||
-					is_control_command(itr->type)
-				) {
-					return false;
-				}
-				if (is_speed_command(itr->type)) {
-					speed = itr->note_type.speed;
-				}
-				if (itr->type == Command_Type::REST) {
-					ticks += speed * itr->rest.length;
-					if (ticks >= n) {
-						return true;
-					}
-				}
-				++itr;
-			}
-			return false;
-		};
-
 		int32_t prev_note_length = commands[prev_note_index].note.length;
 		Note_View note_view = get_note_view(commands, index);
 		if (
 			prev_note_length > 1 &&
-			is_followed_by_n_ticks_of_rest(command_itr, (prev_note_length - 1) * note_view.speed, note_view.speed)
+			is_followed_by_n_ticks_of_rest(command_itr, commands.end(), (prev_note_length - 1) * note_view.speed, note_view.speed)
 		) {
 			length = prev_note_length;
 			commands[index].note.length = length;
@@ -2765,7 +2765,7 @@ void Song::resize_song(const Song_Options_Dialog::Song_Options &options) {
 	_modified = true;
 }
 
-void Song::reduce_loop(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, int32_t loop_length, Note_View start_view, Note_View end_view) {
+void Song::reduce_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, int32_t loop_length, Note_View start_view, Note_View end_view) {
 	remember(selected_channel, selected_boxes, Song_State::Action::REDUCE_LOOP, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
@@ -2787,7 +2787,24 @@ void Song::reduce_loop(const int selected_channel, const std::set<int32_t> &sele
 	_modified = true;
 }
 
-void Song::delete_call(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view) {
+void Song::extend_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, int32_t loop_length, Note_View start_view, Note_View end_view) {
+	remember(selected_channel, selected_boxes, Song_State::Action::EXTEND_LOOP, tick);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	assert(commands[loop_index].type == Command_Type::SOUND_LOOP);
+	assert(commands[loop_index].sound_loop.loop_count > 1);
+	assert(end_view.speed != 0);
+
+	commands[loop_index].sound_loop.loop_count += 1;
+
+	erase_ticks(selected_channel, commands, loop_length, loop_index, end_view.speed, end_view.volume, end_view.fade);
+
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::delete_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view) {
 	remember(selected_channel, selected_boxes, Song_State::Action::DELETE_CALL, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
@@ -3143,6 +3160,8 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Glue note";
 	case Song_State::Action::REDUCE_LOOP:
 		return "Reduce loop";
+	case Song_State::Action::EXTEND_LOOP:
+		return "Extend loop";
 	case Song_State::Action::DELETE_CALL:
 		return "Delete call";
 	default:

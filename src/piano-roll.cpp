@@ -2244,36 +2244,10 @@ bool Piano_Roll::set_speed(Song &song, int32_t speed) {
 			Note_View note_view = note->note_view();
 			auto command_itr = commands.begin() + note_view.index;
 
-			const auto is_followed_by_n_ticks_of_rest = [&](decltype(command_itr) itr, int32_t n, int32_t speed) {
-				int32_t ticks = 0;
-				++itr;
-				while (itr != commands.end()) {
-					if (
-						itr->labels.size() > 0 ||
-						is_note_command(itr->type) ||
-						is_global_command(itr->type) ||
-						is_control_command(itr->type)
-					) {
-						return false;
-					}
-					if (is_speed_command(itr->type)) {
-						speed = itr->note_type.speed;
-					}
-					if (itr->type == Command_Type::REST) {
-						ticks += speed * itr->rest.length;
-						if (ticks >= n) {
-							return true;
-						}
-					}
-					++itr;
-				}
-				return false;
-			};
-
 			int ticks_to_erase = (note_view.length * speed) - (note_view.length * note_view.speed);
 			if (
 				speed > note_view.speed &&
-				!is_followed_by_n_ticks_of_rest(command_itr, ticks_to_erase, note_view.speed)
+				!is_followed_by_n_ticks_of_rest(command_itr, commands.end(), ticks_to_erase, note_view.speed)
 			) {
 				return false;
 			}
@@ -3041,35 +3015,9 @@ bool Piano_Roll::lengthen(Song &song, bool dry_run) {
 			Note_View note_view = note->note_view();
 			auto command_itr = commands.begin() + note_view.index;
 
-			const auto is_followed_by_n_ticks_of_rest = [&](decltype(command_itr) itr, int32_t n, int32_t speed) {
-				int32_t ticks = 0;
-				++itr;
-				while (itr != commands.end()) {
-					if (
-						itr->labels.size() > 0 ||
-						is_note_command(itr->type) ||
-						is_global_command(itr->type) ||
-						is_control_command(itr->type)
-					) {
-						return false;
-					}
-					if (is_speed_command(itr->type)) {
-						speed = itr->note_type.speed;
-					}
-					if (itr->type == Command_Type::REST) {
-						ticks += speed * itr->rest.length;
-						if (ticks >= n) {
-							return true;
-						}
-					}
-					++itr;
-				}
-				return false;
-			};
-
 			if (
 				note_view.length == 16 ||
-				!is_followed_by_n_ticks_of_rest(command_itr, note_view.speed, note_view.speed)
+				!is_followed_by_n_ticks_of_rest(command_itr, commands.end(), note_view.speed, note_view.speed)
 			) {
 				return false;
 			}
@@ -3288,7 +3236,7 @@ bool Piano_Roll::is_point_in_call(int X, int Y) {
 	return false;
 }
 
-bool Piano_Roll::reduce_loop(Song &song) {
+bool Piano_Roll::reduce_loop(Song &song, bool dry_run) {
 	auto loops = _piano_timeline.active_channel_loops();
 	if (!loops) return false;
 
@@ -3310,29 +3258,82 @@ bool Piano_Roll::reduce_loop(Song &song) {
 		}
 	}
 	if (loop_index == -1) return false;
+	if (dry_run) {
+		return true;
+	}
 
 	auto channel = _piano_timeline.active_channel_boxes();
 
-	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
-			selected_notes.insert(note_view.index);
 			selected_boxes.insert(note_itr - channel->begin());
 		}
 	}
 
-	song.reduce_loop(selected_channel(), selected_notes, selected_boxes, _tick, loop_index, loop_length, start_view, end_view);
+	song.reduce_loop(selected_channel(), selected_boxes, _tick, loop_index, loop_length, start_view, end_view);
 	set_active_channel_timeline(song);
 	refresh_note_properties();
 
 	return true;
 }
 
-bool Piano_Roll::delete_call(Song &song) {
+bool Piano_Roll::extend_loop(Song &song, bool dry_run) {
+	auto loops = _piano_timeline.active_channel_loops();
+	if (!loops) return false;
+
+	const std::vector<Command> &commands = song.channel_commands(selected_channel());
+
+	int32_t loop_index = -1;
+	int32_t loop_length = 0;
+	Note_View start_view, end_view;
+	for (size_t i = 0; i < loops->size(); ++i) {
+		const Loop_Box *loop = (*loops)[i];
+		if (_tick >= loop->start_tick() && _tick < loop->end_tick()) {
+			while (i + 1 < loops->size() && (*loops)[i + 1]->end_note_view().index == loop->end_note_view().index) {
+				i += 1;
+				loop = (*loops)[i];
+			}
+			loop_index = loop->end_note_view().index;
+			loop_length = loop->end_tick() - loop->start_tick();
+			start_view = loop->start_note_view();
+			end_view = loop->end_note_view();
+			break;
+		}
+	}
+	if (
+		loop_index == -1 ||
+		!is_followed_by_n_ticks_of_rest(commands.begin() + loop_index, commands.end(), loop_length, end_view.speed)
+	) {
+		return false;
+	}
+	if (dry_run) {
+		return true;
+	}
+
+	auto channel = _piano_timeline.active_channel_boxes();
+
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+
+	song.extend_loop(selected_channel(), selected_boxes, _tick, loop_index, loop_length, start_view, end_view);
+	set_active_channel_timeline(song);
+	refresh_note_properties();
+
+	return true;
+}
+
+bool Piano_Roll::delete_call(Song &song, bool dry_run) {
 	auto calls = _piano_timeline.active_channel_calls();
 	if (!calls) return false;
 
@@ -3351,22 +3352,23 @@ bool Piano_Roll::delete_call(Song &song) {
 		}
 	}
 	if (call_index == -1) return false;
+	if (dry_run) {
+		return true;
+	}
 
 	auto channel = _piano_timeline.active_channel_boxes();
 
-	std::set<int32_t> selected_notes;
 	std::set<int32_t> selected_boxes;
 
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
-			selected_notes.insert(note_view.index);
 			selected_boxes.insert(note_itr - channel->begin());
 		}
 	}
 
-	song.delete_call(selected_channel(), selected_notes, selected_boxes, _tick, call_index, ambiguous_ticks, unambiguous_ticks, start_view, end_view);
+	song.delete_call(selected_channel(), selected_boxes, _tick, call_index, ambiguous_ticks, unambiguous_ticks, start_view, end_view);
 	set_active_channel_timeline(song);
 	refresh_note_properties();
 
