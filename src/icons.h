@@ -9,14 +9,17 @@
 #include "decrease-spacing.xpm"
 #include "four.xpm"
 #include "increase-spacing.xpm"
+#include "keys.xpm"
 #include "loop.xpm"
 #include "new.xpm"
+#include "notes.xpm"
 #include "one.xpm"
 #include "open.xpm"
 #include "pause.xpm"
 #include "pencil.xpm"
 #include "play.xpm"
 #include "redo.xpm"
+#include "ruler.xpm"
 #include "save.xpm"
 #include "save-as.xpm"
 #include "scroll-dark.xpm"
@@ -31,14 +34,17 @@ static Fl_Pixmap BLANK_ICON(BLANK_XPM);
 static Fl_Pixmap DECREASE_SPACING_ICON(DECREASE_SPACING_XPM);
 static Fl_Pixmap FOUR_ICON(FOUR_XPM);
 static Fl_Pixmap INCREASE_SPACING_ICON(INCREASE_SPACING_XPM);
+static Fl_Pixmap KEYS_ICON(KEYS_XPM);
 static Fl_Pixmap LOOP_ICON(LOOP_XPM);
 static Fl_Pixmap NEW_ICON(NEW_XPM);
+static Fl_Pixmap NOTES_ICON(NOTES_XPM);
 static Fl_Pixmap ONE_ICON(ONE_XPM);
 static Fl_Pixmap OPEN_ICON(OPEN_XPM);
 static Fl_Pixmap PAUSE_ICON(PAUSE_XPM);
 static Fl_Pixmap PENCIL_ICON(PENCIL_XPM);
 static Fl_Pixmap PLAY_ICON(PLAY_XPM);
 static Fl_Pixmap REDO_ICON(REDO_XPM);
+static Fl_Pixmap RULER_ICON(RULER_XPM);
 static Fl_Pixmap SAVE_ICON(SAVE_XPM);
 static Fl_Pixmap SAVE_AS_ICON(SAVE_AS_XPM);
 static Fl_Pixmap SCROLL_DARK_ICON(SCROLL_DARK_XPM);

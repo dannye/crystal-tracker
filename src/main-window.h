@@ -81,6 +81,9 @@ private:
 		*_channel_3_tb = NULL,
 		*_channel_4_tb = NULL;
 	Toolbar_Toggle_Button
+		*_key_labels_tb = NULL,
+		*_note_labels_tb = NULL,
+		*_ruler_tb = NULL,
 		*_zoom_tb = NULL;
 	Toolbar_Button
 		*_decrease_spacing_tb = NULL,
@@ -321,9 +324,9 @@ private:
 	static void dark_theme_cb(Fl_Widget *w, Main_Window *mw);
 	static void brushed_metal_theme_cb(Fl_Widget *w, Main_Window *mw);
 	static void high_contrast_theme_cb(Fl_Widget *w, Main_Window *mw);
-	static void key_labels_cb(Fl_Widget *w, Main_Window *mw);
-	static void note_labels_cb(Fl_Widget *w, Main_Window *mw);
-	static void ruler_cb(Fl_Widget *w, Main_Window *mw);
+	static void key_labels_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void note_labels_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void ruler_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void zoom_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void decrease_spacing_cb(Fl_Widget *w, Main_Window *mw);
 	static void increase_spacing_cb(Fl_Widget *w, Main_Window *mw);
@@ -336,6 +339,9 @@ private:
 	static void channel_2_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
 	static void channel_3_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
 	static void channel_4_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
+	static void key_labels_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
+	static void note_labels_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
+	static void ruler_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void zoom_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	// Help menu
 	static void help_cb(Fl_Widget *w, Main_Window *mw);

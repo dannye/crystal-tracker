@@ -191,10 +191,16 @@
     <None Include="..\res\increase-spacing.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\keys.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\loop.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\new.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\notes.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\one.xpm">
@@ -213,6 +219,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\redo.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\ruler.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\save.xpm">

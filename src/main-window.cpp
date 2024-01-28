@@ -92,7 +92,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_4_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_channel_4_tb->when(FL_WHEN_RELEASE_ALWAYS);
 	SEPARATE_TOOLBAR_BUTTONS;
+	_key_labels_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_note_labels_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_ruler_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_zoom_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	SEPARATE_TOOLBAR_BUTTONS;
 	_decrease_spacing_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_increase_spacing_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_toolbar->end();
@@ -471,6 +475,21 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_4_tb->callback((Fl_Callback *)channel_4_tb_cb, this);
 	_channel_4_tb->image(FOUR_ICON);
 	_channel_4_tb->value(selected_channel() == 4);
+
+	_key_labels_tb->tooltip("Key Labels (" COMMAND_KEY_PLUS "K)");
+	_key_labels_tb->callback((Fl_Callback *)key_labels_tb_cb, this);
+	_key_labels_tb->image(KEYS_ICON);
+	_key_labels_tb->value(key_labels());
+
+	_note_labels_tb->tooltip("Note Labels (" COMMAND_SHIFT_KEYS_PLUS "K)");
+	_note_labels_tb->callback((Fl_Callback *)note_labels_tb_cb, this);
+	_note_labels_tb->image(NOTES_ICON);
+	_note_labels_tb->value(note_labels());
+
+	_ruler_tb->tooltip("Ruler (" COMMAND_SHIFT_KEYS_PLUS "R)");
+	_ruler_tb->callback((Fl_Callback *)ruler_tb_cb, this);
+	_ruler_tb->image(RULER_ICON);
+	_ruler_tb->value(ruler());
 
 	_zoom_tb->tooltip("Zoom (" COMMAND_KEY_PLUS "=)");
 	_zoom_tb->callback((Fl_Callback *)zoom_tb_cb, this);
@@ -1453,6 +1472,9 @@ void Main_Window::update_icons() {
 	make_deimage(_channel_2_tb);
 	make_deimage(_channel_3_tb);
 	make_deimage(_channel_4_tb);
+	make_deimage(_key_labels_tb);
+	make_deimage(_note_labels_tb);
+	make_deimage(_ruler_tb);
 	make_deimage(_zoom_tb);
 	make_deimage(_decrease_spacing_tb);
 	make_deimage(_increase_spacing_tb);
@@ -1811,6 +1833,24 @@ void Main_Window::pencil_mode_cb(Fl_Menu_ *m, Main_Window *mw) {
 	mw->redraw();
 }
 
+void Main_Window::key_labels_cb(Fl_Menu_ *m, Main_Window *mw) {
+	SYNC_TB_WITH_M(mw->_key_labels_tb, m);
+	mw->_piano_roll->key_labels(mw->key_labels());
+	mw->redraw();
+}
+
+void Main_Window::note_labels_cb(Fl_Menu_ *m, Main_Window *mw) {
+	SYNC_TB_WITH_M(mw->_note_labels_tb, m);
+	mw->_piano_roll->note_labels(mw->note_labels());
+	mw->redraw();
+}
+
+void Main_Window::ruler_cb(Fl_Menu_ *m, Main_Window *mw) {
+	SYNC_TB_WITH_M(mw->_ruler_tb, m);
+	mw->update_ruler();
+	mw->redraw();
+}
+
 void Main_Window::zoom_cb(Fl_Menu_ *m, Main_Window *mw) {
 	SYNC_TB_WITH_M(mw->_zoom_tb, m);
 	mw->update_zoom();
@@ -1838,6 +1878,27 @@ void Main_Window::pencil_mode_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 	SYNC_MI_WITH_TB(mw->_pencil_mode_tb, mw->_pencil_mode_mi);
 	if (mw->pencil_mode() && mw->selected_channel() == 0) next_channel_cb(nullptr, mw);
 	fl_cursor(mw->pencil_mode() ? FL_CURSOR_CROSS : FL_CURSOR_DEFAULT);
+	mw->_menu_bar->update();
+	mw->redraw();
+}
+
+void Main_Window::key_labels_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
+	SYNC_MI_WITH_TB(mw->_key_labels_tb, mw->_key_labels_mi);
+	mw->_piano_roll->key_labels(mw->key_labels());
+	mw->_menu_bar->update();
+	mw->redraw();
+}
+
+void Main_Window::note_labels_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
+	SYNC_MI_WITH_TB(mw->_note_labels_tb, mw->_note_labels_mi);
+	mw->_piano_roll->note_labels(mw->note_labels());
+	mw->_menu_bar->update();
+	mw->redraw();
+}
+
+void Main_Window::ruler_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
+	SYNC_MI_WITH_TB(mw->_ruler_tb, mw->_ruler_mi);
+	mw->update_ruler();
 	mw->_menu_bar->update();
 	mw->redraw();
 }
@@ -2744,21 +2805,6 @@ void Main_Window::high_contrast_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::update_macos_appearance(mw);
 	mw->_high_contrast_theme_mi->setonly();
 	mw->update_icons();
-	mw->redraw();
-}
-
-void Main_Window::key_labels_cb(Fl_Widget *, Main_Window *mw) {
-	mw->_piano_roll->key_labels(mw->key_labels());
-	mw->redraw();
-}
-
-void Main_Window::note_labels_cb(Fl_Widget *, Main_Window *mw) {
-	mw->_piano_roll->note_labels(mw->note_labels());
-	mw->redraw();
-}
-
-void Main_Window::ruler_cb(Fl_Widget *, Main_Window *mw) {
-	mw->update_ruler();
 	mw->redraw();
 }
 

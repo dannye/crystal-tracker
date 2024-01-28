@@ -255,14 +255,17 @@
     <None Include="..\res\four.xpm" />
     <None Include="..\res\help.html" />
     <None Include="..\res\increase-spacing.xpm" />
+    <None Include="..\res\keys.xpm" />
     <None Include="..\res\loop.xpm" />
     <None Include="..\res\new.xpm" />
+    <None Include="..\res\notes.xpm" />
     <None Include="..\res\one.xpm" />
     <None Include="..\res\open.xpm" />
     <None Include="..\res\pause.xpm" />
     <None Include="..\res\pencil.xpm" />
     <None Include="..\res\play.xpm" />
     <None Include="..\res\redo.xpm" />
+    <None Include="..\res\ruler.xpm" />
     <None Include="..\res\save.xpm" />
     <None Include="..\res\save-as.xpm" />
     <None Include="..\res\scroll-dark.xpm" />
