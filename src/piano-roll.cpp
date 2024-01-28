@@ -16,6 +16,10 @@ static inline bool is_white_key(size_t i) {
 	return !(i == 1 || i == 3 || i == 5 || i == 8 || i == 10);
 }
 
+static const char *pitch_label(const Note_View &note) {
+	return NOTE_KEYS[PITCH_TO_KEY_INDEX[((size_t)note.pitch - 1 + note.transpose_pitches) % NUM_NOTES_PER_OCTAVE]].label;
+}
+
 Note_Box::Note_Box(const Note_View &n, int32_t t, int X, int Y, int W, int H, const char *l) : Fl_Box(X, Y, W, H, l), _note_view(n), _tick(t) {
 	labelfont(OS_FONT);
 	align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
@@ -504,7 +508,7 @@ void Piano_Timeline::note_labels(bool show) {
 
 	const auto show_note_labels = [](std::vector<Note_Box *> &notes, bool show) {
 		for (Note_Box *note : notes) {
-			note->label(show ? NOTE_KEYS[PITCH_TO_KEY_INDEX[(size_t)note->note_view().pitch - 1]].label : nullptr);
+			note->label(show ? pitch_label(note->note_view()) : nullptr);
 		}
 	};
 
@@ -954,7 +958,7 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 				pitch_to_y_pos(note.pitch, note.octave),
 				note.length * note.speed * tick_width,
 				note_row_height,
-				note_labels ? NOTE_KEYS[PITCH_TO_KEY_INDEX[(size_t)note.pitch - 1]].label : nullptr
+				note_labels ? pitch_label(note) : nullptr
 			);
 			box->box(FL_BORDER_BOX);
 			box->labelsize(note_labelsize);
@@ -1040,7 +1044,7 @@ void Piano_Timeline::set_channel_detail(
 	const bool note_labels = parent()->note_labels();
 	for (Note_Box *note : notes) {
 		note->box(note_box);
-		note->label(detail > 0 && note_labels ? NOTE_KEYS[PITCH_TO_KEY_INDEX[(size_t)note->note_view().pitch - 1]].label : nullptr);
+		note->label(detail > 0 && note_labels ? pitch_label(note->note_view()) : nullptr);
 	}
 	for (Loop_Box *loop : loops) {
 		loop->box(group_box);
