@@ -19,7 +19,7 @@ const Fl_Color BACKGROUND3_COLOR = FL_FREE_COLOR;
 const Fl_Color NOTE_RED   = fl_rgb_color(217,   0,   0);
 const Fl_Color NOTE_BLUE  = fl_rgb_color(  0, 117, 253);
 const Fl_Color NOTE_GREEN = fl_rgb_color(  3, 180,   3);
-const Fl_Color NOTE_BROWN = fl_rgb_color(140,  60,  25);
+const Fl_Color NOTE_BROWN = fl_rgb_color(124,  60,  25);
 
 const Fl_Color NOTE_RED_LIGHT   = fl_lighter(NOTE_RED);
 const Fl_Color NOTE_BLUE_LIGHT  = fl_lighter(NOTE_BLUE);
@@ -50,6 +50,9 @@ constexpr int BLACK_KEY_HEIGHT_UNZOOMED = 20;
 constexpr int TICK_WIDTH_ZOOMED = 4;
 constexpr int TICK_WIDTH_UNZOOMED = 3;
 constexpr int TICKS_PER_STEP = 12;
+
+constexpr int NOTE_LABELSIZE_ZOOMED = 14;
+constexpr int NOTE_LABELSIZE_UNZOOMED = 10;
 
 constexpr int SELECTION_REGION_MIN = 5;
 
@@ -106,8 +109,7 @@ private:
 	int32_t _tick = 0;
 	bool _selected = false;
 public:
-	Note_Box(const Note_View &n, int32_t t, int X, int Y, int W, int H, const char *l = nullptr)
-		: Fl_Box(X, Y, W, H, l), _note_view(n), _tick(t) {}
+	Note_Box(const Note_View &n, int32_t t, int X, int Y, int W, int H, const char *l = nullptr);
 
 	inline const Note_View &note_view(void) const { return _note_view; }
 	inline int32_t tick(void) const { return _tick; }
@@ -300,6 +302,7 @@ public:
 	inline int selected_channel() const;
 
 	void calc_sizes();
+	void note_labels(bool show);
 
 	int handle(int event) override;
 	bool handle_note_pencil(int event);
@@ -407,6 +410,8 @@ public:
 	int note_row_height() const;
 	int black_key_offset() const;
 	int tick_width() const;
+	int note_labelsize() const;
+	bool note_labels() const;
 
 	inline const std::vector<Note_View> &channel_1_notes() const { return _channel_1_notes; }
 	inline const std::vector<Note_View> &channel_2_notes() const { return _channel_2_notes; }
@@ -438,6 +443,7 @@ public:
 	void zoom(bool z);
 	void ticks_per_step(int t) { _ticks_per_step = t; }
 	void key_labels(bool show) { _piano_timeline._keys.key_labels(show); }
+	void note_labels(bool show) { _piano_timeline.note_labels(show); }
 
 	void set_size(int W, int H);
 	void set_timeline_width();

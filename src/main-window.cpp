@@ -38,9 +38,10 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	// Get global configs
 	int loop_config = Preferences::get("loop", 1);
+	int key_labels_config = Preferences::get("key_labels", 0);
+	int note_labels_config = Preferences::get("note_labels", 0);
 	int ruler_config = Preferences::get("ruler", 1);
 	int zoom_config = Preferences::get("zoom", 0);
-	int key_labels_config = Preferences::get("key_labels", 0);
 
 	for (int i = 0; i < NUM_RECENT; i++) {
 		_recent[i] = Preferences::get_string(Fl_Preferences::Name("recent%d", i));
@@ -279,14 +280,16 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("&High Contrast", 0, (Fl_Callback *)high_contrast_theme_cb, this,
 			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::HIGH_CONTRAST ? FL_MENU_VALUE : 0)),
 		{},
+		OS_MENU_ITEM("&Key Labels", FL_COMMAND + 'k', (Fl_Callback *)key_labels_cb, this,
+			FL_MENU_TOGGLE | (key_labels_config ? FL_MENU_VALUE : 0)),
+		OS_MENU_ITEM("&Note Labels", FL_COMMAND + 'K', (Fl_Callback *)note_labels_cb, this,
+			FL_MENU_TOGGLE | (note_labels_config ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("&Ruler", FL_COMMAND + 'R', (Fl_Callback *)ruler_cb, this,
 			FL_MENU_TOGGLE | (ruler_config ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("&Zoom", FL_COMMAND + '=', (Fl_Callback *)zoom_cb, this,
 			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (zoom_config ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Decrease Spacing", FL_SHIFT + '-', (Fl_Callback *)decrease_spacing_cb, this, 0),
 		OS_MENU_ITEM("Increase Spacing", FL_SHIFT + '=', (Fl_Callback *)increase_spacing_cb, this, FL_MENU_DIVIDER),
-		OS_MENU_ITEM("Key &Labels", FL_COMMAND + '0', (Fl_Callback *)key_labels_cb, this,
-			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (key_labels_config ? FL_MENU_VALUE : 0)),
 		OS_MENU_ITEM("Full &Screen", FULLSCREEN_KEY, (Fl_Callback *)full_screen_cb, this,
 			FL_MENU_TOGGLE | (fullscreen ? FL_MENU_VALUE : 0)),
 		{},
@@ -335,9 +338,10 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_2_mute_mi = CT_FIND_MENU_ITEM_CB(channel_2_mute_cb);
 	_channel_3_mute_mi = CT_FIND_MENU_ITEM_CB(channel_3_mute_cb);
 	_channel_4_mute_mi = CT_FIND_MENU_ITEM_CB(channel_4_mute_cb);
+	_key_labels_mi = CT_FIND_MENU_ITEM_CB(key_labels_cb);
+	_note_labels_mi = CT_FIND_MENU_ITEM_CB(note_labels_cb);
 	_ruler_mi = CT_FIND_MENU_ITEM_CB(ruler_cb);
 	_zoom_mi = CT_FIND_MENU_ITEM_CB(zoom_cb);
-	_key_labels_mi = CT_FIND_MENU_ITEM_CB(key_labels_cb);
 	_full_screen_mi = CT_FIND_MENU_ITEM_CB(full_screen_cb);
 	// Conditional menu items
 	_close_mi = CT_FIND_MENU_ITEM_CB(close_cb);
@@ -538,6 +542,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	update_channel_status();
 
 	_piano_roll->key_labels(key_labels());
+	_piano_roll->note_labels(note_labels());
 	_piano_roll->scroll_to_y_max();
 
 	start_interactive_thread();
@@ -1765,9 +1770,10 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 	}
 	Preferences::set("maximized", mw->maximized());
 	Preferences::set("loop", mw->loop());
+	Preferences::set("key_labels", mw->key_labels());
+	Preferences::set("note_labels", mw->note_labels());
 	Preferences::set("ruler", mw->ruler());
 	Preferences::set("zoom", mw->zoom());
-	Preferences::set("key_labels", mw->key_labels());
 	for (int i = 0; i < NUM_RECENT; i++) {
 		Preferences::set_string(Fl_Preferences::Name("recent%d", i), mw->_recent[i]);
 	}
@@ -2741,6 +2747,16 @@ void Main_Window::high_contrast_theme_cb(Fl_Widget *, Main_Window *mw) {
 	mw->redraw();
 }
 
+void Main_Window::key_labels_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_piano_roll->key_labels(mw->key_labels());
+	mw->redraw();
+}
+
+void Main_Window::note_labels_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_piano_roll->note_labels(mw->note_labels());
+	mw->redraw();
+}
+
 void Main_Window::ruler_cb(Fl_Widget *, Main_Window *mw) {
 	mw->update_ruler();
 	mw->redraw();
@@ -2773,11 +2789,6 @@ void Main_Window::increase_spacing_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_piano_roll->focus_cursor();
 	}
 	mw->_menu_bar->update();
-	mw->redraw();
-}
-
-void Main_Window::key_labels_cb(Fl_Widget *, Main_Window *mw) {
-	mw->_piano_roll->key_labels(mw->key_labels());
 	mw->redraw();
 }
 

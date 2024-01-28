@@ -55,9 +55,10 @@ private:
 		*_channel_2_mute_mi = NULL,
 		*_channel_3_mute_mi = NULL,
 		*_channel_4_mute_mi = NULL,
+		*_key_labels_mi = NULL,
+		*_note_labels_mi = NULL,
 		*_ruler_mi = NULL,
 		*_zoom_mi = NULL,
-		*_key_labels_mi = NULL,
 		*_full_screen_mi = NULL;
 	Toolbar_Button
 		*_new_tb = NULL,
@@ -186,9 +187,10 @@ public:
 	inline bool channel_4_muted(void) const { return _channel_4_mute_mi && !!_channel_4_mute_mi->value(); }
 	inline bool pencil_mode(void) const { return _pencil_mode_mi && !!_pencil_mode_mi->value(); }
 	inline bool note_properties(void) const { return _note_properties && _note_properties->visible(); }
+	inline bool key_labels(void) const { return _key_labels_mi && !!_key_labels_mi->value(); }
+	inline bool note_labels(void) const { return _note_labels_mi && !!_note_labels_mi->value(); }
 	inline bool ruler(void) const { return _ruler_mi && !!_ruler_mi->value(); }
 	inline bool zoom(void) const { return _zoom_mi && !!_zoom_mi->value(); }
-	inline bool key_labels(void) const { return _key_labels_mi && !!_key_labels_mi->value(); }
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
 	inline void continuous_scroll(bool c) { _continuous_tb->value(c); continuous_tb_cb(nullptr, this); }
 	inline void pencil_mode(bool p) { _pencil_mode_tb->value(p); pencil_mode_tb_cb(nullptr, this); }
@@ -319,11 +321,12 @@ private:
 	static void dark_theme_cb(Fl_Widget *w, Main_Window *mw);
 	static void brushed_metal_theme_cb(Fl_Widget *w, Main_Window *mw);
 	static void high_contrast_theme_cb(Fl_Widget *w, Main_Window *mw);
+	static void key_labels_cb(Fl_Widget *w, Main_Window *mw);
+	static void note_labels_cb(Fl_Widget *w, Main_Window *mw);
 	static void ruler_cb(Fl_Widget *w, Main_Window *mw);
 	static void zoom_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void decrease_spacing_cb(Fl_Widget *w, Main_Window *mw);
 	static void increase_spacing_cb(Fl_Widget *w, Main_Window *mw);
-	static void key_labels_cb(Fl_Widget *w, Main_Window *mw);
 	static void full_screen_cb(Fl_Widget *w, Main_Window *mw);
 	// Toolbar buttons
 	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
