@@ -3373,6 +3373,62 @@ bool Piano_Roll::extend_loop(Song &song, bool dry_run) {
 	return true;
 }
 
+bool Piano_Roll::unroll_loop(Song &song, bool dry_run) {
+	auto loops = _piano_timeline.active_channel_loops();
+	if (!loops) return false;
+
+	const std::vector<Command> &commands = song.channel_commands(selected_channel());
+
+	int32_t loop_index = -1;
+	Note_View start_view, end_view;
+	for (size_t i = 0; i < loops->size(); ++i) {
+		const Loop_Box *loop = (*loops)[i];
+		if (_tick >= loop->start_tick() && _tick < loop->end_tick()) {
+			while (i + 1 < loops->size() && (*loops)[i + 1]->end_note_view().index == loop->end_note_view().index) {
+				i += 1;
+				loop = (*loops)[i];
+			}
+			loop_index = loop->end_note_view().index;
+			start_view = loop->start_note_view();
+			end_view = loop->end_note_view();
+			break;
+		}
+	}
+	if (loop_index == -1) {
+		return false;
+	}
+
+	std::vector<Command> snippet = copy_snippet(commands, start_view.index, end_view.index);
+
+	for (const Command &command : snippet) {
+		if (command.labels.size() > 0) {
+			return false;
+		}
+	}
+
+	if (dry_run) {
+		return true;
+	}
+
+	auto channel = _piano_timeline.active_channel_boxes();
+
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_boxes.insert(note_itr - channel->begin());
+		}
+	}
+
+	song.unroll_loop(selected_channel(), selected_boxes, _tick, loop_index, snippet);
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
 bool Piano_Roll::delete_call(Song &song, bool dry_run) {
 	auto calls = _piano_timeline.active_channel_calls();
 	if (!calls) return false;

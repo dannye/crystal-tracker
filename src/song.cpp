@@ -43,6 +43,32 @@ bool is_followed_by_n_ticks_of_rest(std::vector<Command>::const_iterator itr, st
 	return false;
 }
 
+std::vector<Command> copy_snippet(const std::vector<Command> &commands, int32_t start_index, int32_t end_index) {
+	std::vector<Command> snippet;
+
+	auto command_itr = commands.begin() + start_index;
+	auto end_itr = commands.begin() + end_index;
+
+	while (command_itr != commands.end() && command_itr != end_itr) {
+		assert(command_itr->type != Command_Type::SOUND_RET);
+		if (
+			command_itr->type == Command_Type::SOUND_JUMP ||
+			(command_itr->type == Command_Type::SOUND_LOOP && command_itr->sound_loop.loop_count == 0)
+		) {
+			command_itr = find_note_with_label(commands, command_itr->target);
+			continue;
+		}
+		snippet.push_back(*command_itr);
+		++command_itr;
+	}
+
+	if (snippet.size() > 0) {
+		snippet[0].labels.clear();
+	}
+
+	return snippet;
+}
+
 Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, int32_t &loop_tick, int32_t &end_tick, Extra_Info *info) {
 	int32_t tick = 0;
 	loop_tick = -1;
@@ -2804,6 +2830,27 @@ void Song::extend_loop(const int selected_channel, const std::set<int32_t> &sele
 	_modified = true;
 }
 
+void Song::unroll_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, const std::vector<Command> &snippet) {
+	remember(selected_channel, selected_boxes, Song_State::Action::UNROLL_LOOP, tick);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	assert(commands[loop_index].type == Command_Type::SOUND_LOOP);
+	assert(commands[loop_index].sound_loop.loop_count > 1);
+
+	commands[loop_index].sound_loop.loop_count -= 1;
+
+	commands.insert(commands.begin() + (loop_index + 1), snippet.begin(), snippet.end());
+
+	if (commands[loop_index].sound_loop.loop_count == 1) {
+		commands[loop_index + 1].labels.insert(commands[loop_index + 1].labels.begin(), RANGE(commands[loop_index].labels));
+		commands.erase(commands.begin() + loop_index); // TODO: maybe delete target label if now unreferenced
+	}
+
+	postprocess(commands);
+
+	_modified = true;
+}
+
 void Song::delete_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view) {
 	remember(selected_channel, selected_boxes, Song_State::Action::DELETE_CALL, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
@@ -3162,6 +3209,8 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Reduce loop";
 	case Song_State::Action::EXTEND_LOOP:
 		return "Extend loop";
+	case Song_State::Action::UNROLL_LOOP:
+		return "Unroll loop";
 	case Song_State::Action::DELETE_CALL:
 		return "Delete call";
 	default:

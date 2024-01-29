@@ -515,7 +515,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("",            FL_ALT + '-', (Fl_Callback *)reduce_loop_cb, this, FL_MENU_INVISIBLE),
 		OS_MENU_ITEM("Reduce Loop", FL_ALT + '-', (Fl_Callback *)reduce_loop_cb, this, 0),
 		OS_MENU_ITEM("",            FL_ALT + '=', (Fl_Callback *)extend_loop_cb, this, FL_MENU_INVISIBLE),
-		OS_MENU_ITEM("Extend Loop", FL_ALT + '=', (Fl_Callback *)extend_loop_cb, this, FL_MENU_DIVIDER),
+		OS_MENU_ITEM("Extend Loop", FL_ALT + '=', (Fl_Callback *)extend_loop_cb, this, 0),
+		OS_MENU_ITEM("",            FL_COMMAND + '0', (Fl_Callback *)unroll_loop_cb, this, FL_MENU_INVISIBLE),
+		OS_MENU_ITEM("Unroll Loop", FL_COMMAND + '0', (Fl_Callback *)unroll_loop_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("",            FL_ALT + FL_BackSpace, (Fl_Callback *)delete_call_cb, this, FL_MENU_INVISIBLE),
 		OS_MENU_ITEM("Delete Call", FL_ALT + FL_BackSpace, (Fl_Callback *)delete_call_cb, this, 0),
 		{}
@@ -801,6 +803,7 @@ void Main_Window::set_context_menu(int X, int Y) {
 #define CT_FIND_MENU_ITEM(c) (const_cast<Fl_Menu_Item *>(_context_menu->find_item(OS_MENU_ITEM_PREFIX c OS_MENU_ITEM_SUFFIX)))
 	Fl_Menu_Item *reduce_loop_mi = CT_FIND_MENU_ITEM("Reduce Loop");
 	Fl_Menu_Item *extend_loop_mi = CT_FIND_MENU_ITEM("Extend Loop");
+	Fl_Menu_Item *unroll_loop_mi = CT_FIND_MENU_ITEM("Unroll Loop");
 	Fl_Menu_Item *delete_call_mi = CT_FIND_MENU_ITEM("Delete Call");
 #undef CT_FIND_MENU_ITEM
 
@@ -819,6 +822,13 @@ void Main_Window::set_context_menu(int X, int Y) {
 	}
 	else {
 		extend_loop_mi->deactivate();
+	}
+
+	if (stopped && in_loop && _piano_roll->unroll_loop(_song, true)) {
+		unroll_loop_mi->activate();
+	}
+	else {
+		unroll_loop_mi->deactivate();
 	}
 
 	if (stopped && in_call && _piano_roll->delete_call(_song, true)) {
@@ -2229,6 +2239,7 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 		action == Song::Song_State::Action::LENGTHEN ||
 		action == Song::Song_State::Action::REDUCE_LOOP ||
 		action == Song::Song_State::Action::EXTEND_LOOP ||
+		action == Song::Song_State::Action::UNROLL_LOOP ||
 		action == Song::Song_State::Action::DELETE_CALL
 	) {
 		if (tick != -1) {
@@ -2290,14 +2301,15 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 	}
 	else if (
 		action == Song::Song_State::Action::SHORTEN ||
-		action == Song::Song_State::Action::LENGTHEN
+		action == Song::Song_State::Action::LENGTHEN ||
+		action == Song::Song_State::Action::UNROLL_LOOP
 	) {
 		if (tick != -1) {
 			mw->_piano_roll->tick(tick);
 			if (action == Song::Song_State::Action::SHORTEN) {
 				mw->_piano_roll->skip_backward();
 			}
-			else {
+			else if (action == Song::Song_State::Action::LENGTHEN) {
 				mw->_piano_roll->skip_forward();
 			}
 			mw->_piano_roll->focus_cursor(true);
@@ -2691,6 +2703,19 @@ void Main_Window::extend_loop_cb(Fl_Widget *, Main_Window *mw) {
 	bool stopped = !mw->_it_module || mw->_it_module->stopped();
 	if (!stopped) return;
 	if (mw->_piano_roll->extend_loop(mw->_song)) {
+		mw->_status_message = mw->_song.undo_action_message();
+		mw->_status_label->label(mw->_status_message.c_str());
+
+		mw->update_active_controls();
+		mw->redraw();
+	}
+}
+
+void Main_Window::unroll_loop_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	bool stopped = !mw->_it_module || mw->_it_module->stopped();
+	if (!stopped) return;
+	if (mw->_piano_roll->unroll_loop(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
 
