@@ -12,8 +12,14 @@
 
 #define MAX_HISTORY_SIZE 256
 
+std::string get_scope(const std::vector<Command> &commands, int32_t index);
+
+std::string get_next_loop_label(const std::vector<Command> &commands, const std::string &scope, int32_t &i);
+
 std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, const std::string &label);
+
 bool is_followed_by_n_ticks_of_rest(std::vector<Command>::const_iterator itr, std::vector<Command>::const_iterator end, int32_t n, int32_t speed);
+
 std::vector<Command> copy_snippet(const std::vector<Command> &commands, int32_t start_index, int32_t end_index);
 
 struct Extra_Info {
@@ -68,7 +74,8 @@ public:
 			REDUCE_LOOP,
 			EXTEND_LOOP,
 			UNROLL_LOOP,
-			DELETE_CALL
+			DELETE_CALL,
+			UNPACK_CALL
 		};
 		int tick = -1;
 		int channel_number = 0;
@@ -186,6 +193,7 @@ public:
 	void extend_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, int32_t loop_length, Note_View start_view, Note_View end_view);
 	void unroll_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, const std::vector<Command> &snippet);
 	void delete_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view);
+	void unpack_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, const std::vector<Command> &snippet);
 
 	std::vector<Command> &channel_commands(const int selected_channel);
 	const std::string &channel_label(const int selected_channel) const;

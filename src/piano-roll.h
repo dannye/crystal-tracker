@@ -518,6 +518,7 @@ public:
 	bool extend_loop(Song &song, bool dry_run = false);
 	bool unroll_loop(Song &song, bool dry_run = false);
 	bool delete_call(Song &song, bool dry_run = false);
+	bool unpack_call(Song &song, bool dry_run = false);
 
 	bool select_all() { return _piano_timeline.select_all(); }
 	bool select_none() { return _piano_timeline.select_none(); }

@@ -312,6 +312,7 @@ private:
 	static void extend_loop_cb(Fl_Widget *w, Main_Window *mw);
 	static void unroll_loop_cb(Fl_Widget *w, Main_Window *mw);
 	static void delete_call_cb(Fl_Widget *w, Main_Window *mw);
+	static void unpack_call_cb(Fl_Widget *w, Main_Window *mw);
 	// View menu
 	static void classic_theme_cb(Fl_Widget *w, Main_Window *mw);
 	static void aero_theme_cb(Fl_Widget *w, Main_Window *mw);
