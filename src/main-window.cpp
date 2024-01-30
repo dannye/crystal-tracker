@@ -534,11 +534,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_context_menu->user_data(this);
 
 #define CT_FIND_MENU_ITEM_CB(c) (const_cast<Fl_Menu_Item *>(_context_menu->find_item((Fl_Callback *)(c))))
-	Fl_Menu_Item *_reduce_loop_mi = CT_FIND_MENU_ITEM_CB(reduce_loop_cb);
-	Fl_Menu_Item *_extend_loop_mi = CT_FIND_MENU_ITEM_CB(extend_loop_cb);
-	Fl_Menu_Item *_unroll_loop_mi = CT_FIND_MENU_ITEM_CB(unroll_loop_cb);
-	Fl_Menu_Item *_delete_call_mi = CT_FIND_MENU_ITEM_CB(delete_call_cb);
-	Fl_Menu_Item *_unpack_call_mi = CT_FIND_MENU_ITEM_CB(unpack_call_cb);
+	_reduce_loop_mi = CT_FIND_MENU_ITEM_CB(reduce_loop_cb);
+	_extend_loop_mi = CT_FIND_MENU_ITEM_CB(extend_loop_cb);
+	_unroll_loop_mi = CT_FIND_MENU_ITEM_CB(unroll_loop_cb);
+	_delete_call_mi = CT_FIND_MENU_ITEM_CB(delete_call_cb);
+	_unpack_call_mi = CT_FIND_MENU_ITEM_CB(unpack_call_cb);
 #undef CT_FIND_MENU_ITEM_CB
 
 	for (int i = 0; i < _context_menu->size(); i++) {
