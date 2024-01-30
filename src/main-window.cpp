@@ -241,6 +241,14 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("Lengthen", FL_COMMAND + FL_SHIFT + RIGHT_KEY, (Fl_Callback *)lengthen_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("&Delete Selection", DELETE_KEY, (Fl_Callback *)delete_selection_cb, this, 0),
 		OS_MENU_ITEM("&Snip Selection", FL_SHIFT + DELETE_KEY, (Fl_Callback *)snip_selection_cb, this, 0),
+		OS_MENU_ITEM("Reduce Loop", FL_ALT + '-', (Fl_Callback *)reduce_loop_cb, this, FL_MENU_INVISIBLE),
+		OS_MENU_ITEM("Extend Loop", FL_ALT + '=', (Fl_Callback *)extend_loop_cb, this, FL_MENU_INVISIBLE),
+		OS_MENU_ITEM("Unroll Loop", FL_COMMAND + 'X', (Fl_Callback *)unroll_loop_cb, this, FL_MENU_INVISIBLE),
+		OS_MENU_ITEM("Create Loop", FL_COMMAND + 'C', nullptr, this, FL_MENU_INVISIBLE),
+		OS_MENU_ITEM("Delete Call", FL_ALT + FL_BackSpace, (Fl_Callback *)delete_call_cb, this, FL_MENU_INVISIBLE),
+		OS_MENU_ITEM("Unpack Call", FL_COMMAND + 'x', (Fl_Callback *)unpack_call_cb, this, FL_MENU_INVISIBLE),
+		OS_MENU_ITEM("Create Call", FL_COMMAND + 'c', nullptr, this, FL_MENU_INVISIBLE),
+		OS_MENU_ITEM("Insert Call", FL_COMMAND + 'v', nullptr, this, FL_MENU_INVISIBLE),
 		{},
 		OS_MENU_ITEM("Spli&t Note", '/', (Fl_Callback *)split_note_cb, this, 0),
 		OS_MENU_ITEM("&Glue Note", GLUE_KEY, (Fl_Callback *)glue_note_cb, this, FL_MENU_DIVIDER),
@@ -512,20 +520,41 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	// Configure context menu
 	Fl_Menu_Item context_menu_items[] = {
-		OS_MENU_ITEM("",            FL_ALT + '-', (Fl_Callback *)reduce_loop_cb, this, FL_MENU_INVISIBLE),
 		OS_MENU_ITEM("Reduce Loop", FL_ALT + '-', (Fl_Callback *)reduce_loop_cb, this, 0),
-		OS_MENU_ITEM("",            FL_ALT + '=', (Fl_Callback *)extend_loop_cb, this, FL_MENU_INVISIBLE),
 		OS_MENU_ITEM("Extend Loop", FL_ALT + '=', (Fl_Callback *)extend_loop_cb, this, 0),
-		OS_MENU_ITEM("",            FL_COMMAND + '0', (Fl_Callback *)unroll_loop_cb, this, FL_MENU_INVISIBLE),
-		OS_MENU_ITEM("Unroll Loop", FL_COMMAND + '0', (Fl_Callback *)unroll_loop_cb, this, FL_MENU_DIVIDER),
-		OS_MENU_ITEM("",            FL_ALT + FL_BackSpace, (Fl_Callback *)delete_call_cb, this, FL_MENU_INVISIBLE),
+		OS_MENU_ITEM("Unroll Loop", FL_COMMAND + 'X', (Fl_Callback *)unroll_loop_cb, this, 0),
+		OS_MENU_ITEM("Create Loop", FL_COMMAND + 'C', nullptr, this, FL_MENU_INACTIVE | FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Delete Call", FL_ALT + FL_BackSpace, (Fl_Callback *)delete_call_cb, this, 0),
-		OS_MENU_ITEM("",            FL_COMMAND + 'p', (Fl_Callback *)unpack_call_cb, this, FL_MENU_INVISIBLE),
-		OS_MENU_ITEM("Unpack Call", FL_COMMAND + 'p', (Fl_Callback *)unpack_call_cb, this, 0),
+		OS_MENU_ITEM("Unpack Call", FL_COMMAND + 'x', (Fl_Callback *)unpack_call_cb, this, 0),
+		OS_MENU_ITEM("Create Call", FL_COMMAND + 'c', nullptr, this, FL_MENU_INACTIVE),
+		OS_MENU_ITEM("Insert Call", FL_COMMAND + 'v', nullptr, this, FL_MENU_INACTIVE),
 		{}
 	};
 	_context_menu->copy(context_menu_items);
 	_context_menu->user_data(this);
+
+#define CT_FIND_MENU_ITEM_CB(c) (const_cast<Fl_Menu_Item *>(_context_menu->find_item((Fl_Callback *)(c))))
+	Fl_Menu_Item *_reduce_loop_mi = CT_FIND_MENU_ITEM_CB(reduce_loop_cb);
+	Fl_Menu_Item *_extend_loop_mi = CT_FIND_MENU_ITEM_CB(extend_loop_cb);
+	Fl_Menu_Item *_unroll_loop_mi = CT_FIND_MENU_ITEM_CB(unroll_loop_cb);
+	Fl_Menu_Item *_delete_call_mi = CT_FIND_MENU_ITEM_CB(delete_call_cb);
+	Fl_Menu_Item *_unpack_call_mi = CT_FIND_MENU_ITEM_CB(unpack_call_cb);
+#undef CT_FIND_MENU_ITEM_CB
+
+	for (int i = 0; i < _context_menu->size(); i++) {
+		Fl_Menu_Item *mi = (Fl_Menu_Item *)&_context_menu->menu()[i];
+		if (!mi) { continue; }
+		if (mi->label() && !mi->checkbox() && !mi->radio()) {
+			Fl_Pixmap *icon = &BLANK_ICON;
+			Fl_Multi_Label *ml = new Fl_Multi_Label();
+			ml->typea = _FL_IMAGE_LABEL;
+			ml->labela = (const char *)icon;
+			ml->typeb = FL_NORMAL_LABEL;
+			ml->labelb = mi->text;
+			mi->image(icon);
+			ml->label(mi);
+		}
+	}
 
 	// Configure dialogs
 
@@ -802,50 +831,42 @@ void Main_Window::set_context_menu(int X, int Y) {
 
 	bool stopped = !_it_module || _it_module->stopped();
 
-#define CT_FIND_MENU_ITEM(c) (const_cast<Fl_Menu_Item *>(_context_menu->find_item(OS_MENU_ITEM_PREFIX c OS_MENU_ITEM_SUFFIX)))
-	Fl_Menu_Item *reduce_loop_mi = CT_FIND_MENU_ITEM("Reduce Loop");
-	Fl_Menu_Item *extend_loop_mi = CT_FIND_MENU_ITEM("Extend Loop");
-	Fl_Menu_Item *unroll_loop_mi = CT_FIND_MENU_ITEM("Unroll Loop");
-	Fl_Menu_Item *delete_call_mi = CT_FIND_MENU_ITEM("Delete Call");
-	Fl_Menu_Item *unpack_call_mi = CT_FIND_MENU_ITEM("Unpack Call");
-#undef CT_FIND_MENU_ITEM
-
 	bool in_loop = _piano_roll->is_point_in_loop(X, Y);
 	bool in_call = _piano_roll->is_point_in_call(X, Y);
 
 	if (stopped && in_loop && _piano_roll->reduce_loop(_song, true)) {
-		reduce_loop_mi->activate();
+		_reduce_loop_mi->activate();
 	}
 	else {
-		reduce_loop_mi->deactivate();
+		_reduce_loop_mi->deactivate();
 	}
 
 	if (stopped && in_loop && _piano_roll->extend_loop(_song, true)) {
-		extend_loop_mi->activate();
+		_extend_loop_mi->activate();
 	}
 	else {
-		extend_loop_mi->deactivate();
+		_extend_loop_mi->deactivate();
 	}
 
 	if (stopped && in_loop && _piano_roll->unroll_loop(_song, true)) {
-		unroll_loop_mi->activate();
+		_unroll_loop_mi->activate();
 	}
 	else {
-		unroll_loop_mi->deactivate();
+		_unroll_loop_mi->deactivate();
 	}
 
 	if (stopped && in_call && _piano_roll->delete_call(_song, true)) {
-		delete_call_mi->activate();
+		_delete_call_mi->activate();
 	}
 	else {
-		delete_call_mi->deactivate();
+		_delete_call_mi->deactivate();
 	}
 
 	if (stopped && in_call && _piano_roll->unpack_call(_song, true)) {
-		unpack_call_mi->activate();
+		_unpack_call_mi->activate();
 	}
 	else {
-		unpack_call_mi->deactivate();
+		_unpack_call_mi->deactivate();
 	}
 
 }
