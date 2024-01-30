@@ -20,17 +20,21 @@
 
 #include "hex-spinner.h"
 
-#ifdef __APPLE__
-#define OS_MENU_ITEM_PREFIX ""
-#define OS_MENU_ITEM_SUFFIX ""
-#else
 #define OS_MENU_ITEM_PREFIX " "
 #define OS_MENU_ITEM_SUFFIX "         "
+
+#ifdef __APPLE__
+#define SYS_MENU_ITEM_PREFIX ""
+#define SYS_MENU_ITEM_SUFFIX ""
+#else
+#define SYS_MENU_ITEM_PREFIX OS_MENU_ITEM_PREFIX
+#define SYS_MENU_ITEM_SUFFIX OS_MENU_ITEM_SUFFIX
 #endif
 
 #define OS_SUBMENU(l) {l, 0, NULL, NULL, FL_SUBMENU, FL_NORMAL_LABEL, OS_FONT, OS_FONT_SIZE, FL_FOREGROUND_COLOR}
 #define OS_NULL_MENU_ITEM(s, c, d, f) {"", s, c, d, f, FL_NORMAL_LABEL, OS_FONT, OS_FONT_SIZE, FL_FOREGROUND_COLOR}
 #define OS_MENU_ITEM(l, s, c, d, f) {OS_MENU_ITEM_PREFIX l OS_MENU_ITEM_SUFFIX, s, c, d, f, FL_NORMAL_LABEL, OS_FONT, OS_FONT_SIZE, FL_FOREGROUND_COLOR}
+#define SYS_MENU_ITEM(l, s, c, d, f) {SYS_MENU_ITEM_PREFIX l SYS_MENU_ITEM_SUFFIX, s, c, d, f, FL_NORMAL_LABEL, OS_FONT, OS_FONT_SIZE, FL_FOREGROUND_COLOR}
 
 class DnD_Receiver : public Fl_Box {
 public:
