@@ -526,6 +526,7 @@ public:
 	int32_t quantize_tick(int32_t tick, bool round = false);
 private:
 	const Note_View *find_note_view_at_tick(const std::vector<Note_View> &view, int32_t tick, int32_t *tick_offset = nullptr);
+	const Note_View *find_note_before_tick(const std::vector<Note_View> &view, int32_t tick);
 
 	std::vector<Note_View> *active_channel_view();
 	int32_t active_channel_length();

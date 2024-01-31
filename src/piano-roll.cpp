@@ -2242,10 +2242,28 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick)
 	int32_t old_octave = note_view->octave;
 	bool set_drumkit = selected_channel() == 4 && note_view->drumkit == -1;
 
+	const Note_View *prev_note = find_note_before_tick(*view, tick - tick_offset);
+
 	if (octave == 0) {
-		octave = old_octave;
-		const Note_View *prev_note = find_note_view_at_tick(*view, tick - 1);
-		if (prev_note) octave = prev_note->octave;
+		if (prev_note && (tick_offset == 0 || note_view->pitch == Pitch::REST)) {
+			octave = prev_note->octave;
+		}
+		else {
+			octave = old_octave;
+		}
+	}
+
+	int32_t prev_length = 1;
+	int32_t prev_speed = note_view->speed;
+	if (prev_note && note_view->pitch == Pitch::REST) {
+		prev_length = prev_note->length;
+		prev_speed = prev_note->speed;
+	}
+
+	for (const Note_View &other : *view) {
+		if (other.index == note_view->index && other.speed != note_view->speed) {
+			prev_speed = 0;
+		}
 	}
 
 	std::set<int32_t> selected_boxes;
@@ -2257,11 +2275,11 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick)
 		}
 	}
 
-	int32_t length = song.put_note(selected_channel(), selected_boxes, pitch, octave, old_octave, index, tick, tick_offset / speed, set_drumkit);
+	int32_t length = song.put_note(selected_channel(), selected_boxes, pitch, octave, old_octave, speed, prev_length, prev_speed, index, tick, tick_offset / speed, set_drumkit);
 	set_active_channel_timeline(song);
 	_piano_timeline.select_note_at_tick(*channel, tick);
 
-	_tick = tick + (length * speed);
+	_tick = tick + length;
 	focus_cursor(true);
 
 	return true;
@@ -2292,8 +2310,8 @@ bool Piano_Roll::set_speed(Song &song, int32_t speed) {
 				return false;
 			}
 
-			for (auto other_itr = channel->begin(); other_itr != channel->end(); ++other_itr) {
-				if ((*other_itr)->note_view().index == note_view.index && (*other_itr)->note_view().speed != note_view.speed) {
+			for (Note_Box *other : *channel) {
+				if (other->note_view().index == note_view.index && other->note_view().speed != note_view.speed) {
 					return false; // volatile speed changes not allowed
 				}
 			}
@@ -3577,6 +3595,22 @@ const Note_View *Piano_Roll::find_note_view_at_tick(const std::vector<Note_View>
 		t_left = t_right;
 	}
 	return (const Note_View *)nullptr;
+}
+
+const Note_View *Piano_Roll::find_note_before_tick(const std::vector<Note_View> &view, int32_t tick) {
+	const Note_View *last_note = nullptr;
+	int32_t t_left = 0;
+	for (const Note_View &note : view) {
+		int32_t t_right = t_left + note.length * note.speed;
+		if (t_right > tick) {
+			return last_note;
+		}
+		if (note.pitch != Pitch::REST) {
+			last_note = &note;
+		}
+		t_left = t_right;
+	}
+	return last_note;
 }
 
 std::vector<Note_View> *Piano_Roll::active_channel_view() {

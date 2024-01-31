@@ -1001,15 +1001,6 @@ Note_View find_note_view(const std::vector<Note_View> &view, int32_t index) {
 	return Note_View{};
 }
 
-int32_t find_previous_note_index(const std::vector<Command> &commands, int32_t index) {
-	for (int32_t i = index - 1; i >= 0; --i) {
-		if (is_note_command(commands[i].type)) {
-			return i;
-		}
-	}
-	return -1;
-}
-
 struct Command_Indexes {
 	int32_t rest_index = -1;
 	int32_t octave_index = -1;
@@ -2030,7 +2021,7 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 	}
 }
 
-int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t octave, int32_t old_octave, int32_t index, int32_t tick, int32_t tick_offset, bool set_drumkit) {
+int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t octave, int32_t old_octave, int32_t old_speed, int32_t prev_length, int32_t prev_speed, int32_t index, int32_t tick, int32_t tick_offset, bool set_drumkit) {
 	remember(selected_channel, selected_boxes, Song_State::Action::PUT_NOTE, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
@@ -2050,6 +2041,7 @@ int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &sele
 	Pitch old_pitch = commands[index].note.pitch;
 
 	int32_t length = 1;
+	int32_t speed = old_speed;
 
 	if (tick_offset == 0) {
 		commands[index].type = new_type;
@@ -2068,7 +2060,14 @@ int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &sele
 		index += 1;
 	}
 
-	{
+	if (old_length > 1) {
+		Command command = Command(old_type);
+		command.note.length = old_length - 1;
+		command.note.pitch = old_pitch;
+		commands.insert(commands.begin() + index + 1, command);
+	}
+
+	if (octave != old_octave) {
 		Command command = Command(Command_Type::OCTAVE);
 		command.octave.octave = octave;
 		command.labels = std::move(commands[index].labels);
@@ -2094,26 +2093,67 @@ int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &sele
 		commands.insert(commands.begin() + index + 1, command);
 	}
 
-	if (old_length > 1) {
-		Command command = Command(old_type);
-		command.note.length = old_length - 1;
-		command.note.pitch = old_pitch;
-		commands.insert(commands.begin() + index + 2, command);
-	}
-
-	int32_t prev_note_index = find_previous_note_index(commands, index);
-	if (prev_note_index != -1) {
-		auto command_itr = commands.begin() + index;
-
-		int32_t prev_note_length = commands[prev_note_index].note.length;
+	if (prev_speed != 0 && (length != prev_length || speed != prev_speed)) {
 		Note_View note_view = get_note_view(commands, index);
-		if (
-			prev_note_length > 1 &&
-			is_followed_by_n_ticks_of_rest(command_itr, commands.end(), (prev_note_length - 1) * note_view.speed, note_view.speed)
-		) {
-			length = prev_note_length;
+		assert(note_view.speed == old_speed);
+
+		int32_t current_duration = length * speed;
+		int32_t desired_duration = prev_length * prev_speed;
+		int32_t min_desired_duration = length * prev_speed;
+
+		if (desired_duration <= current_duration || is_followed_by_n_ticks_of_rest(commands.begin() + index, commands.end(), desired_duration - current_duration, note_view.speed)) {
+			length = prev_length;
 			commands[index].note.length = length;
-			erase_ticks(selected_channel, commands, (prev_note_length - 1) * note_view.speed, index, note_view.speed, note_view.volume, note_view.fade);
+
+			if (speed != prev_speed) {
+				speed = prev_speed;
+				Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+				command.note_type.speed = speed;
+				command.note_type.volume = note_view.volume;
+				command.note_type.fade = note_view.fade;
+				command.labels = std::move(commands[index].labels);
+				commands[index].labels.clear();
+				commands.insert(commands.begin() + index, command);
+				index += 1;
+
+				command.note_type.speed = note_view.speed;
+				command.labels.clear();
+				commands.insert(commands.begin() + index + 1, command);
+				index += 1;
+			}
+
+			if (desired_duration < current_duration) {
+				insert_ticks(selected_channel, commands, current_duration - desired_duration, index + 1, note_view.speed, note_view.volume, note_view.fade);
+			}
+			if (desired_duration > current_duration) {
+				erase_ticks(selected_channel, commands, desired_duration - current_duration, index, note_view.speed, note_view.volume, note_view.fade);
+			}
+		}
+		else if (
+			speed != prev_speed &&
+			(min_desired_duration <= current_duration || is_followed_by_n_ticks_of_rest(commands.begin() + index, commands.end(), min_desired_duration - current_duration, note_view.speed))
+		) {
+			speed = prev_speed;
+			Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+			command.note_type.speed = speed;
+			command.note_type.volume = note_view.volume;
+			command.note_type.fade = note_view.fade;
+			command.labels = std::move(commands[index].labels);
+			commands[index].labels.clear();
+			commands.insert(commands.begin() + index, command);
+			index += 1;
+
+			command.note_type.speed = note_view.speed;
+			command.labels.clear();
+			commands.insert(commands.begin() + index + 1, command);
+			index += 1;
+
+			if (min_desired_duration < current_duration) {
+				insert_ticks(selected_channel, commands, current_duration - min_desired_duration, index + 1, note_view.speed, note_view.volume, note_view.fade);
+			}
+			if (min_desired_duration > current_duration) {
+				erase_ticks(selected_channel, commands, min_desired_duration - current_duration, index, note_view.speed, note_view.volume, note_view.fade);
+			}
 		}
 	}
 
@@ -2121,7 +2161,7 @@ int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &sele
 
 	_modified = true;
 
-	return length;
+	return length * speed;
 }
 
 void Song::set_speed(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t speed) {
