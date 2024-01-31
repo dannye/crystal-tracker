@@ -2263,6 +2263,7 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick)
 	for (const Note_View &other : *view) {
 		if (other.index == note_view->index && other.speed != note_view->speed) {
 			prev_speed = 0;
+			break;
 		}
 	}
 
@@ -3327,7 +3328,6 @@ bool Piano_Roll::reduce_loop(Song &song, bool dry_run) {
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			Note_View note_view = note->note_view();
 			selected_boxes.insert(note_itr - channel->begin());
 		}
 	}
@@ -3379,7 +3379,6 @@ bool Piano_Roll::extend_loop(Song &song, bool dry_run) {
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			Note_View note_view = note->note_view();
 			selected_boxes.insert(note_itr - channel->begin());
 		}
 	}
@@ -3430,7 +3429,6 @@ bool Piano_Roll::unroll_loop(Song &song, bool dry_run) {
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			Note_View note_view = note->note_view();
 			selected_boxes.insert(note_itr - channel->begin());
 		}
 	}
@@ -3472,7 +3470,6 @@ bool Piano_Roll::delete_call(Song &song, bool dry_run) {
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			Note_View note_view = note->note_view();
 			selected_boxes.insert(note_itr - channel->begin());
 		}
 	}
@@ -3556,7 +3553,6 @@ bool Piano_Roll::unpack_call(Song &song, bool dry_run) {
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			Note_View note_view = note->note_view();
 			selected_boxes.insert(note_itr - channel->begin());
 		}
 	}
