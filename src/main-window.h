@@ -210,6 +210,10 @@ public:
 	void set_song_position(int32_t tick);
 	void open_song(const char *filename);
 
+	inline bool playing() const { return _it_module && _it_module->playing(); }
+	inline bool paused()  const { return _it_module && _it_module->paused(); }
+	inline bool stopped() const { return !_it_module || _it_module->stopped(); }
+
 	inline int selected_channel(void) const { return _selected_channel; }
 	inline Pitch playing_pitch(void) const { return _playing_pitch; }
 	inline int32_t playing_octave(void) const { return _playing_octave; }
@@ -222,6 +226,8 @@ public:
 	void close_note_properties();
 	void set_note_properties(const std::vector<const Note_View *> &notes) { _note_properties->set_note_properties(notes, selected_channel(), 16 + (int)_song.waves().size(), (int)_drumkits.size()); }
 	void refresh_note_properties();
+
+	void set_tick_from_x_pos(int X);
 
 	void set_context_menu(int X, int Y);
 

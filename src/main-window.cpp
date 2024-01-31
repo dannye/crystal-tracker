@@ -722,7 +722,7 @@ int Main_Window::handle(int event) {
 			return 1;
 		}
 #endif
-		if (!Fl::event_state(FL_SHIFT | FL_COMMAND | FL_ALT) && (!_it_module || _it_module->stopped())) {
+		if (!Fl::event_state(FL_SHIFT | FL_COMMAND | FL_ALT) && stopped()) {
 			switch (Fl::event_key()) {
 			case 'r':
 				put_note(Pitch::REST);
@@ -826,10 +826,14 @@ void Main_Window::refresh_note_properties() {
 	_piano_roll->refresh_note_properties();
 }
 
+void Main_Window::set_tick_from_x_pos(int X) {
+	_piano_roll->set_tick_from_x_pos(X);
+}
+
 void Main_Window::set_context_menu(int X, int Y) {
 	_piano_roll->set_tick_from_x_pos(X);
 
-	bool stopped = !_it_module || _it_module->stopped();
+	bool stopped = this->stopped();
 
 	bool in_loop = _piano_roll->is_point_in_loop(X, Y);
 	bool in_call = _piano_roll->is_point_in_call(X, Y);
@@ -873,8 +877,8 @@ void Main_Window::set_context_menu(int X, int Y) {
 
 void Main_Window::update_active_controls() {
 	if (_song.loaded()) {
-		bool playing = _it_module && _it_module->playing();
-		bool stopped = !_it_module || _it_module->stopped();
+		bool playing = this->playing();
+		bool stopped = this->stopped();
 		_close_mi->activate();
 		_save_mi->activate();
 		_save_tb->activate();
@@ -1391,7 +1395,7 @@ void Main_Window::regenerate_it_module() {
 void Main_Window::toggle_playback() {
 	stop_audio_thread();
 
-	if (!_it_module || _it_module->stopped()) {
+	if (stopped()) {
 		regenerate_it_module();
 		_it_module->mute_channel(1, channel_1_muted());
 		_it_module->mute_channel(2, channel_2_muted());
@@ -1433,7 +1437,7 @@ void Main_Window::toggle_playback() {
 			return;
 		}
 	}
-	else if (_it_module->paused()) {
+	else if (paused()) {
 		if (_it_module->ready() && _it_module->start()) {
 			_piano_roll->unpause_following();
 			start_audio_thread();
@@ -1446,7 +1450,7 @@ void Main_Window::toggle_playback() {
 			return;
 		}
 	}
-	else { // if (_it_module->playing())
+	else { // if (playing())
 		_it_module->pause();
 		_piano_roll->pause_following();
 		update_active_controls();
@@ -2719,9 +2723,7 @@ void Main_Window::channel_4_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 }
 
 void Main_Window::reduce_loop_cb(Fl_Widget *, Main_Window *mw) {
-	if (!mw->_song.loaded()) { return; }
-	bool stopped = !mw->_it_module || mw->_it_module->stopped();
-	if (!stopped) return;
+	if (!mw->_song.loaded() || !mw->stopped()) { return; }
 	if (mw->_piano_roll->reduce_loop(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -2732,9 +2734,7 @@ void Main_Window::reduce_loop_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::extend_loop_cb(Fl_Widget *, Main_Window *mw) {
-	if (!mw->_song.loaded()) { return; }
-	bool stopped = !mw->_it_module || mw->_it_module->stopped();
-	if (!stopped) return;
+	if (!mw->_song.loaded() || !mw->stopped()) { return; }
 	if (mw->_piano_roll->extend_loop(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -2745,9 +2745,7 @@ void Main_Window::extend_loop_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::unroll_loop_cb(Fl_Widget *, Main_Window *mw) {
-	if (!mw->_song.loaded()) { return; }
-	bool stopped = !mw->_it_module || mw->_it_module->stopped();
-	if (!stopped) return;
+	if (!mw->_song.loaded() || !mw->stopped()) { return; }
 	if (mw->_piano_roll->unroll_loop(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -2758,9 +2756,7 @@ void Main_Window::unroll_loop_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::delete_call_cb(Fl_Widget *, Main_Window *mw) {
-	if (!mw->_song.loaded()) { return; }
-	bool stopped = !mw->_it_module || mw->_it_module->stopped();
-	if (!stopped) return;
+	if (!mw->_song.loaded() || !mw->stopped()) { return; }
 	if (mw->_piano_roll->delete_call(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -2771,9 +2767,7 @@ void Main_Window::delete_call_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::unpack_call_cb(Fl_Widget *, Main_Window *mw) {
-	if (!mw->_song.loaded()) { return; }
-	bool stopped = !mw->_it_module || mw->_it_module->stopped();
-	if (!stopped) return;
+	if (!mw->_song.loaded() || !mw->stopped()) { return; }
 	if (mw->_piano_roll->unpack_call(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());

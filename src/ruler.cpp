@@ -10,6 +10,15 @@
 
 Ruler::Ruler(int x, int y, int w, int h, const char *l) : Fl_Box(x, y, w, h, l) {}
 
+int Ruler::handle(int event) {
+	Main_Window *mw = (Main_Window *)user_data();
+	if (event == FL_PUSH || (event == FL_DRAG && !mw->playing())) {
+		mw->set_tick_from_x_pos(Fl::event_x());
+		return 1;
+	}
+	return Fl_Box::handle(event);
+}
+
 static inline void print_tick_label(char *s, int n) {
 	sprintf(s, "%d", n);
 }

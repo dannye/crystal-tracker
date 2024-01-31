@@ -8,6 +8,7 @@
 class Ruler : public Fl_Box {
 public:
 	Ruler(int x, int y, int w, int h, const char *l = NULL);
+	int handle(int event) override;
 	void draw(void);
 };
 
