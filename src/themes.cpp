@@ -3168,7 +3168,7 @@ void OS::use_native_fonts() {
 	metrics.cbSize = sizeof(NONCLIENTMETRICS);
 	SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &metrics, 0);
 	char system_font[256] = {};
-	int n = wcstombs(system_font, metrics.lfMessageFont.lfFaceName, sizeof(system_font));
+	size_t n = wcstombs(system_font, metrics.lfMessageFont.lfFaceName, sizeof(system_font));
 	if (n == sizeof(system_font)) {
 		system_font[sizeof(system_font)-1] = '\0';
 	}

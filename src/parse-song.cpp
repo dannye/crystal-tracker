@@ -832,7 +832,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					if (Parsed_Waves::parse_wave(lss, wave, true) != Parsed_Waves::Result::WAVES_OK) {
 						return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
 					}
-					command.load_wave.wave = 0x10 + _waves.size();
+					command.load_wave.wave = 0x10 + (int32_t)_waves.size();
 					_waves.push_back(wave);
 					current_channel_commands->push_back(command);
 				}

@@ -12,6 +12,9 @@
 
 #define MAX_HISTORY_SIZE 256
 
+template<typename T>
+inline int32_t itr_index(const typename std::vector<T> &vec, const typename std::vector<T>::const_iterator &itr) { return (int32_t)(itr - vec.begin()); }
+
 std::string get_scope(const std::vector<Command> &commands, int32_t index);
 
 std::string get_next_loop_label(const std::vector<Command> &commands, const std::string &scope, int &i);

@@ -135,7 +135,7 @@ Parsed_Song::Result calc_channel_length(
 
 	while (command_itr != end_itr) {
 		for (const std::string &label : command_itr->labels) {
-			label_infos.insert({ label, { tick, (int32_t)(command_itr - commands.begin()), speed, volume, fade, drumkit } });
+			label_infos.insert({ label, { tick, itr_index(commands, command_itr), speed, volume, fade, drumkit } });
 			if (call_stack.size() > 0) {
 				visited_labels_during_call.insert(label);
 			}
@@ -192,7 +192,7 @@ Parsed_Song::Result calc_channel_length(
 				info->fade_at_loop = label_info.fade;
 				info->drumkit_at_loop = label_info.drumkit;
 
-				info->end_index = command_itr - commands.begin();
+				info->end_index = itr_index(commands, command_itr);
 				info->speed_at_end = speed;
 				info->volume_at_end = volume;
 				info->fade_at_end = fade;
@@ -236,7 +236,7 @@ Parsed_Song::Result calc_channel_length(
 						info->fade_at_loop = label_info.fade;
 						info->drumkit_at_loop = label_info.drumkit;
 
-						info->end_index = command_itr - commands.begin();
+						info->end_index = itr_index(commands, command_itr);
 						info->speed_at_end = speed;
 						info->volume_at_end = volume;
 						info->fade_at_end = fade;
@@ -282,7 +282,7 @@ Parsed_Song::Result calc_channel_length(
 					info->fade_at_loop = -1;
 					info->drumkit_at_loop = -1;
 
-					info->end_index = command_itr - commands.begin();
+					info->end_index = itr_index(commands, command_itr);
 					info->speed_at_end = speed;
 					info->volume_at_end = volume;
 					info->fade_at_end = fade;
@@ -349,7 +349,7 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
 			note.length = command_itr->note.length;
 			note.pitch = command_itr->note.pitch;
 			tick += note.length * note.speed;
-			note.index = command_itr - commands.begin();
+			note.index = itr_index(commands, command_itr);
 
 			note.slide_duration = 0;
 			note.slide_octave = 0;
@@ -363,7 +363,7 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
 			note.length = command_itr->drum_note.length;
 			note.pitch = (Pitch)command_itr->drum_note.instrument;
 			tick += note.length * note.speed;
-			note.index = command_itr - commands.begin();
+			note.index = itr_index(commands, command_itr);
 
 			if (note.index == index) {
 				return note;
@@ -373,7 +373,7 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
 			note.length = command_itr->rest.length;
 			note.pitch = Pitch::REST;
 			tick += note.length * note.speed;
-			note.index = command_itr - commands.begin();
+			note.index = itr_index(commands, command_itr);
 
 			if (note.index == index) {
 				return note;
@@ -538,7 +538,7 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 			tick += command_itr->note.length * speed;
 
 			if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
-				base_index = command_itr - commands.begin();
+				base_index = itr_index(commands, command_itr);
 				drumkit_at_base = drumkit;
 			}
 			if (tick > end_tick || (tick == end_tick && loop_stack.size() == 0 && call_stack.size() == 0)) {
@@ -549,7 +549,7 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 			tick += command_itr->drum_note.length * speed;
 
 			if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
-				base_index = command_itr - commands.begin();
+				base_index = itr_index(commands, command_itr);
 				drumkit_at_base = drumkit;
 			}
 			if (tick > end_tick || (tick == end_tick && loop_stack.size() == 0 && call_stack.size() == 0)) {
@@ -560,7 +560,7 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 			tick += command_itr->rest.length * speed;
 
 			if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
-				base_index = command_itr - commands.begin();
+				base_index = itr_index(commands, command_itr);
 				drumkit_at_base = drumkit;
 			}
 			if (tick > end_tick || (tick == end_tick && loop_stack.size() == 0 && call_stack.size() == 0)) {
@@ -592,7 +592,7 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 				if (loop_stack.top().second == 0) {
 					loop_stack.pop();
 					if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
-						base_index = command_itr - commands.begin();
+						base_index = itr_index(commands, command_itr);
 						drumkit_at_base = drumkit;
 					}
 					if (tick > end_tick || (tick == end_tick && loop_stack.size() == 0 && call_stack.size() == 0)) {
@@ -642,7 +642,7 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 				call_stack.pop();
 				visited_labels_during_call.clear();
 				if (tick > start_tick && tick <= end_tick && loop_stack.size() == 0 && call_stack.size() == 0) {
-					base_index = command_itr - commands.begin();
+					base_index = itr_index(commands, command_itr);
 					drumkit_at_base = drumkit;
 				}
 				if (tick > end_tick || (tick == end_tick && loop_stack.size() == 0 && call_stack.size() == 0)) {
@@ -1659,7 +1659,7 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 					commands[base_loop_index].type == Command_Type::SOUND_JUMP ||
 					commands[base_loop_index].type == Command_Type::SOUND_LOOP
 				) {
-					int32_t next_index = find_note_with_label(commands, commands[base_loop_index].target) - commands.begin();
+					int32_t next_index = itr_index(commands, find_note_with_label(commands, commands[base_loop_index].target));
 					if (next_index == original_info.loop_index) break;
 					base_loop_index = next_index;
 					continue;
@@ -1805,7 +1805,7 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 				(commands[base_loop_index].type == Command_Type::SOUND_JUMP) ||
 				(commands[base_loop_index].type == Command_Type::SOUND_LOOP && commands[base_loop_index].sound_loop.loop_count == 0)
 			) {
-				base_loop_index = find_note_with_label(commands, commands[base_loop_index].target) - commands.begin();
+				base_loop_index = itr_index(commands, find_note_with_label(commands, commands[base_loop_index].target));
 				continue;
 			}
 			commands[base_loop_index + 1].labels.insert(commands[base_loop_index + 1].labels.begin(), RANGE(commands[base_loop_index].labels));
@@ -1863,7 +1863,7 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 					commands[base_end_index].type == Command_Type::SOUND_JUMP ||
 					commands[base_end_index].type == Command_Type::SOUND_LOOP
 				) {
-					int32_t next_index = find_note_with_label(commands, commands[base_end_index].target) - commands.begin();
+					int32_t next_index = itr_index(commands, find_note_with_label(commands, commands[base_end_index].target));
 					if (next_index == info.end_index) break;
 					base_end_index = next_index;
 					continue;
@@ -2010,7 +2010,7 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 				(commands[base_end_index].type == Command_Type::SOUND_JUMP) ||
 				(commands[base_end_index].type == Command_Type::SOUND_LOOP && commands[base_end_index].sound_loop.loop_count == 0)
 			) {
-				base_end_index = find_note_with_label(commands, commands[base_end_index].target) - commands.begin();
+				base_end_index = itr_index(commands, find_note_with_label(commands, commands[base_end_index].target));
 				continue;
 			}
 			commands[base_end_index + 1].labels.insert(commands[base_end_index + 1].labels.begin(), RANGE(commands[base_end_index].labels));
@@ -2631,12 +2631,12 @@ void Song::move_left(const int selected_channel, const std::set<int32_t> &select
 			++itr;
 			while (itr != commands.rend()) {
 				if (itr->type == Command_Type::REST) {
-					return (itr.base() - 1) - commands.begin();
+					return itr_index(commands, itr.base() - 1);
 				}
 				++itr;
 			}
 			assert(false);
-			return commands.end() - commands.begin();
+			return itr_index(commands, commands.end());
 		};
 
 		int32_t rest_index = find_preceding_rest(command_itr);
@@ -2686,12 +2686,12 @@ void Song::move_right(const int selected_channel, const std::set<int32_t> &selec
 			++itr;
 			while (itr != commands.end()) {
 				if (itr->type == Command_Type::REST) {
-					return itr - commands.begin();
+					return itr_index(commands, itr);
 				}
 				++itr;
 			}
 			assert(false);
-			return commands.end() - commands.begin();
+			return itr_index(commands, commands.end());
 		};
 
 		int32_t rest_index = find_following_rest(command_itr);

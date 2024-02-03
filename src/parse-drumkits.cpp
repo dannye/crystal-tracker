@@ -104,13 +104,13 @@ static bool get_number_and_number_and_number_and_number(std::istringstream &iss,
 	return true;
 }
 
-static size_t find_drum(const std::vector<Drum> &drums, const std::string &label) {
+static int32_t find_drum(const std::vector<Drum> &drums, const std::string &label) {
 	for (size_t i = 0; i < drums.size(); ++i) {
 		if (drums[i].label == label) {
-			return i;
+			return (int32_t)i;
 		}
 	}
-	return (size_t)-1;
+	return -1;
 }
 
 static bool leading_pointer(std::istringstream &lss) {
@@ -208,9 +208,9 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 			if (!get_label(lss, label)) {
 				return (_result = Result::DRUMKITS_BAD_FILE);
 			}
-			size_t drum_index = find_drum(_drums, label);
-			if (drum_index == (size_t)-1) {
-				drumkit_itr->drums[drumkit_index] = _drums.size();
+			int32_t drum_index = find_drum(_drums, label);
+			if (drum_index == -1) {
+				drumkit_itr->drums[drumkit_index] = (int32_t)_drums.size();
 				Drum drum;
 				drum.label = label;
 				_drums.push_back(drum);

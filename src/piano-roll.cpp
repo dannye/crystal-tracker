@@ -121,7 +121,7 @@ Piano_Keys::Piano_Keys(int X, int Y, int W, int H, const char *l) : Fl_Group(X, 
 		for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
 			size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
 			if (NOTE_KEYS[_x].white) {
-				_keys[i] = new White_Key_Box(NOTE_KEYS[_x].pitch, NUM_OCTAVES - _y, X, Y, 0, 0, NOTE_KEYS[_x].label);
+				_keys[i] = new White_Key_Box(NOTE_KEYS[_x].pitch, NUM_OCTAVES - (int)_y, X, Y, 0, 0, NOTE_KEYS[_x].label);
 				_keys[i]->box(FL_BORDER_BOX);
 				_keys[i]->color(BACKGROUND3_COLOR);
 				_keys[i]->labelcolor(FL_FOREGROUND_COLOR);
@@ -130,7 +130,7 @@ Piano_Keys::Piano_Keys(int X, int Y, int W, int H, const char *l) : Fl_Group(X, 
 				}
 			}
 			else {
-				_keys[i] = new Key_Box(NOTE_KEYS[_x].pitch, NUM_OCTAVES - _y, X, Y, 0, 0, NOTE_KEYS[_x].label);
+				_keys[i] = new Key_Box(NOTE_KEYS[_x].pitch, NUM_OCTAVES - (int)_y, X, Y, 0, 0, NOTE_KEYS[_x].label);
 				_keys[i]->box(FL_BORDER_BOX);
 				_keys[i]->color(FL_FOREGROUND_COLOR);
 				_keys[i]->labelcolor(BACKGROUND3_COLOR);
@@ -155,7 +155,7 @@ void Piano_Keys::calc_sizes() {
 	int y_top = _keys[0]->y();
 
 	for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
-		int y_pos = octave_height * _y;
+		int y_pos = octave_height * (int)_y;
 		for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
 			size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
 			int delta = zoomed ? NOTE_KEYS[_x].delta1 : NOTE_KEYS[_x].delta2;
@@ -438,7 +438,7 @@ void Piano_Timeline::calc_sizes() {
 		return x() + WHITE_KEY_WIDTH + tick * tick_width;
 	};
 	const auto pitch_to_y_pos = [&](Pitch pitch, int32_t octave) {
-		return y() + (NUM_OCTAVES - octave) * octave_height + (NUM_NOTES_PER_OCTAVE - (size_t)(pitch)) * note_row_height;
+		return y() + ((int)NUM_OCTAVES - octave) * octave_height + ((int)NUM_NOTES_PER_OCTAVE - (int)(pitch)) * note_row_height;
 	};
 
 	const auto resize_notes = [&](std::vector<Note_Box *> &notes) {
@@ -942,7 +942,7 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 		return x() + WHITE_KEY_WIDTH + tick * tick_width;
 	};
 	const auto pitch_to_y_pos = [&](Pitch pitch, int32_t octave) {
-		return y() + (NUM_OCTAVES - octave) * octave_height + (NUM_NOTES_PER_OCTAVE - (size_t)(pitch)) * note_row_height;
+		return y() + ((int)NUM_OCTAVES - octave) * octave_height + ((int)NUM_NOTES_PER_OCTAVE - (int)(pitch)) * note_row_height;
 	};
 
 	Note_View prev_note;
@@ -968,7 +968,7 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 			int32_t row_offset = 0;
 			const auto add_flag = [&](Fl_Color c) {
 				Flag_Box *flag = new Flag_Box(
-					channel.size() - 1,
+					(int32_t)channel.size() - 1,
 					row_offset,
 					box->x(),
 					note.octave == 8 ?
@@ -1724,7 +1724,7 @@ void Piano_Roll::build_note_view(
 			}
 		}
 		if (!restarted && is_loop_target(command_itr->labels)) {
-			note.index = command_itr - commands.begin();
+			note.index = itr_index(commands, command_itr);
 			loop = new Loop_Box(note, tick, 0, 0, 0, 0);
 			loop->box(FL_BORDER_FRAME);
 			loop->color(fl_lighter(color));
@@ -1741,7 +1741,7 @@ void Piano_Roll::build_note_view(
 				note.length = note.length * note.speed - (tick - end_tick);
 				note.speed = 1;
 			}
-			note.index = command_itr - commands.begin();
+			note.index = itr_index(commands, command_itr);
 			note.ghost = restarted;
 			notes.push_back(note);
 
@@ -1783,7 +1783,7 @@ void Piano_Roll::build_note_view(
 				note.length = note.length * note.speed - (tick - end_tick);
 				note.speed = 1;
 			}
-			note.index = command_itr - commands.begin();
+			note.index = itr_index(commands, command_itr);
 			note.ghost = restarted;
 			notes.push_back(note);
 
@@ -1821,7 +1821,7 @@ void Piano_Roll::build_note_view(
 				note.length = note.length * note.speed - (tick - end_tick);
 				note.speed = 1;
 			}
-			note.index = command_itr - commands.begin();
+			note.index = itr_index(commands, command_itr);
 			note.ghost = restarted;
 			notes.push_back(note);
 
@@ -1895,7 +1895,7 @@ void Piano_Roll::build_note_view(
 		}
 		else if (command_itr->type == Command_Type::SOUND_LOOP) {
 			if (loop) {
-				note.index = command_itr - commands.begin();
+				note.index = itr_index(commands, command_itr);
 				loop->set_end_note_view(note);
 				loop = nullptr;
 			}
@@ -1940,7 +1940,7 @@ void Piano_Roll::build_note_view(
 			assert(call_stack.size() == 0);
 
 			if (!restarted) {
-				note.index = command_itr - commands.begin();
+				note.index = itr_index(commands, command_itr);
 				call = new Call_Box(note, tick, 0, 0, 0, 0);
 				call->box(FL_BORDER_FRAME);
 				call->color(fl_darker(color));
@@ -1954,7 +1954,7 @@ void Piano_Roll::build_note_view(
 		}
 		else if (command_itr->type == Command_Type::SOUND_RET) {
 			if (call) {
-				note.index = command_itr - commands.begin();
+				note.index = itr_index(commands, command_itr);
 				call->set_end_note_view(note);
 				call = nullptr;
 			}
@@ -2001,7 +2001,7 @@ void Piano_Roll::build_note_view(
 		return _piano_timeline.x() + WHITE_KEY_WIDTH + tick * tick_width();
 	};
 	const auto pitch_to_y_pos = [&](Pitch pitch, int32_t octave) {
-		return _piano_timeline.y() + (NUM_OCTAVES - octave) * octave_height() + (NUM_NOTES_PER_OCTAVE - (size_t)(pitch)) * note_row_height();
+		return _piano_timeline.y() + ((int)NUM_OCTAVES - octave) * octave_height() + ((int)NUM_NOTES_PER_OCTAVE - (int)(pitch)) * note_row_height();
 	};
 	const auto resize_wrappers = [&](auto &wrappers) {
 		for (Wrapper_Box *wrapper : wrappers) {
@@ -2272,7 +2272,7 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick)
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 
@@ -2317,7 +2317,7 @@ bool Piano_Roll::set_speed(Song &song, int32_t speed) {
 				}
 			}
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2347,7 +2347,7 @@ bool Piano_Roll::set_volume(Song &song, int32_t volume) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2375,7 +2375,7 @@ bool Piano_Roll::set_fade(Song &song, int32_t fade) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2403,7 +2403,7 @@ bool Piano_Roll::set_vibrato_delay(Song &song, int32_t delay) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2431,7 +2431,7 @@ bool Piano_Roll::set_vibrato_extent(Song &song, int32_t extent) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2459,7 +2459,7 @@ bool Piano_Roll::set_vibrato_rate(Song &song, int32_t rate) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2487,7 +2487,7 @@ bool Piano_Roll::set_wave(Song &song, int32_t wave) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2513,7 +2513,7 @@ bool Piano_Roll::set_drumkit(Song &song, int32_t drumkit) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2539,7 +2539,7 @@ bool Piano_Roll::set_duty(Song &song, int32_t duty) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2565,7 +2565,7 @@ bool Piano_Roll::set_tempo(Song &song, int32_t tempo) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2593,7 +2593,7 @@ bool Piano_Roll::set_transpose_octaves(Song &song, int32_t octaves) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2621,7 +2621,7 @@ bool Piano_Roll::set_transpose_pitches(Song &song, int32_t pitches) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2649,7 +2649,7 @@ bool Piano_Roll::set_slide_duration(Song &song, int32_t duration) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2677,7 +2677,7 @@ bool Piano_Roll::set_slide_octave(Song &song, int32_t octave) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2705,7 +2705,7 @@ bool Piano_Roll::set_slide_pitch(Song &song, Pitch pitch) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2731,7 +2731,7 @@ bool Piano_Roll::set_slide(Song &song, int32_t duration, int32_t octave, Pitch p
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2762,7 +2762,7 @@ bool Piano_Roll::pitch_up(Song &song, bool dry_run) {
 				return false;
 			}
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2796,7 +2796,7 @@ bool Piano_Roll::pitch_down(Song &song, bool dry_run) {
 				return false;
 			}
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2830,7 +2830,7 @@ bool Piano_Roll::octave_up(Song &song, bool dry_run) {
 				return false;
 			}
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2864,7 +2864,7 @@ bool Piano_Roll::octave_down(Song &song, bool dry_run) {
 				return false;
 			}
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2903,7 +2903,7 @@ bool Piano_Roll::move_left(Song &song, bool dry_run) {
 				while (itr != commands.rend()) {
 					if (
 						is_note_command(itr->type) &&
-						selected_notes.count((itr.base() - 1) - commands.begin()) > 0
+						selected_notes.count(itr_index(commands, itr.base() - 1)) > 0
 					) {
 						return true;
 					}
@@ -2927,7 +2927,7 @@ bool Piano_Roll::move_left(Song &song, bool dry_run) {
 				return false;
 			}
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -2969,7 +2969,7 @@ bool Piano_Roll::move_right(Song &song, bool dry_run) {
 					if (
 						is_note_command(itr->type) &&
 						itr->labels.size() == 0 &&
-						selected_notes.count(itr - commands.begin()) > 0
+						selected_notes.count(itr_index(commands, itr)) > 0
 					) {
 						return true;
 					}
@@ -2993,7 +2993,7 @@ bool Piano_Roll::move_right(Song &song, bool dry_run) {
 				return false;
 			}
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert((note_itr.base() - 1) - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr.base() - 1));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -3029,7 +3029,7 @@ bool Piano_Roll::shorten(Song &song, bool dry_run) {
 				return false;
 			}
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 			if (note->tick() + note_view.length * note_view.speed == _tick) {
 				tick_adjustment = -note_view.speed;
 			}
@@ -3081,7 +3081,7 @@ bool Piano_Roll::lengthen(Song &song, bool dry_run) {
 				return false;
 			}
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 			if (note->tick() + note_view.length * note_view.speed == _tick) {
 				tick_adjustment = note_view.speed;
 			}
@@ -3120,7 +3120,7 @@ bool Piano_Roll::delete_selection(Song &song, bool dry_run) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -3149,7 +3149,7 @@ bool Piano_Roll::snip_selection(Song &song, bool dry_run) {
 		if (note->selected()) {
 			Note_View note_view = note->note_view();
 			selected_notes.insert(note_view.index);
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 	if (selected_notes.size() == 0) {
@@ -3197,7 +3197,7 @@ bool Piano_Roll::split_note(Song &song) {
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 
@@ -3247,7 +3247,7 @@ bool Piano_Roll::glue_note(Song &song) {
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 
@@ -3328,7 +3328,7 @@ bool Piano_Roll::reduce_loop(Song &song, bool dry_run) {
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 
@@ -3379,7 +3379,7 @@ bool Piano_Roll::extend_loop(Song &song, bool dry_run) {
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 
@@ -3429,7 +3429,7 @@ bool Piano_Roll::unroll_loop(Song &song, bool dry_run) {
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 
@@ -3541,7 +3541,7 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 
@@ -3586,7 +3586,7 @@ bool Piano_Roll::delete_call(Song &song, bool dry_run) {
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 
@@ -3618,7 +3618,7 @@ bool Piano_Roll::unpack_call(Song &song, bool dry_run) {
 	assert(commands[call_index].type == Command_Type::SOUND_CALL);
 	std::string target_label = commands[call_index].target;
 
-	std::vector<Command> snippet = copy_snippet(commands, find_note_with_label(commands, target_label) - commands.begin(), end_view.index);
+	std::vector<Command> snippet = copy_snippet(commands, itr_index(commands, find_note_with_label(commands, target_label)), end_view.index);
 
 	const auto snippet_contains_label = [](const std::vector<Command> &snippet, const std::string &label) {
 		for (const Command &command : snippet) {
@@ -3669,7 +3669,7 @@ bool Piano_Roll::unpack_call(Song &song, bool dry_run) {
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
 		Note_Box *note = *note_itr;
 		if (note->selected()) {
-			selected_boxes.insert(note_itr - channel->begin());
+			selected_boxes.insert(itr_index(*channel, note_itr));
 		}
 	}
 

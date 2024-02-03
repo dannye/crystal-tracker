@@ -25,7 +25,7 @@ int Directory_Chooser::show() {
 	_filename = NULL;
 
 	wchar_t wtitle[FL_PATH_MAX] = {};
-	fl_utf8towc(_title, strlen(_title), wtitle, sizeof(wtitle));
+	fl_utf8towc(_title, (unsigned int) strlen(_title), wtitle, sizeof(wtitle));
 	_fod_ptr->SetTitle(wtitle);
 
 	FILEOPENDIALOGOPTIONS fod_opts;
@@ -48,7 +48,7 @@ int Directory_Chooser::show() {
 
 	size_t len = wcslen(pszFilePath);
 	char *filename = new char[len + 1];
-	fl_utf8fromwc(filename, len + 1, pszFilePath, len);
+	fl_utf8fromwc(filename, (unsigned int)len + 1, pszFilePath, (unsigned int)len);
 	_filename = filename;
 
 	CoTaskMemFree(pszFilePath);

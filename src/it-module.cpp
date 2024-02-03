@@ -308,7 +308,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave>
 	for (const std::vector<uint8_t> &drum : drums) {
 		std::vector<uint8_t> sample;
 
-		sample_header(sample, drum.size(), true);
+		sample_header(sample, (uint32_t)drum.size(), true);
 
 		for (uint32_t i = 0; i < drum.size(); ++i) {
 			sample.push_back(drum[i]);
@@ -760,7 +760,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 			row += 1;
 		} while (row < ROWS_PER_PATTERN && !song_finished());
 
-		put_short(pattern, pattern_data.size());
+		put_short(pattern, (uint32_t)pattern_data.size());
 		put_short(pattern, row);
 		put_short(pattern, 0); // unused
 		put_short(pattern, 0); // unused
@@ -772,12 +772,12 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 	return patterns;
 }
 
-static std::size_t get_total_size(const std::vector<std::vector<uint8_t>> &data) {
+static uint32_t get_total_size(const std::vector<std::vector<uint8_t>> &data) {
 	std::size_t size = 0;
 	for (const auto &v : data) {
 		size += v.size();
 	}
-	return size;
+	return (uint32_t)size;
 }
 
 void IT_Module::generate_it_module(
@@ -812,12 +812,12 @@ void IT_Module::generate_it_module(
 
 	std::vector<std::vector<uint8_t>> instruments = get_instruments();
 	std::vector<std::vector<uint8_t>> samples = get_samples(waves, drums);
-	std::vector<std::vector<uint8_t>> patterns = get_patterns(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, drumkits, loop_tick, waves.size() - 0x10);
+	std::vector<std::vector<uint8_t>> patterns = get_patterns(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, drumkits, loop_tick, (int32_t)waves.size() - 0x10);
 
-	const uint32_t number_of_orders = patterns.size() + 1;
-	const uint32_t number_of_instruments = instruments.size();
-	const uint32_t number_of_samples = samples.size();
-	const uint32_t number_of_patterns = patterns.size();
+	const uint32_t number_of_orders = (uint32_t)patterns.size() + 1;
+	const uint32_t number_of_instruments = (uint32_t)instruments.size();
+	const uint32_t number_of_samples = (uint32_t)samples.size();
+	const uint32_t number_of_patterns = (uint32_t)patterns.size();
 
 	const uint32_t header_size = 192;
 	const uint32_t instruments_start = header_size +
@@ -885,7 +885,7 @@ void IT_Module::generate_it_module(
 	uint32_t instrument_offset = instruments_start;
 	for (const auto &instrument : instruments) {
 		put_int(_data, instrument_offset);
-		instrument_offset += instrument.size();
+		instrument_offset += (uint32_t)instrument.size();
 	}
 	// sample offsets
 	uint32_t sample_offset = samples_start;
@@ -895,13 +895,13 @@ void IT_Module::generate_it_module(
 		// fix inner sample offset
 		patch_int(sample, 72, sample_offset + sample_header_size);
 
-		sample_offset += sample.size();
+		sample_offset += (uint32_t)sample.size();
 	}
 	// pattern offsets
 	uint32_t pattern_offset = patterns_start;
 	for (const auto &pattern : patterns) {
 		put_int(_data, pattern_offset);
-		pattern_offset += pattern.size();
+		pattern_offset += (uint32_t)pattern.size();
 	}
 
 	// instruments
