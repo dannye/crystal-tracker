@@ -110,6 +110,9 @@ protected:
 class OS_Spinner : public Fl_Spinner {
 public:
 	OS_Spinner(int x, int y, int w, int h, const char *l = NULL);
+	void label(const char *text) { input_.label(text); }
+	void labelfont(Fl_Font f) { input_.labelfont(f); }
+	void labelsize(Fl_Fontsize pix) { input_.labelsize(pix); }
 protected:
 	int handle(int event);
 };

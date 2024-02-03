@@ -11,53 +11,53 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 	int wgt_w = text_width("99", 12), wgt_w2 = text_width("999", 12), wgt_h = 22, wgt_m = 10;
 	int dx = wgt_m;
 
-	_speed_input = new OS_Spinner(x() + dx + text_width("Speed:", 2), y() + wgt_m, wgt_w, wgt_h, "Speed:");
+	_speed_input = new OS_Spinner(x() + dx + text_width("Speed:", 2), y() + wgt_m, wgt_w, wgt_h, "&Speed:");
 	dx += wgt_w + wgt_m + text_width("Speed:", 2);
 
-	_volume_input = new OS_Spinner(x() + dx + text_width("Volume:", 2), y() + wgt_m, wgt_w, wgt_h, "Volume:");
+	_volume_input = new OS_Spinner(x() + dx + text_width("Volume:", 2), y() + wgt_m, wgt_w, wgt_h, "V&olume:");
 	dx += wgt_w + wgt_m + text_width("Volume:", 2);
 
-	_fade_input = new OS_Spinner(x() + dx + text_width("Fade:", 2), y() + wgt_m, wgt_w, wgt_h, "Fade:");
+	_fade_input = new OS_Spinner(x() + dx + text_width("Fade:", 2), y() + wgt_m, wgt_w, wgt_h, "Fa&de:");
 	dx += wgt_w + wgt_m + text_width("Fade:", 2);
 
-	_vibrato_delay_input = new OS_Spinner(x() + dx + text_width("Vibrato delay:", 2), y() + wgt_m, wgt_w2, wgt_h, "Vibrato delay:");
+	_vibrato_delay_input = new OS_Spinner(x() + dx + text_width("Vibrato delay:", 2), y() + wgt_m, wgt_w2, wgt_h, "Vibrato dela&y:");
 	dx += wgt_w2 + wgt_m + text_width("Vibrato delay:", 2);
 
-	_vibrato_depth_input = new OS_Spinner(x() + dx + text_width("Vibrato depth:", 2), y() + wgt_m, wgt_w, wgt_h, "Vibrato depth:");
+	_vibrato_depth_input = new OS_Spinner(x() + dx + text_width("Vibrato depth:", 2), y() + wgt_m, wgt_w, wgt_h, "Vibrato dep&th:");
 	dx += wgt_w + wgt_m + text_width("Vibrato depth:", 2);
 
-	_vibrato_rate_input = new OS_Spinner(x() + dx + text_width("Vibrato rate:", 2), y() + wgt_m, wgt_w, wgt_h, "Vibrato rate:");
+	_vibrato_rate_input = new OS_Spinner(x() + dx + text_width("Vibrato rate:", 2), y() + wgt_m, wgt_w, wgt_h, "Vibrato &rate:");
 	dx += wgt_w + wgt_m + text_width("Vibrato rate:", 2);
 
-	_duty_wave_drumkit_input = new OS_Spinner(x() + dx + text_width("Drumkit:", 2), y() + wgt_m, wgt_w, wgt_h, "Drumkit:");
+	_duty_wave_drumkit_input = new OS_Spinner(x() + dx + text_width("Drumkit:", 2), y() + wgt_m, wgt_w, wgt_h, "Drum&kit:");
 	dx += wgt_w + wgt_m + text_width("Drumkit:", 2);
 
-	_advanced_button = new OS_Button(x() + dx + wgt_m, y() + wgt_m, text_width("Advanced", 8), wgt_h, "Advanced");
+	_advanced_button = new OS_Button(x() + dx + wgt_m, y() + wgt_m, text_width("Advanced", 8), wgt_h, "&Advanced");
 
 	dx = wgt_m;
 
-	_tempo_input = new OS_Spinner(x() + dx + text_width("Tempo:", 2), y() + wgt_m, wgt_w2, wgt_h, "Tempo:");
+	_tempo_input = new OS_Spinner(x() + dx + text_width("Tempo:", 2), y() + wgt_m, wgt_w2, wgt_h, "&Tempo:");
 	dx += wgt_w2 + wgt_m + text_width("Tempo:", 2);
 
-	_transpose_octaves_input = new OS_Spinner(x() + dx + text_width("Transpose octaves:", 2), y() + wgt_m, wgt_w, wgt_h, "Transpose octaves:");
+	_transpose_octaves_input = new OS_Spinner(x() + dx + text_width("Transpose octaves:", 2), y() + wgt_m, wgt_w, wgt_h, "Tra&nspose octaves:");
 	dx += wgt_w + wgt_m + text_width("Transpose octaves:", 2);
 
-	_transpose_pitches_input = new OS_Spinner(x() + dx + text_width("Transpose pitches:", 2), y() + wgt_m, wgt_w, wgt_h, "Transpose pitches:");
+	_transpose_pitches_input = new OS_Spinner(x() + dx + text_width("Transpose pitches:", 2), y() + wgt_m, wgt_w, wgt_h, "Transpo&se pitches:");
 	dx += wgt_w + wgt_m + text_width("Transpose pitches:", 2);
 
-	_slide_duration_input = new OS_Spinner(x() + dx + text_width("Slide duration:", 2), y() + wgt_m, wgt_w2, wgt_h, "Slide duration:");
+	_slide_duration_input = new OS_Spinner(x() + dx + text_width("Slide duration:", 2), y() + wgt_m, wgt_w2, wgt_h, "Slide &duration:");
 	dx += wgt_w2 + wgt_m + text_width("Slide duration:", 2);
 
-	_slide_octave_input = new OS_Spinner(x() + dx + text_width("Slide octave:", 2), y() + wgt_m, wgt_w, wgt_h, "Slide octave:");
+	_slide_octave_input = new OS_Spinner(x() + dx + text_width("Slide octave:", 2), y() + wgt_m, wgt_w, wgt_h, "Slide &octave:");
 	dx += wgt_w + wgt_m + text_width("Slide octave:", 2);
 
-	_slide_pitch_input = new Dropdown(x() + dx + text_width("Slide pitch:", 2), y() + wgt_m, wgt_w2, wgt_h, "Slide pitch:");
+	_slide_pitch_input = new Dropdown(x() + dx + text_width("Slide pitch:", 2), y() + wgt_m, wgt_w2, wgt_h, "Slide pit&ch:");
 	dx += wgt_w2 + wgt_m + text_width("Slide pitch:", 2);
 	for (int i = 0; i <= NUM_PITCHES; ++i) {
 		_slide_pitch_input->add(PITCH_NAMES[i]);
 	}
 
-	_basic_button = new OS_Button(x() + dx + wgt_m, y() + wgt_m, text_width("Advanced", 8), wgt_h, "Basic");
+	_basic_button = new OS_Button(x() + dx + wgt_m, y() + wgt_m, text_width("Advanced", 8), wgt_h, "&Basic");
 	_advanced_button->position(_basic_button->x(), _basic_button->y());
 
 	_speed_input->callback((Fl_Callback *)speed_input_cb, this);
@@ -157,87 +157,87 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	_slide_octave_input->value(_note.slide_octave);
 	_slide_pitch_input->value((int)_note.slide_pitch);
 
-	_speed_input->label("Speed:");
-	_volume_input->label("Volume:");
-	_fade_input->label("Fade:");
-	_vibrato_delay_input->label("Vibrato delay:");
-	_vibrato_depth_input->label("Vibrato depth:");
-	_vibrato_rate_input->label("Vibrato rate:");
+	_speed_input->label("&Speed:");
+	_volume_input->label("V&olume:");
+	_fade_input->label("Fa&de:");
+	_vibrato_delay_input->label("Vibrato dela&y:");
+	_vibrato_depth_input->label("Vibrato dep&th:");
+	_vibrato_rate_input->label("Vibrato &rate:");
 	if (channel_number == 3) {
-		_duty_wave_drumkit_input->label("Wave:");
+		_duty_wave_drumkit_input->label("&Wave:");
 	}
 	else if (channel_number == 4) {
-		_duty_wave_drumkit_input->label("Drumkit:");
+		_duty_wave_drumkit_input->label("Drum&kit:");
 	}
 	else {
-		_duty_wave_drumkit_input->label("Duty:");
+		_duty_wave_drumkit_input->label("D&uty:");
 	}
 
-	_tempo_input->label("Tempo:");
-	_transpose_octaves_input->label("Transpose octaves:");
-	_transpose_pitches_input->label("Transpose pitches:");
-	_slide_duration_input->label("Slide duration:");
-	_slide_octave_input->label("Slide octave:");
-	_slide_pitch_input->label("Slide pitch:");
+	_tempo_input->label("&Tempo:");
+	_transpose_octaves_input->label("Tra&nspose octaves:");
+	_transpose_pitches_input->label("Transpo&se pitches:");
+	_slide_duration_input->label("Slide &duration:");
+	_slide_octave_input->label("Slide &octave:");
+	_slide_pitch_input->label("Slide pit&ch:");
 
 	for (const Note_View *note : notes) {
 		if (note->speed != (int32_t)_speed_input->value()) {
-			_speed_input->label("*Speed:");
+			_speed_input->label("*&Speed:");
 		}
 		if (note->volume != (int32_t)_volume_input->value()) {
-			_volume_input->label("*Volume:");
+			_volume_input->label("*V&olume:");
 		}
 		if (
 			(channel_number == 1 || channel_number == 2) &&
 			note->fade != (int32_t)_fade_input->value()
 		) {
-			_fade_input->label("*Fade:");
+			_fade_input->label("*Fa&de:");
 		}
 		if (note->vibrato_delay != (int32_t)_vibrato_delay_input->value()) {
-			_vibrato_delay_input->label("*Vibrato delay:");
+			_vibrato_delay_input->label("*Vibrato dela&y:");
 		}
 		if (note->vibrato_extent != (int32_t)_vibrato_depth_input->value()) {
-			_vibrato_depth_input->label("*Vibrato depth:");
+			_vibrato_depth_input->label("*Vibrato dep&th:");
 		}
 		if (note->vibrato_rate != (int32_t)_vibrato_rate_input->value()) {
-			_vibrato_rate_input->label("*Vibrato rate:");
+			_vibrato_rate_input->label("*Vibrato &rate:");
 		}
 		if (
 			channel_number == 3 &&
 			note->wave != (int32_t)_duty_wave_drumkit_input->value()
 		) {
-			_duty_wave_drumkit_input->label("*Wave:");
+			_duty_wave_drumkit_input->label("*&Wave:");
 		}
 		else if (
 			channel_number == 4 &&
 			note->drumkit != (int32_t)_duty_wave_drumkit_input->value()
 		) {
-			_duty_wave_drumkit_input->label("*Drumkit:");
+			_duty_wave_drumkit_input->label("*Drum&kit:");
 		}
 		else if (
 			(channel_number == 1 || channel_number == 2) &&
 			note->duty != (int32_t)_duty_wave_drumkit_input->value()
 		) {
-			_duty_wave_drumkit_input->label("*Duty:");
+			_duty_wave_drumkit_input->label("*D&uty:");
 		}
 
 		if (note->tempo != (int32_t)_tempo_input->value()) {
-			_tempo_input->label("*Tempo:");
+			_tempo_input->label("*&Tempo:");
 		}
 		if (note->transpose_octaves != (int32_t)_transpose_octaves_input->value()) {
-			_transpose_octaves_input->label("*Transpose octaves:");
+			_transpose_octaves_input->label("*Tra&nspose octaves:");
 		}
 		if (note->transpose_pitches != (int32_t)_transpose_pitches_input->value()) {
-			_transpose_pitches_input->label("*Transpose pitches:");
+			_transpose_pitches_input->label("*Transpo&se pitches:");
 		}
 		if (note->slide_duration != (int32_t)_slide_duration_input->value()) {
-			_slide_duration_input->label("*Slide duration:");
+			_slide_duration_input->label("*Slide &duration:");
 		}
 		if (note->slide_octave != (int32_t)_slide_octave_input->value()) {
-			_slide_octave_input->label("*Slide octave:");
+			_slide_octave_input->label("*Slide &octave:");
 		}
 		if ((int)note->slide_pitch != _slide_pitch_input->value()) {
-			_slide_pitch_input->label("*Slide pitch:");
+			_slide_pitch_input->label("*Slide pit&ch:");
 		}
 	}
 

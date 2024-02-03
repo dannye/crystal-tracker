@@ -265,7 +265,8 @@ void OS_Radio_Button::draw() {
 	if (Fl::focus() == this) { draw_focus(); }
 }
 
-OS_Spinner::OS_Spinner(int x, int y, int w, int h, const char *l) : Fl_Spinner(x, y, w, h, l) {
+OS_Spinner::OS_Spinner(int x, int y, int w, int h, const char *l) : Fl_Spinner(x, y, w, h) {
+	label(l);
 	labelfont(OS_FONT);
 	labelsize(OS_FONT_SIZE);
 	textfont(OS_FONT);
@@ -286,6 +287,9 @@ int OS_Spinner::handle(int event) {
 	switch (event) {
 	case FL_FOCUS:
 		if (input_.take_focus()) return 1;
+		else return 0;
+	case FL_SHORTCUT:
+		if (input_.test_shortcut() && input_.take_focus()) return 1;
 		else return 0;
 	}
 	return Fl_Group::handle(event);
