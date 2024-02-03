@@ -14,7 +14,7 @@
 
 std::string get_scope(const std::vector<Command> &commands, int32_t index);
 
-std::string get_next_loop_label(const std::vector<Command> &commands, const std::string &scope, int32_t &i);
+std::string get_next_loop_label(const std::vector<Command> &commands, const std::string &scope, int &i);
 
 std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, const std::string &label);
 
@@ -37,6 +37,8 @@ struct Extra_Info {
 };
 
 Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, int32_t &loop_tick, int32_t &end_tick, Extra_Info *info = nullptr);
+
+int32_t calc_snippet_length(const std::vector<Command> &commands, const std::vector<Command>::const_iterator &start_itr, const std::vector<Command>::const_iterator &end_itr, const Note_View &start_view);
 
 class Song {
 public:
@@ -74,6 +76,7 @@ public:
 			REDUCE_LOOP,
 			EXTEND_LOOP,
 			UNROLL_LOOP,
+			CREATE_LOOP,
 			DELETE_CALL,
 			UNPACK_CALL
 		};
@@ -192,6 +195,7 @@ public:
 	void reduce_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, int32_t loop_length, Note_View start_view, Note_View end_view);
 	void extend_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, int32_t loop_length, Note_View start_view, Note_View end_view);
 	void unroll_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, const std::vector<Command> &snippet);
+	void create_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t start_index, int32_t end_index, int32_t loop_length, Note_View start_view, Note_View end_view);
 	void delete_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view);
 	void unpack_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, const std::vector<Command> &snippet);
 

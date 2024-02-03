@@ -517,6 +517,7 @@ public:
 	bool reduce_loop(Song &song, bool dry_run = false);
 	bool extend_loop(Song &song, bool dry_run = false);
 	bool unroll_loop(Song &song, bool dry_run = false);
+	bool create_loop(Song &song, bool dry_run = false);
 	bool delete_call(Song &song, bool dry_run = false);
 	bool unpack_call(Song &song, bool dry_run = false);
 

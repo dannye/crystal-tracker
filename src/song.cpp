@@ -99,14 +99,23 @@ std::vector<Command> copy_snippet(const std::vector<Command> &commands, int32_t 
 	return snippet;
 }
 
-Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, int32_t &loop_tick, int32_t &end_tick, Extra_Info *info) {
+Parsed_Song::Result calc_channel_length(
+	const std::vector<Command> &commands,
+	std::vector<Command>::const_iterator start_itr,
+	std::vector<Command>::const_iterator end_itr,
+	int32_t start_speed,
+	int32_t start_drumkit,
+	int32_t &loop_tick,
+	int32_t &end_tick,
+	Extra_Info *info = nullptr
+) {
 	int32_t tick = 0;
 	loop_tick = -1;
 	end_tick = -1;
-	int32_t speed = 1;
+	int32_t speed = start_speed;
 	int32_t volume = 0;
 	int32_t fade = 0;
-	int32_t drumkit = -1;
+	int32_t drumkit = start_drumkit;
 
 	struct Label_Info {
 		int32_t tick = 0;
@@ -117,14 +126,14 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 		int32_t drumkit = 0;
 	};
 
-	auto command_itr = commands.begin();
+	auto command_itr = start_itr;
 
 	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
 	std::stack<decltype(command_itr)> call_stack;
 	std::set<std::string> visited_labels_during_call;
 	std::map<std::string, Label_Info> label_infos;
 
-	while (command_itr != commands.end()) {
+	while (command_itr != end_itr) {
 		for (const std::string &label : command_itr->labels) {
 			label_infos.insert({ label, { tick, (int32_t)(command_itr - commands.begin()), speed, volume, fade, drumkit } });
 			if (call_stack.size() > 0) {
@@ -299,7 +308,19 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 		++command_itr;
 	}
 
+	end_tick = tick;
 	return Parsed_Song::Result::SONG_OK;
+}
+
+Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, int32_t &loop_tick, int32_t &end_tick, Extra_Info *info) {
+	return calc_channel_length(commands, commands.begin(), commands.end(), 1, -1, loop_tick, end_tick, info);
+}
+
+int32_t calc_snippet_length(const std::vector<Command> &commands, const std::vector<Command>::const_iterator &start_itr, const std::vector<Command>::const_iterator &end_itr, const Note_View &start_view) {
+	int32_t loop_tick, end_tick;
+	Parsed_Song::Result r = calc_channel_length(commands, start_itr, end_itr, start_view.speed, start_view.drumkit, loop_tick, end_tick);
+	assert(r == Parsed_Song::Result::SONG_OK);
+	return end_tick;
 }
 
 Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
@@ -2910,6 +2931,36 @@ void Song::unroll_loop(const int selected_channel, const std::set<int32_t> &sele
 	_modified = true;
 }
 
+void Song::create_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t start_index, int32_t end_index, int32_t loop_length, Note_View start_view, Note_View end_view) {
+	remember(selected_channel, selected_boxes, Song_State::Action::CREATE_LOOP, tick);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	assert(end_view.speed != 0);
+
+	std::string scope = get_scope(commands, start_index);
+	int loop_number = 1;
+	std::string loop_label = get_next_loop_label(commands, scope, loop_number);
+	commands[start_index].labels.push_back(loop_label);
+
+	if (start_view.octave != end_view.octave) {
+		Command command = Command(Command_Type::OCTAVE);
+		command.octave.octave = start_view.octave;
+		commands.insert(commands.begin() + end_index + 1, command);
+		end_index += 1;
+	}
+
+	Command loop = Command(Command_Type::SOUND_LOOP);
+	loop.target = loop_label;
+	loop.sound_loop.loop_count = 2;
+	commands.insert(commands.begin() + end_index + 1, loop);
+
+	erase_ticks(selected_channel, commands, loop_length, end_index + 1, end_view.speed, end_view.volume, end_view.fade);
+
+	postprocess(commands);
+
+	_modified = true;
+}
+
 void Song::delete_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view) {
 	remember(selected_channel, selected_boxes, Song_State::Action::DELETE_CALL, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
@@ -3286,6 +3337,8 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Extend loop";
 	case Song_State::Action::UNROLL_LOOP:
 		return "Unroll loop";
+	case Song_State::Action::CREATE_LOOP:
+		return "Create loop";
 	case Song_State::Action::DELETE_CALL:
 		return "Delete call";
 	case Song_State::Action::UNPACK_CALL:

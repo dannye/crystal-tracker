@@ -130,6 +130,7 @@ private:
 		*_reduce_loop_mi = NULL,
 		*_extend_loop_mi = NULL,
 		*_unroll_loop_mi = NULL,
+		*_create_loop_mi = NULL,
 		*_delete_call_mi = NULL,
 		*_unpack_call_mi = NULL,
 		*_split_note_mi = NULL,
@@ -322,6 +323,7 @@ private:
 	static void reduce_loop_cb(Fl_Widget *w, Main_Window *mw);
 	static void extend_loop_cb(Fl_Widget *w, Main_Window *mw);
 	static void unroll_loop_cb(Fl_Widget *w, Main_Window *mw);
+	static void create_loop_cb(Fl_Widget *w, Main_Window *mw);
 	static void delete_call_cb(Fl_Widget *w, Main_Window *mw);
 	static void unpack_call_cb(Fl_Widget *w, Main_Window *mw);
 	// View menu

@@ -244,7 +244,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("Reduce Loop", FL_ALT + '-', (Fl_Callback *)reduce_loop_cb, this, FL_MENU_INVISIBLE),
 		SYS_MENU_ITEM("Extend Loop", FL_ALT + '=', (Fl_Callback *)extend_loop_cb, this, FL_MENU_INVISIBLE),
 		SYS_MENU_ITEM("Unroll Loop", FL_COMMAND + 'X', (Fl_Callback *)unroll_loop_cb, this, FL_MENU_INVISIBLE),
-		SYS_MENU_ITEM("Create Loop", FL_COMMAND + 'C', nullptr, this, FL_MENU_INVISIBLE),
+		SYS_MENU_ITEM("Create Loop", FL_COMMAND + 'C', (Fl_Callback *)create_loop_cb, this, FL_MENU_INVISIBLE),
 		SYS_MENU_ITEM("Delete Call", FL_ALT + FL_BackSpace, (Fl_Callback *)delete_call_cb, this, FL_MENU_INVISIBLE),
 		SYS_MENU_ITEM("Unpack Call", FL_COMMAND + 'x', (Fl_Callback *)unpack_call_cb, this, FL_MENU_INVISIBLE),
 		SYS_MENU_ITEM("Create Call", FL_COMMAND + 'c', nullptr, this, FL_MENU_INVISIBLE),
@@ -523,7 +523,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("Reduce Loop", FL_ALT + '-', (Fl_Callback *)reduce_loop_cb, this, 0),
 		OS_MENU_ITEM("Extend Loop", FL_ALT + '=', (Fl_Callback *)extend_loop_cb, this, 0),
 		OS_MENU_ITEM("Unroll Loop", FL_COMMAND + 'X', (Fl_Callback *)unroll_loop_cb, this, 0),
-		OS_MENU_ITEM("Create Loop", FL_COMMAND + 'C', nullptr, this, FL_MENU_INACTIVE | FL_MENU_DIVIDER),
+		OS_MENU_ITEM("Create Loop", FL_COMMAND + 'C', (Fl_Callback *)create_loop_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Delete Call", FL_ALT + FL_BackSpace, (Fl_Callback *)delete_call_cb, this, 0),
 		OS_MENU_ITEM("Unpack Call", FL_COMMAND + 'x', (Fl_Callback *)unpack_call_cb, this, 0),
 		OS_MENU_ITEM("Create Call", FL_COMMAND + 'c', nullptr, this, FL_MENU_INACTIVE),
@@ -537,6 +537,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_reduce_loop_mi = CT_FIND_MENU_ITEM_CB(reduce_loop_cb);
 	_extend_loop_mi = CT_FIND_MENU_ITEM_CB(extend_loop_cb);
 	_unroll_loop_mi = CT_FIND_MENU_ITEM_CB(unroll_loop_cb);
+	_create_loop_mi = CT_FIND_MENU_ITEM_CB(create_loop_cb);
 	_delete_call_mi = CT_FIND_MENU_ITEM_CB(delete_call_cb);
 	_unpack_call_mi = CT_FIND_MENU_ITEM_CB(unpack_call_cb);
 #undef CT_FIND_MENU_ITEM_CB
@@ -857,6 +858,13 @@ void Main_Window::set_context_menu(int X, int Y) {
 	}
 	else {
 		_unroll_loop_mi->deactivate();
+	}
+
+	if (stopped && _piano_roll->create_loop(_song, true)) {
+		_create_loop_mi->activate();
+	}
+	else {
+		_create_loop_mi->deactivate();
 	}
 
 	if (stopped && in_call && _piano_roll->delete_call(_song, true)) {
@@ -2275,6 +2283,7 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 		action == Song::Song_State::Action::REDUCE_LOOP ||
 		action == Song::Song_State::Action::EXTEND_LOOP ||
 		action == Song::Song_State::Action::UNROLL_LOOP ||
+		action == Song::Song_State::Action::CREATE_LOOP ||
 		action == Song::Song_State::Action::DELETE_CALL ||
 		action == Song::Song_State::Action::UNPACK_CALL
 	) {
@@ -2357,6 +2366,7 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 	else if (
 		action == Song::Song_State::Action::REDUCE_LOOP ||
 		action == Song::Song_State::Action::EXTEND_LOOP ||
+		action == Song::Song_State::Action::CREATE_LOOP ||
 		action == Song::Song_State::Action::DELETE_CALL
 	) {
 		mw->close_note_properties();
@@ -2747,6 +2757,17 @@ void Main_Window::extend_loop_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::unroll_loop_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded() || !mw->stopped()) { return; }
 	if (mw->_piano_roll->unroll_loop(mw->_song)) {
+		mw->_status_message = mw->_song.undo_action_message();
+		mw->_status_label->label(mw->_status_message.c_str());
+
+		mw->update_active_controls();
+		mw->redraw();
+	}
+}
+
+void Main_Window::create_loop_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded() || !mw->stopped()) { return; }
+	if (mw->_piano_roll->create_loop(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
 
