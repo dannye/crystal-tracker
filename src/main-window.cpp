@@ -247,7 +247,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("Create Loop", FL_COMMAND + 'C', (Fl_Callback *)create_loop_cb, this, FL_MENU_INVISIBLE),
 		SYS_MENU_ITEM("Delete Call", FL_ALT + FL_BackSpace, (Fl_Callback *)delete_call_cb, this, FL_MENU_INVISIBLE),
 		SYS_MENU_ITEM("Unpack Call", FL_COMMAND + 'x', (Fl_Callback *)unpack_call_cb, this, FL_MENU_INVISIBLE),
-		SYS_MENU_ITEM("Create Call", FL_COMMAND + 'c', nullptr, this, FL_MENU_INVISIBLE),
+		SYS_MENU_ITEM("Create Call", FL_COMMAND + 'c', (Fl_Callback *)create_call_cb, this, FL_MENU_INVISIBLE),
 		SYS_MENU_ITEM("Insert Call", FL_COMMAND + 'v', nullptr, this, FL_MENU_INVISIBLE),
 		{},
 		SYS_MENU_ITEM("Spli&t Note", '/', (Fl_Callback *)split_note_cb, this, 0),
@@ -526,7 +526,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_MENU_ITEM("Create Loop", FL_COMMAND + 'C', (Fl_Callback *)create_loop_cb, this, FL_MENU_DIVIDER),
 		OS_MENU_ITEM("Delete Call", FL_ALT + FL_BackSpace, (Fl_Callback *)delete_call_cb, this, 0),
 		OS_MENU_ITEM("Unpack Call", FL_COMMAND + 'x', (Fl_Callback *)unpack_call_cb, this, 0),
-		OS_MENU_ITEM("Create Call", FL_COMMAND + 'c', nullptr, this, FL_MENU_INACTIVE),
+		OS_MENU_ITEM("Create Call", FL_COMMAND + 'c', (Fl_Callback *)create_call_cb, this, 0),
 		OS_MENU_ITEM("Insert Call", FL_COMMAND + 'v', nullptr, this, FL_MENU_INACTIVE),
 		{}
 	};
@@ -540,6 +540,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_create_loop_mi = CT_FIND_MENU_ITEM_CB(create_loop_cb);
 	_delete_call_mi = CT_FIND_MENU_ITEM_CB(delete_call_cb);
 	_unpack_call_mi = CT_FIND_MENU_ITEM_CB(unpack_call_cb);
+	_create_call_mi = CT_FIND_MENU_ITEM_CB(create_call_cb);
 #undef CT_FIND_MENU_ITEM_CB
 
 	for (int i = 0; i < _context_menu->size(); i++) {
@@ -881,6 +882,12 @@ void Main_Window::set_context_menu(int X, int Y) {
 		_unpack_call_mi->deactivate();
 	}
 
+	if (stopped && _piano_roll->create_call(_song, true)) {
+		_create_call_mi->activate();
+	}
+	else {
+		_create_call_mi->deactivate();
+	}
 }
 
 void Main_Window::update_active_controls() {
@@ -2285,7 +2292,8 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 		action == Song::Song_State::Action::UNROLL_LOOP ||
 		action == Song::Song_State::Action::CREATE_LOOP ||
 		action == Song::Song_State::Action::DELETE_CALL ||
-		action == Song::Song_State::Action::UNPACK_CALL
+		action == Song::Song_State::Action::UNPACK_CALL ||
+		action == Song::Song_State::Action::CREATE_CALL
 	) {
 		if (tick != -1) {
 			mw->_piano_roll->tick(tick);
@@ -2367,7 +2375,8 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 		action == Song::Song_State::Action::REDUCE_LOOP ||
 		action == Song::Song_State::Action::EXTEND_LOOP ||
 		action == Song::Song_State::Action::CREATE_LOOP ||
-		action == Song::Song_State::Action::DELETE_CALL
+		action == Song::Song_State::Action::DELETE_CALL ||
+		action == Song::Song_State::Action::CREATE_CALL
 	) {
 		mw->close_note_properties();
 		mw->_piano_roll->tick(tick);
@@ -2790,6 +2799,17 @@ void Main_Window::delete_call_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::unpack_call_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded() || !mw->stopped()) { return; }
 	if (mw->_piano_roll->unpack_call(mw->_song)) {
+		mw->_status_message = mw->_song.undo_action_message();
+		mw->_status_label->label(mw->_status_message.c_str());
+
+		mw->update_active_controls();
+		mw->redraw();
+	}
+}
+
+void Main_Window::create_call_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded() || !mw->stopped()) { return; }
+	if (mw->_piano_roll->create_call(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
 

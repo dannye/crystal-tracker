@@ -17,13 +17,15 @@ inline int32_t itr_index(const typename std::vector<T> &vec, const typename std:
 
 std::string get_scope(const std::vector<Command> &commands, int32_t index);
 
+std::string get_next_label(const std::vector<Command> &commands, const std::string &scope, const std::string &prefix, int &i);
 std::string get_next_loop_label(const std::vector<Command> &commands, const std::string &scope, int &i);
+std::string get_next_call_label(const std::vector<Command> &commands, const std::string &scope, int &i);
 
 std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, const std::string &label);
 
 bool is_followed_by_n_ticks_of_rest(std::vector<Command>::const_iterator itr, std::vector<Command>::const_iterator end, int32_t n, int32_t speed);
 
-std::vector<Command> copy_snippet(const std::vector<Command> &commands, int32_t start_index, int32_t end_index);
+std::vector<Command> copy_snippet(const std::vector<Command> &commands, int32_t start_index, int32_t end_index, bool copy_jumps = false);
 
 struct Extra_Info {
 	int32_t loop_index = 0;
@@ -81,7 +83,8 @@ public:
 			UNROLL_LOOP,
 			CREATE_LOOP,
 			DELETE_CALL,
-			UNPACK_CALL
+			UNPACK_CALL,
+			CREATE_CALL
 		};
 		int tick = -1;
 		int channel_number = 0;
@@ -201,6 +204,7 @@ public:
 	void create_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t start_index, int32_t end_index, int32_t loop_length, Note_View start_view, Note_View end_view);
 	void delete_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view);
 	void unpack_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, const std::vector<Command> &snippet);
+	void create_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t start_index, int32_t end_index, const std::vector<Command> &snippet);
 
 	std::vector<Command> &channel_commands(const int selected_channel);
 	const std::string &channel_label(const int selected_channel) const;

@@ -19,7 +19,7 @@ std::string get_scope(const std::vector<Command> &commands, int32_t index) {
 	return "";
 }
 
-std::string get_next_loop_label(const std::vector<Command> &commands, const std::string &scope, int &i) {
+std::string get_next_label(const std::vector<Command> &commands, const std::string &scope, const std::string &prefix, int &i) {
 	const auto is_label_taken = [](const std::vector<Command> &commands, const std::string &label) {
 		for (const Command &command : commands) {
 			for (const std::string &l : command.labels) {
@@ -32,13 +32,21 @@ std::string get_next_loop_label(const std::vector<Command> &commands, const std:
 	};
 
 	while (true) {
-		std::string label = scope + ".loop" + std::to_string(i);
+		std::string label = scope + "." + prefix + std::to_string(i);
 		i += 1;
 		if (is_label_taken(commands, label)) {
 			continue;
 		}
 		return label;
 	}
+}
+
+std::string get_next_loop_label(const std::vector<Command> &commands, const std::string &scope, int &i) {
+	return get_next_label(commands, scope, "loop", i);
+}
+
+std::string get_next_call_label(const std::vector<Command> &commands, const std::string &scope, int &i) {
+	return get_next_label(commands, scope, "sub", i);
 }
 
 std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, const std::string &label) {
@@ -77,7 +85,7 @@ bool is_followed_by_n_ticks_of_rest(std::vector<Command>::const_iterator itr, st
 	return false;
 }
 
-std::vector<Command> copy_snippet(const std::vector<Command> &commands, int32_t start_index, int32_t end_index) {
+std::vector<Command> copy_snippet(const std::vector<Command> &commands, int32_t start_index, int32_t end_index, bool copy_jumps) {
 	std::vector<Command> snippet;
 
 	auto command_itr = commands.begin() + start_index;
@@ -89,6 +97,9 @@ std::vector<Command> copy_snippet(const std::vector<Command> &commands, int32_t 
 			command_itr->type == Command_Type::SOUND_JUMP ||
 			(command_itr->type == Command_Type::SOUND_LOOP && command_itr->sound_loop.loop_count == 0)
 		) {
+			if (copy_jumps) {
+				snippet.push_back(*command_itr);
+			}
 			command_itr = find_note_with_label(commands, command_itr->target);
 			continue;
 		}
@@ -3045,6 +3056,28 @@ void Song::unpack_call(const int selected_channel, const std::set<int32_t> &sele
 	_modified = true;
 }
 
+void Song::create_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t start_index, int32_t end_index, const std::vector<Command> &snippet) {
+	remember(selected_channel, selected_boxes, Song_State::Action::CREATE_CALL, tick);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	assert(snippet.size() > 0 && snippet[0].labels.size() > 0);
+
+	commands.insert(commands.end(), RANGE(snippet));
+
+	Command call = Command(Command_Type::SOUND_CALL);
+	call.target = snippet[0].labels[0];
+	call.labels.insert(call.labels.end(), RANGE(commands[start_index].labels)); // TODO: maybe delete local labels if now unreferenced
+	commands.insert(commands.begin() + end_index + 1, call);
+
+	for (int32_t i = end_index; i >= start_index; --i) {
+		commands.erase(commands.begin() + i);
+	}
+
+	postprocess(commands);
+
+	_modified = true;
+}
+
 std::string Song::commands_str(const std::vector<Command> &commands, int32_t channel_number) const {
 	const auto to_local_label = [](const std::string &label, const std::string &scope) {
 		std::size_t dot = label.find_first_of(".");
@@ -3343,6 +3376,8 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Delete call";
 	case Song_State::Action::UNPACK_CALL:
 		return "Unpack call";
+	case Song_State::Action::CREATE_CALL:
+		return "Create call";
 	default:
 		return "Unspecified action";
 	}

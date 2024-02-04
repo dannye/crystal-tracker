@@ -3513,9 +3513,7 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 	auto start_itr = commands.begin() + start_index;
 	auto end_itr = commands.begin() + end_index;
 
-	auto command_itr = start_itr;
-
-	while (command_itr != end_itr) {
+	for (auto command_itr = start_itr; command_itr != end_itr; ++command_itr) {
 		if (
 			command_itr == commands.end() ||
 			command_itr->type == Command_Type::SOUND_JUMP ||
@@ -3524,7 +3522,6 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 		) {
 			return false;
 		}
-		++command_itr;
 	}
 
 	int32_t loop_length = calc_snippet_length(commands, start_itr, end_itr + 1, end_view);
@@ -3676,6 +3673,170 @@ bool Piano_Roll::unpack_call(Song &song, bool dry_run) {
 	song.unpack_call(selected_channel(), selected_boxes, _tick, call_index, snippet);
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::create_call(Song &song, bool dry_run) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	const auto find_selection_start = [](std::vector<Note_Box *> *channel) {
+		for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+			if ((*note_itr)->selected()) {
+				return note_itr;
+			}
+		}
+		return channel->end();
+	};
+	const auto find_selection_end = [](std::vector<Note_Box *> *channel) {
+		for (auto note_itr = channel->rbegin(); note_itr != channel->rend(); ++note_itr) {
+			if ((*note_itr)->selected()) {
+				return note_itr.base() - 1;
+			}
+		}
+		return channel->end();
+	};
+
+	const auto selection_start = find_selection_start(channel);
+	const auto selection_end = find_selection_end(channel);
+
+	if (selection_start == channel->end()) return false;
+
+	Note_View start_view = (*selection_start)->note_view();
+	Note_View end_view = (*selection_end)->note_view();
+
+	int32_t t_left = (*selection_start)->tick();
+	int32_t t_right = (*selection_end)->tick() + end_view.length * end_view.speed;
+
+	auto calls = _piano_timeline.active_channel_calls();
+	for (const Call_Box *call : *calls) {
+		if (!(call->end_tick() <= t_left || call->start_tick() >= t_right)) {
+			return false;
+		}
+	}
+
+	int32_t start_index = start_view.index;
+	int32_t end_index = end_view.index;
+
+	auto loops = _piano_timeline.active_channel_loops();
+	for (size_t i = 0; i < loops->size(); ++i) {
+		const Loop_Box *loop = (*loops)[i];
+		const Loop_Box *last_loop = loop;
+		
+		if ((loop->start_tick() <= t_left && loop->end_tick() > t_right) || loop->start_tick() < t_left && loop->end_tick() >= t_right) {
+			break;
+		}
+
+		bool inside_loop = false;
+		while (i + 1 < loops->size() && (*loops)[i + 1]->end_note_view().index == loop->end_note_view().index) {
+			i += 1;
+			last_loop = (*loops)[i];
+			if ((last_loop->start_tick() <= t_left && last_loop->end_tick() > t_right) || last_loop->start_tick() < t_left && last_loop->end_tick() >= t_right) {
+				inside_loop = true;
+				break;
+			}
+		}
+		if (inside_loop) break;
+
+		if (!(last_loop->end_tick() <= t_left || loop->start_tick() >= t_right || (loop->start_tick() >= t_left && last_loop->end_tick() <= t_right))) {
+			return false;
+		}
+		if (loop->start_tick() == t_left && last_loop->end_tick() <= t_right) {
+			start_index = loop->start_note_view().index;
+			start_view = loop->start_note_view();
+		}
+		if (last_loop->end_tick() == t_right && loop->start_tick() >= t_left) {
+			end_index = loop->end_note_view().index;
+			end_view = loop->end_note_view();
+		}
+	}
+
+	const std::vector<Command> &commands = song.channel_commands(selected_channel());
+
+	std::vector<Command> snippet = copy_snippet(commands, start_index, end_index + 1, true);
+
+	for (const Command &command : snippet) {
+		if (
+			command.type == Command_Type::SOUND_JUMP ||
+			(command.type == Command_Type::SOUND_LOOP && command.sound_loop.loop_count == 0) ||
+			command.type == Command_Type::SOUND_CALL ||
+			command.type == Command_Type::SOUND_RET
+		) {
+			return false;
+		}
+		for (const std::string &label : command.labels) {
+			if (label.find_first_of(".") == std::string::npos) {
+				return false;
+			}
+		}
+	}
+
+	const auto snippet_contains_label = [](const std::vector<Command> &snippet, const std::string &label) {
+		for (const Command &command : snippet) {
+			if (std::count(RANGE(command.labels), label) > 0) {
+				return true;
+			}
+		}
+		return false;
+	};
+
+	std::set<std::string> loop_targets;
+	for (const Command &command : snippet) {
+		if (command.type == Command_Type::SOUND_LOOP) {
+			if (!snippet_contains_label(snippet, command.target)) return false;
+			loop_targets.insert(command.target);
+		}
+	}
+	for (Command &command : snippet) {
+		for (size_t i = command.labels.size() - 1; i < command.labels.size(); --i) {
+			if (loop_targets.count(command.labels[i]) == 0) {
+				command.labels.erase(command.labels.begin() + i);
+			}
+		}
+	}
+	std::string scope = get_scope(commands, (int32_t)commands.size() - 1);
+	int loop_number = 1;
+	for (Command &command : snippet) {
+		for (size_t i = 0; i < command.labels.size(); ++i) {
+			std::string old_label = command.labels[i];
+			std::string next_label = get_next_loop_label(commands, scope, loop_number);
+			command.labels[i] = next_label;
+			for (Command &other : snippet) {
+				if (other.type == Command_Type::SOUND_LOOP && other.target == old_label) {
+					other.target = next_label;
+				}
+			}
+		}
+	}
+
+	Command ret = Command(Command_Type::SOUND_RET);
+	snippet.push_back(ret);
+
+	int call_number = 1;
+	std::string call_label = get_next_call_label(commands, scope, call_number);
+	snippet[0].labels.insert(snippet[0].labels.begin(), call_label);
+
+	if (dry_run) {
+		return true;
+	}
+
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			selected_boxes.insert(itr_index(*channel, note_itr));
+		}
+	}
+
+	song.create_call(selected_channel(), selected_boxes, t_left, start_index, end_index, snippet);
+	set_active_channel_timeline(song);
+	refresh_note_properties();
+	
+	_tick = t_left;
+	focus_cursor(true);
+	parent()->set_song_position(_tick);
 
 	return true;
 }
