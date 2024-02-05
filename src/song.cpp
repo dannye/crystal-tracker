@@ -3066,12 +3066,116 @@ void Song::create_call(const int selected_channel, const std::set<int32_t> &sele
 
 	Command call = Command(Command_Type::SOUND_CALL);
 	call.target = snippet[0].labels[0];
-	call.labels.insert(call.labels.end(), RANGE(commands[start_index].labels)); // TODO: maybe delete local labels if now unreferenced
+	call.labels = std::move(commands[start_index].labels); // TODO: maybe delete local labels if now unreferenced
 	commands.insert(commands.begin() + end_index + 1, call);
 
 	for (int32_t i = end_index; i >= start_index; --i) {
 		commands.erase(commands.begin() + i);
 	}
+
+	postprocess(commands);
+
+	_modified = true;
+}
+
+void Song::insert_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t tick_offset, int32_t insert_index, const std::string &target_label, int32_t call_length, Note_View insert_view, Note_View start_view, Note_View end_view) {
+	remember(selected_channel, selected_boxes, Song_State::Action::INSERT_CALL, tick);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	assert(commands[insert_index].type == Command_Type::REST);
+
+	int32_t tail_length = commands[insert_index].rest.length - tick_offset / insert_view.speed;
+	assert(tail_length > 0);
+
+	if (tail_length < commands[insert_index].rest.length) {
+		Command command = Command(Command_Type::REST);
+		command.rest.length = tail_length;
+		commands[insert_index].rest.length -= tail_length;
+		commands.insert(commands.begin() + insert_index + 1, command);
+		insert_index += 1;
+	}
+
+	if (start_view.octave != insert_view.octave) {
+		Command command = Command(Command_Type::OCTAVE);
+		command.octave.octave = start_view.octave;
+		command.labels = std::move(commands[insert_index].labels);
+		commands[insert_index].labels.clear();
+		commands.insert(commands.begin() + insert_index, command);
+		insert_index += 1;
+	}
+
+	if (start_view.speed != insert_view.speed) {
+		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+		command.note_type.speed = start_view.speed;
+		command.note_type.volume = start_view.volume;
+		command.note_type.fade = start_view.fade;
+		command.labels = std::move(commands[insert_index].labels);
+		commands[insert_index].labels.clear();
+		commands.insert(commands.begin() + insert_index, command);
+		insert_index += 1;
+	}
+
+	if (selected_channel == 4 && start_view.drumkit != insert_view.drumkit) {
+		if (insert_view.drumkit != -1) {
+			// turn off
+			Command command = Command(Command_Type::TOGGLE_NOISE);
+			command.toggle_noise.drumkit = -1;
+			command.labels = std::move(commands[insert_index].labels);
+			commands[insert_index].labels.clear();
+			commands.insert(commands.begin() + insert_index, command);
+			insert_index += 1;
+		}
+		if (start_view.drumkit != -1) {
+			// turn on
+			Command command = Command(Command_Type::TOGGLE_NOISE);
+			command.toggle_noise.drumkit = start_view.drumkit;
+			command.labels = std::move(commands[insert_index].labels);
+			commands[insert_index].labels.clear();
+			commands.insert(commands.begin() + insert_index, command);
+			insert_index += 1;
+		}
+	}
+
+	Command call = Command(Command_Type::SOUND_CALL);
+	call.target = target_label;
+	call.labels = std::move(commands[insert_index].labels);
+	commands[insert_index].labels.clear();
+	commands.insert(commands.begin() + insert_index, call);
+
+	{
+		Command command = Command(Command_Type::OCTAVE);
+		command.octave.octave = insert_view.octave;
+		commands.insert(commands.begin() + insert_index + 1, command);
+		insert_index += 1;
+	}
+
+	{
+		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+		command.note_type.speed = insert_view.speed;
+		command.note_type.volume = insert_view.volume;
+		command.note_type.fade = insert_view.fade;
+		commands.insert(commands.begin() + insert_index + 1, command);
+		insert_index += 1;
+	}
+
+	if (selected_channel == 4 && insert_view.drumkit != end_view.drumkit) {
+		if (end_view.drumkit != -1) {
+			// turn off
+			Command command = Command(Command_Type::TOGGLE_NOISE);
+			command.toggle_noise.drumkit = -1;
+			commands.insert(commands.begin() + insert_index + 1, command);
+			insert_index += 1;
+		}
+		if (insert_view.drumkit != -1) {
+			// turn on
+			Command command = Command(Command_Type::TOGGLE_NOISE);
+			command.toggle_noise.drumkit = insert_view.drumkit;
+			commands.insert(commands.begin() + insert_index + 1, command);
+			insert_index += 1;
+		}
+	}
+
+	erase_ticks(selected_channel, commands, call_length, insert_index, insert_view.speed, insert_view.volume, insert_view.fade);
 
 	postprocess(commands);
 
@@ -3378,6 +3482,8 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Unpack call";
 	case Song_State::Action::CREATE_CALL:
 		return "Create call";
+	case Song_State::Action::INSERT_CALL:
+		return "Insert call";
 	default:
 		return "Unspecified action";
 	}

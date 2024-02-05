@@ -161,6 +161,7 @@ class Call_Box : public Wrapper_Box {
 private:
 	int32_t _ambiguous_ticks = 0;
 	int32_t _unambiguous_ticks = 0;
+	bool _selected = false;
 public:
 	using Wrapper_Box::Wrapper_Box;
 
@@ -169,6 +170,9 @@ public:
 
 	inline void add_ambiguous_ticks(int32_t t) { _ambiguous_ticks += t; }
 	inline void add_unambiguous_ticks(int32_t t) { _unambiguous_ticks += t; }
+
+	inline bool selected(void) const { return _selected; }
+	inline void selected(bool s) { _selected = s; }
 protected:
 	void draw() override;
 };
@@ -521,6 +525,7 @@ public:
 	bool delete_call(Song &song, bool dry_run = false);
 	bool unpack_call(Song &song, bool dry_run = false);
 	bool create_call(Song &song, bool dry_run = false);
+	bool insert_call(Song &song, bool dry_run = false);
 
 	bool select_all() { return _piano_timeline.select_all(); }
 	bool select_none() { return _piano_timeline.select_none(); }

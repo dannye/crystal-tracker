@@ -134,6 +134,7 @@ private:
 		*_delete_call_mi = NULL,
 		*_unpack_call_mi = NULL,
 		*_create_call_mi = NULL,
+		*_insert_call_mi = NULL,
 		*_split_note_mi = NULL,
 		*_glue_note_mi = NULL,
 		*_resize_song_mi = NULL,
@@ -328,6 +329,7 @@ private:
 	static void delete_call_cb(Fl_Widget *w, Main_Window *mw);
 	static void unpack_call_cb(Fl_Widget *w, Main_Window *mw);
 	static void create_call_cb(Fl_Widget *w, Main_Window *mw);
+	static void insert_call_cb(Fl_Widget *w, Main_Window *mw);
 	// View menu
 	static void classic_theme_cb(Fl_Widget *w, Main_Window *mw);
 	static void aero_theme_cb(Fl_Widget *w, Main_Window *mw);

@@ -84,7 +84,8 @@ public:
 			CREATE_LOOP,
 			DELETE_CALL,
 			UNPACK_CALL,
-			CREATE_CALL
+			CREATE_CALL,
+			INSERT_CALL
 		};
 		int tick = -1;
 		int channel_number = 0;
@@ -205,6 +206,7 @@ public:
 	void delete_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view);
 	void unpack_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, const std::vector<Command> &snippet);
 	void create_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t start_index, int32_t end_index, const std::vector<Command> &snippet);
+	void insert_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t tick_offset, int32_t insert_index, const std::string &target_label, int32_t call_length, Note_View insert_view, Note_View start_view, Note_View end_view);
 
 	std::vector<Command> &channel_commands(const int selected_channel);
 	const std::string &channel_label(const int selected_channel) const;
