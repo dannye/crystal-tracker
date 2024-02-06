@@ -117,6 +117,7 @@ private:
 		*_redo_mi = NULL,
 		*_select_all_mi = NULL,
 		*_select_none_mi = NULL,
+		*_select_invert_mi = NULL,
 		*_pitch_up_mi = NULL,
 		*_pitch_down_mi = NULL,
 		*_octave_up_mi = NULL,
@@ -301,6 +302,7 @@ private:
 	static void redo_cb(Fl_Widget *w, Main_Window *mw);
 	static void select_all_cb(Fl_Widget *w, Main_Window *mw);
 	static void select_none_cb(Fl_Widget *w, Main_Window *mw);
+	static void select_invert_cb(Fl_Widget *w, Main_Window *mw);
 	static void pitch_up_cb(Fl_Widget *w, Main_Window *mw);
 	static void pitch_down_cb(Fl_Widget *w, Main_Window *mw);
 	static void octave_up_cb(Fl_Widget *w, Main_Window *mw);

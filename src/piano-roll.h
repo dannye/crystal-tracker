@@ -318,6 +318,7 @@ public:
 	bool handle_note_selection_cancel(int event);
 	bool select_all();
 	bool select_none();
+	bool select_invert();
 
 	void highlight_channel_1_tick(int32_t tick, bool muted) { highlight_tick(_channel_1_notes, 1, tick, muted, NOTE_RED_LIGHT); }
 	void highlight_channel_2_tick(int32_t tick, bool muted) { highlight_tick(_channel_2_notes, 2, tick, muted, NOTE_BLUE_LIGHT); }
@@ -529,6 +530,7 @@ public:
 
 	bool select_all() { return _piano_timeline.select_all(); }
 	bool select_none() { return _piano_timeline.select_none(); }
+	bool select_invert() { return _piano_timeline.select_invert(); }
 
 	int32_t quantize_tick(int32_t tick, bool round = false);
 private:

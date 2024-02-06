@@ -875,6 +875,23 @@ bool Piano_Timeline::select_none() {
 	return note_deselected;
 }
 
+bool Piano_Timeline::select_invert() {
+	auto channel = active_channel_boxes();
+	if (!channel) return false;
+
+	bool note_selected = false;
+	for (Note_Box *note : *channel) {
+		note->selected(!note->selected());
+		note->redraw();
+		_keys.redraw();
+		note_selected = true;
+	}
+
+	parent()->refresh_note_properties();
+
+	return note_selected;
+}
+
 void Piano_Timeline::reset_note_colors() {
 	for (Note_Box *note : _channel_1_notes) {
 		note->color(NOTE_RED);
@@ -3737,7 +3754,7 @@ bool Piano_Roll::create_call(Song &song, bool dry_run) {
 		const Loop_Box *loop = (*loops)[i];
 		const Loop_Box *last_loop = loop;
 		
-		if ((loop->start_tick() <= t_left && loop->end_tick() > t_right) || loop->start_tick() < t_left && loop->end_tick() >= t_right) {
+		if ((loop->start_tick() <= t_left && loop->end_tick() > t_right) || (loop->start_tick() < t_left && loop->end_tick() >= t_right)) {
 			break;
 		}
 
@@ -3745,7 +3762,7 @@ bool Piano_Roll::create_call(Song &song, bool dry_run) {
 		while (i + 1 < loops->size() && (*loops)[i + 1]->end_note_view().index == last_loop->end_note_view().index && (*loops)[i + 1]->start_tick() == last_loop->end_tick()) {
 			i += 1;
 			last_loop = (*loops)[i];
-			if ((last_loop->start_tick() <= t_left && last_loop->end_tick() > t_right) || last_loop->start_tick() < t_left && last_loop->end_tick() >= t_right) {
+			if ((last_loop->start_tick() <= t_left && last_loop->end_tick() > t_right) || (last_loop->start_tick() < t_left && last_loop->end_tick() >= t_right)) {
 				inside_loop = true;
 				break;
 			}

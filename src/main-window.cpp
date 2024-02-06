@@ -229,7 +229,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("&Undo", FL_COMMAND + 'z', (Fl_Callback *)undo_cb, this, 0),
 		SYS_MENU_ITEM("&Redo", FL_COMMAND + 'y', (Fl_Callback *)redo_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Select &All", FL_COMMAND + 'a', (Fl_Callback *)select_all_cb, this, 0),
-		SYS_MENU_ITEM("Select N&one", FL_COMMAND + 'A', (Fl_Callback *)select_none_cb, this, FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("Select N&one", FL_COMMAND + 'A', (Fl_Callback *)select_none_cb, this, 0),
+		SYS_MENU_ITEM("Select &Invert", FL_COMMAND + 'I', (Fl_Callback *)select_invert_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("&Selection...", 0, NULL, NULL, FL_SUBMENU | FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Pitch Up", FL_COMMAND + UP_KEY, (Fl_Callback *)pitch_up_cb, this, 0),
 		SYS_MENU_ITEM("Pitch Down", FL_COMMAND + DOWN_KEY, (Fl_Callback *)pitch_down_cb, this, 0),
@@ -370,6 +371,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_redo_mi = CT_FIND_MENU_ITEM_CB(redo_cb);
 	_select_all_mi = CT_FIND_MENU_ITEM_CB(select_all_cb);
 	_select_none_mi = CT_FIND_MENU_ITEM_CB(select_none_cb);
+	_select_invert_mi = CT_FIND_MENU_ITEM_CB(select_invert_cb);
 	_pitch_up_mi = CT_FIND_MENU_ITEM_CB(pitch_up_cb);
 	_pitch_down_mi = CT_FIND_MENU_ITEM_CB(pitch_down_cb);
 	_octave_up_mi = CT_FIND_MENU_ITEM_CB(octave_up_cb);
@@ -959,6 +961,7 @@ void Main_Window::update_active_controls() {
 		if (stopped) {
 			_select_all_mi->activate();
 			_select_none_mi->activate();
+			_select_invert_mi->activate();
 			if (_piano_roll->pitch_up(_song, true)) {
 				_pitch_up_mi->activate();
 			}
@@ -1028,6 +1031,7 @@ void Main_Window::update_active_controls() {
 		else {
 			_select_all_mi->deactivate();
 			_select_none_mi->deactivate();
+			_select_invert_mi->deactivate();
 			_pitch_up_mi->deactivate();
 			_pitch_down_mi->deactivate();
 			_octave_up_mi->deactivate();
@@ -1103,6 +1107,7 @@ void Main_Window::update_active_controls() {
 		_redo_tb->deactivate();
 		_select_all_mi->deactivate();
 		_select_none_mi->deactivate();
+		_select_invert_mi->deactivate();
 		_pitch_up_mi->deactivate();
 		_pitch_down_mi->deactivate();
 		_octave_up_mi->deactivate();
@@ -2409,6 +2414,11 @@ void Main_Window::select_all_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::select_none_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	mw->_piano_roll->select_none();
+}
+
+void Main_Window::select_invert_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	mw->_piano_roll->select_invert();
 }
 
 void Main_Window::pitch_up_cb(Fl_Widget *, Main_Window *mw) {
