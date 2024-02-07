@@ -21,6 +21,9 @@ std::string get_next_label(const std::vector<Command> &commands, const std::stri
 std::string get_next_loop_label(const std::vector<Command> &commands, const std::string &scope, int &i);
 std::string get_next_call_label(const std::vector<Command> &commands, const std::string &scope, int &i);
 
+bool is_label_referenced(const std::vector<Command> &commands, const std::string &label);
+void delete_label(std::vector<Command> &commands, const std::string &label);
+
 std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, const std::string &label);
 
 bool is_followed_by_n_ticks_of_rest(std::vector<Command>::const_iterator itr, std::vector<Command>::const_iterator end, int32_t n, int32_t speed);

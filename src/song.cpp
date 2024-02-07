@@ -49,6 +49,31 @@ std::string get_next_call_label(const std::vector<Command> &commands, const std:
 	return get_next_label(commands, scope, "sub", i);
 }
 
+bool is_label_referenced(const std::vector<Command> &commands, const std::string &label) {
+	for (const Command &command : commands) {
+		if (
+			(command.type == Command_Type::SOUND_JUMP ||
+			command.type == Command_Type::SOUND_LOOP ||
+			command.type == Command_Type::SOUND_CALL) &&
+			command.target == label
+		) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void delete_label(std::vector<Command> &commands, const std::string &label) {
+	for (Command &command : commands) {
+		for (auto l = command.labels.begin(); l != command.labels.end(); ++l) {
+			if (*l == label) {
+				command.labels.erase(l);
+				return;
+			}
+		}
+	}
+}
+
 std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, const std::string &label) {
 	for (auto command_itr = commands.begin(); command_itr != commands.end(); ++command_itr) {
 		if (std::count(RANGE(command_itr->labels), label) > 0) {
@@ -2895,8 +2920,14 @@ void Song::reduce_loop(const int selected_channel, const std::set<int32_t> &sele
 	insert_ticks(selected_channel, commands, loop_length, loop_index + 1, end_view.speed, end_view.volume, end_view.fade);
 
 	if (commands[loop_index].sound_loop.loop_count == 1) {
+		std::string target = commands[loop_index].target;
+
 		commands[loop_index + 1].labels.insert(commands[loop_index + 1].labels.begin(), RANGE(commands[loop_index].labels));
-		commands.erase(commands.begin() + loop_index); // TODO: maybe delete target label if now unreferenced
+		commands.erase(commands.begin() + loop_index);
+
+		if (target != channel_label(selected_channel) && target.find_first_of(".") != std::string::npos && !is_label_referenced(commands, target)) {
+			delete_label(commands, target);
+		}
 	}
 
 	postprocess(commands);
@@ -2930,11 +2961,17 @@ void Song::unroll_loop(const int selected_channel, const std::set<int32_t> &sele
 
 	commands[loop_index].sound_loop.loop_count -= 1;
 
-	commands.insert(commands.begin() + (loop_index + 1), snippet.begin(), snippet.end());
+	commands.insert(commands.begin() + (loop_index + 1), RANGE(snippet));
 
 	if (commands[loop_index].sound_loop.loop_count == 1) {
+		std::string target = commands[loop_index].target;
+
 		commands[loop_index + 1].labels.insert(commands[loop_index + 1].labels.begin(), RANGE(commands[loop_index].labels));
-		commands.erase(commands.begin() + loop_index); // TODO: maybe delete target label if now unreferenced
+		commands.erase(commands.begin() + loop_index);
+
+		if (target != channel_label(selected_channel) && target.find_first_of(".") != std::string::npos && !is_label_referenced(commands, target)) {
+			delete_label(commands, target);
+		}
 	}
 
 	postprocess(commands);
@@ -3033,7 +3070,7 @@ void Song::delete_call(const int selected_channel, const std::set<int32_t> &sele
 	insert_ticks(selected_channel, commands, ambiguous_ticks, call_index + 1);
 
 	commands[call_index + 1].labels.insert(commands[call_index + 1].labels.begin(), RANGE(commands[call_index].labels));
-	commands.erase(commands.begin() + call_index);
+	commands.erase(commands.begin() + call_index); // TODO: delete snippet if call target is now unreferenced
 
 	postprocess(commands);
 
@@ -3046,10 +3083,10 @@ void Song::unpack_call(const int selected_channel, const std::set<int32_t> &sele
 
 	assert(commands[call_index].type == Command_Type::SOUND_CALL);
 
-	commands.insert(commands.begin() + (call_index + 1), snippet.begin(), snippet.end());
+	commands.insert(commands.begin() + (call_index + 1), RANGE(snippet));
 
 	commands[call_index + 1].labels.insert(commands[call_index + 1].labels.begin(), RANGE(commands[call_index].labels));
-	commands.erase(commands.begin() + call_index);
+	commands.erase(commands.begin() + call_index); // TODO: delete snippet if call target is now unreferenced
 
 	postprocess(commands);
 
@@ -3066,7 +3103,7 @@ void Song::create_call(const int selected_channel, const std::set<int32_t> &sele
 
 	Command call = Command(Command_Type::SOUND_CALL);
 	call.target = snippet[0].labels[0];
-	call.labels = std::move(commands[start_index].labels); // TODO: maybe delete local labels if now unreferenced
+	call.labels = std::move(commands[start_index].labels);
 	commands.insert(commands.begin() + end_index + 1, call);
 
 	for (int32_t i = end_index; i >= start_index; --i) {
