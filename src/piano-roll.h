@@ -324,6 +324,7 @@ public:
 	bool select_all();
 	bool select_none();
 	bool select_invert();
+	bool any_note_selected();
 
 	void highlight_channel_1_tick(int32_t tick, bool muted) { highlight_tick(_channel_1_notes, 1, tick, muted, NOTE_RED_LIGHT); }
 	void highlight_channel_2_tick(int32_t tick, bool muted) { highlight_tick(_channel_2_notes, 2, tick, muted, NOTE_BLUE_LIGHT); }
@@ -344,6 +345,7 @@ public:
 private:
 	void highlight_tick(std::vector<Note_Box *> &notes, int channel_number, int32_t tick, bool muted, Fl_Color color);
 	void select_note_at_tick(std::vector<Note_Box *> &notes, int32_t tick);
+	void select_call_at_tick(std::vector<Call_Box *> &calls, int32_t tick);
 	void set_channel(std::vector<Note_Box *> &channel, std::vector<Flag_Box *> &flags, int channel_number, const std::vector<Note_View> &notes, Fl_Color color);
 	void set_channel_detail(std::vector<Note_Box *> &notes, std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Flag_Box *> &flags, int detail);
 
@@ -463,6 +465,7 @@ public:
 	void set_active_channel_timeline(const Song &song);
 	void set_active_channel_selection(const std::set<int32_t> &selection);
 	void select_note_at_tick();
+	void select_call_at_tick();
 
 	void build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::set<int32_t> &unused_targets, std::vector<Note_View> &notes, const std::vector<Command> &commands, int32_t end_tick, Fl_Color color);
 
@@ -537,6 +540,8 @@ public:
 	bool select_all() { return _piano_timeline.select_all(); }
 	bool select_none() { return _piano_timeline.select_none(); }
 	bool select_invert() { return _piano_timeline.select_invert(); }
+
+	bool any_note_selected() { return _piano_timeline.any_note_selected(); }
 
 	int32_t quantize_tick(int32_t tick, bool round = false);
 private:

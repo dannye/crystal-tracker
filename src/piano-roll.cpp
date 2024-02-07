@@ -905,6 +905,19 @@ bool Piano_Timeline::select_invert() {
 	return note_selected;
 }
 
+bool Piano_Timeline::any_note_selected() {
+	auto channel = active_channel_boxes();
+	if (!channel) return false;
+
+	for (Note_Box *note : *channel) {
+		if (note->selected()) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void Piano_Timeline::reset_note_colors() {
 	for (Note_Box *note : _channel_1_notes) {
 		note->color(NOTE_RED);
@@ -953,6 +966,15 @@ void Piano_Timeline::select_note_at_tick(std::vector<Note_Box *> &notes, int32_t
 		}
 	}
 	parent()->refresh_note_properties();
+}
+
+void Piano_Timeline::select_call_at_tick(std::vector<Call_Box *> &calls, int32_t tick) {
+	for (Call_Box *call : calls) {
+		if (tick >= call->start_tick() && tick < call->end_tick()) {
+			call->selected(true);
+			break;
+		}
+	}
 }
 
 void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<Flag_Box *> &flags, int channel_number, const std::vector<Note_View> &notes, Fl_Color color) {
@@ -1716,6 +1738,10 @@ void Piano_Roll::set_active_channel_selection(const std::set<int32_t> &selection
 
 void Piano_Roll::select_note_at_tick() {
 	_piano_timeline.select_note_at_tick(*_piano_timeline.active_channel_boxes(), _tick);
+}
+
+void Piano_Roll::select_call_at_tick() {
+	_piano_timeline.select_call_at_tick(*_piano_timeline.active_channel_calls(), _tick);
 }
 
 void Piano_Roll::build_note_view(
@@ -3921,12 +3947,7 @@ bool Piano_Roll::create_call(Song &song, bool dry_run) {
 	focus_cursor(true);
 	parent()->set_song_position(_tick);
 
-	for (Call_Box *call : *calls) {
-		if (_tick >= call->start_tick() && _tick < call->end_tick()) {
-			call->selected(true);
-			break;
-		}
-	}
+	_piano_timeline.select_call_at_tick(*calls, _tick);
 
 	return true;
 }
@@ -3999,12 +4020,7 @@ bool Piano_Roll::insert_call(Song &song, bool dry_run) {
 	set_active_channel_timeline(song);
 	refresh_note_properties();
 
-	for (Call_Box *call : *calls) {
-		if (_tick >= call->start_tick() && _tick < call->end_tick()) {
-			call->selected(true);
-			break;
-		}
-	}
+	_piano_timeline.select_call_at_tick(*calls, _tick);
 
 	return true;
 }

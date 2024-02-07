@@ -885,7 +885,7 @@ void Main_Window::set_context_menu(int X, int Y) {
 		_unpack_call_mi->deactivate();
 	}
 
-	if (stopped && _piano_roll->create_call(_song, true)) {
+	if (stopped && ((in_call && !_piano_roll->any_note_selected()) || _piano_roll->create_call(_song, true))) {
 		_create_call_mi->activate();
 	}
 	else {
@@ -2385,6 +2385,10 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 			mw->set_song_position(mw->_piano_roll->tick());
 		}
 		mw->_piano_roll->set_active_channel_selection(selection);
+
+		if (action == Song::Song_State::Action::CREATE_CALL) {
+			mw->_piano_roll->select_call_at_tick();
+		}
 	}
 	else if (
 		action == Song::Song_State::Action::REDUCE_LOOP ||
@@ -2397,6 +2401,10 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_piano_roll->tick(tick);
 		mw->_piano_roll->focus_cursor(true);
 		mw->set_song_position(tick);
+
+		if (action == Song::Song_State::Action::INSERT_CALL) {
+			mw->_piano_roll->select_call_at_tick();
+		}
 	}
 	else {
 		mw->_piano_roll->set_active_channel_selection(selection);
