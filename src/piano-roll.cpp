@@ -314,6 +314,11 @@ void Piano_Timeline::clear() {
 	_channel_3_flags.clear();
 	_channel_4_flags.clear();
 
+	_channel_1_unused_targets.clear();
+	_channel_2_unused_targets.clear();
+	_channel_3_unused_targets.clear();
+	_channel_4_unused_targets.clear();
+
 	_selection_region.x = -1;
 	_selection_region.y = -1;
 	_selection_region.w = 0;
@@ -343,6 +348,8 @@ void Piano_Timeline::clear_channel_1() {
 	}
 	_channel_1_flags.clear();
 
+	_channel_1_unused_targets.clear();
+
 	_trashcan.clear();
 }
 
@@ -366,6 +373,8 @@ void Piano_Timeline::clear_channel_2() {
 		_trashcan.add(*flag);
 	}
 	_channel_2_flags.clear();
+
+	_channel_2_unused_targets.clear();
 
 	_trashcan.clear();
 }
@@ -391,6 +400,8 @@ void Piano_Timeline::clear_channel_3() {
 	}
 	_channel_3_flags.clear();
 
+	_channel_3_unused_targets.clear();
+
 	_trashcan.clear();
 }
 
@@ -414,6 +425,8 @@ void Piano_Timeline::clear_channel_4() {
 		_trashcan.add(*flag);
 	}
 	_channel_4_flags.clear();
+
+	_channel_4_unused_targets.clear();
 
 	_trashcan.clear();
 }
@@ -1097,6 +1110,15 @@ std::vector<Call_Box *> *Piano_Timeline::active_channel_calls() {
 	return nullptr;
 }
 
+std::set<int32_t> *Piano_Timeline::active_channel_unused_targets() {
+	int active_channel = selected_channel();
+	if (active_channel == 1) return &_channel_1_unused_targets;
+	if (active_channel == 2) return &_channel_2_unused_targets;
+	if (active_channel == 3) return &_channel_3_unused_targets;
+	if (active_channel == 4) return &_channel_4_unused_targets;
+	return nullptr;
+}
+
 void Piano_Timeline::draw() {
 	OS::Theme theme = OS::current_theme();
 	bool dark = theme == OS::Theme::DARK;
@@ -1111,6 +1133,7 @@ void Piano_Timeline::draw() {
 		FL_DARK2;
 	Fl_Color row_divider = dark ? FL_DARK2 : dark_row;
 	Fl_Color col_divider = (gray || colorful) ? FL_DARK2 : FL_DARK3;
+	Fl_Color label_marker = fl_color_average(dark_row, FL_FOREGROUND_COLOR, 0.67f);
 	Fl_Color cursor_color = (dark || hc) ? FL_YELLOW : fl_color_average(FL_MAGENTA, FL_BLACK, 0.9f);
 
 	if (damage() & ~FL_DAMAGE_CHILD) {
@@ -1144,6 +1167,16 @@ void Piano_Timeline::draw() {
 			fl_color(col_divider);
 			fl_yxline(x_pos - 1, y(), y() + h());
 			x_pos += time_step_width;
+		}
+
+		std::set<int32_t> *unused_targets = active_channel_unused_targets();
+		if (unused_targets) {
+			fl_color(label_marker);
+			for (int32_t tick : *unused_targets) {
+				x_pos = x() + tick * tick_width + WHITE_KEY_WIDTH;
+				fl_yxline(x_pos - 1, y(), y() + h());
+				fl_yxline(x_pos, y(), y() + h());
+			}
 		}
 
 		int active_channel = selected_channel();
@@ -1595,10 +1628,10 @@ void Piano_Roll::set_timeline(const Song &song) {
 	_song_length = get_song_length();
 
 	_piano_timeline.begin();
-	build_note_view(_piano_timeline._channel_1_loops, _piano_timeline._channel_1_calls, _channel_1_notes, song.channel_1_commands(), _song_length, NOTE_RED);
-	build_note_view(_piano_timeline._channel_2_loops, _piano_timeline._channel_2_calls, _channel_2_notes, song.channel_2_commands(), _song_length, NOTE_BLUE);
-	build_note_view(_piano_timeline._channel_3_loops, _piano_timeline._channel_3_calls, _channel_3_notes, song.channel_3_commands(), _song_length, NOTE_GREEN);
-	build_note_view(_piano_timeline._channel_4_loops, _piano_timeline._channel_4_calls, _channel_4_notes, song.channel_4_commands(), _song_length, NOTE_BROWN);
+	build_note_view(_piano_timeline._channel_1_loops, _piano_timeline._channel_1_calls, _piano_timeline._channel_1_unused_targets, _channel_1_notes, song.channel_1_commands(), _song_length, NOTE_RED);
+	build_note_view(_piano_timeline._channel_2_loops, _piano_timeline._channel_2_calls, _piano_timeline._channel_2_unused_targets, _channel_2_notes, song.channel_2_commands(), _song_length, NOTE_BLUE);
+	build_note_view(_piano_timeline._channel_3_loops, _piano_timeline._channel_3_calls, _piano_timeline._channel_3_unused_targets, _channel_3_notes, song.channel_3_commands(), _song_length, NOTE_GREEN);
+	build_note_view(_piano_timeline._channel_4_loops, _piano_timeline._channel_4_calls, _piano_timeline._channel_4_unused_targets, _channel_4_notes, song.channel_4_commands(), _song_length, NOTE_BROWN);
 	_piano_timeline.end();
 
 	_piano_timeline.set_channel_1(_channel_1_notes);
@@ -1614,7 +1647,7 @@ void Piano_Roll::set_active_channel_timeline(const Song &song) {
 	if (selected_channel() == 1) {
 		_piano_timeline.clear_channel_1();
 		_channel_1_notes.clear();
-		build_note_view(_piano_timeline._channel_1_loops, _piano_timeline._channel_1_calls, _channel_1_notes, song.channel_1_commands(), _song_length, NOTE_RED);
+		build_note_view(_piano_timeline._channel_1_loops, _piano_timeline._channel_1_calls, _piano_timeline._channel_1_unused_targets, _channel_1_notes, song.channel_1_commands(), _song_length, NOTE_RED);
 		_piano_timeline.set_channel_1(_channel_1_notes);
 		_piano_timeline.set_channel_detail(
 			_piano_timeline._channel_1_notes,
@@ -1627,7 +1660,7 @@ void Piano_Roll::set_active_channel_timeline(const Song &song) {
 	else if (selected_channel() == 2) {
 		_piano_timeline.clear_channel_2();
 		_channel_2_notes.clear();
-		build_note_view(_piano_timeline._channel_2_loops, _piano_timeline._channel_2_calls, _channel_2_notes, song.channel_2_commands(), _song_length, NOTE_BLUE);
+		build_note_view(_piano_timeline._channel_2_loops, _piano_timeline._channel_2_calls, _piano_timeline._channel_2_unused_targets, _channel_2_notes, song.channel_2_commands(), _song_length, NOTE_BLUE);
 		_piano_timeline.set_channel_2(_channel_2_notes);
 		_piano_timeline.set_channel_detail(
 			_piano_timeline._channel_2_notes,
@@ -1640,7 +1673,7 @@ void Piano_Roll::set_active_channel_timeline(const Song &song) {
 	else if (selected_channel() == 3) {
 		_piano_timeline.clear_channel_3();
 		_channel_3_notes.clear();
-		build_note_view(_piano_timeline._channel_3_loops, _piano_timeline._channel_3_calls, _channel_3_notes, song.channel_3_commands(), _song_length, NOTE_GREEN);
+		build_note_view(_piano_timeline._channel_3_loops, _piano_timeline._channel_3_calls, _piano_timeline._channel_3_unused_targets, _channel_3_notes, song.channel_3_commands(), _song_length, NOTE_GREEN);
 		_piano_timeline.set_channel_3(_channel_3_notes);
 		_piano_timeline.set_channel_detail(
 			_piano_timeline._channel_3_notes,
@@ -1653,7 +1686,7 @@ void Piano_Roll::set_active_channel_timeline(const Song &song) {
 	else if (selected_channel() == 4) {
 		_piano_timeline.clear_channel_4();
 		_channel_4_notes.clear();
-		build_note_view(_piano_timeline._channel_4_loops, _piano_timeline._channel_4_calls, _channel_4_notes, song.channel_4_commands(), _song_length, NOTE_BROWN);
+		build_note_view(_piano_timeline._channel_4_loops, _piano_timeline._channel_4_calls, _piano_timeline._channel_4_unused_targets, _channel_4_notes, song.channel_4_commands(), _song_length, NOTE_BROWN);
 		_piano_timeline.set_channel_4(_channel_4_notes);
 		_piano_timeline.set_channel_detail(
 			_piano_timeline._channel_4_notes,
@@ -1688,6 +1721,7 @@ void Piano_Roll::select_note_at_tick() {
 void Piano_Roll::build_note_view(
 	std::vector<Loop_Box *> &loops,
 	std::vector<Call_Box *> &calls,
+	std::set<int32_t> &unused_targets,
 	std::vector<Note_View> &notes,
 	const std::vector<Command> &commands,
 	int32_t end_tick,
@@ -1713,14 +1747,28 @@ void Piano_Roll::build_note_view(
 	std::map<std::string, int32_t> label_positions;
 
 	std::set<std::string> loop_targets;
+	std::set<std::string> call_targets;
 	for (const Command &command : commands) {
 		if (command.type == Command_Type::SOUND_LOOP && command.sound_loop.loop_count > 1) {
 			loop_targets.insert(command.target);
 		}
+		if (command.type == Command_Type::SOUND_CALL) {
+			call_targets.insert(command.target);
+		}
 	}
+
 	const auto is_loop_target = [&](const std::vector<std::string> &labels) {
 		for (const std::string &label : labels) {
 			if (loop_targets.count(label) > 0) {
+				return true;
+			}
+		}
+		return false;
+	};
+
+	const auto is_call_target = [&](const std::vector<std::string> &labels) {
+		for (const std::string &label : labels) {
+			if (call_targets.count(label) > 0) {
 				return true;
 			}
 		}
@@ -1734,12 +1782,17 @@ void Piano_Roll::build_note_view(
 				visited_labels_during_call.insert(label);
 			}
 		}
-		if (!restarted && is_loop_target(command_itr->labels)) {
-			note.index = itr_index(commands, command_itr);
-			loop = new Loop_Box(note, tick, 0, 0, 0, 0);
-			loop->box(FL_BORDER_FRAME);
-			loop->color(fl_lighter(color));
-			loops.push_back(loop);
+		if (!restarted && command_itr->labels.size() > 0) {
+			if (is_loop_target(command_itr->labels)) {
+				note.index = itr_index(commands, command_itr);
+				loop = new Loop_Box(note, tick, 0, 0, 0, 0);
+				loop->box(FL_BORDER_FRAME);
+				loop->color(fl_lighter(color));
+				loops.push_back(loop);
+			}
+			else if (!is_call_target(command_itr->labels)) {
+				unused_targets.insert(tick);
+			}
 		}
 
 		// TODO: handle all other commands...

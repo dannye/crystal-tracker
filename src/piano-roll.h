@@ -281,6 +281,11 @@ private:
 	std::vector<Flag_Box *> _channel_3_flags;
 	std::vector<Flag_Box *> _channel_4_flags;
 
+	std::set<int32_t> _channel_1_unused_targets;
+	std::set<int32_t> _channel_2_unused_targets;
+	std::set<int32_t> _channel_3_unused_targets;
+	std::set<int32_t> _channel_4_unused_targets;
+
 	int32_t _cursor_tick = -1;
 
 	struct Selection_Region {
@@ -345,6 +350,7 @@ private:
 	std::vector<Note_Box *> *active_channel_boxes();
 	std::vector<Loop_Box *> *active_channel_loops();
 	std::vector<Call_Box *> *active_channel_calls();
+	std::set<int32_t> *active_channel_unused_targets();
 protected:
 	void draw() override;
 };
@@ -458,7 +464,7 @@ public:
 	void set_active_channel_selection(const std::set<int32_t> &selection);
 	void select_note_at_tick();
 
-	void build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::vector<Note_View> &notes, const std::vector<Command> &commands, int32_t end_tick, Fl_Color color);
+	void build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::set<int32_t> &unused_targets, std::vector<Note_View> &notes, const std::vector<Command> &commands, int32_t end_tick, Fl_Color color);
 
 	int32_t get_song_length() const;
 	int32_t get_loop_tick() const;
