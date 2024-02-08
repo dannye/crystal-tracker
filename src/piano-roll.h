@@ -32,6 +32,7 @@ const Fl_Color FLAG_SPEED             = FL_CYAN;
 const Fl_Color FLAG_VOLUME            = FL_MAGENTA;
 const Fl_Color FLAG_VIBRATO           = FL_YELLOW;
 const Fl_Color FLAG_DUTY_WAVE_DRUMKIT = fl_rgb_color(255, 128, 0);
+const Fl_Color FLAG_OTHER             = fl_rgb_color(128);
 
 constexpr size_t NUM_WHITE_NOTES = 7;
 constexpr size_t NUM_BLACK_NOTES = 5;

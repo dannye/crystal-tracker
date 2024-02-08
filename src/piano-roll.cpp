@@ -1032,6 +1032,17 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 
 			if (
 				!note.ghost &&
+				(note.tempo != prev_note.tempo ||
+				note.transpose_octaves != prev_note.transpose_octaves ||
+				note.transpose_pitches != prev_note.transpose_pitches ||
+				note.slide_duration != prev_note.slide_duration ||
+				note.slide_octave != prev_note.slide_octave ||
+				note.slide_pitch != prev_note.slide_pitch)
+			) {
+				add_flag(FLAG_OTHER);
+			}
+			if (
+				!note.ghost &&
 				(((channel_number == 1 || channel_number == 2) && note.duty != prev_note.duty) ||
 				(channel_number == 3 && note.wave != prev_note.wave) ||
 				(channel_number == 4 && note.drumkit != prev_note.drumkit))
