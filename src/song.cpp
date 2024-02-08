@@ -32,7 +32,7 @@ std::string get_next_label(const std::vector<Command> &commands, const std::stri
 	};
 
 	while (true) {
-		std::string label = scope + "." + prefix + std::to_string(i);
+		std::string label = scope + "." + prefix + (i == 0 ? "" : std::to_string(i));
 		i += 1;
 		if (is_label_taken(commands, label)) {
 			continue;
@@ -1714,9 +1714,10 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 
 		if (original_info.loop_index == 0) {
 			if (commands[original_info.end_index].target == channel_label) {
-				// TODO: double-check that ".mainLoop" isn't already in use
-				commands[0].labels.push_back(channel_label + ".mainLoop");
-				commands[original_info.end_index].target = channel_label + ".mainLoop";
+				int i = 0;
+				std::string loop_label = get_next_label(commands, channel_label, "mainLoop", i);
+				commands[0].labels.push_back(loop_label);
+				commands[original_info.end_index].target = loop_label;
 			}
 			for (size_t i = commands[0].labels.size() - 1; i < commands[0].labels.size(); --i) {
 				if (commands[0].labels[i] == channel_label) {
