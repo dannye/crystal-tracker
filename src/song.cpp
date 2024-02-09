@@ -261,6 +261,9 @@ Parsed_Song::Result calc_channel_length(
 			if (loop_tick == end_tick) {
 				return Parsed_Song::Result::SONG_EMPTY_LOOP;
 			}
+			if (loop_stack.size() > 0) {
+				return Parsed_Song::Result::SONG_UNFINISHED_LOOP;
+			}
 			if (call_stack.size() > 0) {
 				return Parsed_Song::Result::SONG_UNFINISHED_CALL;
 			}
@@ -305,6 +308,9 @@ Parsed_Song::Result calc_channel_length(
 					if (loop_tick == end_tick) {
 						return Parsed_Song::Result::SONG_EMPTY_LOOP;
 					}
+					if (loop_stack.size() > 0) {
+						return Parsed_Song::Result::SONG_UNFINISHED_LOOP;
+					}
 					if (call_stack.size() > 0) {
 						return Parsed_Song::Result::SONG_UNFINISHED_CALL;
 					}
@@ -347,6 +353,9 @@ Parsed_Song::Result calc_channel_length(
 					info->volume_at_end = volume;
 					info->fade_at_end = fade;
 					info->drumkit_at_end = drumkit;
+				}
+				if (loop_stack.size() > 0) {
+					return Parsed_Song::Result::SONG_UNFINISHED_LOOP;
 				}
 				break; // song is finished
 			}
@@ -3444,6 +3453,9 @@ std::string Song::get_error_message(Parsed_Song parsed_song) const {
 	case Parsed_Song::Result::SONG_NESTED_CALL:
 		return "Channel " + std::to_string(parsed_song.channel_number()) +
 			": Nested calls not allowed.";
+	case Parsed_Song::Result::SONG_UNFINISHED_LOOP:
+		return "Channel " + std::to_string(parsed_song.channel_number()) +
+			": Unfinished loop.";
 	case Parsed_Song::Result::SONG_UNFINISHED_CALL:
 		return "Channel " + std::to_string(parsed_song.channel_number()) +
 			": Unfinished call.";
