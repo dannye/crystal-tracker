@@ -27,6 +27,7 @@ void delete_label(std::vector<Command> &commands, const std::string &label);
 std::vector<Command>::const_iterator find_note_with_label(const std::vector<Command> &commands, const std::string &label);
 
 bool is_followed_by_n_ticks_of_rest(std::vector<Command>::const_iterator itr, std::vector<Command>::const_iterator end, int32_t n, int32_t speed);
+bool is_followed_by_n_ticks_of_rest_no_speed_change(std::vector<Command>::const_iterator itr, std::vector<Command>::const_iterator end, int32_t n, int32_t speed);
 
 std::vector<Command> copy_snippet(const std::vector<Command> &commands, int32_t start_index, int32_t end_index, bool copy_jumps = false);
 

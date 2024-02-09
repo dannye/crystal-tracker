@@ -33,12 +33,18 @@ void Note_Box::draw() {
 			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, NOTE_GHOST);
 			draw_box(FL_BORDER_FRAME, x() + 2, y() + 2, w() - 4, h() - 4, NOTE_GHOST);
 		}
+		else if (box() == FL_BORDER_FRAME && x() + w() > 1) {
+			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, NOTE_GHOST);
+		}
 	}
 	else if (selected()) {
 		draw_box(FL_BORDER_FRAME, FL_FOREGROUND_COLOR);
 		if (box() != FL_BORDER_FRAME && x() + w() > 1) {
 			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, FL_WHITE);
 			draw_box(FL_BORDER_FRAME, x() + 2, y() + 2, w() - 4, h() - 4, FL_WHITE);
+		}
+		else if (box() == FL_BORDER_FRAME && x() + w() > 1) {
+			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, FL_FOREGROUND_COLOR);
 		}
 	}
 	else if (box() == FL_BORDER_FRAME && x() + w() > 1) {
@@ -2999,6 +3005,13 @@ bool Piano_Roll::move_left(Song &song, bool dry_run) {
 			Note_View note_view = note->note_view();
 			auto command_itr = commands.rbegin() + (commands.size() - 1 - note_view.index);
 
+			bool ambiguous = false;
+			for (const Note_View &other : *view) {
+				if (other.index == note_view.index && other.speed != note_view.speed) {
+					ambiguous = true;
+				}
+			}
+
 			const auto is_preceded_by_rest = [&](decltype(command_itr) itr) {
 				++itr;
 				while (itr != commands.rend()) {
@@ -3009,6 +3022,14 @@ bool Piano_Roll::move_left(Song &song, bool dry_run) {
 						return true;
 					}
 					if (itr->type == Command_Type::REST) {
+						if (ambiguous) return true;
+						const Note_View *rest_view = find_note_view_at_tick(*view, note->tick() - 1);
+						assert(rest_view && rest_view->index == itr_index(commands, itr.base() - 1));
+						for (const Note_View &other : *view) {
+							if (other.index == rest_view->index && other.speed != rest_view->speed) {
+								return false;
+							}
+						}
 						return true;
 					}
 					if (
@@ -3064,6 +3085,13 @@ bool Piano_Roll::move_right(Song &song, bool dry_run) {
 			Note_View note_view = note->note_view();
 			auto command_itr = commands.begin() + note_view.index;
 
+			bool ambiguous = false;
+			for (const Note_View &other : *view) {
+				if (other.index == note_view.index && other.speed != note_view.speed) {
+					ambiguous = true;
+				}
+			}
+
 			const auto is_followed_by_rest = [&](decltype(command_itr) itr) {
 				++itr;
 				while (itr != commands.end()) {
@@ -3078,7 +3106,8 @@ bool Piano_Roll::move_right(Song &song, bool dry_run) {
 						itr->labels.size() > 0 ||
 						is_note_command(itr->type) ||
 						is_global_command(itr->type) ||
-						is_control_command(itr->type)
+						is_control_command(itr->type) ||
+						(ambiguous && is_speed_command(itr->type))
 					) {
 						return false;
 					}
@@ -3175,9 +3204,17 @@ bool Piano_Roll::lengthen(Song &song, bool dry_run) {
 			Note_View note_view = note->note_view();
 			auto command_itr = commands.begin() + note_view.index;
 
+			bool ambiguous = false;
+			for (const Note_View &other : *view) {
+				if (other.index == note_view.index && other.speed != note_view.speed) {
+					ambiguous = true;
+				}
+			}
+
 			if (
 				note_view.length == 16 ||
-				!is_followed_by_n_ticks_of_rest(command_itr, commands.end(), note_view.speed, note_view.speed)
+				(!ambiguous && !is_followed_by_n_ticks_of_rest(command_itr, commands.end(), note_view.speed, note_view.speed)) ||
+				(ambiguous && !is_followed_by_n_ticks_of_rest_no_speed_change(command_itr, commands.end(), note_view.speed, note_view.speed))
 			) {
 				return false;
 			}
@@ -3580,6 +3617,12 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 		}
 	}
 
+	for (Note_Box *other : *channel) {
+		if (other->note_view().index == end_view.index && other->note_view().speed != end_view.speed) {
+			return false;
+		}
+	}
+
 	int32_t start_index = start_view.index;
 	int32_t end_index = end_view.index;
 
@@ -3592,12 +3635,6 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 		if (call->end_tick() == t_right && call->start_tick() >= t_left) {
 			end_index = call->start_note_view().index;
 			end_view = call->end_note_view();
-		}
-	}
-
-	for (Note_Box *other : *channel) {
-		if (other->note_view().index == end_view.index && other->note_view().speed != end_view.speed) {
-			return false;
 		}
 	}
 

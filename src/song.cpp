@@ -110,6 +110,30 @@ bool is_followed_by_n_ticks_of_rest(std::vector<Command>::const_iterator itr, st
 	return false;
 }
 
+bool is_followed_by_n_ticks_of_rest_no_speed_change(std::vector<Command>::const_iterator itr, std::vector<Command>::const_iterator end, int32_t n, int32_t speed) {
+	int32_t ticks = 0;
+	++itr;
+	while (itr != end) {
+		if (
+			itr->labels.size() > 0 ||
+			is_note_command(itr->type) ||
+			is_global_command(itr->type) ||
+			is_control_command(itr->type) ||
+			is_speed_command(itr->type)
+		) {
+			return false;
+		}
+		if (itr->type == Command_Type::REST) {
+			ticks += speed * itr->rest.length;
+			if (ticks >= n) {
+				return true;
+			}
+		}
+		++itr;
+	}
+	return false;
+}
+
 std::vector<Command> copy_snippet(const std::vector<Command> &commands, int32_t start_index, int32_t end_index, bool copy_jumps) {
 	std::vector<Command> snippet;
 
@@ -2679,31 +2703,36 @@ void Song::move_left(const int selected_channel, const std::set<int32_t> &select
 		int32_t rest_index = find_preceding_rest(command_itr);
 		Note_View rest_view = get_note_view(commands, rest_index);
 
-		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
-		command.note_type.speed = rest_view.speed;
-		command.note_type.volume = note_view.volume;
-		command.note_type.fade = note_view.fade;
+		if (note_view.speed != rest_view.speed) {
+			Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+			command.note_type.speed = note_view.speed;
+			command.note_type.volume = note_view.volume;
+			command.note_type.fade = note_view.fade;
+			commands.insert(commands.begin() + (*note_itr + offset) + 1, command);
+		}
+
+		Command command = Command(Command_Type::REST);
+		command.rest.length = 1;
 		commands.insert(commands.begin() + (*note_itr + offset) + 1, command);
 
-		command.type = Command_Type::REST;
-		command.rest.length = 1;
-		commands.insert(commands.begin() + (*note_itr + offset) + 2, command);
-
-		command.type = selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE;
-		command.note_type.speed = note_view.speed;
-		command.note_type.volume = note_view.volume;
-		command.note_type.fade = note_view.fade;
-		commands.insert(commands.begin() + (*note_itr + offset) + 3, command);
+		if (note_view.speed != rest_view.speed) {
+			Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+			command.note_type.speed = rest_view.speed;
+			command.note_type.volume = note_view.volume;
+			command.note_type.fade = note_view.fade;
+			commands.insert(commands.begin() + (*note_itr + offset) + 1, command);
+		}
 
 		if (commands[rest_index].rest.length == 1) {
 			commands[rest_index + 1].labels.insert(commands[rest_index + 1].labels.begin(), RANGE(commands[rest_index].labels));
 			commands.erase(commands.begin() + rest_index);
-			offset += 2;
 		}
 		else {
 			commands[rest_index].rest.length -= 1;
-			offset += 3;
+			offset += 1;
 		}
+
+		if (note_view.speed != rest_view.speed) offset += 2;
 	}
 
 	postprocess(commands);
@@ -2742,24 +2771,30 @@ void Song::move_right(const int selected_channel, const std::set<int32_t> &selec
 			commands[rest_index].rest.length -= 1;
 		}
 
-		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
-		command.note_type.speed = rest_view.speed;
-		command.note_type.volume = note_view.volume;
-		command.note_type.fade = note_view.fade;
-		command.labels = std::move(commands[*note_itr].labels);
+		std::vector<std::string> labels = std::move(commands[*note_itr].labels);
 		commands[*note_itr].labels.clear();
-		commands.insert(commands.begin() + *note_itr, command);
-		command.labels.clear();
 
-		command.type = Command_Type::REST;
+		if (note_view.speed != rest_view.speed) {
+			Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+			command.note_type.speed = note_view.speed;
+			command.note_type.volume = note_view.volume;
+			command.note_type.fade = note_view.fade;
+			commands.insert(commands.begin() + *note_itr, command);
+		}
+
+		Command command = Command(Command_Type::REST);
 		command.rest.length = 1;
-		commands.insert(commands.begin() + *note_itr + 1, command);
+		commands.insert(commands.begin() + *note_itr, command);
 
-		command.type = selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE;
-		command.note_type.speed = note_view.speed;
-		command.note_type.volume = note_view.volume;
-		command.note_type.fade = note_view.fade;
-		commands.insert(commands.begin() + *note_itr + 2, command);
+		if (note_view.speed != rest_view.speed) {
+			Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+			command.note_type.speed = rest_view.speed;
+			command.note_type.volume = note_view.volume;
+			command.note_type.fade = note_view.fade;
+			commands.insert(commands.begin() + *note_itr, command);
+		}
+
+		commands[*note_itr].labels = std::move(labels);
 	}
 
 	postprocess(commands);
