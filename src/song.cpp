@@ -1464,12 +1464,22 @@ void postprocess(std::vector<Command> &commands) {
 					else {
 						view.volume = commands[i].volume_envelope.volume;
 						view.fade = commands[i].volume_envelope.fade;
-						indexes.vol_env_index = i;
 
-						// allow note type commands to delete this envelope too
-						// TODO: if speed_index is already != -1, delete this envelope and copy
-						//   the envelope parameters into the note type command.
-						indexes.speed_index = i;
+						if (indexes.speed_index != -1 && commands[indexes.speed_index].type == Command_Type::NOTE_TYPE) {
+							commands[indexes.speed_index].note_type.volume = view.volume;
+							commands[indexes.speed_index].note_type.fade = view.fade;
+
+							deleted = true;
+							assert(commands[i].labels.size() == 0);
+							commands.erase(commands.begin() + i);
+							i -= 1;
+						}
+						else {
+							indexes.vol_env_index = i;
+
+							// allow note type commands to delete this envelope too
+							indexes.speed_index = i;
+						}
 					}
 				}
 				else {
