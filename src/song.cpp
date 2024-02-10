@@ -769,6 +769,7 @@ void Song::clear() {
 	_channel_3_end_tick = -1;
 	_channel_4_end_tick = -1;
 	_waves.clear();
+	_mixed_labels.clear();
 	_result = Parsed_Song::Result::SONG_NULL;
 	_modified = false;
 	_mod_time = 0;
@@ -860,6 +861,8 @@ Parsed_Song::Result Song::read_song(const char *f) {
 	_channel_3_end_tick = data.channel_3_end_tick();
 	_channel_4_end_tick = data.channel_4_end_tick();
 	_waves = data.waves();
+
+	_mixed_labels = data.mixed_labels();
 
 	_mod_time = file_modified(f);
 
@@ -3473,7 +3476,7 @@ std::string Song::commands_str(const std::vector<Command> &commands, int32_t cha
 	return str;
 }
 
-std::string Song::get_error_message(Parsed_Song parsed_song) const {
+std::string Song::get_error_message(const Parsed_Song &parsed_song) const {
 	switch (parsed_song.result()) {
 	case Parsed_Song::Result::SONG_OK:
 		return "OK.";

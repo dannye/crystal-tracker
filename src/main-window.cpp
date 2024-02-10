@@ -1280,6 +1280,15 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 			_error_dialog->show(this);
 			return;
 		}
+		if (_song.mixed_labels().size() > 0) {
+			std::string msg = "The following labels are used by multiple channels. These sections have been duplicated so that each channel is now independent.\n\n"
+				"After modifying and saving the song, these labels will need to be fixed manually in a text editor.\n";
+			for (const std::string &label : _song.mixed_labels()) {
+				msg += "\n" + label;
+			}
+			_warning_dialog->message(msg);
+			_warning_dialog->show(this);
+		}
 		int32_t max_drumkit_id = _song.max_drumkit_id();
 		if (max_drumkit_id >= parsed_drumkits.num_parsed_drumkits()) {
 			_song.clear();

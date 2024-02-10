@@ -120,6 +120,8 @@ private:
 
 	std::vector<Wave> _waves;
 
+	std::vector<std::string> _mixed_labels;
+
 	Parsed_Song::Result _result = Parsed_Song::Result::SONG_NULL;
 
 	bool _modified = false;
@@ -171,6 +173,7 @@ public:
 	int32_t channel_3_end_tick(void) const { return _channel_3_end_tick; }
 	int32_t channel_4_end_tick(void) const { return _channel_4_end_tick; }
 	const std::vector<Wave> &waves() const { return _waves; }
+	const std::vector<std::string> &mixed_labels() const { return _mixed_labels; }
 
 	int32_t put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t octave, int32_t old_octave, int32_t old_speed, int32_t prev_length, int32_t prev_speed, int32_t index, int32_t tick, int32_t tick_offset, bool set_drumkit);
 	void set_speed(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t speed);
@@ -222,7 +225,7 @@ public:
 	int32_t max_drumkit_id() const;
 private:
 	std::string commands_str(const std::vector<Command> &commands, int32_t channel_number) const;
-	std::string get_error_message(Parsed_Song parsed_song) const;
+	std::string get_error_message(const Parsed_Song &parsed_song) const;
 	const char *get_action_message(Song_State::Action action) const;
 };
 

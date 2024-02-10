@@ -55,6 +55,7 @@ private:
 	int32_t _line_number = 0;
 	int32_t _channel_number = 0;
 	std::string _label;
+	std::vector<std::string> _mixed_labels;
 public:
 	Parsed_Song(const char *f);
 	inline ~Parsed_Song() {}
@@ -81,6 +82,7 @@ public:
 	inline int32_t line_number(void) const { return _line_number; }
 	inline int32_t channel_number(void) const { return _channel_number; }
 	inline const std::string &label(void) const { return _label; }
+	inline std::vector<std::string> &&mixed_labels(void) { return std::move(_mixed_labels); }
 private:
 	Result parse_song(const char *f);
 };

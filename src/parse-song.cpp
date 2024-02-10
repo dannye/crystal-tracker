@@ -265,6 +265,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 	_line_number = 0;
 	_channel_number = 0;
 	_label = "";
+	_mixed_labels.clear();
 
 	std::ifstream ifs;
 	open_ifstream(ifs, f);
@@ -283,6 +284,8 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 	std::set<std::string> visited_labels;
 	std::set<std::string> unvisited_labels;
 	std::vector<std::string> buffered_labels;
+
+	std::set<std::string> all_song_labels;
 
 	while (ifs.good()) {
 		std::string line;
@@ -403,6 +406,9 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 			}
 			if (label == _label) {
 				for (const std::string &l : buffered_labels) {
+					if (all_song_labels.count(l) && !std::count(RANGE(_mixed_labels), l)) {
+						_mixed_labels.push_back(l);
+					}
 					visited_labels.insert(l);
 					unvisited_labels.erase(l);
 				}
@@ -433,6 +439,9 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					done_with_branch = true;
 				}
 				else {
+					if (all_song_labels.count(label) && !std::count(RANGE(_mixed_labels), label)) {
+						_mixed_labels.push_back(label);
+					}
 					visited_labels.insert(label);
 					unvisited_labels.erase(label);
 					continue;
@@ -942,6 +951,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 						current_channel_loop_tick = &_channel_2_loop_tick;
 						current_channel_end_tick = &_channel_2_end_tick;
 						current_scope = "";
+						all_song_labels.insert(RANGE(visited_labels));
 						visited_labels.clear();
 						unvisited_labels.clear();
 						buffered_labels.clear();
@@ -956,6 +966,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 						current_channel_loop_tick = &_channel_3_loop_tick;
 						current_channel_end_tick = &_channel_3_end_tick;
 						current_scope = "";
+						all_song_labels.insert(RANGE(visited_labels));
 						visited_labels.clear();
 						unvisited_labels.clear();
 						buffered_labels.clear();
@@ -970,6 +981,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 						current_channel_loop_tick = &_channel_4_loop_tick;
 						current_channel_end_tick = &_channel_4_end_tick;
 						current_scope = "";
+						all_song_labels.insert(RANGE(visited_labels));
 						visited_labels.clear();
 						unvisited_labels.clear();
 						buffered_labels.clear();
