@@ -49,6 +49,21 @@ std::string get_next_call_label(const std::vector<Command> &commands, const std:
 	return get_next_label(commands, scope, "sub", i);
 }
 
+int count_label_references(const std::vector<Command> &commands, const std::string &label) {
+	int references = 0;
+	for (const Command &command : commands) {
+		if (
+			(command.type == Command_Type::SOUND_JUMP ||
+			command.type == Command_Type::SOUND_LOOP ||
+			command.type == Command_Type::SOUND_CALL) &&
+			command.target == label
+		) {
+			references += 1;
+		}
+	}
+	return references;
+}
+
 bool is_label_referenced(const std::vector<Command> &commands, const std::string &label) {
 	for (const Command &command : commands) {
 		if (
@@ -141,7 +156,7 @@ std::vector<Command> copy_snippet(const std::vector<Command> &commands, int32_t 
 	auto end_itr = commands.begin() + end_index;
 
 	while (command_itr != commands.end() && command_itr != end_itr) {
-		assert(command_itr->type != Command_Type::SOUND_RET);
+		assert(command_itr->type != Command_Type::SOUND_RET || command_itr + 1 == end_itr);
 		if (
 			command_itr->type == Command_Type::SOUND_JUMP ||
 			(command_itr->type == Command_Type::SOUND_LOOP && command_itr->sound_loop.loop_count == 0)
@@ -3054,13 +3069,19 @@ void Song::create_loop(const int selected_channel, const std::set<int32_t> &sele
 	_modified = true;
 }
 
-void Song::delete_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view) {
+void Song::delete_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view, int32_t start_index, int32_t end_index) {
 	remember(selected_channel, selected_boxes, Song_State::Action::DELETE_CALL, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	assert(commands[call_index].type == Command_Type::SOUND_CALL);
 	assert(start_view.speed != 0);
 	assert(end_view.speed != 0);
+
+	if (start_index > call_index) {
+		for (int32_t i = end_index; i >= start_index; --i) {
+			commands.erase(commands.begin() + i);
+		}
+	}
 
 	insert_ticks(selected_channel, commands, unambiguous_ticks, call_index + 1, end_view.speed, end_view.volume, end_view.fade);
 
@@ -3115,23 +3136,29 @@ void Song::delete_call(const int selected_channel, const std::set<int32_t> &sele
 	insert_ticks(selected_channel, commands, ambiguous_ticks, call_index + 1);
 
 	commands[call_index + 1].labels.insert(commands[call_index + 1].labels.begin(), RANGE(commands[call_index].labels));
-	commands.erase(commands.begin() + call_index); // TODO: delete snippet if call target is now unreferenced
+	commands.erase(commands.begin() + call_index);
 
 	postprocess(commands);
 
 	_modified = true;
 }
 
-void Song::unpack_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, const std::vector<Command> &snippet) {
+void Song::unpack_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, const std::vector<Command> &snippet, int32_t start_index, int32_t end_index) {
 	remember(selected_channel, selected_boxes, Song_State::Action::UNPACK_CALL, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	assert(commands[call_index].type == Command_Type::SOUND_CALL);
 
+	if (start_index > call_index) {
+		for (int32_t i = end_index; i >= start_index; --i) {
+			commands.erase(commands.begin() + i);
+		}
+	}
+
 	commands.insert(commands.begin() + (call_index + 1), RANGE(snippet));
 
 	commands[call_index + 1].labels.insert(commands[call_index + 1].labels.begin(), RANGE(commands[call_index].labels));
-	commands.erase(commands.begin() + call_index); // TODO: delete snippet if call target is now unreferenced
+	commands.erase(commands.begin() + call_index);
 
 	postprocess(commands);
 
