@@ -1591,7 +1591,7 @@ void Main_Window::update_layout() {
 }
 
 void Main_Window::update_timestamp() {
-	if (!_song.loaded()) {
+	if (!_song.loaded() || !_it_module) {
 		_timestamp_label->label("00:00.00 / 00:00.00");
 	}
 	else {
