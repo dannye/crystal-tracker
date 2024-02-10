@@ -261,6 +261,33 @@ static bool get_number_and_number_and_pitch(std::istringstream &iss, int32_t &v1
 	return true;
 }
 
+static bool is_keyword(const std::string &str) {
+	static const std::vector<std::string> keywords = {
+		"def",
+		"export",
+		"purge",
+		"assert",
+		"section",
+		"endsection",
+		"if",
+		"elif",
+		"else",
+		"endc",
+		"rept",
+		"for",
+		"endr",
+		"macro",
+		"endm",
+		// omitting the extremely unlikely ones for now
+	};
+	for (const std::string &keyword : keywords) {
+		if (equals_ignore_case(str, keyword)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 	_line_number = 0;
 	_channel_number = 0;
@@ -406,6 +433,9 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 			}
 			if (label == _label) {
 				for (const std::string &l : buffered_labels) {
+					if (is_keyword(l)) {
+						return (_result = Result::SONG_UNSUPPORTED_KEYWORD);
+					}
 					if (all_song_labels.count(l) && !std::count(RANGE(_mixed_labels), l)) {
 						_mixed_labels.push_back(l);
 					}
@@ -439,6 +469,9 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 					done_with_branch = true;
 				}
 				else {
+					if (is_keyword(label)) {
+						return (_result = Result::SONG_UNSUPPORTED_KEYWORD);
+					}
 					if (all_song_labels.count(label) && !std::count(RANGE(_mixed_labels), label)) {
 						_mixed_labels.push_back(label);
 					}
