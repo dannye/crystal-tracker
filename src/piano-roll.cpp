@@ -2355,8 +2355,11 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick)
 		if (prev_note && (tick_offset == 0 || note_view->pitch == Pitch::REST)) {
 			octave = prev_note->octave;
 		}
-		else {
+		else if (note_view->pitch != Pitch::REST) {
 			octave = old_octave;
+		}
+		else {
+			octave = 1;
 		}
 	}
 
