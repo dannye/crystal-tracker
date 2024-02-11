@@ -34,12 +34,6 @@ The [example/](example/) directory contains crystaltracked.asm, an original comp
 
 Be sure to see the Help menu for a full explanation on how to use the editor.
 
-## What Crystal Tracker doesn't do well, yet
-
-This editor is still a WIP. Some of the most notable missing features are:
-* Creation and deletion of inner loops and calls
-* Copy & Paste
-
 ## Upgrading a legacy project
 
 If your project uses the "legacy" macros (pre-2020), you will need to upgrade your project.
