@@ -470,6 +470,11 @@ public:
 
 	void build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::set<int32_t> &unused_targets, std::vector<Note_View> &notes, const std::vector<Command> &commands, int32_t end_tick, Fl_Color color);
 
+	Note_View verify_channel_1_loop_view(Song &song) { return verify_loop_view(song, 1, _channel_1_notes, _channel_1_loop_tick, _channel_1_end_tick); }
+	Note_View verify_channel_2_loop_view(Song &song) { return verify_loop_view(song, 2, _channel_2_notes, _channel_2_loop_tick, _channel_2_end_tick); }
+	Note_View verify_channel_3_loop_view(Song &song) { return verify_loop_view(song, 3, _channel_3_notes, _channel_3_loop_tick, _channel_3_end_tick); }
+	Note_View verify_channel_4_loop_view(Song &song) { return verify_loop_view(song, 4, _channel_4_notes, _channel_4_loop_tick, _channel_4_end_tick); }
+
 	int32_t get_song_length() const;
 	int32_t get_loop_tick() const;
 	int32_t get_last_note_x() const;
@@ -546,7 +551,10 @@ public:
 
 	int32_t quantize_tick(int32_t tick, bool round = false);
 private:
+	Note_View verify_loop_view(Song &song, int channel_number, const std::vector<Note_View> &channel_notes, int32_t loop_tick, int32_t end_tick);
+
 	const Note_View *find_note_view_at_tick(const std::vector<Note_View> &view, int32_t tick, int32_t *tick_offset = nullptr);
+	const Note_View *find_note_after_tick(const std::vector<Note_View> &view, int32_t tick);
 	const Note_View *find_note_before_tick(const std::vector<Note_View> &view, int32_t tick);
 
 	std::vector<Note_View> *active_channel_view();

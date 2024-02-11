@@ -50,6 +50,8 @@ Parsed_Song::Result calc_channel_length(const std::vector<Command> &commands, in
 
 int32_t calc_snippet_length(const std::vector<Command> &commands, const std::vector<Command>::const_iterator &start_itr, const std::vector<Command>::const_iterator &end_itr, const Note_View &start_view);
 
+Note_View get_note_view(const std::vector<Command> &commands, int32_t index, int32_t min_tick = 0);
+
 class Song {
 public:
 	struct Song_State {

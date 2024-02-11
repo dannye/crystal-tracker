@@ -213,6 +213,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_SUBMENU("&Play"),
 		SYS_MENU_ITEM("&Play/Pause", ' ', (Fl_Callback *)play_pause_cb, this, 0),
 		SYS_MENU_ITEM("&Stop", ESCAPE_KEY, (Fl_Callback *)stop_cb, this, FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("Loop &Verification", FL_COMMAND + 'L', (Fl_Callback *)loop_verification_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("&Loop", FL_COMMAND + 'l', (Fl_Callback *)loop_cb, this,
 			FL_MENU_TOGGLE | (loop_config ? FL_MENU_VALUE : 0)),
 		SYS_MENU_ITEM("&Continuous Scroll", '\\', (Fl_Callback *)continuous_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER),
@@ -346,6 +347,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_dark_theme_mi = CT_FIND_MENU_ITEM_CB(dark_theme_cb);
 	_brushed_metal_theme_mi = CT_FIND_MENU_ITEM_CB(brushed_metal_theme_cb);
 	_high_contrast_theme_mi = CT_FIND_MENU_ITEM_CB(high_contrast_theme_cb);
+	_loop_verification_mi = CT_FIND_MENU_ITEM_CB(loop_verification_cb);
 	_continuous_mi = CT_FIND_MENU_ITEM_CB(continuous_cb);
 	_channel_1_mute_mi = CT_FIND_MENU_ITEM_CB(channel_1_mute_cb);
 	_channel_2_mute_mi = CT_FIND_MENU_ITEM_CB(channel_2_mute_cb);
@@ -1284,7 +1286,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 			std::string msg = "The following labels are used by multiple channels. These sections have been duplicated so that each channel is now independent.\n\n"
 				"After modifying and saving the song, these labels will need to be fixed manually in a text editor.\n";
 			for (const std::string &label : _song.mixed_labels()) {
-				msg += "\n" + label;
+				msg += "\n- " + label;
 			}
 			_warning_dialog->message(msg);
 			_warning_dialog->show(this);
@@ -1433,6 +1435,76 @@ void Main_Window::toggle_playback() {
 	stop_audio_thread();
 
 	if (stopped()) {
+		const auto warn_differences = [this](int channel_number, Note_View differences) {
+			std::string differences_list = "";
+			if (differences.speed == 1) {
+				differences_list += "\n- Speed";
+			}
+			if (differences.tempo == 1) {
+				differences_list += "\n- Tempo";
+			}
+			if (channel_number != 4) {
+				if (differences.octave == 1) {
+					differences_list += "\n- Octave";
+				}
+				if (differences.volume == 1) {
+					differences_list += "\n- Volume";
+				}
+				if (channel_number != 3 && differences.fade == 1) {
+					differences_list += "\n- Fade";
+				}
+				if (differences.vibrato_delay == 1) {
+					differences_list += "\n- Vibrato delay";
+				}
+				if (differences.vibrato_extent == 1) {
+					differences_list += "\n- Vibrato depth";
+				}
+				if (differences.vibrato_rate == 1) {
+					differences_list += "\n- Vibrato rate";
+				}
+				if (channel_number != 3 && differences.duty == 1) {
+					differences_list += "\n- Duty";
+				}
+				if (channel_number == 3 && differences.wave == 1) {
+					differences_list += "\n- Wave";
+				}
+				if (differences.transpose_octaves == 1) {
+					differences_list += "\n- Transpose octaves";
+				}
+				if (differences.transpose_pitches == 1) {
+					differences_list += "\n- Transpose pitches";
+				}
+				if (differences.slide_duration == 1) {
+					differences_list += "\n- Slide duration";
+				}
+				if (differences.slide_octave == 1) {
+					differences_list += "\n- Slide octave";
+				}
+				if (differences.slide_pitch == (Pitch)1) {
+					differences_list += "\n- Slide pitch";
+				}
+			}
+			else {
+				if (differences.drumkit == 1) {
+					differences_list += "\n- Drumkit";
+				}
+			}
+
+			if (differences_list.size() > 0) {
+				std::string warning = "Channel " + std::to_string(channel_number) + ": The following properties are different at the start of the second iteration of the main loop. The song may not loop correctly in-game.\n\n"
+					"Fix this by explicitly setting these properties on the first note or rest at the beginning of the main loop.\n" + differences_list + "\n\n"
+					"If this is intentional, disable this warning via the Play -> Loop Verification checkbox.";
+				_warning_dialog->message(warning);
+				_warning_dialog->show(this);
+			}
+		};
+		if (loop_verification()) {
+			warn_differences(1, _piano_roll->verify_channel_1_loop_view(_song));
+			warn_differences(2, _piano_roll->verify_channel_2_loop_view(_song));
+			warn_differences(3, _piano_roll->verify_channel_3_loop_view(_song));
+			warn_differences(4, _piano_roll->verify_channel_4_loop_view(_song));
+		}
+
 		regenerate_it_module();
 		_it_module->mute_channel(1, channel_1_muted());
 		_it_module->mute_channel(2, channel_2_muted());
@@ -1894,6 +1966,8 @@ void Main_Window::play_pause_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::stop_cb(Fl_Widget *, Main_Window *mw) {
 	mw->stop_playback();
 }
+
+void Main_Window::loop_verification_cb(Fl_Widget *, Main_Window *) {}
 
 #define SYNC_TB_WITH_M(tb, m) tb->value(m->mvalue()->value())
 

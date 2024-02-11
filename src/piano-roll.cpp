@@ -4184,12 +4184,101 @@ int32_t Piano_Roll::quantize_tick(int32_t tick, bool round) {
 	return tick / ticks_per_step() * ticks_per_step();
 }
 
+Note_View Piano_Roll::verify_loop_view(Song &song, int channel_number, const std::vector<Note_View> &channel_notes, int32_t loop_tick, int32_t end_tick) {
+	Note_View differences = Note_View{};
+	if (loop_tick != -1) {
+		const Note_View *first_note_or_rest = find_note_view_at_tick(channel_notes, loop_tick);
+		if (first_note_or_rest) {
+			Note_View first_note_or_rest_after_loop = get_note_view(song.channel_commands(channel_number), first_note_or_rest->index, end_tick);
+
+			if (first_note_or_rest->speed != first_note_or_rest_after_loop.speed) {
+				differences.speed = 1;
+			}
+			if (first_note_or_rest->tempo != first_note_or_rest_after_loop.tempo) {
+				differences.tempo = 1;
+			}
+
+			const Note_View *first_note = find_note_after_tick(channel_notes, loop_tick);
+			if (first_note) {
+				Note_View first_note_after_loop = first_note_or_rest_after_loop;
+				if (first_note->index != first_note_or_rest->index) {
+					first_note_after_loop = get_note_view(song.channel_commands(channel_number), first_note->index, end_tick);
+				}
+
+				if (channel_number != 4) {
+					if (first_note->octave != first_note_after_loop.octave) {
+						differences.octave = 1;
+					}
+					if (first_note->volume != first_note_after_loop.volume) {
+						differences.volume = 1;
+					}
+					if (first_note->vibrato_delay != first_note_after_loop.vibrato_delay) {
+						differences.vibrato_delay = 1;
+					}
+					if (first_note->vibrato_extent != first_note_after_loop.vibrato_extent) {
+						differences.vibrato_extent = 1;
+					}
+					if (first_note->vibrato_rate != first_note_after_loop.vibrato_rate) {
+						differences.vibrato_rate = 1;
+					}
+					if (first_note->transpose_octaves != first_note_after_loop.transpose_octaves) {
+						differences.transpose_octaves = 1;
+					}
+					if (first_note->transpose_pitches != first_note_after_loop.transpose_pitches) {
+						differences.transpose_pitches = 1;
+					}
+					if (first_note->slide_duration != first_note_after_loop.slide_duration) {
+						differences.slide_duration = 1;
+					}
+					if (first_note->slide_octave != first_note_after_loop.slide_octave) {
+						differences.slide_octave = 1;
+					}
+					if (first_note->slide_pitch != first_note_after_loop.slide_pitch) {
+						differences.slide_pitch = (Pitch)1;
+					}
+					if (channel_number != 3) {
+						if (first_note->fade != first_note_after_loop.fade) {
+							differences.fade = 1;
+						}
+						if (first_note->duty != first_note_after_loop.duty) {
+							differences.duty = 1;
+						}
+					}
+					else {
+						if (first_note->wave < 16 && first_note_after_loop.wave < 16 && first_note->wave != first_note_after_loop.wave) {
+							differences.wave = 1;
+						}
+					}
+				}
+				else {
+					if (first_note->drumkit != first_note_after_loop.drumkit) {
+						differences.drumkit = 1;
+					}
+				}
+			}
+		}
+	}
+	return differences;
+}
+
 const Note_View *Piano_Roll::find_note_view_at_tick(const std::vector<Note_View> &view, int32_t tick, int32_t *tick_offset) {
 	int32_t t_left = 0;
 	for (const Note_View &note : view) {
 		int32_t t_right = t_left + note.length * note.speed;
 		if (t_right > tick) {
 			if (tick_offset) *tick_offset = tick - t_left;
+			return &note;
+		}
+		t_left = t_right;
+	}
+	return (const Note_View *)nullptr;
+}
+
+const Note_View *Piano_Roll::find_note_after_tick(const std::vector<Note_View> &view, int32_t tick) {
+	int32_t t_left = 0;
+	for (const Note_View &note : view) {
+		int32_t t_right = t_left + note.length * note.speed;
+		if (t_right > tick && note.pitch != Pitch::REST) {
 			return &note;
 		}
 		t_left = t_right;

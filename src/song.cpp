@@ -407,7 +407,7 @@ int32_t calc_snippet_length(const std::vector<Command> &commands, const std::vec
 	return end_tick;
 }
 
-Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
+Note_View get_note_view(const std::vector<Command> &commands, int32_t index, int32_t min_tick) {
 	int32_t tick = 0;
 
 	Note_View note;
@@ -439,7 +439,7 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
 			note.slide_octave = 0;
 			note.slide_pitch = Pitch::REST;
 
-			if (note.index == index) {
+			if (note.index == index && tick >= min_tick) {
 				return note;
 			}
 		}
@@ -449,7 +449,7 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
 			tick += note.length * note.speed;
 			note.index = itr_index(commands, command_itr);
 
-			if (note.index == index) {
+			if (note.index == index && tick >= min_tick) {
 				return note;
 			}
 		}
@@ -459,7 +459,7 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
 			tick += note.length * note.speed;
 			note.index = itr_index(commands, command_itr);
 
-			if (note.index == index) {
+			if (note.index == index && tick >= min_tick) {
 				return note;
 			}
 		}
@@ -504,7 +504,8 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			if (
 				!label_positions.count(command_itr->target) ||
-				(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
+				(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target)) ||
+				tick <= min_tick
 			) {
 				command_itr = find_note_with_label(commands, command_itr->target);
 				continue;
@@ -526,7 +527,8 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index) {
 				if (command_itr->sound_loop.loop_count == 0) {
 					if (
 						!label_positions.count(command_itr->target) ||
-						(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
+						(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target)) ||
+						tick <= min_tick
 					) {
 						command_itr = find_note_with_label(commands, command_itr->target);
 						continue;

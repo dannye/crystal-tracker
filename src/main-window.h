@@ -50,6 +50,7 @@ private:
 		*_brushed_metal_theme_mi = NULL,
 		*_high_contrast_theme_mi = NULL;
 	Fl_Menu_Item
+		*_loop_verification_mi = NULL,
 		*_continuous_mi = NULL,
 		*_channel_1_mute_mi = NULL,
 		*_channel_2_mute_mi = NULL,
@@ -191,6 +192,7 @@ public:
 	void resize(int X, int Y, int W, int H) override;
 	bool maximized(void) const;
 	void maximize(void);
+	inline bool loop_verification(void) const { return _loop_verification_mi && !!_loop_verification_mi->value(); }
 	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
 	inline bool continuous_scroll(void) const { return _continuous_mi && !!_continuous_mi->value(); }
 	inline bool channel_1_muted(void) const { return _channel_1_mute_mi && !!_channel_1_mute_mi->value(); }
@@ -287,6 +289,7 @@ private:
 	// Play menu
 	static void play_pause_cb(Fl_Widget *w, Main_Window *mw);
 	static void stop_cb(Fl_Widget *w, Main_Window *mw);
+	static void loop_verification_cb(Fl_Widget *w, Main_Window *mw);
 	static void loop_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void continuous_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void channel_1_mute_cb(Fl_Widget *w, Main_Window *mw);
