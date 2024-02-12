@@ -52,6 +52,7 @@
 
 #define TAB_SYMBOL "\xE2\x87\xA5"
 #define RIGHT_SYMBOL "\xE2\x86\x92"
+#define BACKSPACE_SYMBOL "\xE2\x8C\xAB"
 #else
 #define CONTROL_KEY "Ctrl"
 #define ALT_KEY "Alt"
@@ -78,6 +79,7 @@
 
 #define TAB_SYMBOL "Tab"
 #define RIGHT_SYMBOL "Right"
+#define BACKSPACE_SYMBOL "Backspace"
 #endif
 
 #ifndef _countof
