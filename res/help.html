@@ -40,17 +40,18 @@ R"(<html>
 <p>One beat is equal to 48 ticks. The number of beats can be converted to number of ticks by multiplying the number of beats by 4 sixteenth notes per beat multiplied by the default speed of 12 (ie, 12 ticks per sixteenth note). So for example, the default end point is: 64 beats × 4 sixteenth notes per beat × 12 ticks per sixteenth note = 3072 ticks — which is exactly 16 measures at a 4/4 time signature.</p>
 <p><b>Note:</b> When loading a file, if some pattern of notes is called by multiple channels then this pattern will be duplicated in-memory so that each channel is entirely independent. This has the side effect of creating duplicate labels in the file when re-saved. These duplicated labels will have to be fixed afterward in a text editor. This only has to be done once for a particular song that is affected by this.</p>
 <p><b>Note:</b> When saving a file, the song data is serialized and no comments or formatting details from the original file are preserved.</p>
+<p>To quickly create and test custom channel 3 waveforms, check out <a href="https://github.com/dannye/waveform-gb">waveform-gb</a>.</p>
 <hr>
 <h2>The Timeline</h2>
 <p>Once a song is loaded, the editor's timeline is filled with the notes for all channels. The channels are color-coded as follows:</p>
 <ul>
 <li><font color="#d90000"><b>Red: Channel 1</b></font></li>
 <li><font color="#0075fd"><b>Blue: Channel 2</b></font></li>
-<li><font color="#03b403"><b>Green: Channel 3</b></font></li>
+<li><font color="#00a500"><b>Green: Channel 3</b></font></li>
 <li><font color="#7c3c19"><b>Brown: Channel 4</b></font></li>
 </ul>
 <p>Inner loops and calls are shown with color-coded boxes that wrap the notes. Light boxes are loops and dark boxes are calls. When no channel is selected, all wrapper boxes for all channels are shown at once. When a channel is selected, only the selected channel's wrapper boxes are shown; wrapper boxes for all other channels are hidden and their notes become colored outlines.</p>
-<p>If all channels' end points are the same, this point is shown with a white or black line (depending on theme). If at least one channel's end point is different than the others, each individual channel's end point is shown with a color-coded line. The same applies to the loop points, if the song loops.</p>
+<p>If all channels' end points are the same, this point is shown with a white or black line (depending on theme). If at least one channel's end point is different than the others, each individual channel's end point is shown with a color-coded line. The same applies to the loop points, if the song loops. Unreferenced labels are shown with a gray line.</p>
 <p>If the song loops and the loop points or end points are not exactly the same for all channels, then the shorter channels continue to repeat their main loop until such a point that all channels arrive at the beginning of their loop at the same time (ie, until the song truly repeats). These repeated notes have a thick gray border and cannot be selected or edited. This repeating may continue for an exceptionally long time if the lengths of the channels' main loops have a large least common multiple.</p>
 <p>If a channel is selected, some of the notes for that channel may have color-coded "flags" attached to the note which indicate that the note is played with some different settings than the previous note. The flags are color-coded as follows:</p>
 <ul>
@@ -58,13 +59,14 @@ R"(<html>
 <li><font color="#ec00ec"><b>Magenta: Volume envelope</b></font></li>
 <li><font color="#ecec00"><b>Yellow: Vibrato</b></font></li>
 <li><font color="#ff8000"><b>Orange: Duty cycle, wave, or drumkit</b></font></li>
+<li><font color="#808080"><b>Gray: Other ("Advanced")</b></font></li>
 </ul>
-<p>The lesser used commands (tempo, transpose, pitch slide, etc) don't have flags to indicate when they are changed.</p>
 <hr>
 <h2>Playback</h2>
 <p>The menu bar is extremely useful as a reference for all the keyboard shortcuts.</p>
 <p>For example, the Play menu shows that the song can be played/paused with the Spacebar and stopped with the Escape key.</p>
 <p><b>Note:</b> When editing note properties (which is explained in more detail below), Spacebar will not play the song while a property text box is selected. The text box can be deselected by pressing Escape.</p>
+<p>If the song loops, a warning will be shown if any of the channels have different settings at the start of the second iteration of the main loop than it had on the first iteration. To ensure the second iteration uses the same settings as the first, explicitly set the properties at the start of the loop. This can be done by changing the property value and then changing it back (not with Undo). If the different settings on the second iteration are intentional, the warning can be toggled off with the Play&nbsp;→&nbsp;Loop&nbsp;Verification checkbox.</p>
 <p><b>Note:</b> Playback is reasonably accurate but does not sound exactly how it sounds on the Game Boy. Things like tempo, volume fade, vibrato, etc, are only approximations.</p>
 <p>The playhead (yellow or magenta line, depending on theme) can be moved with the mouse. Middle-click or hold )" COMMAND_KEY R"( and right-click to move the playhead. This is useful for starting playback at a specific point rather than playing from the very beginning.</p>
 <p>While the song is playing, left-click anywhere on the timeline to toggle continuous scroll mode.</p>
@@ -106,12 +108,18 @@ R"(<html>
 </ul>
 <p>These shortcuts place the corresponding note at the playhead's current position and automatically advance the playhead to the next position. This isn't as convenient as Pencil Mode (explained below) but is useful as a keyboard-only alternative which doesn't require the mouse.</p>
 <p>Use Backtick (`) to toggle Pencil Mode. While in Pencil Mode, left-click to place notes (instead of selecting notes). When a note is placed, it is automatically selected so that it may quickly be manipulated (ie, )" COMMAND_SHIFT_KEYS_PLUS RIGHT_SYMBOL R"( to lengthen the note) and have its properties edited. Right-click and drag to erase notes.</p>
+<p>Newly placed notes will try to match the length and speed of the previous note, if it fits</p>
 <p><b>Note:</b> Since the mouse cannot be used to select notes while in Pencil Mode, it is useful to use the Enter key to manage the selection without needing to exit Pencil Mode.</p>
-<p>Inner loops and calls cannot be fully managed. Editing any note inside a loop or a call will simultaneously update all instances of that loop or call, but loops and calls themselves cannot currently be created or removed.</p>
-<p>To quickly create and test custom channel 3 waveforms, check out <a href="https://github.com/dannye/waveform-gb">waveform-gb</a>.</p>
+<h3>Loops and Calls</h3>
+<p>Loops and calls can be created and modified via the context menu which can be brought up by right-clicking on the timeline.</p>
+<p>To create a loop, select a span of notes and select Create Loop from the context menu or press )" COMMAND_SHIFT_KEYS_PLUS R"(C. To create a loop that starts or ends with a rest, place a temporary note at the intended start and/or end in order to have a "handle" on the span, then delete the temporary note(s) after the loop is created.</p>
+<p>The number of times that a loop loops can be reduced with )" ALT_KEY_PLUS R"(- or extended with )" ALT_KEY_PLUS R"(=, as long as there is room for one more loop. Unroll Loop ()" COMMAND_SHIFT_KEYS_PLUS R"(X), will reduce the loop but leave the notes, so that they may be edited independently from the original loop.</p>
+<p>Similarly, calls can be created by selecting a span of notes and pressing )" COMMAND_KEY_PLUS R"(C. Once a call is created, it is selected and ready to be inserted at other positions by moving the playhead to the desired location and pressing )" COMMAND_KEY_PLUS R"(V. Any other existing call can be selected by pressing )" COMMAND_KEY_PLUS R"(C while the playhead is inside the call, as long as no notes are selected. Calls can be deleted with )" ALT_KEY_PLUS R"(Backspace and unpacked with )" COMMAND_KEY_PLUS R"(X.</p>
+<p>Loops can be created inside of a call, and calls can be created/inserted inside of a loop. But loops cannot be nested inside other loops, and calls cannot be nested inside other calls.</p>
 <hr>
 <h2>View</h2>
-<p>The Ruler (toggled with )" COMMAND_SHIFT_KEYS_PLUS R"(R) is also controlled by the grid spacing setting. The grid spacing can be adjusted to make the ruler better fit the speed or time signature of the song.</p>
+<p>The piano key pitch labels can be toggled with )" COMMAND_KEY_PLUS R"(K. Pitch labels for every note can be toggled with )" COMMAND_SHIFT_KEYS_PLUS R"(K.</p>
+<p>The Ruler (toggled with )" COMMAND_SHIFT_KEYS_PLUS R"(R) is also controlled by the grid spacing setting. The grid spacing can be adjusted to make the ruler better fit the speed or time signature of the song. Clicking into the measure ruler will also set the playhead if a song is opened.</p>
 <p>The Zoom setting ()" COMMAND_KEY_PLUS R"(=) is useful when working with a sequence of very small notes.</p>
 </body>
 </html>)"
