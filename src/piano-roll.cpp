@@ -4112,6 +4112,31 @@ bool Piano_Roll::insert_call(Song &song, bool dry_run) {
 	}
 	if (!selected_call) return false;
 
+	for (const Call_Box *call : *calls) {
+		if (!(call->end_tick() <= _tick || call->start_tick() > _tick)) {
+			return false;
+		}
+	}
+
+	auto loops = _piano_timeline.active_channel_loops();
+
+	bool inserting_inside_loop = false;
+	bool selected_call_contains_loop = false;
+	for (const Loop_Box *loop : *loops) {
+		if (loop->start_tick() <= _tick && loop->end_tick() > _tick) {
+			inserting_inside_loop = true;
+		}
+		if (
+			(loop->start_tick() >= selected_call->start_tick() && loop->end_tick() < selected_call->end_tick()) ||
+			(loop->start_tick() > selected_call->start_tick() && loop->end_tick() <= selected_call->end_tick())
+		) {
+			selected_call_contains_loop = true;
+		}
+	}
+	if (inserting_inside_loop && selected_call_contains_loop) {
+		return false;
+	}
+
 	auto view = active_channel_view();
 
 	int32_t tick_offset = 0;
