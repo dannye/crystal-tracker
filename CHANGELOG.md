@@ -1,6 +1,10 @@
 Changelog
 =========
 
+### Crystal Tracker v0.6.1 (2024-02-12)
+
+ * Bugfix: Calls containing loops cannot be inserted into other loops.
+
 ### Crystal Tracker v0.6.0 (2024-02-11)
 
  * Add right-click context menu with loop and call functions.
