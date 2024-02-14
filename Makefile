@@ -28,7 +28,9 @@ fltk-config = $(bindir)/fltk-config
 
 CXXFLAGS := -std=c++17 -I$(srcdir) -I$(resdir) $(shell $(fltk-config) --use-images --cxxflags) $(CXXFLAGS)
 ifdef OS_MAC
-LDFLAGS := lib/libportaudio.a lib/libportaudiocpp.a lib/libopenmpt.a $(shell pkg-config --libs-only-other portaudiocpp) $(shell $(fltk-config) --use-images --ldstaticflags) $(LDFLAGS)
+PNGLDLIBS  := $(shell pkg-config --static --libs-only-L libpng | cut -c 3-)/libpng.a $(shell pkg-config --static --libs-only-l libpng | sed s/-lpng[0-9]*//g)
+JPEGLDLIBS := $(shell pkg-config --static --libs-only-L libjpeg | cut -c 3-)/libjpeg.a $(shell pkg-config --static --libs-only-l libjpeg | sed s/-ljpeg[0-9]*//g)
+LDFLAGS := lib/libportaudio.a lib/libportaudiocpp.a lib/libopenmpt.a $(shell pkg-config --libs-only-other portaudiocpp) lib/libfltk_images.a $(PNGLDLIBS) $(JPEGLDLIBS) $(shell $(fltk-config) --ldstaticflags) $(LDFLAGS)
 else
 LDFLAGS := $(shell pkg-config --libs portaudiocpp libopenmpt) $(shell $(fltk-config) --use-images --ldstaticflags) $(shell pkg-config --libs libpng xpm) $(LDFLAGS)
 endif
