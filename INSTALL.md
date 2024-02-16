@@ -117,7 +117,7 @@ cd libopenmpt
 	--without-vorbisfile \
 	--without-sndfile \
 	--without-flac \
-	CXX="g++-8" CXXFLAGS="-O2" FLAGS="-O2" \
+	CXX="g++-8" CXXFLAGS="-O2" CFLAGS="-O2" \
 	PKG_CONFIG_PATH="$(realpath "$PWD/../../lib/portaudio"):$(realpath "$PWD/../../lib/portaudio/bindings/cpp")"
 make
 make install
