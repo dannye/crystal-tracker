@@ -96,18 +96,14 @@ popd
 # Build PortAudio v19.7.0
 git clone -b v19.7.0 https://github.com/PortAudio/portaudio.git lib/portaudio
 pushd lib/portaudio
-
 ./configure --prefix="$(realpath "$PWD/../..")" CXXFLAGS="-O2" CFLAGS="-O2"
 make
 make install
-
 cd bindings/cpp
 ./configure --prefix="$(realpath "$PWD/../../../..")" CXXFLAGS="-O2" CFLAGS="-O2"
 make
 make install
-
 popd
-mv include/pa_linux_alsa.h include/portaudio.h include/portaudiocpp/
 
 # Build libopenmpt-0.6.3
 pushd lib
@@ -126,6 +122,8 @@ cd libopenmpt
 make
 make install
 popd
+
+mv include/pa_linux_alsa.h include/portaudio.h include/portaudiocpp/
 
 # Build Crystal Tracker
 make
