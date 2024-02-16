@@ -24,7 +24,7 @@ tmpdir = tmp
 debugdir = tmp/debug
 bindir = bin
 
-pkg-config = PKG_CONFIG_PATH=lib/portaudio:lib/portaudio/bindings/cpp pkg-config
+pkg-config = PKG_CONFIG_PATH=lib/pkgconfig pkg-config
 fltk-config = $(bindir)/fltk-config
 
 CXXFLAGS := -std=c++17 -I$(srcdir) -I$(resdir) $(shell $(fltk-config) --use-images --cxxflags) $(CXXFLAGS)
