@@ -97,32 +97,14 @@ popd
 git clone -b v19.7.0 https://github.com/PortAudio/portaudio.git lib/portaudio
 pushd lib/portaudio
 
-./configure --prefix="$(realpath "$PWD/../..")"
+./configure --prefix="$(realpath "$PWD/../..")" CXXFLAGS="-O2" CFLAGS="-O2"
 make
 make install
-
-# ---
-# for now, also install system-wide to make sure it's visible to libopenmpt in the next step
-# it would be nice to avoid this though... setting CPPFLAGS/LDFLAGS did not work :(
-make clean
-./configure
-make
-sudo make install
-# ---
 
 cd bindings/cpp
-./configure --prefix="$(realpath "$PWD/../../../..")"
+./configure --prefix="$(realpath "$PWD/../../../..")" CXXFLAGS="-O2" CFLAGS="-O2"
 make
 make install
-
-# ---
-# for now, also install system-wide to make sure it's visible to libopenmpt in the next step
-# it would be nice to avoid this though... setting CPPFLAGS/LDFLAGS did not work :(
-make clean
-./configure
-make
-sudo make install
-# ---
 
 popd
 mv include/pa_linux_alsa.h include/portaudio.h include/portaudiocpp/
@@ -138,8 +120,10 @@ cd libopenmpt
 	--without-vorbis \
 	--without-vorbisfile \
 	--without-sndfile \
-	--without-flac
-make CXX="g++-8 -std=c++17"
+	--without-flac \
+	CXX="g++-8" CXXFLAGS="-O2" FLAGS="-O2" \
+	PKG_CONFIG_PATH="$(realpath "$PWD/../../lib/portaudio"):$(realpath "$PWD/../../lib/portaudio/bindings/cpp")"
+make
 make install
 popd
 
