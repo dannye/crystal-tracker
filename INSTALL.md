@@ -133,3 +133,10 @@ make
 #  and res/app.xpm to system directories and creates the .desktop entry)
 sudo make install
 ```
+
+
+## Mac
+
+Follow the ["Install and build"](#install-and-build-crystal-tracker) instructions for Linux, but when building libopenmpt from source use `CXX="clang++"` instead of `CXX="g++-8"`.
+
+When relocating the PortAudio headers, there will be no pa_linux_alsa.h, so that step will just be: `mv include/portaudio.h include/portaudiocpp/`
