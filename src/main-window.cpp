@@ -212,10 +212,10 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		{},
 		OS_SUBMENU("&Play"),
 		SYS_MENU_ITEM("&Play/Pause", ' ', (Fl_Callback *)play_pause_cb, this, 0),
-		SYS_MENU_ITEM("&Stop", ESCAPE_KEY, (Fl_Callback *)stop_cb, this, FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("&Stop", FL_Escape, (Fl_Callback *)stop_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Loop &Verification", FL_COMMAND + 'L', (Fl_Callback *)loop_verification_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("&Loop", FL_COMMAND + 'l', (Fl_Callback *)loop_cb, this,
-			FL_MENU_TOGGLE | (loop_config ? FL_MENU_VALUE : 0)),
+			FL_MENU_TOGGLE | (loop_config ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("&Continuous Scroll", '\\', (Fl_Callback *)continuous_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Mute Channel &1", FL_F + 5, (Fl_Callback *)channel_1_mute_cb, this, FL_MENU_TOGGLE),
 		SYS_MENU_ITEM("Mute Channel &2", FL_F + 6, (Fl_Callback *)channel_2_mute_cb, this, FL_MENU_TOGGLE),
@@ -233,14 +233,14 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("Select N&one", FL_COMMAND + 'A', (Fl_Callback *)select_none_cb, this, 0),
 		SYS_MENU_ITEM("Select &Invert", FL_COMMAND + 'I', (Fl_Callback *)select_invert_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("&Selection...", 0, NULL, NULL, FL_SUBMENU | FL_MENU_DIVIDER),
-		SYS_MENU_ITEM("Pitch Up", FL_COMMAND + UP_KEY, (Fl_Callback *)pitch_up_cb, this, 0),
-		SYS_MENU_ITEM("Pitch Down", FL_COMMAND + DOWN_KEY, (Fl_Callback *)pitch_down_cb, this, 0),
-		SYS_MENU_ITEM("Octave Up", FL_COMMAND + FL_SHIFT + UP_KEY, (Fl_Callback *)octave_up_cb, this, 0),
-		SYS_MENU_ITEM("Octave Down", FL_COMMAND + FL_SHIFT + DOWN_KEY, (Fl_Callback *)octave_down_cb, this, FL_MENU_DIVIDER),
-		SYS_MENU_ITEM("Move Left", FL_COMMAND + LEFT_KEY, (Fl_Callback *)move_left_cb, this, 0),
-		SYS_MENU_ITEM("Move Right", FL_COMMAND + RIGHT_KEY, (Fl_Callback *)move_right_cb, this, 0),
-		SYS_MENU_ITEM("Shorten", FL_COMMAND + FL_SHIFT + LEFT_KEY, (Fl_Callback *)shorten_cb, this, 0),
-		SYS_MENU_ITEM("Lengthen", FL_COMMAND + FL_SHIFT + RIGHT_KEY, (Fl_Callback *)lengthen_cb, this, FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("Pitch Up", FL_COMMAND + FL_Up, (Fl_Callback *)pitch_up_cb, this, 0),
+		SYS_MENU_ITEM("Pitch Down", FL_COMMAND + FL_Down, (Fl_Callback *)pitch_down_cb, this, 0),
+		SYS_MENU_ITEM("Octave Up", FL_COMMAND + FL_SHIFT + FL_Up, (Fl_Callback *)octave_up_cb, this, 0),
+		SYS_MENU_ITEM("Octave Down", FL_COMMAND + FL_SHIFT + FL_Down, (Fl_Callback *)octave_down_cb, this, FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("Move Left", FL_COMMAND + FL_Left, (Fl_Callback *)move_left_cb, this, 0),
+		SYS_MENU_ITEM("Move Right", FL_COMMAND + FL_Right, (Fl_Callback *)move_right_cb, this, 0),
+		SYS_MENU_ITEM("Shorten", FL_COMMAND + FL_SHIFT + FL_Left, (Fl_Callback *)shorten_cb, this, 0),
+		SYS_MENU_ITEM("Lengthen", FL_COMMAND + FL_SHIFT + FL_Right, (Fl_Callback *)lengthen_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("&Delete Selection", DELETE_KEY, (Fl_Callback *)delete_selection_cb, this, 0),
 		SYS_MENU_ITEM("&Snip Selection", FL_SHIFT + DELETE_KEY, (Fl_Callback *)snip_selection_cb, this, 0),
 		SYS_MENU_ITEM("Reduce Loop", FL_ALT + '-', (Fl_Callback *)reduce_loop_cb, this, FL_MENU_INVISIBLE),
@@ -257,55 +257,55 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("R&esize Song...", FL_COMMAND + 'e', (Fl_Callback *)resize_song_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Pencil &Mode", '`', (Fl_Callback *)pencil_mode_cb, this, FL_MENU_TOGGLE | FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Channel &1", '1', (Fl_Callback *)channel_1_cb, this,
-			FL_MENU_RADIO | (selected_channel() == 1 ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (selected_channel() == 1 ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("Channel &2", '2', (Fl_Callback *)channel_2_cb, this,
-			FL_MENU_RADIO | (selected_channel() == 2 ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (selected_channel() == 2 ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("Channel &3", '3', (Fl_Callback *)channel_3_cb, this,
-			FL_MENU_RADIO | (selected_channel() == 3 ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (selected_channel() == 3 ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("Channel &4", '4', (Fl_Callback *)channel_4_cb, this,
-			FL_MENU_RADIO | (selected_channel() == 4 ? FL_MENU_VALUE : 0) | FL_MENU_DIVIDER),
-		SYS_MENU_ITEM("&Next Channel", TAB_KEY, (Fl_Callback *)next_channel_cb, this, 0),
-		SYS_MENU_ITEM("&Previous Channel", FL_SHIFT + TAB_KEY, (Fl_Callback *)previous_channel_cb, this, 0),
+			FL_MENU_RADIO | (selected_channel() == 4 ? FL_MENU_VALUE : 0u) | FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("&Next Channel", FL_Tab, (Fl_Callback *)next_channel_cb, this, 0),
+		SYS_MENU_ITEM("&Previous Channel", FL_SHIFT + FL_Tab, (Fl_Callback *)previous_channel_cb, this, 0),
 		{},
 		OS_SUBMENU("&View"),
 		SYS_MENU_ITEM("&Theme", 0, NULL, NULL, FL_SUBMENU | FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("&Classic", 0, (Fl_Callback *)classic_theme_cb, this,
-			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::CLASSIC ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::CLASSIC ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("&Aero", 0, (Fl_Callback *)aero_theme_cb, this,
-			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::AERO ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::AERO ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("&Metro", 0, (Fl_Callback *)metro_theme_cb, this,
-			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::METRO ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::METRO ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("A&qua", 0, (Fl_Callback *)aqua_theme_cb, this,
-			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::AQUA ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::AQUA ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("&Greybird", 0, (Fl_Callback *)greybird_theme_cb, this,
-			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::GREYBIRD ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::GREYBIRD ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("&Ocean", 0, (Fl_Callback *)ocean_theme_cb, this,
-			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::OCEAN ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::OCEAN ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("&Blue", 0, (Fl_Callback *)blue_theme_cb, this,
-			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::BLUE ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::BLUE ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("Oli&ve", 0, (Fl_Callback *)olive_theme_cb, this,
-			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::OLIVE ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::OLIVE ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("&Rose Gold", 0, (Fl_Callback *)rose_gold_theme_cb, this,
-			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::ROSE_GOLD ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::ROSE_GOLD ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("&Dark", 0, (Fl_Callback *)dark_theme_cb, this,
-			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::DARK ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::DARK ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("Brushed Me&tal", 0, (Fl_Callback *)brushed_metal_theme_cb, this,
-			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::BRUSHED_METAL ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::BRUSHED_METAL ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("&High Contrast", 0, (Fl_Callback *)high_contrast_theme_cb, this,
-			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::HIGH_CONTRAST ? FL_MENU_VALUE : 0)),
+			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::HIGH_CONTRAST ? FL_MENU_VALUE : 0u)),
 		{},
 		SYS_MENU_ITEM("&Key Labels", FL_COMMAND + 'k', (Fl_Callback *)key_labels_cb, this,
-			FL_MENU_TOGGLE | (key_labels_config ? FL_MENU_VALUE : 0)),
+			FL_MENU_TOGGLE | (key_labels_config ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("&Note Labels", FL_COMMAND + 'K', (Fl_Callback *)note_labels_cb, this,
-			FL_MENU_TOGGLE | (note_labels_config ? FL_MENU_VALUE : 0)),
+			FL_MENU_TOGGLE | (note_labels_config ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("&Ruler", FL_COMMAND + 'R', (Fl_Callback *)ruler_cb, this,
-			FL_MENU_TOGGLE | (ruler_config ? FL_MENU_VALUE : 0)),
+			FL_MENU_TOGGLE | (ruler_config ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("&Zoom", FL_COMMAND + '=', (Fl_Callback *)zoom_cb, this,
-			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (zoom_config ? FL_MENU_VALUE : 0)),
+			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (zoom_config ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("Decrease Spacing", FL_SHIFT + '-', (Fl_Callback *)decrease_spacing_cb, this, 0),
 		SYS_MENU_ITEM("Increase Spacing", FL_SHIFT + '=', (Fl_Callback *)increase_spacing_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Full &Screen", FULLSCREEN_KEY, (Fl_Callback *)full_screen_cb, this,
-			FL_MENU_TOGGLE | (fullscreen ? FL_MENU_VALUE : 0)),
+			FL_MENU_TOGGLE | (fullscreen ? FL_MENU_VALUE : 0u)),
 		{},
 		OS_SUBMENU("&Help"),
 #ifdef __APPLE__
@@ -318,6 +318,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		{}
 	};
 	_menu_bar->copy(menu_items);
+	_menu_bar->menu_end();
 
 	// Initialize macOS application menu
 #ifdef __APPLE__
@@ -325,6 +326,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	Fl_Mac_App_Menu::hide = "Hide " PROGRAM_NAME;
 	Fl_Mac_App_Menu::quit = "Quit " PROGRAM_NAME;
 	fl_mac_set_about((Fl_Callback *)about_cb, this);
+	Fl_Sys_Menu_Bar::create_window_menu();
 	fl_open_display();
 	_menu_bar->update();
 #endif
@@ -511,10 +513,12 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_decrease_spacing_tb->tooltip("Decrease Spacing (" SHIFT_KEY_PLUS "-)");
 	_decrease_spacing_tb->callback((Fl_Callback *)decrease_spacing_cb, this);
 	_decrease_spacing_tb->image(DECREASE_SPACING_ICON);
+	_decrease_spacing_tb->shortcut('_');
 
 	_increase_spacing_tb->tooltip("Increase Spacing (" SHIFT_KEY_PLUS "=)");
 	_increase_spacing_tb->callback((Fl_Callback *)increase_spacing_cb, this);
 	_increase_spacing_tb->image(INCREASE_SPACING_ICON);
+	_increase_spacing_tb->shortcut('+');
 
 	// Configure status bar
 	_channel_1_status_label->callback((Fl_Callback *)channel_1_mute_cb, this);
@@ -535,6 +539,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		{}
 	};
 	_context_menu->copy(context_menu_items);
+	_context_menu->menu_end();
 	_context_menu->user_data(this);
 
 #define CT_FIND_MENU_ITEM_CB(c) (const_cast<Fl_Menu_Item *>(_context_menu->find_item((Fl_Callback *)(c))))
@@ -715,20 +720,6 @@ int Main_Window::handle(int event) {
 	case FL_UNFOCUS:
 		return 1;
 	case FL_KEYBOARD:
-#ifdef __APPLE__
-		if (Fl::event_shift() && Fl::event_key() == FL_Tab && _previous_channel_mi->active()) {
-			previous_channel_cb(nullptr, this);
-			return 1;
-		}
-		if (Fl::event_shift() && Fl::event_key() == '_' && _decrease_spacing_mi->active()) {
-			decrease_spacing_cb(nullptr, this);
-			return 1;
-		}
-		if (Fl::event_shift() && Fl::event_key() == '+' && _increase_spacing_mi->active()) {
-			increase_spacing_cb(nullptr, this);
-			return 1;
-		}
-#endif
 		if (!Fl::event_state(FL_SHIFT | FL_COMMAND | FL_ALT) && stopped()) {
 			switch (Fl::event_key()) {
 			case 'r':

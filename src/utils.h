@@ -38,21 +38,13 @@
 #define COMMAND_SHIFT_KEYS_PLUS SHIFT_KEY_PLUS COMMAND_KEY_PLUS
 #define COMMAND_ALT_KEYS_PLUS ALT_KEY_PLUS COMMAND_KEY_PLUS
 
-#define BACKSPACE_KEY NSBackspaceCharacter
-#define DELETE_KEY    FL_COMMAND + NSBackspaceCharacter
-#define TAB_KEY       NSTabCharacter
-#define ESCAPE_KEY    NSEscapeCharacter
-#define UP_KEY        NSUpArrowFunctionKey
-#define DOWN_KEY      NSDownArrowFunctionKey
-#define LEFT_KEY      NSLeftArrowFunctionKey
-#define RIGHT_KEY     NSRightArrowFunctionKey
+#define TAB_KEY "\xE2\x87\xA5"
+#define RIGHT_KEY "\xE2\x86\x92"
+#define BACKSPACE_KEY "\xE2\x8C\xAB"
 
+#define DELETE_KEY FL_COMMAND + FL_BackSpace
 #define GLUE_KEY '?'
 #define FULLSCREEN_KEY FL_COMMAND + FL_SHIFT + 'f'
-
-#define TAB_SYMBOL "\xE2\x87\xA5"
-#define RIGHT_SYMBOL "\xE2\x86\x92"
-#define BACKSPACE_SYMBOL "\xE2\x8C\xAB"
 #else
 #define CONTROL_KEY "Ctrl"
 #define ALT_KEY "Alt"
@@ -65,21 +57,13 @@
 #define COMMAND_SHIFT_KEYS_PLUS COMMAND_KEY_PLUS SHIFT_KEY_PLUS
 #define COMMAND_ALT_KEYS_PLUS COMMAND_KEY_PLUS ALT_KEY_PLUS
 
-#define BACKSPACE_KEY FL_BackSpace
-#define DELETE_KEY    FL_Delete
-#define TAB_KEY       FL_Tab
-#define ESCAPE_KEY    FL_Escape
-#define UP_KEY        FL_Up
-#define DOWN_KEY      FL_Down
-#define LEFT_KEY      FL_Left
-#define RIGHT_KEY     FL_Right
+#define TAB_KEY "Tab"
+#define RIGHT_KEY "Right"
+#define BACKSPACE_KEY "Backspace"
 
+#define DELETE_KEY FL_Delete
 #define GLUE_KEY FL_SHIFT + '/'
 #define FULLSCREEN_KEY FL_F + 11
-
-#define TAB_SYMBOL "Tab"
-#define RIGHT_SYMBOL "Right"
-#define BACKSPACE_SYMBOL "Backspace"
 #endif
 
 #ifndef _countof

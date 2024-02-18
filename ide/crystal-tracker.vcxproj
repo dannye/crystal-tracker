@@ -114,7 +114,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\lib\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libopenmpt-small.lib;openmpt-minimp3.lib;openmpt-miniz.lib;openmpt-stb_vorbis.lib;portaudio.lib;portaudiocpp-vc7_1-d.lib;fltkimagesd.lib;fltkpngd.lib;fltkjpegd.lib;fltkzlibd.lib;fltkd.lib;opengl32.lib;glu32.lib;comctl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libopenmpt-small.lib;openmpt-minimp3.lib;openmpt-miniz.lib;openmpt-stb_vorbis.lib;portaudio.lib;portaudiocpp-vc7_1-d.lib;fltk_imagesd.lib;fltk_pngd.lib;fltk_jpegd.lib;fltk_zd.lib;fltkd.lib;opengl32.lib;glu32.lib;comctl32.lib;Ws2_32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmtd.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -139,7 +139,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libopenmpt-small.lib;openmpt-minimp3.lib;openmpt-miniz.lib;openmpt-stb_vorbis.lib;portaudio.lib;portaudiocpp-vc7_1-r.lib;fltkimages.lib;fltkpng.lib;fltkjpeg.lib;fltkzlib.lib;fltk.lib;opengl32.lib;glu32.lib;comctl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libopenmpt-small.lib;openmpt-minimp3.lib;openmpt-miniz.lib;openmpt-stb_vorbis.lib;portaudio.lib;portaudiocpp-vc7_1-r.lib;fltk_images.lib;fltk_png.lib;fltk_jpeg.lib;fltk_z.lib;fltk.lib;opengl32.lib;glu32.lib;comctl32.lib;Ws2_32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -161,7 +161,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\lib\Debug\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libopenmpt-small.lib;openmpt-minimp3.lib;openmpt-miniz.lib;openmpt-stb_vorbis.lib;portaudio.lib;portaudiocpp-vc7_1-d.lib;fltkimagesd.lib;fltkpngd.lib;fltkjpegd.lib;fltkzlibd.lib;fltkd.lib;opengl32.lib;glu32.lib;comctl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libopenmpt-small.lib;openmpt-minimp3.lib;openmpt-miniz.lib;openmpt-stb_vorbis.lib;portaudio.lib;portaudiocpp-vc7_1-d.lib;fltk_imagesd.lib;fltk_pngd.lib;fltk_jpegd.lib;fltk_zd.lib;fltkd.lib;opengl32.lib;glu32.lib;comctl32.lib;Ws2_32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmtd.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -186,7 +186,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libopenmpt-small.lib;openmpt-minimp3.lib;openmpt-miniz.lib;openmpt-stb_vorbis.lib;portaudio.lib;portaudiocpp-vc7_1-r.lib;fltkimages.lib;fltkpng.lib;fltkjpeg.lib;fltkzlib.lib;fltk.lib;opengl32.lib;glu32.lib;comctl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libopenmpt-small.lib;openmpt-minimp3.lib;openmpt-miniz.lib;openmpt-stb_vorbis.lib;portaudio.lib;portaudiocpp-vc7_1-r.lib;fltk_images.lib;fltk_png.lib;fltk_jpeg.lib;fltk_z.lib;fltk.lib;opengl32.lib;glu32.lib;comctl32.lib;Ws2_32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
