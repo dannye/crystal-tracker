@@ -750,12 +750,16 @@ void Ruler_Config_Dialog::initialize_content() {
 	_pickup_offset = new OS_Spinner(0, 0, 0, 0, "&Pickup Offset:");
 	// Initialize content group's children
 	_beats_per_measure->range(1, 64);
+	_beats_per_measure->wrap(0);
 	_beats_per_measure->callback((Fl_Callback *)ruler_config_cb, this);
 	_steps_per_beat->range(1, 64);
+	_steps_per_beat->wrap(0);
 	_steps_per_beat->callback((Fl_Callback *)ruler_config_cb, this);
 	_ticks_per_step->range(4, 32);
+	_ticks_per_step->wrap(0);
 	_ticks_per_step->callback((Fl_Callback *)ruler_config_cb, this);
 	_pickup_offset->range(0, 64);
+	_pickup_offset->wrap(0);
 	_pickup_offset->callback((Fl_Callback *)ruler_config_cb, this);
 }
 

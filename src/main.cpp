@@ -2,7 +2,7 @@
 
 #pragma warning(push, 0)
 #include <FL/Fl.H>
-#include <FL/x.H>
+#include <FL/platform.H>
 #pragma warning(pop)
 
 #include <portaudiocpp/PortAudioCpp.hxx>
@@ -74,7 +74,9 @@ int main(int argc, char **argv) {
 #ifdef _WIN32
 	SetCurrentProcessExplicitAppUserModelID(MAKE_WSTR(PROGRAM_AUTHOR) L"." MAKE_WSTR(PROGRAM_NAME));
 #endif
+	Fl::keyboard_screen_scaling(0);
 	Fl::visual(FL_DOUBLE | FL_RGB);
+	fl_contrast_level(50);
 
 #ifdef _WIN32
 	OS::Theme default_theme = OS::Theme::METRO;
@@ -104,11 +106,7 @@ int main(int argc, char **argv) {
 	window->show();
 	OS::update_macos_appearance(window);
 	if (window->full_screen()) {
-#ifdef __APPLE__
-		cocoa_fullscreen(window, true);
-#else
 		window->fullscreen();
-#endif
 	}
 	else if (Preferences::get("maximized")) {
 		window->maximize();

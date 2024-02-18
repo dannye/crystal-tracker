@@ -31,9 +31,7 @@ CXXFLAGS := -std=c++17 -I$(srcdir) -I$(resdir) $(shell $(fltk-config) --use-imag
 
 ifdef OS_MAC
 PORTAUDIOLDLIBS := $(shell $(pkg-config) --static --libs-only-other portaudiocpp)
-PNGLDLIBS  := $(shell $(pkg-config) --static --libs-only-L libpng | cut -c 3-)/libpng.a $(shell $(pkg-config) --static --libs-only-l libpng | sed s/-lpng[0-9]*//g)
-JPEGLDLIBS := $(shell $(pkg-config) --static --libs-only-L libjpeg | cut -c 3-)/libjpeg.a $(shell $(pkg-config) --static --libs-only-l libjpeg | sed s/-ljpeg[0-9]*//g)
-FLTKLDLIBS := lib/libfltk_images.a $(PNGLDLIBS) $(JPEGLDLIBS) $(shell $(fltk-config) --ldstaticflags)
+FLTKLDLIBS := $(shell $(fltk-config) --use-images --ldstaticflags)
 else
 PORTAUDIOLDLIBS := $(shell $(pkg-config) --static --libs-only-l portaudiocpp | sed -E "s/-lportaudio(cpp)?//g")
 FLTKLDLIBS := $(shell $(fltk-config) --use-images --ldstaticflags) $(shell $(pkg-config) --libs libpng xpm)

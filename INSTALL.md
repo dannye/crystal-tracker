@@ -12,13 +12,13 @@ You will need [Microsoft Visual Studio](https://visualstudio.microsoft.com/vs/);
 
 #### Setting up FLTK
 
-1. Clone [fltk release-1.3.8](https://github.com/fltk/fltk/tree/release-1.3.8) into lib\\**fltk**. (ie, `git clone -b release-1.3.8 https://github.com/fltk/fltk.git lib/fltk`)
-2. Open lib\fltk\\**abi-version.ide** in a text editor such as Notepad and replace "`#undef FL_ABI_VERSION`" with "`#define FL_ABI_VERSION 10308`". Save it.
-3. Open lib\fltk\ide\VisualC2010\\**fltk.sln** in Visual Studio 2022. (Other versions may or may not work, I haven't tried.)
-4. A "Retarget Projects" dialog will open, since fltk.sln was made for Visual Studio 2010. Click OK to upgrade the Windows SDK version and platform toolset.
-5. Go to **Build → Batch Build…**, check the projects **fltk**, **fltkimages**, **fltkjpeg**, **fltkpng**, and **fltkzlib** in the Release configuration, and click the **Build** button.
-6. Move all the .lib files from lib\fltk\lib\\\*.lib up to lib\\\*.lib. (You may also choose the Debug config in the previous step and move the .lib files to lib\Debug\\\*.lib instead.)
-7. Copy the lib\fltk\\**FL** folder to a new include\\**FL** folder.
+1. Clone [fltk release-1.4.0](https://github.com/fltk/fltk/tree/master) into lib\\**fltk** (ie, `git clone -b master https://github.com/fltk/fltk.git lib/fltk`) and apply fltk.patch by running `git apply ../patches/fltk.patch` from the lib\fltk directory.
+2. Open Visual Studio, select **Open a local folder**, and open the lib\fltk folder. This will automatically generate the CMake project with a configuration named **x64-Debug**.
+3. Create the following additional configurations with the appropriate **Configuration Type** of either Debug or Release: x64-Release, x86-Debug, and x86-Release. For x64 configurations, make sure the **Toolset** is set to **msvc_x64_x64**. For x86 configurations, make sure the Toolset is set to **msvc_x86_x64**. For all 4 configurations, uncheck the **FLTK_GRAPHICS_GDIPLUS** option.
+4. Set the configuration to **x86-Release**.
+5. In the **Solution Explorer**, switch to the **CMake Targets View**, right-click on **fltk_images**, and select **Build fltk_images**. This will also build the other required libraries: fltk, fltk_jpeg, fltk_png, and fltk_z.
+6. Move all the .lib files from lib\fltk\out\build\x86-Release\lib\\\*.lib up to lib\\\*.lib. (You may also choose the x86-Debug config in the previous step and move the .lib files from lib\fltk\out\build\x86-Debug\lib\\\*.lib to lib\Debug\\\*.lib instead.)
+7. Copy the lib\fltk\\**FL** folder to a new include\\**FL** folder. Also copy lib\fltk\out\build\x86-Release\FL\fl_config.h into include\FL. All configurations will generate their own fl_config.h, but they should all be identical.
 
 #### Setting up PortAudio
 
@@ -57,7 +57,7 @@ You will need [Microsoft Visual Studio](https://visualstudio.microsoft.com/vs/);
 33. If the Solution Configuration dropdown on the toolbar says Debug, set it to **Release**.
 34. Go to **Build → Build Solution** to build the project. This will create bin\Release\\**crystaltracker.exe**. (A Debug build will create bin\Debug\\**crystaltrackerd.exe**.)
 
-**Note:** To build a 64-bit executable, you will need to create the x64 Solution Platform for fltk (fltk.sln) and portaudiocpp (static_library.sln). To do this, go to **Build → Configuration Manager…** and in the **Active solution platform:** dropdown select **<New…>**. Set the new platform to "x64" and copy settings from the 32-bit platform (either Win32 or x86). Make sure the "Create new project platforms" checkbox is checked and then click OK. Make sure the project configuration changes described above are also applied to this platform. portaudio.sln and libopenmpt-small.sln already have an x64 target.  
+**Note:** To build a 64-bit executable, you will need to create the x64 Solution Platform for portaudiocpp (static_library.sln). To do this, go to **Build → Configuration Manager…** and in the **Active solution platform:** dropdown select **<New…>**. Set the new platform to "x64" and copy settings from the 32-bit platform (either Win32 or x86). Make sure the "Create new project platforms" checkbox is checked and then click OK. Make sure the project configuration changes described above are also applied to this platform. portaudio.sln and libopenmpt-small.sln already have an x64 target.  
 After building the x64 libs for fltk, portaudio, portaudiocpp, and openmpt, copy the .lib files to lib\\**x64** and lib\Debug\\**x64**.
 
 
@@ -67,6 +67,13 @@ After building the x64 libs for fltk, portaudio, portaudiocpp, and openmpt, copy
 
 You need at least g++ 7 for C++17 support.
 g++ 8 is needed if building libopenmpt from source.
+
+CMake (version 3.15 or later) is preferred for building FLTK 1.4.
+To build without CMake, replace the `cmake` command below with:
+
+```bash
+./autogen.sh --prefix="$(realpath "$PWD/../..")"
+```
 
 #### Ubuntu/Debian
 
@@ -86,11 +93,11 @@ Run the following commands:
 git clone https://github.com/dannye/crystal-tracker.git
 cd crystal-tracker
 
-# Build FLTK 1.3.8 with the latest ABI enabled
-# (even if you already have libfltk1.3-dev installed)
-git clone -b release-1.3.8 https://github.com/fltk/fltk.git lib/fltk
+# Build FLTK 1.4.0
+git clone -b master https://github.com/fltk/fltk.git lib/fltk
 pushd lib/fltk
-./autogen.sh --prefix="$(realpath "$PWD/../..")" --with-abiversion=10308
+git apply ../patches/fltk.patch
+cmake -D CMAKE_INSTALL_PREFIX="$(realpath "$PWD/../..")" -D CMAKE_BUILD_TYPE=Release
 make
 make install
 popd
@@ -140,5 +147,22 @@ sudo make install
 ## Mac
 
 Follow the ["Install and build"](#install-and-build-crystal-tracker) instructions for Linux, but when building libopenmpt from source use `CXX="clang++"` instead of `CXX="g++-8"`.
+
+If building FLTK with CMake, use the following `cmake` command instead of the one shown above:
+
+```bash
+cmake \
+	-D CMAKE_INSTALL_PREFIX="$(realpath "$PWD/../..")" \
+	-D CMAKE_BUILD_TYPE=Release \
+	-D CMAKE_OSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion | cut -d '.' -f 1).0" \
+	-D FLTK_USE_SYSTEM_LIBPNG=ON \
+	-D PNG_PNG_INCLUDE_DIR="$(pkg-config --cflags-only-I libpng | cut -d ' ' -f 1 | cut -c 3-)" \
+	-D PNG_LIBRARY_RELEASE="$(pkg-config --static --libs-only-L libpng | cut -d ' ' -f 1 | cut -c 3-)/libpng.a" \
+	-D LIB_png="$(pkg-config --static --libs-only-L libpng | cut -d ' ' -f 1 | cut -c 3-)/libpng.a" \
+	-D FLTK_USE_SYSTEM_ZLIB=ON \
+	-D ZLIB_INCLUDE_DIR="$(PKG_CONFIG_PATH=/usr/local/opt/zlib/lib/pkgconfig pkg-config --cflags-only-I zlib | cut -c 3-)" \
+	-D ZLIB_LIBRARY_RELEASE="$(PKG_CONFIG_PATH=/usr/local/opt/zlib/lib/pkgconfig pkg-config --static --libs-only-L zlib | cut -c 3-)/libz.a" \
+	-D LIB_zlib="$(PKG_CONFIG_PATH=/usr/local/opt/zlib/lib/pkgconfig pkg-config --static --libs-only-L zlib | cut -c 3-)/libz.a"
+```
 
 When relocating the PortAudio headers, there will be no pa_linux_alsa.h, so that step will just be: `mv include/portaudio.h include/portaudiocpp/`

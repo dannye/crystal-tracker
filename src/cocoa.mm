@@ -1,7 +1,7 @@
 #import <Cocoa/Cocoa.h>
 
 #pragma warning(push, 0)
-#include <FL/x.H>
+#include <FL/platform.H>
 #pragma warning(pop)
 
 #include "cocoa.h"

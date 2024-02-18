@@ -32,24 +32,11 @@
 #define SHIFT_KEY "\xE2\x87\xA7" // UTF-8 encoding of U+21E7 "UPWARDS WHITE ARROW"
 #define COMMAND_KEY "\xE2\x8C\x98" // UTF-8 encoding of U+2318 "PLACE OF INTEREST SIGN"
 
-#define COMMAND_KEY_PLUS "\xE2\x8C\x98" // UTF-8 encoding of U+2318 "PLACE OF INTEREST SIGN"
+#define COMMAND_KEY_PLUS COMMAND_KEY
 #define ALT_KEY_PLUS ALT_KEY
 #define SHIFT_KEY_PLUS SHIFT_KEY
 #define COMMAND_SHIFT_KEYS_PLUS SHIFT_KEY_PLUS COMMAND_KEY_PLUS
 #define COMMAND_ALT_KEYS_PLUS ALT_KEY_PLUS COMMAND_KEY_PLUS
-
-#define BACKSPACE_KEY NSBackspaceCharacter
-#define DELETE_KEY    FL_COMMAND + NSBackspaceCharacter
-#define TAB_KEY       NSTabCharacter
-#define ESCAPE_KEY    NSEscapeCharacter
-#define UP_KEY        NSUpArrowFunctionKey
-#define DOWN_KEY      NSDownArrowFunctionKey
-#define LEFT_KEY      NSLeftArrowFunctionKey
-#define RIGHT_KEY     NSRightArrowFunctionKey
-
-#define INSERT_REST_KEY FL_CONTROL + FL_SHIFT + 'i'
-#define GLUE_KEY '?'
-#define FULLSCREEN_KEY FL_COMMAND + FL_SHIFT + 'f'
 
 #define TAB_SYMBOL "\xE2\x87\xA5"
 #define UP_SYMBOL "\xE2\x86\x91"
@@ -57,7 +44,12 @@
 #define LEFT_SYMBOL "\xE2\x86\x90"
 #define RIGHT_SYMBOL "\xE2\x86\x92"
 #define BACKSPACE_SYMBOL "\xE2\x8C\xAB"
-#define DELETE_SYMBOL COMMAND_KEY_PLUS "\xE2\x8C\xAB"
+#define DELETE_SYMBOL COMMAND_KEY_PLUS BACKSPACE_SYMBOL
+
+#define DELETE_KEY FL_COMMAND + FL_BackSpace
+#define INSERT_REST_KEY FL_CONTROL + FL_SHIFT + 'i'
+#define GLUE_KEY '?'
+#define FULLSCREEN_KEY FL_COMMAND + FL_SHIFT + 'f'
 #else
 #define CONTROL_KEY "Ctrl"
 #define ALT_KEY "Alt"
@@ -70,19 +62,6 @@
 #define COMMAND_SHIFT_KEYS_PLUS COMMAND_KEY_PLUS SHIFT_KEY_PLUS
 #define COMMAND_ALT_KEYS_PLUS COMMAND_KEY_PLUS ALT_KEY_PLUS
 
-#define BACKSPACE_KEY FL_BackSpace
-#define DELETE_KEY    FL_Delete
-#define TAB_KEY       FL_Tab
-#define ESCAPE_KEY    FL_Escape
-#define UP_KEY        FL_Up
-#define DOWN_KEY      FL_Down
-#define LEFT_KEY      FL_Left
-#define RIGHT_KEY     FL_Right
-
-#define INSERT_REST_KEY FL_SHIFT + FL_Insert
-#define GLUE_KEY FL_SHIFT + '/'
-#define FULLSCREEN_KEY FL_F + 11
-
 #define TAB_SYMBOL "Tab"
 #define UP_SYMBOL "Up"
 #define DOWN_SYMBOL "Down"
@@ -90,6 +69,11 @@
 #define RIGHT_SYMBOL "Right"
 #define BACKSPACE_SYMBOL "Backspace"
 #define DELETE_SYMBOL "Delete"
+
+#define DELETE_KEY FL_Delete
+#define INSERT_REST_KEY FL_SHIFT + FL_Insert
+#define GLUE_KEY FL_SHIFT + '/'
+#define FULLSCREEN_KEY FL_F + 11
 #endif
 
 #ifndef _countof

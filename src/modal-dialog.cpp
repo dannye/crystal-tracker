@@ -7,6 +7,7 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Button.H>
 #include <FL/fl_draw.H>
+#include <FL/platform.H>
 #pragma warning(pop)
 
 #include "themes.h"

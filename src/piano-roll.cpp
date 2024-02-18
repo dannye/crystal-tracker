@@ -1310,23 +1310,29 @@ void Piano_Timeline::draw() {
 	const int note_row_height = p->note_row_height();
 	const int tick_width = p->tick_width();
 	const int ticks_per_step = p->ticks_per_step();
+	const int px = p->x();
+	const int pw = p->w();
 
 	int active_channel = selected_channel();
+
+	const auto yxline = [](int x, int y, int y1, int px, int pw) {
+		if (x >= px && x < px + pw) fl_yxline(x, y, y1);
+	};
 
 	if (damage() & ~FL_DAMAGE_CHILD) {
 		int y_pos = y();
 		for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
 			for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
 				if (is_white_key(_x)) {
-					fl_rectf(x(), y_pos, w(), note_row_height, light_row);
+					fl_rectf(px, y_pos, pw, note_row_height, light_row);
 				}
 				else {
-					fl_rectf(x(), y_pos, w(), note_row_height, dark_row);
+					fl_rectf(px, y_pos, pw, note_row_height, dark_row);
 				}
 				if (_x == 0 || _x == 7) {
 					fl_color(row_divider);
-					fl_xyline(x(), y_pos - 1, x() + w());
-					fl_xyline(x(), y_pos, x() + w());
+					fl_xyline(px, y_pos - 1, px + pw);
+					fl_xyline(px, y_pos, px + pw);
 				}
 				y_pos += note_row_height;
 			}
@@ -1337,7 +1343,7 @@ void Piano_Timeline::draw() {
 		const size_t num_dividers = (w() - WHITE_KEY_WIDTH) / time_step_width + 1;
 		for (size_t i = 0; i < num_dividers; ++i) {
 			fl_color(col_divider);
-			fl_yxline(x_pos - 1, y(), y() + h());
+			yxline(x_pos - 1, y(), y() + h(), px, pw);
 			x_pos += time_step_width;
 		}
 
@@ -1346,8 +1352,8 @@ void Piano_Timeline::draw() {
 			fl_color(label_marker);
 			for (int32_t tick : *unused_targets) {
 				x_pos = x() + tick * tick_width + WHITE_KEY_WIDTH;
-				fl_yxline(x_pos - 1, y(), y() + h());
-				fl_yxline(x_pos, y(), y() + h());
+				yxline(x_pos - 1, y(), y() + h(), px, pw);
+				yxline(x_pos, y(), y() + h(), px, pw);
 			}
 		}
 
@@ -1358,8 +1364,8 @@ void Piano_Timeline::draw() {
 			fl_color(tempo_marker);
 			for (int32_t tick : *tempo_changes) {
 				x_pos = x() + tick * tick_width + WHITE_KEY_WIDTH;
-				fl_yxline(x_pos - 1, y(), y() + h());
-				fl_yxline(x_pos, y(), y() + h());
+				yxline(x_pos - 1, y(), y() + h(), px, pw);
+				yxline(x_pos, y(), y() + h(), px, pw);
 			}
 		}
 
@@ -1377,33 +1383,33 @@ void Piano_Timeline::draw() {
 		) {
 			x_pos = x() + loop_tick * tick_width + WHITE_KEY_WIDTH;
 			fl_color(FL_FOREGROUND_COLOR);
-			fl_yxline(x_pos - 1, y(), y() + h());
-			fl_yxline(x_pos, y(), y() + h());
+			yxline(x_pos - 1, y(), y() + h(), px, pw);
+			yxline(x_pos, y(), y() + h(), px, pw);
 		}
 		else {
 			if (channel_1_loop_tick != -1 && (active_channel == 0 || active_channel == 1)) {
 				x_pos = x() + channel_1_loop_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_RED);
-				fl_yxline(x_pos - 1, y(), y() + h());
-				fl_yxline(x_pos, y(), y() + h());
+				yxline(x_pos - 1, y(), y() + h(), px, pw);
+				yxline(x_pos, y(), y() + h(), px, pw);
 			}
 			if (channel_2_loop_tick != -1 && (active_channel == 0 || active_channel == 2)) {
 				x_pos = x() + channel_2_loop_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_BLUE);
-				fl_yxline(x_pos - 1, y(), y() + h());
-				fl_yxline(x_pos, y(), y() + h());
+				yxline(x_pos - 1, y(), y() + h(), px, pw);
+				yxline(x_pos, y(), y() + h(), px, pw);
 			}
 			if (channel_3_loop_tick != -1 && (active_channel == 0 || active_channel == 3)) {
 				x_pos = x() + channel_3_loop_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_GREEN);
-				fl_yxline(x_pos - 1, y(), y() + h());
-				fl_yxline(x_pos, y(), y() + h());
+				yxline(x_pos - 1, y(), y() + h(), px, pw);
+				yxline(x_pos, y(), y() + h(), px, pw);
 			}
 			if (channel_4_loop_tick != -1 && (active_channel == 0 || active_channel == 4)) {
 				x_pos = x() + channel_4_loop_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_BROWN);
-				fl_yxline(x_pos - 1, y(), y() + h());
-				fl_yxline(x_pos, y(), y() + h());
+				yxline(x_pos - 1, y(), y() + h(), px, pw);
+				yxline(x_pos, y(), y() + h(), px, pw);
 			}
 		}
 
@@ -1421,33 +1427,33 @@ void Piano_Timeline::draw() {
 		) {
 			x_pos = x() + end_tick * tick_width + WHITE_KEY_WIDTH;
 			fl_color(FL_FOREGROUND_COLOR);
-			fl_yxline(x_pos - 1, y(), y() + h());
-			fl_yxline(x_pos, y(), y() + h());
+			yxline(x_pos - 1, y(), y() + h(), px, pw);
+			yxline(x_pos, y(), y() + h(), px, pw);
 		}
 		else {
 			if (channel_1_end_tick != -1 && (active_channel == 0 || active_channel == 1)) {
 				x_pos = x() + channel_1_end_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_RED);
-				fl_yxline(x_pos - 1, y(), y() + h());
-				fl_yxline(x_pos, y(), y() + h());
+				yxline(x_pos - 1, y(), y() + h(), px, pw);
+				yxline(x_pos, y(), y() + h(), px, pw);
 			}
 			if (channel_2_end_tick != -1 && (active_channel == 0 || active_channel == 2)) {
 				x_pos = x() + channel_2_end_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_BLUE);
-				fl_yxline(x_pos - 1, y(), y() + h());
-				fl_yxline(x_pos, y(), y() + h());
+				yxline(x_pos - 1, y(), y() + h(), px, pw);
+				yxline(x_pos, y(), y() + h(), px, pw);
 			}
 			if (channel_3_end_tick != -1 && (active_channel == 0 || active_channel == 3)) {
 				x_pos = x() + channel_3_end_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_GREEN);
-				fl_yxline(x_pos - 1, y(), y() + h());
-				fl_yxline(x_pos, y(), y() + h());
+				yxline(x_pos - 1, y(), y() + h(), px, pw);
+				yxline(x_pos, y(), y() + h(), px, pw);
 			}
 			if (channel_4_end_tick != -1 && (active_channel == 0 || active_channel == 4)) {
 				x_pos = x() + channel_4_end_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_BROWN);
-				fl_yxline(x_pos - 1, y(), y() + h());
-				fl_yxline(x_pos, y(), y() + h());
+				yxline(x_pos - 1, y(), y() + h(), px, pw);
+				yxline(x_pos, y(), y() + h(), px, pw);
 			}
 		}
 
@@ -1457,8 +1463,8 @@ void Piano_Timeline::draw() {
 		}
 		x_pos = x() + _cursor_tick * tick_width + WHITE_KEY_WIDTH;
 		fl_color(cursor_color);
-		fl_yxline(x_pos - 1, y(), y() + h());
-		fl_yxline(x_pos, y(), y() + h());
+		yxline(x_pos - 1, y(), y() + h(), px, pw);
+		yxline(x_pos, y(), y() + h(), px, pw);
 	}
 	draw_children();
 
@@ -1557,11 +1563,6 @@ int Piano_Roll::handle(int event) {
 	case FL_LEAVE:
 		fl_cursor(FL_CURSOR_DEFAULT);
 		return 1;
-	case FL_MOUSEWHEEL:
-		if (Fl::event_shift()) {
-			std::swap(Fl::e_dx, Fl::e_dy);
-		}
-		break;
 	case FL_SHORTCUT:
 	case FL_KEYBOARD:
 		// don't hog arrow keys with ctrl
