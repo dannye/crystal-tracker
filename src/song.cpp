@@ -3082,6 +3082,9 @@ void Song::create_loop(const int selected_channel, const std::set<int32_t> &sele
 		command.octave.octave = start_view.octave;
 		commands.insert(commands.begin() + end_index + 1, command);
 		end_index += 1;
+
+		command.octave.octave = end_view.octave;
+		commands.insert(commands.begin() + end_index + 1, command);
 	}
 
 	Command loop = Command(Command_Type::SOUND_LOOP);
