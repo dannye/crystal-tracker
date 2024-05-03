@@ -4042,6 +4042,7 @@ bool Piano_Roll::create_call(Song &song, bool dry_run) {
 	}
 	for (Command &command : snippet) {
 		for (size_t i = command.labels.size() - 1; i < command.labels.size(); --i) {
+			if (count_label_references(commands, command.labels[i]) > count_label_references(snippet, command.labels[i])) return false;
 			if (loop_targets.count(command.labels[i]) == 0) {
 				command.labels.erase(command.labels.begin() + i);
 			}
