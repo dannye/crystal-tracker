@@ -1787,7 +1787,7 @@ void Piano_Roll::build_note_view(
 	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
 	std::stack<decltype(command_itr)> call_stack;
 	std::set<std::string> visited_labels_during_call;
-	std::map<std::string, int32_t> label_positions;
+	std::set<std::string> visited_labels_not_during_call;
 
 	std::set<std::string> loop_targets;
 	std::set<std::string> call_targets;
@@ -1820,9 +1820,11 @@ void Piano_Roll::build_note_view(
 
 	while (command_itr != commands.end() && (tick < end_tick || (!restarted && tick == end_tick && (loop_stack.size() > 0 || call_stack.size() > 0)))) {
 		for (const std::string &label : command_itr->labels) {
-			label_positions.insert({ label, tick });
 			if (call_stack.size() > 0) {
 				visited_labels_during_call.insert(label);
+			}
+			else {
+				visited_labels_not_during_call.insert(label);
 			}
 		}
 		if (!restarted && command_itr->labels.size() > 0) {
@@ -1987,7 +1989,7 @@ void Piano_Roll::build_note_view(
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			if (
-				!label_positions.count(command_itr->target) ||
+				!visited_labels_not_during_call.count(command_itr->target) ||
 				(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
 			) {
 				command_itr = find_note_with_label(commands, command_itr->target);
@@ -2019,7 +2021,7 @@ void Piano_Roll::build_note_view(
 			else {
 				if (command_itr->sound_loop.loop_count == 0) {
 					if (
-						!label_positions.count(command_itr->target) ||
+						!visited_labels_not_during_call.count(command_itr->target) ||
 						(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
 					) {
 						command_itr = find_note_with_label(commands, command_itr->target);

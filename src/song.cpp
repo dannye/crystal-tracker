@@ -206,6 +206,7 @@ Parsed_Song::Result calc_channel_length(
 	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
 	std::stack<decltype(command_itr)> call_stack;
 	std::set<std::string> visited_labels_during_call;
+	std::set<std::string> visited_labels_not_during_call;
 	std::map<std::string, Label_Info> label_infos;
 
 	while (command_itr != end_itr) {
@@ -213,6 +214,9 @@ Parsed_Song::Result calc_channel_length(
 			label_infos.insert({ label, { tick, itr_index(commands, command_itr), speed, volume, fade, drumkit } });
 			if (call_stack.size() > 0) {
 				visited_labels_during_call.insert(label);
+			}
+			else {
+				visited_labels_not_during_call.insert(label);
 			}
 		}
 
@@ -251,7 +255,7 @@ Parsed_Song::Result calc_channel_length(
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			if (
-				!label_infos.count(command_itr->target) ||
+				!visited_labels_not_during_call.count(command_itr->target) ||
 				(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
 			) {
 				command_itr = find_note_with_label(commands, command_itr->target);
@@ -298,7 +302,7 @@ Parsed_Song::Result calc_channel_length(
 			else {
 				if (command_itr->sound_loop.loop_count == 0) {
 					if (
-						!label_infos.count(command_itr->target) ||
+						!visited_labels_not_during_call.count(command_itr->target) ||
 						(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
 					) {
 						command_itr = find_note_with_label(commands, command_itr->target);
@@ -419,6 +423,7 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index, int
 	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
 	std::stack<decltype(command_itr)> call_stack;
 	std::set<std::string> visited_labels_during_call;
+	std::set<std::string> visited_labels_not_during_call;
 	std::map<std::string, int32_t> label_positions;
 
 	while (command_itr != commands.end()) {
@@ -426,6 +431,9 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index, int
 			label_positions.insert({ label, tick });
 			if (call_stack.size() > 0) {
 				visited_labels_during_call.insert(label);
+			}
+			else {
+				visited_labels_not_during_call.insert(label);
 			}
 		}
 
@@ -503,7 +511,7 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index, int
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			if (
-				!label_positions.count(command_itr->target) ||
+				!visited_labels_not_during_call.count(command_itr->target) ||
 				(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target)) ||
 				tick <= min_tick
 			) {
@@ -526,7 +534,7 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index, int
 			else {
 				if (command_itr->sound_loop.loop_count == 0) {
 					if (
-						!label_positions.count(command_itr->target) ||
+						!visited_labels_not_during_call.count(command_itr->target) ||
 						(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target)) ||
 						tick <= min_tick
 					) {
@@ -610,6 +618,7 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
 	std::stack<decltype(command_itr)> call_stack;
 	std::set<std::string> visited_labels_during_call;
+	std::set<std::string> visited_labels_not_during_call;
 	std::map<std::string, int32_t> label_positions;
 
 	while (command_itr != commands.end()) {
@@ -617,6 +626,9 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 			label_positions.insert({ label, tick });
 			if (call_stack.size() > 0) {
 				visited_labels_during_call.insert(label);
+			}
+			else {
+				visited_labels_not_during_call.insert(label);
 			}
 		}
 
@@ -664,7 +676,7 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			if (
-				!label_positions.count(command_itr->target) ||
+				!visited_labels_not_during_call.count(command_itr->target) ||
 				(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
 			) {
 				command_itr = find_note_with_label(commands, command_itr->target);
@@ -693,7 +705,7 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 			else {
 				if (command_itr->sound_loop.loop_count == 0) {
 					if (
-						!label_positions.count(command_itr->target) ||
+						!visited_labels_not_during_call.count(command_itr->target) ||
 						(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
 					) {
 						command_itr = find_note_with_label(commands, command_itr->target);
