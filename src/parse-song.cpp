@@ -364,6 +364,9 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				if (channel_number < 1 || channel_number > 4) {
 					return (_result = Result::SONG_INVALID_MACRO_ARGUMENT);
 				}
+				if (label[0] == '.') {
+					return (_result = Result::SONG_LOCAL_CHANNEL_LABEL_UNSUPPORTED);
+				}
 				if (channel_number == 1) _channel_1_label = label;
 				if (channel_number == 2) _channel_2_label = label;
 				if (channel_number == 3) _channel_3_label = label;

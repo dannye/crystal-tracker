@@ -121,9 +121,10 @@ Song_Options_Dialog::Song_Options Song_Options_Dialog::get_options() {
 	options.result = Result::RESULT_OK;
 
 	if (
-		options.song_name.size() == 0 ||
+		_song_name->active() &&
+		(options.song_name.size() == 0 ||
 		(options.song_name[0] >= '0' && options.song_name[0] <= '9') ||
-		options.song_name.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_") != std::string::npos
+		options.song_name.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_") != std::string::npos)
 	) {
 		options.result = Result::RESULT_BAD_TITLE;
 	}

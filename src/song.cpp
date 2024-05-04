@@ -3531,6 +3531,9 @@ std::string Song::get_error_message(const Parsed_Song &parsed_song) const {
 		return "Line " + std::to_string(parsed_song.line_number()) +
 			": Channel " + std::to_string(parsed_song.channel_number()) +
 			": Duplicate label: " + parsed_song.label();
+	case Parsed_Song::Result::SONG_LOCAL_CHANNEL_LABEL_UNSUPPORTED:
+		return "Line " + std::to_string(parsed_song.line_number()) +
+			": Local channel labels not supported.";
 	case Parsed_Song::Result::SONG_UNSUPPORTED_KEYWORD:
 		return "Line " + std::to_string(parsed_song.line_number()) +
 			": Channel " + std::to_string(parsed_song.channel_number()) +
