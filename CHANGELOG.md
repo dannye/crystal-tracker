@@ -1,6 +1,12 @@
 Changelog
 =========
 
+### Crystal Tracker v0.6.2 (2024-05-03)
+
+ * Bugfix: Calls can no longer be created across the main loop line.
+ * Bugfix: When creating a loop, the octave of the notes *after* the loop is now always correctly preserved.
+ * Minor file parsing fixes/improvements.
+
 ### Crystal Tracker v0.6.1 (2024-02-12)
 
  * Bugfix: Calls containing loops cannot be inserted into other loops.
