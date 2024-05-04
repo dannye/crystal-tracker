@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <map>
 #include <set>
 
 #include "parse-song.h"
@@ -313,6 +314,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 	std::vector<std::string> buffered_labels;
 
 	std::set<std::string> all_song_labels;
+	std::map<std::string, int32_t> label_line_numbers;
 
 	while (ifs.good()) {
 		std::string line;
@@ -331,6 +333,7 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 			if (!get_label(lss, _song_name)) {
 				return (_result = Result::SONG_INVALID_HEADER);
 			}
+			label_line_numbers.insert({ _song_name, _line_number });
 			step = Step::READING_HEADER;
 		}
 
@@ -428,6 +431,11 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 			else {
 				current_scope = label;
 			}
+			if (label_line_numbers.count(label) && label_line_numbers.at(label) != _line_number) {
+				_label = label;
+				return (_result = Result::SONG_DUPLICATE_LABEL);
+			}
+			label_line_numbers.insert({ label, _line_number });
 			if (!std::count(RANGE(buffered_labels), label)) {
 				buffered_labels.push_back(label);
 			}
@@ -459,6 +467,11 @@ Parsed_Song::Result Parsed_Song::parse_song(const char *f) {
 				else {
 					current_scope = label;
 				}
+				if (label_line_numbers.count(label) && label_line_numbers.at(label) != _line_number) {
+					_label = label;
+					return (_result = Result::SONG_DUPLICATE_LABEL);
+				}
+				label_line_numbers.insert({ label, _line_number });
 				if (!std::count(RANGE(buffered_labels), label)) {
 					buffered_labels.push_back(label);
 				}

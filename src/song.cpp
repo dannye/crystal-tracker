@@ -424,11 +424,9 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index, int
 	std::stack<decltype(command_itr)> call_stack;
 	std::set<std::string> visited_labels_during_call;
 	std::set<std::string> visited_labels_not_during_call;
-	std::map<std::string, int32_t> label_positions;
 
 	while (command_itr != commands.end()) {
 		for (const std::string &label : command_itr->labels) {
-			label_positions.insert({ label, tick });
 			if (call_stack.size() > 0) {
 				visited_labels_during_call.insert(label);
 			}
@@ -619,11 +617,9 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 	std::stack<decltype(command_itr)> call_stack;
 	std::set<std::string> visited_labels_during_call;
 	std::set<std::string> visited_labels_not_during_call;
-	std::map<std::string, int32_t> label_positions;
 
 	while (command_itr != commands.end()) {
 		for (const std::string &label : command_itr->labels) {
-			label_positions.insert({ label, tick });
 			if (call_stack.size() > 0) {
 				visited_labels_during_call.insert(label);
 			}
@@ -3531,6 +3527,10 @@ std::string Song::get_error_message(const Parsed_Song &parsed_song) const {
 	case Parsed_Song::Result::SONG_UNRECOGNIZED_LABEL:
 		return "Channel " + std::to_string(parsed_song.channel_number()) +
 			": Unrecognized label: " + parsed_song.label();
+	case Parsed_Song::Result::SONG_DUPLICATE_LABEL:
+		return "Line " + std::to_string(parsed_song.line_number()) +
+			": Channel " + std::to_string(parsed_song.channel_number()) +
+			": Duplicate label: " + parsed_song.label();
 	case Parsed_Song::Result::SONG_UNSUPPORTED_KEYWORD:
 		return "Line " + std::to_string(parsed_song.line_number()) +
 			": Channel " + std::to_string(parsed_song.channel_number()) +
