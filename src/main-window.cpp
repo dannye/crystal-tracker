@@ -1696,6 +1696,8 @@ void Main_Window::update_channel_status() {
 }
 
 void Main_Window::new_cb(Fl_Widget *, Main_Window *mw) {
+	if (Fl::modal()) return;
+
 	if (mw->unsaved()) {
 		std::string msg = mw->modified_filename();
 		msg = msg + " has unsaved changes!\n\n"
@@ -1730,6 +1732,8 @@ void Main_Window::new_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::open_cb(Fl_Widget *, Main_Window *mw) {
+	if (Fl::modal()) return;
+
 	if (mw->unsaved()) {
 		std::string msg = mw->modified_filename();
 		msg = msg + " has unsaved changes!\n\n"
@@ -1756,6 +1760,8 @@ void Main_Window::open_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::open_recent_cb(Fl_Menu_ *m, Main_Window *mw) {
+	if (Fl::modal()) return;
+
 	int first_recent_i = m->find_index((Fl_Callback *)open_recent_cb);
 	int i = m->find_index(m->mvalue()) - first_recent_i;
 	mw->open_recent(i);
@@ -1770,6 +1776,8 @@ void Main_Window::clear_recent_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
+	if (Fl::modal()) return;
+
 	if (!mw->_song.loaded()) { return; }
 
 	if (mw->unsaved()) {
@@ -1828,6 +1836,8 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::save_cb(Fl_Widget *w, Main_Window *mw) {
+	if (Fl::modal()) return;
+
 	if (!mw->_song.loaded()) { return; }
 
 	if (mw->_asm_file.empty()) {
@@ -1839,6 +1849,8 @@ void Main_Window::save_cb(Fl_Widget *w, Main_Window *mw) {
 }
 
 void Main_Window::save_as_cb(Fl_Widget *, Main_Window *mw) {
+	if (Fl::modal()) return;
+
 	if (!mw->_song.loaded()) { return; }
 
 	int status = mw->_asm_save_chooser->show();
@@ -1876,6 +1888,8 @@ void Main_Window::save_as_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
+	if (Fl::modal()) return;
+
 	// Override default behavior of Esc to close main window
 	if (Fl::event() == FL_SHORTCUT && Fl::event_key() == FL_Escape) { return; }
 
@@ -1960,6 +1974,7 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::play_pause_cb(Fl_Widget *, Main_Window *mw) {
+	if (Fl::modal()) return;
 	mw->toggle_playback();
 }
 
@@ -2645,6 +2660,8 @@ void Main_Window::glue_note_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::resize_song_cb(Fl_Widget *, Main_Window *mw) {
+	if (Fl::modal()) return;
+
 	if (!mw->_song.loaded()) { return; }
 
 	std::string msg = "This operation cannot be undone.\n\n"
