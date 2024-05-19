@@ -65,7 +65,7 @@ public:
 	bool start()   { _paused = false; return Pa_StartStream(_stream.paStream()) == paNoError; }
 	bool stop()    { _paused = false; return Pa_StopStream(_stream.paStream())  == paNoError; }
 	bool pause()   { _paused = true;  return Pa_StopStream(_stream.paStream())  == paNoError; }
-	void play();
+	bool play();
 
 	void mute_channel(int32_t channel, bool mute);
 

@@ -46,8 +46,8 @@ IT_Module::~IT_Module() noexcept {
 	}
 }
 
-void IT_Module::play() {
-	if (!ready() || !playing()) return;
+bool IT_Module::play() {
+	if (!ready() || !playing()) return true;
 
 	std::size_t count = _is_interleaved ?
 		_mod->read_interleaved_stereo(SAMPLE_RATE, BUFFER_SIZE, _buffer.data()) :
@@ -57,7 +57,7 @@ void IT_Module::play() {
 
 	if (count == 0) {
 		stop();
-		return;
+		return true;
 	}
 	try {
 		if (_is_interleaved) {
@@ -67,8 +67,10 @@ void IT_Module::play() {
 			const float * const buffers[2] = { _buffer.data(), _buffer.data() + BUFFER_SIZE };
 			_stream.write(buffers, static_cast<unsigned long>(count));
 		}
+		return true;
 	}
 	catch (...) {}
+	return false;
 }
 
 void IT_Module::mute_channel(int32_t channel, bool mute) {

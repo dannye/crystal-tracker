@@ -3125,15 +3125,20 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 		if (mw->_audio_mutex.try_lock()) {
 			IT_Module *mod = mw->_it_module;
 			if (mod && mod->playing()) {
-				mod->play();
-				int32_t t = mod->current_tick();
-				if (tick != t) {
-					tick = t;
-					mw->_tick = t;
-					if (!mw->_sync_requested) {
-						Fl::awake((Fl_Awake_Handler)sync_cb, mw);
-						mw->_sync_requested = true;
+				bool success = mod->play();
+				if (success) {
+					int32_t t = mod->current_tick();
+					if (tick != t) {
+						tick = t;
+						mw->_tick = t;
+						if (!mw->_sync_requested) {
+							Fl::awake((Fl_Awake_Handler)sync_cb, mw);
+							mw->_sync_requested = true;
+						}
 					}
+				}
+				else {
+					mod->stop();
 				}
 				mw->_audio_mutex.unlock();
 			}
@@ -3190,7 +3195,13 @@ void Main_Window::interactive_thread(Main_Window *mw, std::future<void> kill_sig
 			}
 
 			if (pitch != Pitch::REST) {
-				mod.play();
+				if (!mod.playing()) {
+					mod.start();
+				}
+				else {
+					bool success = mod.play();
+					if (!success) mod.stop();
+				}
 			}
 
 			mw->_interactive_mutex.unlock();

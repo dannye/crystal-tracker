@@ -1,0 +1,96 @@
+diff --git a/src/hostapi/wmme/pa_win_wmme.c b/src/hostapi/wmme/pa_win_wmme.c
+index f8b1d7e..8a62acf 100644
+--- a/src/hostapi/wmme/pa_win_wmme.c
++++ b/src/hostapi/wmme/pa_win_wmme.c
+@@ -3717,7 +3717,9 @@ static PaError ReadStream( PaStream* s,
+     unsigned long framesProcessed;
+     signed int hostInputBufferIndex;
+     DWORD waitResult;
+-    DWORD timeout = (unsigned long)(stream->allBuffersDurationMs * 0.5);
++    DWORD pollTimeoutMs = stream->allBuffersDurationMs / 2;
++    DWORD failTimeoutMs = stream->allBuffersDurationMs * 3;
++    DWORD accumulatedTimoutMs = 0;
+     unsigned int channel, i;
+ 
+     if( PA_IS_INPUT_STREAM_(stream) )
+@@ -3742,6 +3744,8 @@ static PaError ReadStream( PaStream* s,
+         do{
+             if( CurrentInputBuffersAreDone( stream ) )
+             {
++                accumulatedTimoutMs = 0; /* reset failure timer whenever we have a buffer */
++
+                 if( NoBuffersAreQueued( &stream->input ) )
+                 {
+                     /** @todo REVIEW: consider what to do if the input overflows.
+@@ -3787,7 +3791,7 @@ static PaError ReadStream( PaStream* s,
+ 
+             }else{
+                 /* wait for MME to signal that a buffer is available */
+-                waitResult = WaitForSingleObject( stream->input.bufferEvent, timeout );
++                waitResult = WaitForSingleObject( stream->input.bufferEvent, pollTimeoutMs );
+                 if( waitResult == WAIT_FAILED )
+                 {
+                     result = paUnanticipatedHostError;
+@@ -3795,9 +3799,13 @@ static PaError ReadStream( PaStream* s,
+                 }
+                 else if( waitResult == WAIT_TIMEOUT )
+                 {
+-                    /* if a timeout is encountered, continue,
+-                        perhaps we should give up eventually
+-                    */
++                    /* if a timeout is encountered, continue to check for data. but give up eventually. */
++                    accumulatedTimoutMs += pollTimeoutMs;
++                    if( accumulatedTimoutMs >= failTimeoutMs )
++                    {
++                        result = paTimedOut;
++                        break;
++                    }
+                 }
+             }
+         }while( framesRead < frames );
+@@ -3822,7 +3830,9 @@ static PaError WriteStream( PaStream* s,
+     unsigned long framesProcessed;
+     signed int hostOutputBufferIndex;
+     DWORD waitResult;
+-    DWORD timeout = (unsigned long)(stream->allBuffersDurationMs * 0.5);
++    DWORD pollTimeoutMs = stream->allBuffersDurationMs / 2;
++    DWORD failTimeoutMs = stream->allBuffersDurationMs * 3;
++    DWORD accumulatedTimoutMs = 0;
+     unsigned int channel, i;
+ 
+ 
+@@ -3848,6 +3858,8 @@ static PaError WriteStream( PaStream* s,
+         do{
+             if( CurrentOutputBuffersAreDone( stream ) )
+             {
++                accumulatedTimoutMs = 0; /* reset failure timer whenever we have a buffer */
++
+                 if( NoBuffersAreQueued( &stream->output ) )
+                 {
+                     /** @todo REVIEW: consider what to do if the output
+@@ -3895,7 +3907,7 @@ static PaError WriteStream( PaStream* s,
+             else
+             {
+                 /* wait for MME to signal that a buffer is available */
+-                waitResult = WaitForSingleObject( stream->output.bufferEvent, timeout );
++                waitResult = WaitForSingleObject( stream->output.bufferEvent, pollTimeoutMs );
+                 if( waitResult == WAIT_FAILED )
+                 {
+                     result = paUnanticipatedHostError;
+@@ -3903,9 +3915,13 @@ static PaError WriteStream( PaStream* s,
+                 }
+                 else if( waitResult == WAIT_TIMEOUT )
+                 {
+-                    /* if a timeout is encountered, continue,
+-                        perhaps we should give up eventually
+-                    */
++                    /* if a timeout is encountered, continue to try to output. but give up eventually. */
++                    accumulatedTimoutMs += pollTimeoutMs;
++                    if( accumulatedTimoutMs >= failTimeoutMs )
++                    {
++                        result = paTimedOut;
++                        break;
++                    }
+                 }
+             }
+         }while( framesWritten < frames );

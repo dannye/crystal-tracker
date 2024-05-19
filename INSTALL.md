@@ -23,37 +23,39 @@ You will need [Microsoft Visual Studio](https://visualstudio.microsoft.com/vs/);
 #### Setting up PortAudio
 
 8. Clone [portaudio v19.7.0](https://github.com/PortAudio/portaudio/tree/v19.7.0) into lib\\**portaudio**. (ie, `git clone -b v19.7.0 https://github.com/PortAudio/portaudio.git lib/portaudio`)
-9. Open lib\portaudio\build\msvc\\**portaudio.sln** in Visual Studio 2022.
-10. A "One-way upgrade" dialog will open, since portaudio.sln was made for Visual Studio 2005. Click OK to upgrade.
-11. In the **Solution Explorer**, remove the 4 ASIO-related cpp files under **Source Files → hostapi → ASIO** from the project. (Right-click each of the 4 cpp files and click "Remove".)
-12. In the **Project Properties** window, go to **Configuration Properties → General** and change the value of **Configuration Type** from "Dynamic Library (.dll)" to "Static Library (.lib)". Do this for the Release configuration, and also the Debug configuration if desired.
-13. In the **Project Properties** window, go to **Configuration Properties → C/C++ → Preprocessor** and add `PA_USE_ASIO=0;` to the beginning of the **Processor Definitions** property. Do this for the Release configuration, and also the Debug configuration if desired.
-14. Open lib\portaudio\build\msvc\\**portaudio.def** in a text editor and comment out the 4 lines beginning with "PaAsio_" by putting a semicolon (`;`) at the start of the line.
-15. Set the Solution Configuration to Release and set the Solution Platform to Win32 then press **Build → Build Solution**. You may also build Debug|Win32 if desired.
-16. Move lib\portaudio\build\msvc\Win32\Release\portaudio.lib to lib\portaudio.lib (or move lib\portaudio\build\msvc\Win32\Debug\portaudio.lib to lib\Debug\portaudio.lib if Debug build).
-17. Open lib\portaudio\bindings\cpp\build\vc7_1\\**static_library.sln** in Visual Studio 2022.
-18. A "One-way upgrade" dialog will open. Click OK to upgrade.
-19. In the **Project Properties** window, go to **Configuration Properties → C/C++ → Code Generation** and change **Runtime Library** from "Multi-threaded DLL (/MD)" to "Multi-threaded (/MT)". For the Debug configuration, change it from "Multi-threaded Debug DLL (/MDd)" to "Multi-threaded Debug (/MTd)".
-20. Set the Solution Configuration to Release then press **Build → Build Solution**. You may also build Debug|x86 if desired.
-21. Move lib\portaudio\bindings\cpp\lib\portaudiocpp-vc7_1-r.lib to lib\portaudiocpp-vc7_1-r.lib (or move lib\portaudio\bindings\cpp\lib\portaudiocpp-vc7_1-d.lib to lib\Debug\portaudiocpp-vc7_1-d.lib if Debug build).
-22. Copy the lib\portaudio\bindings\cpp\include\\**portaudiocpp** folder to a new include\\**portaudiocpp** folder.
-23. Copy the header files from lib\portaudio\include into the include\\**portaudiocpp** folder as well.
+9. Apply the PortAudio patch that is provided with Crystal Tracker by running the following command from the root of the PortAudio directory (ie, lib\\**portaudio**): `git apply ../patches/portaudio.patch`  
+  This fixes a Windows-only glitch that will be fixed in the next major release of PortAudio but is being fixed manually here for now. See https://github.com/PortAudio/portaudio/commit/ba486a3a8c9e7b2a7b217ab6e31a4c46c6ca38db for more details.
+10. Open lib\portaudio\build\msvc\\**portaudio.sln** in Visual Studio 2022.
+11. A "One-way upgrade" dialog will open, since portaudio.sln was made for Visual Studio 2005. Click OK to upgrade.
+12. In the **Solution Explorer**, remove the 4 ASIO-related cpp files under **Source Files → hostapi → ASIO** from the project. (Right-click each of the 4 cpp files and click "Remove".)
+13. In the **Project Properties** window, go to **Configuration Properties → General** and change the value of **Configuration Type** from "Dynamic Library (.dll)" to "Static Library (.lib)". Do this for the Release configuration, and also the Debug configuration if desired.
+14. In the **Project Properties** window, go to **Configuration Properties → C/C++ → Preprocessor** and add `PA_USE_ASIO=0;` to the beginning of the **Processor Definitions** property. Do this for the Release configuration, and also the Debug configuration if desired.
+15. Open lib\portaudio\build\msvc\\**portaudio.def** in a text editor and comment out the 4 lines beginning with "PaAsio_" by putting a semicolon (`;`) at the start of the line.
+16. Set the Solution Configuration to Release and set the Solution Platform to Win32 then press **Build → Build Solution**. You may also build Debug|Win32 if desired.
+17. Move lib\portaudio\build\msvc\Win32\Release\portaudio.lib to lib\portaudio.lib (or move lib\portaudio\build\msvc\Win32\Debug\portaudio.lib to lib\Debug\portaudio.lib if Debug build).
+18. Open lib\portaudio\bindings\cpp\build\vc7_1\\**static_library.sln** in Visual Studio 2022.
+19. A "One-way upgrade" dialog will open. Click OK to upgrade.
+20. In the **Project Properties** window, go to **Configuration Properties → C/C++ → Code Generation** and change **Runtime Library** from "Multi-threaded DLL (/MD)" to "Multi-threaded (/MT)". For the Debug configuration, change it from "Multi-threaded Debug DLL (/MDd)" to "Multi-threaded Debug (/MTd)".
+21. Set the Solution Configuration to Release then press **Build → Build Solution**. You may also build Debug|x86 if desired.
+22. Move lib\portaudio\bindings\cpp\lib\portaudiocpp-vc7_1-r.lib to lib\portaudiocpp-vc7_1-r.lib (or move lib\portaudio\bindings\cpp\lib\portaudiocpp-vc7_1-d.lib to lib\Debug\portaudiocpp-vc7_1-d.lib if Debug build).
+23. Copy the lib\portaudio\bindings\cpp\include\\**portaudiocpp** folder to a new include\\**portaudiocpp** folder.
+24. Copy the header files from lib\portaudio\include into the include\\**portaudiocpp** folder as well.
 
 #### Setting up libopenmpt
 
-24. Clone [libopenmpt-0.6.3](https://github.com/OpenMPT/openmpt/tree/libopenmpt-0.6.3) into lib\\**openmpt**. (ie, `git clone -b libopenmpt-0.6.3 https://github.com/OpenMPT/openmpt.git lib/openmpt`)
-25. Open lib\openmpt\build\vs2022win10\\**libopenmpt-small.sln** in Visual Studio 2022.
-26. Retarget the 4 projects to your installed version of the Windows 10 SDK if necessary.
-27. For each of the 4 projects, go to **Configuration Properties → C/C++ → Code Generation** and change **Spectre Mitigation** to "Disabled". Do this for the Release configuration, and also the Debug configuration if desired.
-28. Set the Solution Configuration to Release and set the Solution Platform to Win32 then press **Build → Build Solution**. You may also build Debug|Win32 if desired.
-29. Move the 4 .lib files from lib\openmpt\build\lib\vs2022win10\x86\Release to lib (or from lib\openmpt\build\lib\vs2022win10\x86\Debug to lib\Debug if Debug build).
-30. Copy the public interface header files from lib\openmpt\libopenmpt into a new include\\**libopenmpt** folder. (Only libopenmpt.hpp, libopenmpt_ext.hpp, libopenmpt_config.h, and libopenmpt_version.h are required.)
+25. Clone [libopenmpt-0.6.3](https://github.com/OpenMPT/openmpt/tree/libopenmpt-0.6.3) into lib\\**openmpt**. (ie, `git clone -b libopenmpt-0.6.3 https://github.com/OpenMPT/openmpt.git lib/openmpt`)
+26. Open lib\openmpt\build\vs2022win10\\**libopenmpt-small.sln** in Visual Studio 2022.
+27. Retarget the 4 projects to your installed version of the Windows 10 SDK if necessary.
+28. For each of the 4 projects, go to **Configuration Properties → C/C++ → Code Generation** and change **Spectre Mitigation** to "Disabled". Do this for the Release configuration, and also the Debug configuration if desired.
+29. Set the Solution Configuration to Release and set the Solution Platform to Win32 then press **Build → Build Solution**. You may also build Debug|Win32 if desired.
+30. Move the 4 .lib files from lib\openmpt\build\lib\vs2022win10\x86\Release to lib (or from lib\openmpt\build\lib\vs2022win10\x86\Debug to lib\Debug if Debug build).
+31. Copy the public interface header files from lib\openmpt\libopenmpt into a new include\\**libopenmpt** folder. (Only libopenmpt.hpp, libopenmpt_ext.hpp, libopenmpt_config.h, and libopenmpt_version.h are required.)
 
 #### Building Crystal Tracker
 
-31. Open ide\\**crystal-tracker.sln** in Visual Studio 2022.
-32. If the Solution Configuration dropdown on the toolbar says Debug, set it to **Release**.
-33. Go to **Build → Build Solution** to build the project. This will create bin\Release\\**crystaltracker.exe**. (A Debug build will create bin\Debug\\**crystaltrackerd.exe**.)
+32. Open ide\\**crystal-tracker.sln** in Visual Studio 2022.
+33. If the Solution Configuration dropdown on the toolbar says Debug, set it to **Release**.
+34. Go to **Build → Build Solution** to build the project. This will create bin\Release\\**crystaltracker.exe**. (A Debug build will create bin\Debug\\**crystaltrackerd.exe**.)
 
 **Note:** To build a 64-bit executable, you will need to create the x64 Solution Platform for fltk (fltk.sln) and portaudiocpp (static_library.sln). To do this, go to **Build → Configuration Manager…** and in the **Active solution platform:** dropdown select **<New…>**. Set the new platform to "x64" and copy settings from the 32-bit platform (either Win32 or x86). Make sure the "Create new project platforms" checkbox is checked and then click OK. Make sure the project configuration changes described above are also applied to this platform. portaudio.sln and libopenmpt-small.sln already have an x64 target.  
 After building the x64 libs for fltk, portaudio, portaudiocpp, and openmpt, copy the .lib files to lib\\**x64** and lib\Debug\\**x64**.
