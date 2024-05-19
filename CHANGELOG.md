@@ -1,6 +1,10 @@
 Changelog
 =========
 
+### Crystal Tracker v0.6.3 (2024-05-19)
+
+ * Fix a few possible deadlocks on Mac and Windows.
+
 ### Crystal Tracker v0.6.2 (2024-05-03)
 
  * Bugfix: Calls can no longer be created across the main loop line.
