@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
 	}
 
 	int argi = 1;
-#ifndef __APPLE__
+#ifdef __APPLE__
 	// Ignore the "-psn_*" parameter passed by some older macOS versions
 	// See https://stackoverflow.com/questions/10242115/os-x-strange-psn-command-line-parameter-when-launched-from-finder
 	while (argi < argc) {
