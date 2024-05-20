@@ -287,6 +287,11 @@ private:
 	std::set<int32_t> _channel_3_unused_targets;
 	std::set<int32_t> _channel_4_unused_targets;
 
+	std::set<int32_t> _channel_1_tempo_changes;
+	std::set<int32_t> _channel_2_tempo_changes;
+	std::set<int32_t> _channel_3_tempo_changes;
+	std::set<int32_t> _channel_4_tempo_changes;
+
 	int32_t _cursor_tick = -1;
 
 	struct Selection_Region {
@@ -354,6 +359,7 @@ private:
 	std::vector<Loop_Box *> *active_channel_loops();
 	std::vector<Call_Box *> *active_channel_calls();
 	std::set<int32_t> *active_channel_unused_targets();
+	std::set<int32_t> *active_channel_tempo_changes();
 protected:
 	void draw() override;
 };
@@ -468,7 +474,7 @@ public:
 	void select_note_at_tick();
 	void select_call_at_tick();
 
-	void build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::set<int32_t> &unused_targets, std::vector<Note_View> &notes, const std::vector<Command> &commands, int32_t end_tick, Fl_Color color);
+	void build_note_view(std::vector<Loop_Box *> &loops, std::vector<Call_Box *> &calls, std::set<int32_t> &unused_targets, std::set<int32_t> &tempo_changes, std::vector<Note_View> &notes, const std::vector<Command> &commands, int32_t end_tick, Fl_Color color);
 
 	Note_View verify_channel_1_loop_view(Song &song) { return verify_loop_view(song, 1, _channel_1_notes, _channel_1_loop_tick, _channel_1_end_tick); }
 	Note_View verify_channel_2_loop_view(Song &song) { return verify_loop_view(song, 2, _channel_2_notes, _channel_2_loop_tick, _channel_2_end_tick); }
