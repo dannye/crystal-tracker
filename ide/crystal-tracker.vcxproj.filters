@@ -179,6 +179,12 @@
     <None Include="..\res\decrease-spacing.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\down.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\down-down.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\error.xpm">
       <Filter>Resource Files</Filter>
     </None>
@@ -192,6 +198,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\keys.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\left.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\lengthen.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\loop.xpm">
@@ -221,6 +233,9 @@
     <None Include="..\res\redo.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\right.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\ruler.xpm">
       <Filter>Resource Files</Filter>
     </None>
@@ -236,6 +251,9 @@
     <None Include="..\res\scroll-light.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\shorten.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\stop.xpm">
       <Filter>Resource Files</Filter>
     </None>
@@ -249,6 +267,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\undo.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\up.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\up-up.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\verify.xpm">

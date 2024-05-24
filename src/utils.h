@@ -51,6 +51,9 @@
 #define FULLSCREEN_KEY FL_COMMAND + FL_SHIFT + 'f'
 
 #define TAB_SYMBOL "\xE2\x87\xA5"
+#define UP_SYMBOL "\xE2\x86\x91"
+#define DOWN_SYMBOL "\xE2\x86\x93"
+#define LEFT_SYMBOL "\xE2\x86\x90"
 #define RIGHT_SYMBOL "\xE2\x86\x92"
 #define BACKSPACE_SYMBOL "\xE2\x8C\xAB"
 #else
@@ -78,6 +81,9 @@
 #define FULLSCREEN_KEY FL_F + 11
 
 #define TAB_SYMBOL "Tab"
+#define UP_SYMBOL "Up"
+#define DOWN_SYMBOL "Down"
+#define LEFT_SYMBOL "Left"
 #define RIGHT_SYMBOL "Right"
 #define BACKSPACE_SYMBOL "Backspace"
 #endif

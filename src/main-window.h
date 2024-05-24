@@ -74,7 +74,15 @@ private:
 		*_continuous_tb = NULL;
 	Toolbar_Button
 		*_undo_tb = NULL,
-		*_redo_tb = NULL;
+		*_redo_tb = NULL,
+		*_pitch_up_tb = NULL,
+		*_pitch_down_tb = NULL,
+		*_octave_up_tb = NULL,
+		*_octave_down_tb = NULL,
+		*_move_left_tb = NULL,
+		*_move_right_tb = NULL,
+		*_shorten_tb = NULL,
+		*_lengthen_tb = NULL;
 	Toolbar_Toggle_Button
 		*_pencil_mode_tb = NULL;
 	Toolbar_Radio_Button

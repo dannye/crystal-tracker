@@ -83,6 +83,16 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_undo_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_redo_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	SEPARATE_TOOLBAR_BUTTONS;
+	_pitch_up_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_pitch_down_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_octave_up_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_octave_down_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	SEPARATE_TOOLBAR_BUTTONS;
+	_move_left_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_move_right_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_shorten_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_lengthen_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	SEPARATE_TOOLBAR_BUTTONS;
 	_pencil_mode_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	SEPARATE_TOOLBAR_BUTTONS;
 	_channel_1_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
@@ -424,19 +434,23 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_new_tb->tooltip("New... (" COMMAND_KEY_PLUS "N)");
 	_new_tb->callback((Fl_Callback *)new_cb, this);
 	_new_tb->image(NEW_ICON);
+	_new_tb->shortcut(FL_COMMAND + 'n');
 	_new_tb->take_focus();
 
 	_open_tb->tooltip("Open... (" COMMAND_KEY_PLUS "O)");
 	_open_tb->callback((Fl_Callback *)open_cb, this);
 	_open_tb->image(OPEN_ICON);
+	_open_tb->shortcut(FL_COMMAND + 'o');
 
 	_save_tb->tooltip("Save (" COMMAND_KEY_PLUS "S)");
 	_save_tb->callback((Fl_Callback *)save_cb, this);
 	_save_tb->image(SAVE_ICON);
+	_save_tb->shortcut(FL_COMMAND + 's');
 
 	_save_as_tb->tooltip("Save As... (" COMMAND_SHIFT_KEYS_PLUS "S)");
 	_save_as_tb->callback((Fl_Callback *)save_as_cb, this);
 	_save_as_tb->image(SAVE_AS_ICON);
+	_save_as_tb->shortcut(FL_COMMAND + 'S');
 
 	_play_pause_tb->tooltip("Play/Pause (Spacebar)");
 	_play_pause_tb->callback((Fl_Callback *)play_pause_cb, this);
@@ -464,10 +478,52 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_undo_tb->tooltip("Undo (" COMMAND_KEY_PLUS "Z)");
 	_undo_tb->callback((Fl_Callback *)undo_cb, this);
 	_undo_tb->image(UNDO_ICON);
+	_undo_tb->shortcut(FL_COMMAND + 'z');
 
 	_redo_tb->tooltip("Redo (" COMMAND_KEY_PLUS "Y)");
 	_redo_tb->callback((Fl_Callback *)redo_cb, this);
 	_redo_tb->image(REDO_ICON);
+	_redo_tb->shortcut(FL_COMMAND + 'y');
+
+	_pitch_up_tb->tooltip("Pitch Up (" COMMAND_KEY_PLUS UP_SYMBOL ")");
+	_pitch_up_tb->callback((Fl_Callback *)pitch_up_cb, this);
+	_pitch_up_tb->image(UP_ICON);
+	_pitch_up_tb->shortcut(FL_COMMAND + UP_KEY);
+
+	_pitch_down_tb->tooltip("Pitch Down (" COMMAND_KEY_PLUS DOWN_SYMBOL ")");
+	_pitch_down_tb->callback((Fl_Callback *)pitch_down_cb, this);
+	_pitch_down_tb->image(DOWN_ICON);
+	_pitch_down_tb->shortcut(FL_COMMAND + DOWN_KEY);
+
+	_octave_up_tb->tooltip("Octave Up (" COMMAND_SHIFT_KEYS_PLUS UP_SYMBOL ")");
+	_octave_up_tb->callback((Fl_Callback *)octave_up_cb, this);
+	_octave_up_tb->image(UP_UP_ICON);
+	_octave_up_tb->shortcut(FL_COMMAND + FL_SHIFT + UP_KEY);
+
+	_octave_down_tb->tooltip("Octave Down (" COMMAND_SHIFT_KEYS_PLUS DOWN_SYMBOL ")");
+	_octave_down_tb->callback((Fl_Callback *)octave_down_cb, this);
+	_octave_down_tb->image(DOWN_DOWN_ICON);
+	_octave_down_tb->shortcut(FL_COMMAND + FL_SHIFT + DOWN_KEY);
+
+	_move_left_tb->tooltip("Move Left (" COMMAND_KEY_PLUS LEFT_SYMBOL ")");
+	_move_left_tb->callback((Fl_Callback *)move_left_cb, this);
+	_move_left_tb->image(LEFT_ICON);
+	_move_left_tb->shortcut(FL_COMMAND + LEFT_KEY);
+
+	_move_right_tb->tooltip("Move Right (" COMMAND_KEY_PLUS RIGHT_SYMBOL ")");
+	_move_right_tb->callback((Fl_Callback *)move_right_cb, this);
+	_move_right_tb->image(RIGHT_ICON);
+	_move_right_tb->shortcut(FL_COMMAND + RIGHT_KEY);
+
+	_shorten_tb->tooltip("Shorten (" COMMAND_SHIFT_KEYS_PLUS LEFT_SYMBOL ")");
+	_shorten_tb->callback((Fl_Callback *)shorten_cb, this);
+	_shorten_tb->image(SHORTEN_ICON);
+	_shorten_tb->shortcut(FL_COMMAND + FL_SHIFT + LEFT_KEY);
+
+	_lengthen_tb->tooltip("Lengthen (" COMMAND_SHIFT_KEYS_PLUS RIGHT_SYMBOL ")");
+	_lengthen_tb->callback((Fl_Callback *)lengthen_cb, this);
+	_lengthen_tb->image(LENGTHEN_ICON);
+	_lengthen_tb->shortcut(FL_COMMAND + FL_SHIFT + RIGHT_KEY);
 
 	_pencil_mode_tb->tooltip("Pencil Mode (`)");
 	_pencil_mode_tb->callback((Fl_Callback *)pencil_mode_tb_cb, this);
@@ -517,10 +573,12 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_decrease_spacing_tb->tooltip("Decrease Spacing (" SHIFT_KEY_PLUS "-)");
 	_decrease_spacing_tb->callback((Fl_Callback *)decrease_spacing_cb, this);
 	_decrease_spacing_tb->image(DECREASE_SPACING_ICON);
+	_decrease_spacing_tb->shortcut('_');
 
 	_increase_spacing_tb->tooltip("Increase Spacing (" SHIFT_KEY_PLUS "=)");
 	_increase_spacing_tb->callback((Fl_Callback *)increase_spacing_cb, this);
 	_increase_spacing_tb->image(INCREASE_SPACING_ICON);
+	_increase_spacing_tb->shortcut('+');
 
 	// Configure status bar
 	_channel_1_status_label->callback((Fl_Callback *)channel_1_mute_cb, this);
@@ -972,51 +1030,67 @@ void Main_Window::update_active_controls() {
 			_select_invert_mi->activate();
 			if (_piano_roll->pitch_up(_song, true)) {
 				_pitch_up_mi->activate();
+				_pitch_up_tb->activate();
 			}
 			else {
 				_pitch_up_mi->deactivate();
+				_pitch_up_tb->deactivate();
 			}
 			if (_piano_roll->pitch_down(_song, true)) {
 				_pitch_down_mi->activate();
+				_pitch_down_tb->activate();
 			}
 			else {
 				_pitch_down_mi->deactivate();
+				_pitch_down_tb->deactivate();
 			}
 			if (_piano_roll->octave_up(_song, true)) {
 				_octave_up_mi->activate();
+				_octave_up_tb->activate();
 			}
 			else {
 				_octave_up_mi->deactivate();
+				_octave_up_tb->deactivate();
 			}
 			if (_piano_roll->octave_down(_song, true)) {
 				_octave_down_mi->activate();
+				_octave_down_tb->activate();
 			}
 			else {
 				_octave_down_mi->deactivate();
+				_octave_down_tb->deactivate();
 			}
 			if (_piano_roll->move_left(_song, true)) {
 				_move_left_mi->activate();
+				_move_left_tb->activate();
 			}
 			else {
 				_move_left_mi->deactivate();
+				_move_left_tb->deactivate();
 			}
 			if (_piano_roll->move_right(_song, true)) {
 				_move_right_mi->activate();
+				_move_right_tb->activate();
 			}
 			else {
 				_move_right_mi->deactivate();
+				_move_right_tb->deactivate();
 			}
 			if (_piano_roll->shorten(_song, true)) {
 				_shorten_mi->activate();
+				_shorten_tb->activate();
 			}
 			else {
 				_shorten_mi->deactivate();
+				_shorten_tb->deactivate();
 			}
 			if (_piano_roll->lengthen(_song, true)) {
 				_lengthen_mi->activate();
+				_lengthen_tb->activate();
 			}
 			else {
 				_lengthen_mi->deactivate();
+				_lengthen_tb->deactivate();
 			}
 			if (_piano_roll->delete_selection(_song, true)) {
 				_delete_selection_mi->activate();
@@ -1041,13 +1115,21 @@ void Main_Window::update_active_controls() {
 			_select_none_mi->deactivate();
 			_select_invert_mi->deactivate();
 			_pitch_up_mi->deactivate();
+			_pitch_up_tb->deactivate();
 			_pitch_down_mi->deactivate();
+			_pitch_down_tb->deactivate();
 			_octave_up_mi->deactivate();
+			_octave_up_tb->deactivate();
 			_octave_down_mi->deactivate();
+			_octave_down_tb->deactivate();
 			_move_left_mi->deactivate();
+			_move_left_tb->deactivate();
 			_move_right_mi->deactivate();
+			_move_right_tb->deactivate();
 			_shorten_mi->deactivate();
+			_shorten_tb->deactivate();
 			_lengthen_mi->deactivate();
+			_lengthen_tb->deactivate();
 			_delete_selection_mi->deactivate();
 			_snip_selection_mi->deactivate();
 			_split_note_mi->deactivate();
@@ -1117,13 +1199,21 @@ void Main_Window::update_active_controls() {
 		_select_none_mi->deactivate();
 		_select_invert_mi->deactivate();
 		_pitch_up_mi->deactivate();
+		_pitch_up_tb->deactivate();
 		_pitch_down_mi->deactivate();
+		_pitch_down_tb->deactivate();
 		_octave_up_mi->deactivate();
+		_octave_up_tb->deactivate();
 		_octave_down_mi->deactivate();
+		_octave_down_tb->deactivate();
 		_move_left_mi->deactivate();
+		_move_left_tb->deactivate();
 		_move_right_mi->deactivate();
+		_move_right_tb->deactivate();
 		_shorten_mi->deactivate();
+		_shorten_tb->deactivate();
 		_lengthen_mi->deactivate();
+		_lengthen_tb->deactivate();
 		_delete_selection_mi->deactivate();
 		_snip_selection_mi->deactivate();
 		_split_note_mi->deactivate();
@@ -1628,6 +1718,14 @@ void Main_Window::update_icons() {
 	make_deimage(_continuous_tb);
 	make_deimage(_undo_tb);
 	make_deimage(_redo_tb);
+	make_deimage(_pitch_up_tb);
+	make_deimage(_pitch_down_tb);
+	make_deimage(_octave_up_tb);
+	make_deimage(_octave_down_tb);
+	make_deimage(_move_left_tb);
+	make_deimage(_move_right_tb);
+	make_deimage(_shorten_tb);
+	make_deimage(_lengthen_tb);
 	make_deimage(_pencil_mode_tb);
 	make_deimage(_channel_1_tb);
 	make_deimage(_channel_2_tb);
