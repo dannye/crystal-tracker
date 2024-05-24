@@ -251,6 +251,9 @@
     <None Include="..\res\undo.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\verify.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\warning.xpm">
       <Filter>Resource Files</Filter>
     </None>

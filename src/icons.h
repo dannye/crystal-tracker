@@ -28,6 +28,7 @@
 #include "three.xpm"
 #include "two.xpm"
 #include "undo.xpm"
+#include "verify.xpm"
 #include "zoom.xpm"
 
 static Fl_Pixmap BLANK_ICON(BLANK_XPM);
@@ -53,6 +54,7 @@ static Fl_Pixmap STOP_ICON(STOP_XPM);
 static Fl_Pixmap THREE_ICON(THREE_XPM);
 static Fl_Pixmap TWO_ICON(TWO_XPM);
 static Fl_Pixmap UNDO_ICON(UNDO_XPM);
+static Fl_Pixmap VERIFY_ICON(VERIFY_XPM);
 static Fl_Pixmap ZOOM_ICON(ZOOM_XPM);
 
 bool make_deimage(Fl_Widget *wgt) {

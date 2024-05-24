@@ -69,6 +69,7 @@ private:
 		*_play_pause_tb = NULL,
 		*_stop_tb = NULL;
 	Toolbar_Toggle_Button
+		*_loop_verification_tb = NULL,
 		*_loop_tb = NULL,
 		*_continuous_tb = NULL;
 	Toolbar_Button
@@ -289,7 +290,7 @@ private:
 	// Play menu
 	static void play_pause_cb(Fl_Widget *w, Main_Window *mw);
 	static void stop_cb(Fl_Widget *w, Main_Window *mw);
-	static void loop_verification_cb(Fl_Widget *w, Main_Window *mw);
+	static void loop_verification_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void loop_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void continuous_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void channel_1_mute_cb(Fl_Widget *w, Main_Window *mw);
@@ -356,6 +357,7 @@ private:
 	static void increase_spacing_cb(Fl_Widget *w, Main_Window *mw);
 	static void full_screen_cb(Fl_Widget *w, Main_Window *mw);
 	// Toolbar buttons
+	static void loop_verification_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void continuous_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void pencil_mode_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);

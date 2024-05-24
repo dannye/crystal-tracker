@@ -275,6 +275,7 @@
     <None Include="..\res\three.xpm" />
     <None Include="..\res\two.xpm" />
     <None Include="..\res\undo.xpm" />
+    <None Include="..\res\verify.xpm" />
     <None Include="..\res\warning.xpm" />
     <None Include="..\res\zoom.xpm" />
   </ItemGroup>

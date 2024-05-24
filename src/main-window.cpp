@@ -37,7 +37,6 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_wx(x), _wy(y), _ww(w), _wh(h) {
 
 	// Get global configs
-	int loop_config = Preferences::get("loop", 1);
 	int key_labels_config = Preferences::get("key_labels", 0);
 	int note_labels_config = Preferences::get("note_labels", 0);
 	int ruler_config = Preferences::get("ruler", 1);
@@ -75,6 +74,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	SEPARATE_TOOLBAR_BUTTONS;
 	_play_pause_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_stop_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	SEPARATE_TOOLBAR_BUTTONS;
+	_loop_verification_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	SEPARATE_TOOLBAR_BUTTONS;
 	_loop_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_continuous_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	SEPARATE_TOOLBAR_BUTTONS;
@@ -214,8 +216,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("&Play/Pause", ' ', (Fl_Callback *)play_pause_cb, this, 0),
 		SYS_MENU_ITEM("&Stop", ESCAPE_KEY, (Fl_Callback *)stop_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Loop &Verification", FL_COMMAND + 'L', (Fl_Callback *)loop_verification_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER),
-		SYS_MENU_ITEM("&Loop", FL_COMMAND + 'l', (Fl_Callback *)loop_cb, this,
-			FL_MENU_TOGGLE | (loop_config ? FL_MENU_VALUE : 0)),
+		SYS_MENU_ITEM("&Loop", FL_COMMAND + 'l', (Fl_Callback *)loop_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE),
 		SYS_MENU_ITEM("&Continuous Scroll", '\\', (Fl_Callback *)continuous_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Mute Channel &1", FL_F + 5, (Fl_Callback *)channel_1_mute_cb, this, FL_MENU_TOGGLE),
 		SYS_MENU_ITEM("Mute Channel &2", FL_F + 6, (Fl_Callback *)channel_2_mute_cb, this, FL_MENU_TOGGLE),
@@ -444,6 +445,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_stop_tb->tooltip("Stop (Esc)");
 	_stop_tb->callback((Fl_Callback *)stop_cb, this);
 	_stop_tb->image(STOP_ICON);
+
+	_loop_verification_tb->tooltip("Loop Verification (" COMMAND_SHIFT_KEYS_PLUS "L)");
+	_loop_verification_tb->callback((Fl_Callback *)loop_verification_tb_cb, this);
+	_loop_verification_tb->image(VERIFY_ICON);
+	_loop_verification_tb->value(loop_verification());
 
 	_loop_tb->tooltip("Loop (" COMMAND_KEY_PLUS "L)");
 	_loop_tb->callback((Fl_Callback *)loop_tb_cb, this);
@@ -1617,6 +1623,7 @@ void Main_Window::update_icons() {
 	make_deimage(_save_as_tb);
 	make_deimage(_play_pause_tb);
 	make_deimage(_stop_tb);
+	make_deimage(_loop_verification_tb);
 	make_deimage(_loop_tb);
 	make_deimage(_continuous_tb);
 	make_deimage(_undo_tb);
@@ -1959,7 +1966,6 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 		Preferences::set("fullscreen", 0);
 	}
 	Preferences::set("maximized", mw->maximized());
-	Preferences::set("loop", mw->loop());
 	Preferences::set("key_labels", mw->key_labels());
 	Preferences::set("note_labels", mw->note_labels());
 	Preferences::set("ruler", mw->ruler());
@@ -1982,9 +1988,12 @@ void Main_Window::stop_cb(Fl_Widget *, Main_Window *mw) {
 	mw->stop_playback();
 }
 
-void Main_Window::loop_verification_cb(Fl_Widget *, Main_Window *) {}
-
 #define SYNC_TB_WITH_M(tb, m) tb->value(m->mvalue()->value())
+
+void Main_Window::loop_verification_cb(Fl_Menu_ *m, Main_Window *mw) {
+	SYNC_TB_WITH_M(mw->_loop_verification_tb, m);
+	mw->redraw();
+}
 
 void Main_Window::loop_cb(Fl_Menu_ *m, Main_Window *mw) {
 	SYNC_TB_WITH_M(mw->_loop_tb, m);
@@ -2031,6 +2040,12 @@ void Main_Window::zoom_cb(Fl_Menu_ *m, Main_Window *mw) {
 #undef SYNC_TB_WITH_M
 
 #define SYNC_MI_WITH_TB(tb, mi) if (tb->value()) mi->set(); else mi->clear()
+
+void Main_Window::loop_verification_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
+	SYNC_MI_WITH_TB(mw->_loop_verification_tb, mw->_loop_verification_mi);
+	mw->_menu_bar->update();
+	mw->redraw();
+}
 
 void Main_Window::loop_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 	SYNC_MI_WITH_TB(mw->_loop_tb, mw->_loop_mi);
