@@ -259,8 +259,8 @@
     <None Include="..\res\increase-spacing.xpm" />
     <None Include="..\res\keys.xpm" />
     <None Include="..\res\left.xpm" />
-    <None Include="..\res\lengthen.xpm" />
     <None Include="..\res\loop.xpm" />
+    <None Include="..\res\minus.xpm" />
     <None Include="..\res\new.xpm" />
     <None Include="..\res\notes.xpm" />
     <None Include="..\res\one.xpm" />
@@ -268,6 +268,7 @@
     <None Include="..\res\pause.xpm" />
     <None Include="..\res\pencil.xpm" />
     <None Include="..\res\play.xpm" />
+    <None Include="..\res\plus.xpm" />
     <None Include="..\res\redo.xpm" />
     <None Include="..\res\right.xpm" />
     <None Include="..\res\ruler.xpm" />
@@ -275,7 +276,6 @@
     <None Include="..\res\save-as.xpm" />
     <None Include="..\res\scroll-dark.xpm" />
     <None Include="..\res\scroll-light.xpm" />
-    <None Include="..\res\shorten.xpm" />
     <None Include="..\res\stop.xpm" />
     <None Include="..\res\success.xpm" />
     <None Include="..\res\three.xpm" />

@@ -203,10 +203,10 @@
     <None Include="..\res\left.xpm">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\res\lengthen.xpm">
+    <None Include="..\res\loop.xpm">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\res\loop.xpm">
+    <None Include="..\res\minus.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\new.xpm">
@@ -230,6 +230,9 @@
     <None Include="..\res\play.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\plus.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\redo.xpm">
       <Filter>Resource Files</Filter>
     </None>
@@ -249,9 +252,6 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\scroll-light.xpm">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\res\shorten.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\stop.xpm">

@@ -430,27 +430,36 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 #endif
 
 	// Configure toolbar buttons
+	// the shortcuts don't work as well on Mac, so let the menu bar handle them
 
 	_new_tb->tooltip("New... (" COMMAND_KEY_PLUS "N)");
 	_new_tb->callback((Fl_Callback *)new_cb, this);
 	_new_tb->image(NEW_ICON);
+#ifndef __APPLE__
 	_new_tb->shortcut(FL_COMMAND + 'n');
+#endif
 	_new_tb->take_focus();
 
 	_open_tb->tooltip("Open... (" COMMAND_KEY_PLUS "O)");
 	_open_tb->callback((Fl_Callback *)open_cb, this);
 	_open_tb->image(OPEN_ICON);
+#ifndef __APPLE__
 	_open_tb->shortcut(FL_COMMAND + 'o');
+#endif
 
 	_save_tb->tooltip("Save (" COMMAND_KEY_PLUS "S)");
 	_save_tb->callback((Fl_Callback *)save_cb, this);
 	_save_tb->image(SAVE_ICON);
+#ifndef __APPLE__
 	_save_tb->shortcut(FL_COMMAND + 's');
+#endif
 
 	_save_as_tb->tooltip("Save As... (" COMMAND_SHIFT_KEYS_PLUS "S)");
 	_save_as_tb->callback((Fl_Callback *)save_as_cb, this);
 	_save_as_tb->image(SAVE_AS_ICON);
+#ifndef __APPLE__
 	_save_as_tb->shortcut(FL_COMMAND + 'S');
+#endif
 
 	_play_pause_tb->tooltip("Play/Pause (Spacebar)");
 	_play_pause_tb->callback((Fl_Callback *)play_pause_cb, this);
@@ -478,52 +487,72 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_undo_tb->tooltip("Undo (" COMMAND_KEY_PLUS "Z)");
 	_undo_tb->callback((Fl_Callback *)undo_cb, this);
 	_undo_tb->image(UNDO_ICON);
+#ifndef __APPLE__
 	_undo_tb->shortcut(FL_COMMAND + 'z');
+#endif
 
 	_redo_tb->tooltip("Redo (" COMMAND_KEY_PLUS "Y)");
 	_redo_tb->callback((Fl_Callback *)redo_cb, this);
 	_redo_tb->image(REDO_ICON);
+#ifndef __APPLE__
 	_redo_tb->shortcut(FL_COMMAND + 'y');
+#endif
 
 	_pitch_up_tb->tooltip("Pitch Up (" COMMAND_KEY_PLUS UP_SYMBOL ")");
 	_pitch_up_tb->callback((Fl_Callback *)pitch_up_cb, this);
 	_pitch_up_tb->image(UP_ICON);
+#ifndef __APPLE__
 	_pitch_up_tb->shortcut(FL_COMMAND + UP_KEY);
+#endif
 
 	_pitch_down_tb->tooltip("Pitch Down (" COMMAND_KEY_PLUS DOWN_SYMBOL ")");
 	_pitch_down_tb->callback((Fl_Callback *)pitch_down_cb, this);
 	_pitch_down_tb->image(DOWN_ICON);
+#ifndef __APPLE__
 	_pitch_down_tb->shortcut(FL_COMMAND + DOWN_KEY);
+#endif
 
 	_octave_up_tb->tooltip("Octave Up (" COMMAND_SHIFT_KEYS_PLUS UP_SYMBOL ")");
 	_octave_up_tb->callback((Fl_Callback *)octave_up_cb, this);
 	_octave_up_tb->image(UP_UP_ICON);
+#ifndef __APPLE__
 	_octave_up_tb->shortcut(FL_COMMAND + FL_SHIFT + UP_KEY);
+#endif
 
 	_octave_down_tb->tooltip("Octave Down (" COMMAND_SHIFT_KEYS_PLUS DOWN_SYMBOL ")");
 	_octave_down_tb->callback((Fl_Callback *)octave_down_cb, this);
 	_octave_down_tb->image(DOWN_DOWN_ICON);
+#ifndef __APPLE__
 	_octave_down_tb->shortcut(FL_COMMAND + FL_SHIFT + DOWN_KEY);
+#endif
 
 	_move_left_tb->tooltip("Move Left (" COMMAND_KEY_PLUS LEFT_SYMBOL ")");
 	_move_left_tb->callback((Fl_Callback *)move_left_cb, this);
 	_move_left_tb->image(LEFT_ICON);
+#ifndef __APPLE__
 	_move_left_tb->shortcut(FL_COMMAND + LEFT_KEY);
+#endif
 
 	_move_right_tb->tooltip("Move Right (" COMMAND_KEY_PLUS RIGHT_SYMBOL ")");
 	_move_right_tb->callback((Fl_Callback *)move_right_cb, this);
 	_move_right_tb->image(RIGHT_ICON);
+#ifndef __APPLE__
 	_move_right_tb->shortcut(FL_COMMAND + RIGHT_KEY);
+#endif
 
 	_shorten_tb->tooltip("Shorten (" COMMAND_SHIFT_KEYS_PLUS LEFT_SYMBOL ")");
 	_shorten_tb->callback((Fl_Callback *)shorten_cb, this);
-	_shorten_tb->image(SHORTEN_ICON);
+	_shorten_tb->image(MINUS_ICON);
+#ifndef __APPLE__
 	_shorten_tb->shortcut(FL_COMMAND + FL_SHIFT + LEFT_KEY);
+#endif
 
 	_lengthen_tb->tooltip("Lengthen (" COMMAND_SHIFT_KEYS_PLUS RIGHT_SYMBOL ")");
 	_lengthen_tb->callback((Fl_Callback *)lengthen_cb, this);
-	_lengthen_tb->image(LENGTHEN_ICON);
+	_lengthen_tb->image(PLUS_ICON);
+#ifndef __APPLE__
 	_lengthen_tb->shortcut(FL_COMMAND + FL_SHIFT + RIGHT_KEY);
+#endif
 
 	_pencil_mode_tb->tooltip("Pencil Mode (`)");
 	_pencil_mode_tb->callback((Fl_Callback *)pencil_mode_tb_cb, this);
@@ -573,12 +602,16 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_decrease_spacing_tb->tooltip("Decrease Spacing (" SHIFT_KEY_PLUS "-)");
 	_decrease_spacing_tb->callback((Fl_Callback *)decrease_spacing_cb, this);
 	_decrease_spacing_tb->image(DECREASE_SPACING_ICON);
-	_decrease_spacing_tb->shortcut('_');
+#ifndef __APPLE__
+	_decrease_spacing_tb->shortcut(FL_SHIFT + '-');
+#endif
 
 	_increase_spacing_tb->tooltip("Increase Spacing (" SHIFT_KEY_PLUS "=)");
 	_increase_spacing_tb->callback((Fl_Callback *)increase_spacing_cb, this);
 	_increase_spacing_tb->image(INCREASE_SPACING_ICON);
-	_increase_spacing_tb->shortcut('+');
+#ifndef __APPLE__
+	_increase_spacing_tb->shortcut(FL_SHIFT + '=');
+#endif
 
 	// Configure status bar
 	_channel_1_status_label->callback((Fl_Callback *)channel_1_mute_cb, this);
