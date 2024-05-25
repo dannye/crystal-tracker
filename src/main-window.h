@@ -82,7 +82,11 @@ private:
 		*_move_left_tb = NULL,
 		*_move_right_tb = NULL,
 		*_shorten_tb = NULL,
-		*_lengthen_tb = NULL;
+		*_lengthen_tb = NULL,
+		*_delete_selection_tb = NULL,
+		*_snip_selection_tb = NULL,
+		*_split_note_tb = NULL,
+		*_glue_note_tb = NULL;
 	Toolbar_Toggle_Button
 		*_pencil_mode_tb = NULL;
 	Toolbar_Radio_Button

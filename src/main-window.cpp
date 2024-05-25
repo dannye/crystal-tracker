@@ -93,6 +93,12 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_shorten_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_lengthen_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	SEPARATE_TOOLBAR_BUTTONS;
+	_delete_selection_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_snip_selection_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	SEPARATE_TOOLBAR_BUTTONS;
+	_split_note_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_glue_note_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	SEPARATE_TOOLBAR_BUTTONS;
 	_pencil_mode_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	SEPARATE_TOOLBAR_BUTTONS;
 	_channel_1_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
@@ -552,6 +558,34 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_lengthen_tb->image(PLUS_ICON);
 #ifndef __APPLE__
 	_lengthen_tb->shortcut(FL_COMMAND + FL_SHIFT + RIGHT_KEY);
+#endif
+
+	_delete_selection_tb->tooltip("Delete Selection (" DELETE_SYMBOL ")");
+	_delete_selection_tb->callback((Fl_Callback *)delete_selection_cb, this);
+	_delete_selection_tb->image(DELETE_ICON);
+#ifndef __APPLE__
+	_delete_selection_tb->shortcut(DELETE_KEY);
+#endif
+
+	_snip_selection_tb->tooltip("Snip Selection (" SHIFT_KEY_PLUS DELETE_SYMBOL ")");
+	_snip_selection_tb->callback((Fl_Callback *)snip_selection_cb, this);
+	_snip_selection_tb->image(SNIP_ICON);
+#ifndef __APPLE__
+	_snip_selection_tb->shortcut(FL_SHIFT + DELETE_KEY);
+#endif
+
+	_split_note_tb->tooltip("Split Note (/)");
+	_split_note_tb->callback((Fl_Callback *)split_note_cb, this);
+	_split_note_tb->image(SPLIT_LIGHT_ICON);
+#ifndef __APPLE__
+	_split_note_tb->shortcut('/');
+#endif
+
+	_glue_note_tb->tooltip("Glue Note (" SHIFT_KEY_PLUS "/)");
+	_glue_note_tb->callback((Fl_Callback *)glue_note_cb, this);
+	_glue_note_tb->image(GLUE_LIGHT_ICON);
+#ifndef __APPLE__
+	_glue_note_tb->shortcut(GLUE_KEY);
 #endif
 
 	_pencil_mode_tb->tooltip("Pencil Mode (`)");
@@ -1127,18 +1161,32 @@ void Main_Window::update_active_controls() {
 			}
 			if (_piano_roll->delete_selection(_song, true)) {
 				_delete_selection_mi->activate();
+				_delete_selection_tb->activate();
 			}
 			else {
 				_delete_selection_mi->deactivate();
+				_delete_selection_tb->deactivate();
 			}
 			if (_piano_roll->snip_selection(_song, true)) {
 				_snip_selection_mi->activate();
+				_snip_selection_tb->activate();
 			}
 			else {
 				_snip_selection_mi->deactivate();
+				_snip_selection_tb->deactivate();
 			}
-			_split_note_mi->activate();
-			_glue_note_mi->activate();
+			if (selected_channel()) {
+				_split_note_mi->activate();
+				_split_note_tb->activate();
+				_glue_note_mi->activate();
+				_glue_note_tb->activate();
+			}
+			else {
+				_split_note_mi->deactivate();
+				_split_note_tb->deactivate();
+				_glue_note_mi->deactivate();
+				_glue_note_tb->deactivate();
+			}
 			_resize_song_mi->activate();
 			_pencil_mode_mi->activate();
 			_pencil_mode_tb->activate();
@@ -1164,9 +1212,13 @@ void Main_Window::update_active_controls() {
 			_lengthen_mi->deactivate();
 			_lengthen_tb->deactivate();
 			_delete_selection_mi->deactivate();
+			_delete_selection_tb->deactivate();
 			_snip_selection_mi->deactivate();
+			_snip_selection_tb->deactivate();
 			_split_note_mi->deactivate();
+			_split_note_tb->deactivate();
 			_glue_note_mi->deactivate();
+			_glue_note_tb->deactivate();
 			_resize_song_mi->deactivate();
 			_pencil_mode_mi->deactivate();
 			_pencil_mode_tb->deactivate();
@@ -1248,9 +1300,13 @@ void Main_Window::update_active_controls() {
 		_lengthen_mi->deactivate();
 		_lengthen_tb->deactivate();
 		_delete_selection_mi->deactivate();
+		_delete_selection_tb->deactivate();
 		_snip_selection_mi->deactivate();
+		_snip_selection_tb->deactivate();
 		_split_note_mi->deactivate();
+		_split_note_tb->deactivate();
 		_glue_note_mi->deactivate();
+		_glue_note_tb->deactivate();
 		_resize_song_mi->deactivate();
 		_pencil_mode_mi->deactivate();
 		_pencil_mode_tb->deactivate();
@@ -1740,6 +1796,8 @@ void Main_Window::stop_interactive_thread() {
 void Main_Window::update_icons() {
 	bool dark = OS::is_dark_theme(OS::current_theme());
 	_continuous_tb->image(dark ? SCROLL_DARK_ICON : SCROLL_LIGHT_ICON);
+	_split_note_tb->image(dark ? SPLIT_DARK_ICON : SPLIT_LIGHT_ICON);
+	_glue_note_tb->image(dark ? GLUE_DARK_ICON : GLUE_LIGHT_ICON);
 	make_deimage(_new_tb);
 	make_deimage(_open_tb);
 	make_deimage(_save_tb);
@@ -1759,6 +1817,10 @@ void Main_Window::update_icons() {
 	make_deimage(_move_right_tb);
 	make_deimage(_shorten_tb);
 	make_deimage(_lengthen_tb);
+	make_deimage(_delete_selection_tb);
+	make_deimage(_snip_selection_tb);
+	make_deimage(_split_note_tb);
+	make_deimage(_glue_note_tb);
 	make_deimage(_pencil_mode_tb);
 	make_deimage(_channel_1_tb);
 	make_deimage(_channel_2_tb);

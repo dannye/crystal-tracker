@@ -179,6 +179,9 @@
     <None Include="..\res\decrease-spacing.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\delete.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\down.xpm">
       <Filter>Resource Files</Filter>
     </None>
@@ -189,6 +192,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\four.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\glue-dark.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\glue-light.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\help.html">
@@ -252,6 +261,15 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\scroll-light.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\snip.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\split-dark.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\split-light.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\stop.xpm">

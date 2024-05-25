@@ -7,9 +7,12 @@
 
 #include "blank.xpm"
 #include "decrease-spacing.xpm"
+#include "delete.xpm"
 #include "down.xpm"
 #include "down-down.xpm"
 #include "four.xpm"
+#include "glue-dark.xpm"
+#include "glue-light.xpm"
 #include "increase-spacing.xpm"
 #include "keys.xpm"
 #include "left.xpm"
@@ -30,6 +33,9 @@
 #include "save-as.xpm"
 #include "scroll-dark.xpm"
 #include "scroll-light.xpm"
+#include "snip.xpm"
+#include "split-dark.xpm"
+#include "split-light.xpm"
 #include "stop.xpm"
 #include "three.xpm"
 #include "two.xpm"
@@ -41,9 +47,12 @@
 
 static Fl_Pixmap BLANK_ICON(BLANK_XPM);
 static Fl_Pixmap DECREASE_SPACING_ICON(DECREASE_SPACING_XPM);
+static Fl_Pixmap DELETE_ICON(DELETE_XPM);
 static Fl_Pixmap DOWN_ICON(DOWN_XPM);
 static Fl_Pixmap DOWN_DOWN_ICON(DOWN_DOWN_XPM);
 static Fl_Pixmap FOUR_ICON(FOUR_XPM);
+static Fl_Pixmap GLUE_DARK_ICON(GLUE_DARK_XPM);
+static Fl_Pixmap GLUE_LIGHT_ICON(GLUE_LIGHT_XPM);
 static Fl_Pixmap INCREASE_SPACING_ICON(INCREASE_SPACING_XPM);
 static Fl_Pixmap KEYS_ICON(KEYS_XPM);
 static Fl_Pixmap LEFT_ICON(LEFT_XPM);
@@ -64,6 +73,9 @@ static Fl_Pixmap SAVE_ICON(SAVE_XPM);
 static Fl_Pixmap SAVE_AS_ICON(SAVE_AS_XPM);
 static Fl_Pixmap SCROLL_DARK_ICON(SCROLL_DARK_XPM);
 static Fl_Pixmap SCROLL_LIGHT_ICON(SCROLL_LIGHT_XPM);
+static Fl_Pixmap SNIP_ICON(SNIP_XPM);
+static Fl_Pixmap SPLIT_DARK_ICON(SPLIT_DARK_XPM);
+static Fl_Pixmap SPLIT_LIGHT_ICON(SPLIT_LIGHT_XPM);
 static Fl_Pixmap STOP_ICON(STOP_XPM);
 static Fl_Pixmap THREE_ICON(THREE_XPM);
 static Fl_Pixmap TWO_ICON(TWO_XPM);

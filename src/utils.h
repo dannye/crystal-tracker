@@ -56,6 +56,7 @@
 #define LEFT_SYMBOL "\xE2\x86\x90"
 #define RIGHT_SYMBOL "\xE2\x86\x92"
 #define BACKSPACE_SYMBOL "\xE2\x8C\xAB"
+#define DELETE_SYMBOL COMMAND_KEY_PLUS "\xE2\x8C\xAB"
 #else
 #define CONTROL_KEY "Ctrl"
 #define ALT_KEY "Alt"
@@ -86,6 +87,7 @@
 #define LEFT_SYMBOL "Left"
 #define RIGHT_SYMBOL "Right"
 #define BACKSPACE_SYMBOL "Backspace"
+#define DELETE_SYMBOL "Delete"
 #endif
 
 #ifndef _countof

@@ -251,10 +251,13 @@
     <None Include="..\res\blank.xpm" />
     <None Include="..\res\brushed-metal.dat" />
     <None Include="..\res\decrease-spacing.xpm" />
+    <None Include="..\res\delete.xpm" />
     <None Include="..\res\down.xpm" />
     <None Include="..\res\down-down.xpm" />
     <None Include="..\res\error.xpm" />
     <None Include="..\res\four.xpm" />
+    <None Include="..\res\glue-dark.xpm" />
+    <None Include="..\res\glue-light.xpm" />
     <None Include="..\res\help.html" />
     <None Include="..\res\increase-spacing.xpm" />
     <None Include="..\res\keys.xpm" />
@@ -276,6 +279,9 @@
     <None Include="..\res\save-as.xpm" />
     <None Include="..\res\scroll-dark.xpm" />
     <None Include="..\res\scroll-light.xpm" />
+    <None Include="..\res\snip.xpm" />
+    <None Include="..\res\split-dark.xpm" />
+    <None Include="..\res\split-light.xpm" />
     <None Include="..\res\stop.xpm" />
     <None Include="..\res\success.xpm" />
     <None Include="..\res\three.xpm" />
