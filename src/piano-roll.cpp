@@ -3342,7 +3342,7 @@ bool Piano_Roll::snip_selection(Song &song, bool dry_run) {
 	return true;
 }
 
-bool Piano_Roll::split_note(Song &song) {
+bool Piano_Roll::split_note(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -3361,6 +3361,9 @@ bool Piano_Roll::split_note(Song &song) {
 		tick_offset == 0
 	) {
 		return false;
+	}
+	if (dry_run) {
+		return true;
 	}
 
 	int32_t index = note_view->index;
@@ -3384,7 +3387,7 @@ bool Piano_Roll::split_note(Song &song) {
 	return true;
 }
 
-bool Piano_Roll::glue_note(Song &song) {
+bool Piano_Roll::glue_note(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -3412,6 +3415,9 @@ bool Piano_Roll::glue_note(Song &song) {
 		tick_offset != 0
 	) {
 		return false;
+	}
+	if (dry_run) {
+		return true;
 	}
 
 	int32_t index = note_view->index;

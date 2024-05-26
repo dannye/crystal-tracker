@@ -910,6 +910,24 @@ int Main_Window::handle(int event) {
 
 void Main_Window::set_song_position(int32_t tick) {
 	_audio_mutex.lock();
+	if (_song.loaded() && stopped()) {
+		if (_piano_roll->split_note(_song, true)) {
+			_split_note_mi->activate();
+			_split_note_tb->activate();
+		}
+		else {
+			_split_note_mi->deactivate();
+			_split_note_tb->deactivate();
+		}
+		if (_piano_roll->glue_note(_song, true)) {
+			_glue_note_mi->activate();
+			_glue_note_tb->activate();
+		}
+		else {
+			_glue_note_mi->deactivate();
+			_glue_note_tb->deactivate();
+		}
+	}
 	if (_it_module) {
 		_it_module->set_tick(tick);
 	}
@@ -1175,15 +1193,19 @@ void Main_Window::update_active_controls() {
 				_snip_selection_mi->deactivate();
 				_snip_selection_tb->deactivate();
 			}
-			if (selected_channel()) {
+			if (_piano_roll->split_note(_song, true)) {
 				_split_note_mi->activate();
 				_split_note_tb->activate();
-				_glue_note_mi->activate();
-				_glue_note_tb->activate();
 			}
 			else {
 				_split_note_mi->deactivate();
 				_split_note_tb->deactivate();
+			}
+			if (_piano_roll->glue_note(_song, true)) {
+				_glue_note_mi->activate();
+				_glue_note_tb->activate();
+			}
+			else {
 				_glue_note_mi->deactivate();
 				_glue_note_tb->deactivate();
 			}

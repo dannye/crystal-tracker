@@ -533,8 +533,8 @@ public:
 	bool lengthen(Song &song, bool dry_run = false);
 	bool delete_selection(Song &song, bool dry_run = false);
 	bool snip_selection(Song &song, bool dry_run = false);
-	bool split_note(Song &song);
-	bool glue_note(Song &song);
+	bool split_note(Song &song, bool dry_run = false);
+	bool glue_note(Song &song, bool dry_run = false);
 	bool resize_song(Song &song, const Song_Options_Dialog::Song_Options &options);
 
 	bool is_point_in_loop(int X, int Y);
