@@ -11,11 +11,13 @@ class Option_Dialog {
 protected:
 	int _width;
 	const char *_title;
+	bool _has_reset;
 	bool _canceled;
 	Fl_Double_Window *_dialog;
 	Fl_Group *_content;
 	Default_Button *_ok_button;
 	OS_Button *_cancel_button;
+	OS_Button *_reset_button;
 public:
 	Option_Dialog(int w, const char *t = NULL);
 	virtual ~Option_Dialog();
@@ -26,10 +28,11 @@ protected:
 	void refresh(bool reset);
 	virtual void initialize_content(void) = 0;
 	virtual int refresh_content(int ww, int dy, bool reset) = 0;
+	virtual void set_reset_cb() {}
 	virtual void finish(void) {}
 public:
 	inline bool initialized(void) const { return !!_dialog; }
-	void show(const Fl_Widget *p, bool reset = true);
+	void show(Fl_Widget *p, bool reset = true);
 private:
 	static void close_cb(Fl_Widget *, Option_Dialog *od);
 	static void cancel_cb(Fl_Widget *, Option_Dialog *od);
@@ -89,6 +92,31 @@ private:
 	static void channel_end_tick_cb(OS_Int_Input *i, Song_Options_Dialog *sod);
 	static void synchronize_checkbox_cb(OS_Check_Button *c, Song_Options_Dialog *sod);
 	static void beats_ticks_radio_cb(OS_Radio_Button *r, Song_Options_Dialog *sod);
+};
+
+class Ruler_Config_Dialog : public Option_Dialog {
+public:
+	struct Ruler_Options {
+		int beats_per_measure = 4;
+		int steps_per_beat = 4;
+		int pickup_offset = 0;
+	};
+private:
+	OS_Spinner *_beats_per_measure = nullptr;
+	OS_Spinner *_steps_per_beat = nullptr;
+	OS_Spinner *_pickup_offset = nullptr;
+public:
+	Ruler_Config_Dialog(const char *t);
+	~Ruler_Config_Dialog();
+	Ruler_Options get_options();
+	void set_options(const Ruler_Options &options);
+protected:
+	void initialize_content(void);
+	int refresh_content(int ww, int dy, bool reset);
+	void set_reset_cb();
+private:
+	static void ruler_config_cb(Fl_Widget *w, Ruler_Config_Dialog *rcd);
+	static void reset_button_cb(Fl_Widget *w, Ruler_Config_Dialog *rcd);
 };
 
 #endif

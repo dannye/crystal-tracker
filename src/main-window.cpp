@@ -166,6 +166,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_confirm_dialog = new Modal_Dialog(this, "Warning", Modal_Dialog::Icon::WARNING_ICON, true);
 	_about_dialog = new Modal_Dialog(this, "About " PROGRAM_NAME, Modal_Dialog::Icon::APP_ICON);
 	_song_options_dialog = new Song_Options_Dialog("Song Options");
+	_ruler_config_dialog = new Ruler_Config_Dialog("Configure Ruler");
 	_help_window = new Help_Window(48, 48, 700, 500, PROGRAM_NAME " Help");
 
 	// Configure window
@@ -315,10 +316,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 			FL_MENU_TOGGLE | (key_labels_config ? FL_MENU_VALUE : 0)),
 		SYS_MENU_ITEM("&Note Labels", FL_COMMAND + 'K', (Fl_Callback *)note_labels_cb, this,
 			FL_MENU_TOGGLE | (note_labels_config ? FL_MENU_VALUE : 0)),
-		SYS_MENU_ITEM("&Ruler", FL_COMMAND + 'R', (Fl_Callback *)ruler_cb, this,
+		SYS_MENU_ITEM("&Ruler", FL_COMMAND + 'r', (Fl_Callback *)ruler_cb, this,
 			FL_MENU_TOGGLE | (ruler_config ? FL_MENU_VALUE : 0)),
 		SYS_MENU_ITEM("&Zoom", FL_COMMAND + '=', (Fl_Callback *)zoom_cb, this,
 			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (zoom_config ? FL_MENU_VALUE : 0)),
+		SYS_MENU_ITEM("Configure Ruler...", FL_COMMAND + 'R', (Fl_Callback *)configure_ruler_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Decrease Spacing", FL_SHIFT + '-', (Fl_Callback *)decrease_spacing_cb, this, 0),
 		SYS_MENU_ITEM("Increase Spacing", FL_SHIFT + '=', (Fl_Callback *)increase_spacing_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Full &Screen", FULLSCREEN_KEY, (Fl_Callback *)full_screen_cb, this,
@@ -374,6 +376,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_note_labels_mi = CT_FIND_MENU_ITEM_CB(note_labels_cb);
 	_ruler_mi = CT_FIND_MENU_ITEM_CB(ruler_cb);
 	_zoom_mi = CT_FIND_MENU_ITEM_CB(zoom_cb);
+	_configure_ruler_mi = CT_FIND_MENU_ITEM_CB(configure_ruler_cb);
 	_full_screen_mi = CT_FIND_MENU_ITEM_CB(full_screen_cb);
 	// Conditional menu items
 	_close_mi = CT_FIND_MENU_ITEM_CB(close_cb);
@@ -623,7 +626,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_note_labels_tb->image(NOTES_ICON);
 	_note_labels_tb->value(note_labels());
 
-	_ruler_tb->tooltip("Ruler (" COMMAND_SHIFT_KEYS_PLUS "R)");
+	_ruler_tb->tooltip("Ruler (" COMMAND_KEY_PLUS "R)");
 	_ruler_tb->callback((Fl_Callback *)ruler_tb_cb, this);
 	_ruler_tb->image(RULER_ICON);
 	_ruler_tb->value(ruler());
@@ -757,6 +760,7 @@ Main_Window::~Main_Window() {
 	delete _confirm_dialog;
 	delete _about_dialog;
 	delete _song_options_dialog;
+	delete _ruler_config_dialog;
 	delete _help_window;
 	if (_it_module) {
 		delete _it_module;
@@ -3281,6 +3285,19 @@ void Main_Window::high_contrast_theme_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_high_contrast_theme_mi->setonly();
 	mw->update_icons();
 	mw->redraw();
+}
+
+void Main_Window::configure_ruler_cb(Fl_Widget *, Main_Window *mw) {
+	if (Fl::modal()) return;
+
+	Ruler_Config_Dialog::Ruler_Options options = mw->_ruler->get_options();
+	mw->_ruler_config_dialog->set_options(options);
+	mw->_ruler_config_dialog->show(mw, false);
+	if (mw->_ruler_config_dialog->canceled()) {
+		mw->_ruler->set_options(options);
+		mw->redraw();
+		return;
+	}
 }
 
 void Main_Window::decrease_spacing_cb(Fl_Widget *, Main_Window *mw) {

@@ -26,8 +26,10 @@ static inline void print_tick_label(char *s, int n) {
 void Ruler::draw() {
 	int X = x(), Y = y(), W = w(), H = h();
 	Main_Window *mw = (Main_Window *)user_data();
-	int S = mw->song_ticks_per_step() * 16 * (mw->zoom() ? TICK_WIDTH_ZOOMED : TICK_WIDTH_UNZOOMED);
-	int s = S / 4;
+	int px = mw->song_ticks_per_step() * (mw->zoom() ? TICK_WIDTH_ZOOMED : TICK_WIDTH_UNZOOMED);
+	int s = _options.steps_per_beat * px;
+	int S = _options.beats_per_measure * s;
+	int p = _options.pickup_offset * px + WHITE_KEY_WIDTH;
 	// background
 	fl_color(FL_DARK2);
 	fl_rectf(X, Y, W, H);
@@ -37,10 +39,11 @@ void Ruler::draw() {
 	// tick marks and labels
 	int mx = mw->song_scroll_x();
 	// tick marks
-	int o = s * 4 - WHITE_KEY_WIDTH;
+	int o = (p / S + 1) * S - p;
 	int r = mx % s;
-	int d = ((mx / s) % 2) ? 0 : H / 2;
-	for (int i = s-r-1; i < W + o; i += s, d = d ? 0 : H / 2) {
+	int n = mx / s + 1;
+	for (int i = s-r-1; i < W + o; i += s, n++) {
+		int d = (n % _options.beats_per_measure) ? H / 2 : 0;
 		fl_yxline(X+i - o, Y+d, Y+H-1);
 	}
 	// labels
@@ -48,11 +51,11 @@ void Ruler::draw() {
 	fl_font(FL_COURIER, 12);
 	fl_color(FL_FOREGROUND_COLOR);
 	fl_push_clip(X, Y, W, H);
-	int O = S - WHITE_KEY_WIDTH;
+	int O = (p / S + 1) * S - p;
 	int R = mx % S;
-	int n = mx / S;
-	for (int i = S-R-1; i < W+S + O; i += S, n++) {
-		print_tick_label(t, n);
+	int N = mx / S - p / S;
+	for (int i = S-R-1; i < W+S + O; i += S, N++) {
+		if (N >= 0) print_tick_label(t, N);
 		fl_draw(t, X+i-S+1 - O, Y, S-2, H, FL_ALIGN_BOTTOM_RIGHT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
 	}
 	fl_pop_clip();

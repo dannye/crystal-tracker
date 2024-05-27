@@ -60,6 +60,7 @@ private:
 		*_note_labels_mi = NULL,
 		*_ruler_mi = NULL,
 		*_zoom_mi = NULL,
+		*_configure_ruler_mi = NULL,
 		*_full_screen_mi = NULL;
 	Toolbar_Button
 		*_new_tb = NULL,
@@ -167,6 +168,7 @@ private:
 	Fl_Native_File_Chooser *_asm_open_chooser, *_asm_save_chooser;
 	Modal_Dialog *_error_dialog, *_warning_dialog, *_success_dialog, *_confirm_dialog, *_about_dialog;
 	Song_Options_Dialog *_song_options_dialog;
+	Ruler_Config_Dialog *_ruler_config_dialog;
 	Help_Window *_help_window;
 	// Data
 	std::string _status_message = "Ready";
@@ -245,6 +247,8 @@ public:
 	void close_note_properties();
 	void set_note_properties(const std::vector<const Note_View *> &notes) { _note_properties->set_note_properties(notes, selected_channel(), 16 + (int)_song.waves().size(), (int)_drumkits.size()); }
 	void refresh_note_properties();
+
+	void set_ruler_config(const Ruler_Config_Dialog::Ruler_Options &o) { _ruler->set_options(o); }
 
 	void set_tick_from_x_pos(int X);
 
@@ -365,6 +369,7 @@ private:
 	static void note_labels_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void ruler_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void zoom_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void configure_ruler_cb(Fl_Widget *w, Main_Window *mw);
 	static void decrease_spacing_cb(Fl_Widget *w, Main_Window *mw);
 	static void increase_spacing_cb(Fl_Widget *w, Main_Window *mw);
 	static void full_screen_cb(Fl_Widget *w, Main_Window *mw);

@@ -1,15 +1,17 @@
 #include "option-dialogs.h"
 
 #include "themes.h"
+#include "main-window.h"
 
-Option_Dialog::Option_Dialog(int w, const char *t) : _width(w), _title(t), _canceled(false),
-	_dialog(NULL), _content(NULL), _ok_button(NULL), _cancel_button(NULL) {}
+Option_Dialog::Option_Dialog(int w, const char *t) : _width(w), _title(t), _has_reset(false), _canceled(false),
+	_dialog(NULL), _content(NULL), _ok_button(NULL), _cancel_button(NULL), _reset_button(NULL) {}
 
 Option_Dialog::~Option_Dialog() {
 	delete _dialog;
 	delete _content;
 	delete _ok_button;
 	delete _cancel_button;
+	delete _reset_button;
 }
 
 void Option_Dialog::initialize() {
@@ -25,6 +27,7 @@ void Option_Dialog::initialize() {
 	_dialog->begin();
 	_ok_button = new Default_Button(0, 0, 0, 0, "OK");
 	_cancel_button = new OS_Button(0, 0, 0, 0, "Cancel");
+	_reset_button = new OS_Button(0, 0, 0, 0, "Reset");
 	_dialog->end();
 	// Initialize dialog
 	_dialog->box(OS_BG_BOX);
@@ -37,6 +40,7 @@ void Option_Dialog::initialize() {
 	_cancel_button->shortcut(FL_Escape);
 	_cancel_button->tooltip("Cancel (Esc)");
 	_cancel_button->callback((Fl_Callback *)cancel_cb, this);
+	if (_has_reset) set_reset_cb();
 	Fl_Group::current(prev_current);
 }
 
@@ -47,6 +51,15 @@ void Option_Dialog::refresh(bool reset) {
 	fl_font(OS_FONT, OS_FONT_SIZE);
 	int dy = 10;
 	dy += refresh_content(_width - 20, dy, reset) + 16;
+	if (_has_reset) {
+		_reset_button->resize(10, dy, 80, 22);
+		_reset_button->activate();
+		_reset_button->show();
+	}
+	else {
+		_reset_button->hide();
+		_reset_button->deactivate();
+	}
 #ifdef _WIN32
 	_ok_button->resize(_width - 184, dy, 80, 22);
 	_cancel_button->resize(_width - 90, dy, 80, 22);
@@ -60,7 +73,7 @@ void Option_Dialog::refresh(bool reset) {
 	_dialog->redraw();
 }
 
-void Option_Dialog::show(const Fl_Widget *p, bool reset) {
+void Option_Dialog::show(Fl_Widget *p, bool reset) {
 	initialize();
 	refresh(reset);
 	Fl_Window *prev_grab = Fl::grab();
@@ -68,6 +81,7 @@ void Option_Dialog::show(const Fl_Widget *p, bool reset) {
 	int x = p->x() + (p->w() - _dialog->w()) / 2;
 	int y = p->y() + (p->h() - _dialog->h()) / 2;
 	_dialog->position(x, y);
+	_dialog->user_data(p);
 	_ok_button->take_focus();
 	_dialog->show();
 	while (_dialog->shown()) { Fl::wait(); }
@@ -690,4 +704,89 @@ void Song_Options_Dialog::beats_ticks_radio_cb(OS_Radio_Button *, Song_Options_D
 		beats_to_ticks(sod->_channel_3_end_tick);
 		beats_to_ticks(sod->_channel_4_end_tick);
 	}
+}
+
+Ruler_Config_Dialog::Ruler_Config_Dialog(const char *t) : Option_Dialog(325, t) {
+	_has_reset = true;
+}
+
+Ruler_Config_Dialog::~Ruler_Config_Dialog() {
+	delete _beats_per_measure;
+	delete _steps_per_beat;
+	delete _pickup_offset;
+}
+
+Ruler_Config_Dialog::Ruler_Options Ruler_Config_Dialog::get_options() {
+	Ruler_Options options;
+
+	options.beats_per_measure = (int)_beats_per_measure->value();
+	options.steps_per_beat = (int)_steps_per_beat->value();
+	options.pickup_offset = (int)_pickup_offset->value();
+
+	if (options.beats_per_measure < 1) options.beats_per_measure = 1;
+	if (options.steps_per_beat < 1) options.steps_per_beat = 1;
+	if (options.pickup_offset < 0) options.pickup_offset = 0;
+
+	return options;
+}
+
+void Ruler_Config_Dialog::set_options(const Ruler_Options &options) {
+	initialize();
+
+	_beats_per_measure->value(options.beats_per_measure);
+	_steps_per_beat->value(options.steps_per_beat);
+	_pickup_offset->value(options.pickup_offset);
+}
+
+void Ruler_Config_Dialog::initialize_content() {
+	// Populate content group
+	_beats_per_measure = new OS_Spinner(0, 0, 0, 0, "&Beats per Measure:");
+	_steps_per_beat = new OS_Spinner(0, 0, 0, 0, "&Steps per Beat:");
+	_pickup_offset = new OS_Spinner(0, 0, 0, 0, "&Pickup Offset:");
+	// Initialize content group's children
+	_beats_per_measure->range(1, 64);
+	_beats_per_measure->callback((Fl_Callback *)ruler_config_cb, this);
+	_steps_per_beat->range(1, 64);
+	_steps_per_beat->callback((Fl_Callback *)ruler_config_cb, this);
+	_pickup_offset->range(0, 64);
+	_pickup_offset->callback((Fl_Callback *)ruler_config_cb, this);
+}
+
+int Ruler_Config_Dialog::refresh_content(int ww, int dy, bool reset) {
+	int wgt_h = 22, win_m = 10, wgt_m = 4;
+	int dx = win_m;
+	int ch = wgt_h * 3 + wgt_m * 4;
+	_content->resize(dx, dy, ww, ch);
+
+	int wgt_w = 50;
+	dx = ww / 2 + wgt_w / 2;
+	_beats_per_measure->resize(dx, dy, wgt_w, wgt_h);
+	if (reset) _beats_per_measure->value(4);
+
+	dy += wgt_h + wgt_m + wgt_m;
+	_steps_per_beat->resize(dx, dy, wgt_w, wgt_h);
+	if (reset) _steps_per_beat->value(4);
+
+	dy += wgt_h + wgt_m + wgt_m;
+	_pickup_offset->resize(dx, dy, wgt_w, wgt_h);
+	if (reset) _pickup_offset->value(0);
+
+	return ch;
+}
+
+void Ruler_Config_Dialog::set_reset_cb() {
+	_reset_button->callback((Fl_Callback *)reset_button_cb, this);
+}
+
+void Ruler_Config_Dialog::ruler_config_cb(Fl_Widget *, Ruler_Config_Dialog *rcd) {
+	Main_Window *mw = (Main_Window *)rcd->_dialog->user_data();
+	mw->set_ruler_config(rcd->get_options());
+	mw->redraw();
+}
+
+void Ruler_Config_Dialog::reset_button_cb(Fl_Widget *, Ruler_Config_Dialog *rcd) {
+	rcd->_beats_per_measure->value(4);
+	rcd->_steps_per_beat->value(4);
+	rcd->_pickup_offset->value(0);
+	rcd->ruler_config_cb(nullptr, rcd);
 }
