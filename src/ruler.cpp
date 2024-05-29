@@ -16,6 +16,14 @@ int Ruler::handle(int event) {
 		mw->set_tick_from_x_pos(Fl::event_x());
 		return 1;
 	}
+	if (event == FL_ENTER && mw->song_loaded()) {
+		fl_cursor(FL_CURSOR_HAND);
+		return 1;
+	}
+	if (event == FL_LEAVE) {
+		fl_cursor(FL_CURSOR_DEFAULT);
+		return 1;
+	}
 	return Fl_Box::handle(event);
 }
 
@@ -55,8 +63,10 @@ void Ruler::draw() {
 	int R = mx % S;
 	int N = mx / S - p / S;
 	for (int i = S-R-1; i < W+S + O; i += S, N++) {
-		if (N >= 0) print_tick_label(t, N);
-		fl_draw(t, X+i-S+1 - O, Y, S-2, H, FL_ALIGN_BOTTOM_RIGHT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
+		if (N >= 0) {
+			print_tick_label(t, N);
+			fl_draw(t, X+i-S+1 - O, Y, S-2, H, FL_ALIGN_BOTTOM_RIGHT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
+		}
 	}
 	fl_pop_clip();
 }

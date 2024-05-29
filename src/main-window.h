@@ -231,6 +231,8 @@ public:
 	void set_song_position(int32_t tick);
 	void open_song(const char *filename);
 
+	bool song_loaded() const { return _song.loaded(); }
+
 	inline bool playing() const { return _it_module && _it_module->playing(); }
 	inline bool paused()  const { return _it_module && _it_module->paused(); }
 	inline bool stopped() const { return !_it_module || _it_module->stopped(); }
