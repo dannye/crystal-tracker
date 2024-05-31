@@ -41,42 +41,40 @@ constexpr size_t NUM_NOTES_PER_OCTAVE = NUM_WHITE_NOTES + NUM_BLACK_NOTES;
 constexpr size_t NUM_OCTAVES = 8;
 
 constexpr int WHITE_KEY_WIDTH  = 150;
-constexpr int WHITE_KEY_HEIGHT_ZOOMED = 36;
-constexpr int WHITE_KEY_HEIGHT_UNZOOMED = 24;
 
 constexpr int BLACK_KEY_WIDTH  = 100;
-constexpr int BLACK_KEY_HEIGHT_ZOOMED = 30;
-constexpr int BLACK_KEY_HEIGHT_UNZOOMED = 20;
 
-constexpr int TICK_WIDTH_ZOOMED = 4;
-constexpr int TICK_WIDTH_UNZOOMED = 3;
 constexpr int TICKS_PER_STEP = 12;
 
-constexpr int NOTE_LABELSIZE_ZOOMED = 14;
-constexpr int NOTE_LABELSIZE_UNZOOMED = 10;
+constexpr int WHITE_KEY_HEIGHTS[] = { 12, 24, 36 };
+constexpr int BLACK_KEY_HEIGHTS[] = { 10, 20, 30 };
+constexpr int TICK_WIDTHS[]       = {  2,  3,  4 };
+constexpr int KEY_LABELSIZES[]    = {  8, 14, 14 };
+constexpr int NOTE_LABELSIZES[]   = {  6, 10, 14 };
 
 constexpr int SELECTION_REGION_MIN = 5;
 
 struct Note_Key {
-	int y, delta1, delta2;
+	int y;
+	int deltas[3];
 	const char *label;
 	Pitch pitch;
 	bool white;
 };
 
 constexpr Note_Key NOTE_KEYS[NUM_NOTES_PER_OCTAVE] {
-	{  0,  0,  0, "B",     Pitch::B_NAT,   true },
-	{  1, +1,  0, "A",     Pitch::A_NAT,   true },
-	{  2, +1, +1, "G",     Pitch::G_NAT,   true },
-	{  3, +1, +1, "F",     Pitch::F_NAT,   true },
-	{  4, -1, -1, "E",     Pitch::E_NAT,   true },
-	{  5, -1, -1, "D",     Pitch::D_NAT,   true },
-	{  6, -1,  0, "C",     Pitch::C_NAT,   true },
-	{  1,  0,  0, "B♭/A♯", Pitch::A_SHARP, false },
-	{  3,  0,  0, "A♭/G♯", Pitch::G_SHARP, false },
-	{  5,  0,  0, "G♭/F♯", Pitch::F_SHARP, false },
-	{  8,  0,  0, "E♭/D♯", Pitch::D_SHARP, false },
-	{ 10,  0,  0, "D♭/C♯", Pitch::C_SHARP, false },
+	{  0, {  0,  0,  0 }, "B",     Pitch::B_NAT,   true },
+	{  1, {  0,  0, +1 }, "A",     Pitch::A_NAT,   true },
+	{  2, {  0, +1, +1 }, "G",     Pitch::G_NAT,   true },
+	{  3, { +1, +1, +1 }, "F",     Pitch::F_NAT,   true },
+	{  4, { -1, -1, -1 }, "E",     Pitch::E_NAT,   true },
+	{  5, {  0, -1, -1 }, "D",     Pitch::D_NAT,   true },
+	{  6, {  0,  0, -1 }, "C",     Pitch::C_NAT,   true },
+	{  1, {  0,  0,  0 }, "B♭/A♯", Pitch::A_SHARP, false },
+	{  3, {  0,  0,  0 }, "A♭/G♯", Pitch::G_SHARP, false },
+	{  5, {  0,  0,  0 }, "G♭/F♯", Pitch::F_SHARP, false },
+	{  8, {  0,  0,  0 }, "E♭/D♯", Pitch::D_SHARP, false },
+	{ 10, {  0,  0,  0 }, "D♭/C♯", Pitch::C_SHARP, false },
 };
 constexpr size_t PITCH_TO_KEY_INDEX[NUM_NOTES_PER_OCTAVE] {
 	6,  // C
@@ -372,7 +370,7 @@ private:
 	bool _following = false;
 	bool _continuous = true;
 	bool _paused = false;
-	bool _zoomed = false;
+	int _zoom = 0;
 	int _ticks_per_step = TICKS_PER_STEP;
 
 	bool _channel_1_muted = false;
@@ -414,7 +412,7 @@ public:
 	inline int32_t tick(void) const { return _tick; }
 	inline bool following(void) const { return _following; }
 	inline bool paused(void) const { return _paused; }
-	inline bool zoomed(void) const { return _zoomed; }
+	inline int zoom(void) const { return _zoom; }
 	inline int ticks_per_step(void) const { return _ticks_per_step; }
 
 	void tick(int32_t t) { _tick = t; }
@@ -430,6 +428,7 @@ public:
 	int note_row_height() const;
 	int black_key_offset() const;
 	int tick_width() const;
+	int key_labelsize() const;
 	int note_labelsize() const;
 	bool note_labels() const;
 
@@ -460,7 +459,7 @@ public:
 	void step_forward();
 	void skip_backward();
 	void skip_forward();
-	void zoom(bool z);
+	void zoom(int z);
 	void ticks_per_step(int t) { _ticks_per_step = t; }
 	void key_labels(bool show) { _piano_timeline._keys.key_labels(show); }
 	void note_labels(bool show) { _piano_timeline.note_labels(show); }

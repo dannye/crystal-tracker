@@ -299,7 +299,10 @@
     <None Include="..\res\warning.xpm">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\res\zoom.xpm">
+    <None Include="..\res\zoom-in.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\zoom-out.xpm">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

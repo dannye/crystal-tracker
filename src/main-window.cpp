@@ -37,10 +37,12 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_wx(x), _wy(y), _ww(w), _wh(h) {
 
 	// Get global configs
+	_zoom = Preferences::get("zoom", 0);
+	if (_zoom < -1) _zoom = -1;
+	if (_zoom > 1) _zoom = 1;
 	int key_labels_config = Preferences::get("key_labels", 0);
 	int note_labels_config = Preferences::get("note_labels", 0);
 	int ruler_config = Preferences::get("ruler", 1);
-	int zoom_config = Preferences::get("zoom", 0);
 
 	for (int i = 0; i < NUM_RECENT; i++) {
 		_recent[i] = Preferences::get_string(Fl_Preferences::Name("recent%d", i));
@@ -110,10 +112,13 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_split_note_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_glue_note_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	SEPARATE_TOOLBAR_BUTTONS;
+	_zoom_out_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_zoom_in_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	SEPARATE_TOOLBAR_BUTTONS;
 	_key_labels_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_note_labels_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	SEPARATE_TOOLBAR_BUTTONS;
 	_ruler_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_zoom_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	SEPARATE_TOOLBAR_BUTTONS;
 	_decrease_spacing_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_increase_spacing_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
@@ -312,15 +317,16 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("&High Contrast", 0, (Fl_Callback *)high_contrast_theme_cb, this,
 			FL_MENU_RADIO | (OS::current_theme() == OS::Theme::HIGH_CONTRAST ? FL_MENU_VALUE : 0)),
 		{},
+		SYS_MENU_ITEM("Zoom &Out", FL_COMMAND + '-', (Fl_Callback *)zoom_out_cb, this, 0),
+		SYS_MENU_ITEM("Zoom &In", FL_COMMAND + '=', (Fl_Callback *)zoom_in_cb, this, 0),
+		SYS_MENU_ITEM("&Zoom Reset", FL_COMMAND + '0', (Fl_Callback *)zoom_reset_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("&Key Labels", FL_COMMAND + 'k', (Fl_Callback *)key_labels_cb, this,
 			FL_MENU_TOGGLE | (key_labels_config ? FL_MENU_VALUE : 0)),
 		SYS_MENU_ITEM("&Note Labels", FL_COMMAND + 'K', (Fl_Callback *)note_labels_cb, this,
-			FL_MENU_TOGGLE | (note_labels_config ? FL_MENU_VALUE : 0)),
+			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (note_labels_config ? FL_MENU_VALUE : 0)),
 		SYS_MENU_ITEM("&Ruler", FL_COMMAND + 'r', (Fl_Callback *)ruler_cb, this,
 			FL_MENU_TOGGLE | (ruler_config ? FL_MENU_VALUE : 0)),
-		SYS_MENU_ITEM("&Zoom", FL_COMMAND + '=', (Fl_Callback *)zoom_cb, this,
-			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (zoom_config ? FL_MENU_VALUE : 0)),
-		SYS_MENU_ITEM("Configure Ruler...", FL_COMMAND + 'R', (Fl_Callback *)configure_ruler_cb, this, FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("&Configure Ruler...", FL_COMMAND + 'R', (Fl_Callback *)configure_ruler_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Decrease Spacing", FL_SHIFT + '-', (Fl_Callback *)decrease_spacing_cb, this, 0),
 		SYS_MENU_ITEM("Increase Spacing", FL_SHIFT + '=', (Fl_Callback *)increase_spacing_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Full &Screen", FULLSCREEN_KEY, (Fl_Callback *)full_screen_cb, this,
@@ -375,7 +381,6 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_key_labels_mi = CT_FIND_MENU_ITEM_CB(key_labels_cb);
 	_note_labels_mi = CT_FIND_MENU_ITEM_CB(note_labels_cb);
 	_ruler_mi = CT_FIND_MENU_ITEM_CB(ruler_cb);
-	_zoom_mi = CT_FIND_MENU_ITEM_CB(zoom_cb);
 	_configure_ruler_mi = CT_FIND_MENU_ITEM_CB(configure_ruler_cb);
 	_full_screen_mi = CT_FIND_MENU_ITEM_CB(full_screen_cb);
 	// Conditional menu items
@@ -414,6 +419,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_4_mi = CT_FIND_MENU_ITEM_CB(channel_4_cb);
 	_next_channel_mi = CT_FIND_MENU_ITEM_CB(next_channel_cb);
 	_previous_channel_mi = CT_FIND_MENU_ITEM_CB(previous_channel_cb);
+	_zoom_out_mi = CT_FIND_MENU_ITEM_CB(zoom_out_cb);
+	_zoom_in_mi = CT_FIND_MENU_ITEM_CB(zoom_in_cb);
 	_decrease_spacing_mi = CT_FIND_MENU_ITEM_CB(decrease_spacing_cb);
 	_increase_spacing_mi = CT_FIND_MENU_ITEM_CB(increase_spacing_cb);
 #undef CT_FIND_MENU_ITEM_CB
@@ -616,6 +623,20 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_channel_4_tb->image(FOUR_ICON);
 	_channel_4_tb->value(selected_channel() == 4);
 
+	_zoom_out_tb->tooltip("Zoom Out (" COMMAND_KEY_PLUS "-)");
+	_zoom_out_tb->callback((Fl_Callback *)zoom_out_cb, this);
+	_zoom_out_tb->image(ZOOM_OUT_ICON);
+#ifndef __APPLE__
+	_zoom_out_tb->shortcut(FL_COMMAND + '-');
+#endif
+
+	_zoom_in_tb->tooltip("Zoom In (" COMMAND_KEY_PLUS "=)");
+	_zoom_in_tb->callback((Fl_Callback *)zoom_in_cb, this);
+	_zoom_in_tb->image(ZOOM_IN_ICON);
+#ifndef __APPLE__
+	_zoom_in_tb->shortcut(FL_COMMAND + '=');
+#endif
+
 	_key_labels_tb->tooltip("Key Labels (" COMMAND_KEY_PLUS "K)");
 	_key_labels_tb->callback((Fl_Callback *)key_labels_tb_cb, this);
 	_key_labels_tb->image(KEYS_ICON);
@@ -630,11 +651,6 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_ruler_tb->callback((Fl_Callback *)ruler_tb_cb, this);
 	_ruler_tb->image(RULER_ICON);
 	_ruler_tb->value(ruler());
-
-	_zoom_tb->tooltip("Zoom (" COMMAND_KEY_PLUS "=)");
-	_zoom_tb->callback((Fl_Callback *)zoom_tb_cb, this);
-	_zoom_tb->image(ZOOM_ICON);
-	_zoom_tb->value(zoom());
 
 	_decrease_spacing_tb->tooltip("Decrease Spacing (" SHIFT_KEY_PLUS "-)");
 	_decrease_spacing_tb->callback((Fl_Callback *)decrease_spacing_cb, this);
@@ -778,7 +794,9 @@ void Main_Window::resize(int X, int Y, int W, int H) {
 	_note_properties->size(W, NOTE_PROP_HEIGHT);
 	_ruler->size(W, Fl::scrollbar_size());
 	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0));
-	_piano_roll->set_size(W, H - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (note_properties() ? NOTE_PROP_HEIGHT : 0) - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT);
+	int piano_roll_height = H - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (note_properties() ? NOTE_PROP_HEIGHT : 0) - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT;
+	int max_piano_roll_height = (int)NUM_OCTAVES * _piano_roll->octave_height() + Fl::scrollbar_size() - (note_properties() ? NOTE_PROP_HEIGHT : 0);
+	_piano_roll->set_size(W, std::min(piano_roll_height, max_piano_roll_height));
 	_status_bar->resize(0, H - STATUS_BAR_HEIGHT, W, STATUS_BAR_HEIGHT);
 	_context_menu->resize(_piano_roll->x() + WHITE_KEY_WIDTH, _piano_roll->y(), _piano_roll->w() - WHITE_KEY_WIDTH - Fl::scrollbar_size(), _piano_roll->h() - Fl::scrollbar_size());
 }
@@ -1852,10 +1870,11 @@ void Main_Window::update_icons() {
 	make_deimage(_channel_2_tb);
 	make_deimage(_channel_3_tb);
 	make_deimage(_channel_4_tb);
+	make_deimage(_zoom_out_tb);
+	make_deimage(_zoom_in_tb);
 	make_deimage(_key_labels_tb);
 	make_deimage(_note_labels_tb);
 	make_deimage(_ruler_tb);
-	make_deimage(_zoom_tb);
 	make_deimage(_decrease_spacing_tb);
 	make_deimage(_increase_spacing_tb);
 }
@@ -1871,6 +1890,22 @@ void Main_Window::update_ruler() {
 }
 
 void Main_Window::update_zoom() {
+	if (zoom() <= -1) {
+		_zoom_out_mi->deactivate();
+		_zoom_out_tb->deactivate();
+	}
+	else {
+		_zoom_out_mi->activate();
+		_zoom_out_tb->activate();
+	}
+	if (zoom() >= 1) {
+		_zoom_in_mi->deactivate();
+		_zoom_in_tb->deactivate();
+	}
+	else {
+		_zoom_in_mi->activate();
+		_zoom_in_tb->activate();
+	}
 	_piano_roll->zoom(zoom());
 	update_layout();
 }
@@ -1878,13 +1913,13 @@ void Main_Window::update_zoom() {
 void Main_Window::update_layout() {
 	_ruler->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0));
 	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0));
-	_piano_roll->set_size(w(), h() - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (note_properties() ? NOTE_PROP_HEIGHT : 0) - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT);
+	int piano_roll_height = h() - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (note_properties() ? NOTE_PROP_HEIGHT : 0) - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT;
+	int max_piano_roll_height = (int)NUM_OCTAVES * _piano_roll->octave_height() + Fl::scrollbar_size() - (note_properties() ? NOTE_PROP_HEIGHT : 0);
+	_piano_roll->set_size(w(), std::min(piano_roll_height, max_piano_roll_height));
 	_context_menu->resize(_piano_roll->x() + WHITE_KEY_WIDTH, _piano_roll->y(), _piano_roll->w() - WHITE_KEY_WIDTH - Fl::scrollbar_size(), _piano_roll->h() - Fl::scrollbar_size());
 	size_range(
 		WHITE_KEY_WIDTH * 3 + Fl::scrollbar_size(),
-		MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0) + _piano_roll->octave_height() + Fl::scrollbar_size() + STATUS_BAR_HEIGHT,
-		0,
-		MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0) + _piano_roll->octave_height() * NUM_OCTAVES + Fl::scrollbar_size() + STATUS_BAR_HEIGHT
+		MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0) + _piano_roll->octave_height() + Fl::scrollbar_size() + STATUS_BAR_HEIGHT
 	);
 }
 
@@ -2185,10 +2220,10 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 		Preferences::set("fullscreen", 0);
 	}
 	Preferences::set("maximized", mw->maximized());
+	Preferences::set("zoom", mw->zoom());
 	Preferences::set("key_labels", mw->key_labels());
 	Preferences::set("note_labels", mw->note_labels());
 	Preferences::set("ruler", mw->ruler());
-	Preferences::set("zoom", mw->zoom());
 	for (int i = 0; i < NUM_RECENT; i++) {
 		Preferences::set_string(Fl_Preferences::Name("recent%d", i), mw->_recent[i]);
 	}
@@ -2250,12 +2285,6 @@ void Main_Window::ruler_cb(Fl_Menu_ *m, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::zoom_cb(Fl_Menu_ *m, Main_Window *mw) {
-	SYNC_TB_WITH_M(mw->_zoom_tb, m);
-	mw->update_zoom();
-	mw->redraw();
-}
-
 #undef SYNC_TB_WITH_M
 
 #define SYNC_MI_WITH_TB(tb, mi) if (tb->value()) mi->set(); else mi->clear()
@@ -2304,13 +2333,6 @@ void Main_Window::note_labels_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 void Main_Window::ruler_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 	SYNC_MI_WITH_TB(mw->_ruler_tb, mw->_ruler_mi);
 	mw->update_ruler();
-	mw->_menu_bar->update();
-	mw->redraw();
-}
-
-void Main_Window::zoom_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
-	SYNC_MI_WITH_TB(mw->_zoom_tb, mw->_zoom_mi);
-	mw->update_zoom();
 	mw->_menu_bar->update();
 	mw->redraw();
 }
@@ -3284,6 +3306,28 @@ void Main_Window::high_contrast_theme_cb(Fl_Widget *, Main_Window *mw) {
 	OS::update_macos_appearance(mw);
 	mw->_high_contrast_theme_mi->setonly();
 	mw->update_icons();
+	mw->redraw();
+}
+
+void Main_Window::zoom_out_cb(Fl_Widget *, Main_Window *mw) {
+	if (mw->zoom() > -1) {
+		mw->zoom(mw->zoom() - 1);
+	}
+	mw->update_zoom();
+	mw->redraw();
+}
+
+void Main_Window::zoom_in_cb(Fl_Widget *, Main_Window *mw) {
+	if (mw->zoom() < 1) {
+		mw->zoom(mw->zoom() + 1);
+	}
+	mw->update_zoom();
+	mw->redraw();
+}
+
+void Main_Window::zoom_reset_cb(Fl_Widget *, Main_Window *mw) {
+	mw->zoom(0);
+	mw->update_zoom();
 	mw->redraw();
 }
 

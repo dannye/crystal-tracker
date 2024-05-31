@@ -43,7 +43,8 @@
 #include "up.xpm"
 #include "up-up.xpm"
 #include "verify.xpm"
-#include "zoom.xpm"
+#include "zoom-in.xpm"
+#include "zoom-out.xpm"
 
 static Fl_Pixmap BLANK_ICON(BLANK_XPM);
 static Fl_Pixmap DECREASE_SPACING_ICON(DECREASE_SPACING_XPM);
@@ -83,7 +84,8 @@ static Fl_Pixmap UNDO_ICON(UNDO_XPM);
 static Fl_Pixmap UP_ICON(UP_XPM);
 static Fl_Pixmap UP_UP_ICON(UP_UP_XPM);
 static Fl_Pixmap VERIFY_ICON(VERIFY_XPM);
-static Fl_Pixmap ZOOM_ICON(ZOOM_XPM);
+static Fl_Pixmap ZOOM_IN_ICON(ZOOM_IN_XPM);
+static Fl_Pixmap ZOOM_OUT_ICON(ZOOM_OUT_XPM);
 
 bool make_deimage(Fl_Widget *wgt) {
 	if (!wgt || !wgt->image()) {

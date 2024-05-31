@@ -34,7 +34,7 @@ static inline void print_tick_label(char *s, int n) {
 void Ruler::draw() {
 	int X = x(), Y = y(), W = w(), H = h();
 	Main_Window *mw = (Main_Window *)user_data();
-	int px = mw->song_ticks_per_step() * (mw->zoom() ? TICK_WIDTH_ZOOMED : TICK_WIDTH_UNZOOMED);
+	int px = mw->song_ticks_per_step() * TICK_WIDTHS[mw->zoom()+1];
 	int s = _options.steps_per_beat * px;
 	int S = _options.beats_per_measure * s;
 	int p = _options.pickup_offset * px + WHITE_KEY_WIDTH;

@@ -153,12 +153,13 @@ Piano_Keys::Piano_Keys(int X, int Y, int W, int H, const char *l) : Fl_Group(X, 
 
 void Piano_Keys::calc_sizes() {
 	const Piano_Roll *piano_roll = parent()->parent();
-	const bool zoomed = piano_roll->zoomed();
+	const int zoom = piano_roll->zoom();
 	const int white_key_height = piano_roll->white_key_height();
 	const int black_key_height = piano_roll->black_key_height();
 	const int octave_height = piano_roll->octave_height();
 	const int note_row_height = piano_roll->note_row_height();
 	const int black_key_offset = piano_roll->black_key_offset();
+	const int key_labelsize = piano_roll->key_labelsize();
 
 	int white_delta = 0, black_delta = 0;
 
@@ -168,7 +169,7 @@ void Piano_Keys::calc_sizes() {
 		int y_pos = octave_height * (int)_y;
 		for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
 			size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
-			int delta = zoomed ? NOTE_KEYS[_x].delta1 : NOTE_KEYS[_x].delta2;
+			int delta = NOTE_KEYS[_x].deltas[zoom+1];
 			if (NOTE_KEYS[_x].white) {
 				_keys[i]->resize(
 					_keys[i]->x(),
@@ -187,6 +188,7 @@ void Piano_Keys::calc_sizes() {
 				);
 				black_delta += delta;
 			}
+			_keys[i]->labelsize(key_labelsize);
 		}
 	}
 
@@ -1404,11 +1406,11 @@ inline int Piano_Roll::selected_channel() const {
 }
 
 int Piano_Roll::white_key_height() const {
-	return _zoomed ? WHITE_KEY_HEIGHT_ZOOMED : WHITE_KEY_HEIGHT_UNZOOMED;
+	return WHITE_KEY_HEIGHTS[_zoom+1];
 }
 
 int Piano_Roll::black_key_height() const {
-	return _zoomed ? BLACK_KEY_HEIGHT_ZOOMED : BLACK_KEY_HEIGHT_UNZOOMED;
+	return BLACK_KEY_HEIGHTS[_zoom+1];
 }
 
 int Piano_Roll::octave_height() const {
@@ -1424,11 +1426,15 @@ int Piano_Roll::black_key_offset() const {
 }
 
 int Piano_Roll::tick_width() const {
-	return _zoomed ? TICK_WIDTH_ZOOMED : TICK_WIDTH_UNZOOMED;
+	return TICK_WIDTHS[_zoom+1];
+}
+
+int Piano_Roll::key_labelsize() const {
+	return KEY_LABELSIZES[_zoom+1];
 }
 
 int Piano_Roll::note_labelsize() const {
-	return _zoomed ? NOTE_LABELSIZE_ZOOMED : NOTE_LABELSIZE_UNZOOMED;
+	return NOTE_LABELSIZES[_zoom+1];
 }
 
 bool Piano_Roll::note_labels() const {
@@ -1649,9 +1655,9 @@ void Piano_Roll::skip_forward() {
 	parent()->set_song_position(_tick);
 }
 
-void Piano_Roll::zoom(bool z) {
-	if (_zoomed == z) return;
-	_zoomed = z;
+void Piano_Roll::zoom(int z) {
+	if (_zoom == z) return;
+	_zoom = z;
 
 	float scroll_x = scroll_x_max() > 0 ? xposition() / (float) scroll_x_max() : 0.0f;
 	float scroll_y = scroll_y_max() > 0 ? yposition() / (float) scroll_y_max() : 0.0f;
@@ -1662,7 +1668,7 @@ void Piano_Roll::zoom(bool z) {
 	set_timeline_width();
 	_piano_timeline.h(NUM_OCTAVES * octave_height());
 
-	scroll_to((int)(scroll_x * scroll_x_max()), (int)(scroll_y * scroll_y_max()));
+	scroll_to(scroll_x_max() > 0 ? (int)(scroll_x * scroll_x_max()) : 0, scroll_y_max() > 0 ? (int)(scroll_y * scroll_y_max()) : 0);
 	sticky_keys();
 
 	if (_following) {

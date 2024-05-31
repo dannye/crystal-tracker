@@ -291,7 +291,8 @@
     <None Include="..\res\up-up.xpm" />
     <None Include="..\res\verify.xpm" />
     <None Include="..\res\warning.xpm" />
-    <None Include="..\res\zoom.xpm" />
+    <None Include="..\res\zoom-in.xpm" />
+    <None Include="..\res\zoom-out.xpm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

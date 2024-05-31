@@ -59,7 +59,6 @@ private:
 		*_key_labels_mi = NULL,
 		*_note_labels_mi = NULL,
 		*_ruler_mi = NULL,
-		*_zoom_mi = NULL,
 		*_configure_ruler_mi = NULL,
 		*_full_screen_mi = NULL;
 	Toolbar_Button
@@ -95,11 +94,13 @@ private:
 		*_channel_2_tb = NULL,
 		*_channel_3_tb = NULL,
 		*_channel_4_tb = NULL;
+	Toolbar_Button
+		*_zoom_out_tb = NULL,
+		*_zoom_in_tb = NULL;
 	Toolbar_Toggle_Button
 		*_key_labels_tb = NULL,
 		*_note_labels_tb = NULL,
-		*_ruler_tb = NULL,
-		*_zoom_tb = NULL;
+		*_ruler_tb = NULL;
 	Toolbar_Button
 		*_decrease_spacing_tb = NULL,
 		*_increase_spacing_tb = NULL;
@@ -161,6 +162,8 @@ private:
 		*_channel_4_mi = NULL,
 		*_next_channel_mi = NULL,
 		*_previous_channel_mi = NULL,
+		*_zoom_out_mi = NULL,
+		*_zoom_in_mi = NULL,
 		*_decrease_spacing_mi = NULL,
 		*_increase_spacing_mi = NULL;
 	// Dialogs
@@ -174,6 +177,7 @@ private:
 	std::string _status_message = "Ready";
 	std::string _directory, _asm_file;
 	std::string _recent[NUM_RECENT];
+	int _zoom = 0;
 	Song _song;
 	std::vector<Wave> _waves;
 	std::vector<Drumkit> _drumkits;
@@ -219,12 +223,16 @@ public:
 	inline bool key_labels(void) const { return _key_labels_mi && !!_key_labels_mi->value(); }
 	inline bool note_labels(void) const { return _note_labels_mi && !!_note_labels_mi->value(); }
 	inline bool ruler(void) const { return _ruler_mi && !!_ruler_mi->value(); }
-	inline bool zoom(void) const { return _zoom_mi && !!_zoom_mi->value(); }
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
 	inline void continuous_scroll(bool c) { _continuous_tb->value(c); continuous_tb_cb(nullptr, this); }
 	inline void pencil_mode(bool p) { _pencil_mode_tb->value(p); pencil_mode_tb_cb(nullptr, this); }
+
+	inline int zoom() const { return _zoom; }
+	inline void zoom(int z) { _zoom = z; }
+
 	inline int song_scroll_x(void) const { return _piano_roll->xposition(); }
 	inline int song_ticks_per_step(void) const { return _piano_roll->ticks_per_step(); }
+
 	bool unsaved(void) const;
 	const char *modified_filename(void);
 	int handle(int event) override;
@@ -367,10 +375,12 @@ private:
 	static void dark_theme_cb(Fl_Widget *w, Main_Window *mw);
 	static void brushed_metal_theme_cb(Fl_Widget *w, Main_Window *mw);
 	static void high_contrast_theme_cb(Fl_Widget *w, Main_Window *mw);
+	static void zoom_out_cb(Fl_Widget *w, Main_Window *mw);
+	static void zoom_in_cb(Fl_Widget *w, Main_Window *mw);
+	static void zoom_reset_cb(Fl_Widget *w, Main_Window *mw);
 	static void key_labels_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void note_labels_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void ruler_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void zoom_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void configure_ruler_cb(Fl_Widget *w, Main_Window *mw);
 	static void decrease_spacing_cb(Fl_Widget *w, Main_Window *mw);
 	static void increase_spacing_cb(Fl_Widget *w, Main_Window *mw);
@@ -387,7 +397,6 @@ private:
 	static void key_labels_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void note_labels_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void ruler_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
-	static void zoom_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	// Help menu
 	static void help_cb(Fl_Widget *w, Main_Window *mw);
 	static void about_cb(Fl_Widget *w, Main_Window *mw);
