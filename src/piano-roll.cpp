@@ -97,6 +97,12 @@ int Key_Box::handle(int event) {
 			return 1;
 		}
 		break;
+	case FL_ENTER:
+		fl_cursor(FL_CURSOR_HAND);
+		return 1;
+	case FL_LEAVE:
+		fl_cursor(FL_CURSOR_DEFAULT);
+		return 1;
 	}
 	return Fl_Box::handle(event);
 }

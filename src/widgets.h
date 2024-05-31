@@ -55,6 +55,7 @@ public:
 class Label_Button : public Fl_Button {
 public:
 	Label_Button(int x, int y, int w, int h, const char *l = NULL);
+	int handle(int event);
 };
 
 class Spacer : public Fl_Box {

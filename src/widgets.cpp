@@ -50,6 +50,18 @@ Label_Button::Label_Button(int x, int y, int w, int h, const char *l) : Fl_Butto
 	align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
 }
 
+int Label_Button::handle(int event) {
+	if (event == FL_ENTER) {
+		fl_cursor(FL_CURSOR_HAND);
+		return 1;
+	}
+	if (event == FL_LEAVE) {
+		fl_cursor(FL_CURSOR_DEFAULT);
+		return 1;
+	}
+	return Fl_Button::handle(event);
+}
+
 Spacer::Spacer(int x, int y, int w, int h, const char *l) : Fl_Box(x, y, w, h, l) {
 	labeltype(FL_NO_LABEL);
 	box(OS_SPACER_THIN_DOWN_FRAME);
