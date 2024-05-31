@@ -101,7 +101,11 @@ int Key_Box::handle(int event) {
 		fl_cursor(FL_CURSOR_HAND);
 		return 1;
 	case FL_LEAVE:
-		fl_cursor(FL_CURSOR_DEFAULT);
+		fl_cursor(mw->pencil_mode() ? FL_CURSOR_CROSS : FL_CURSOR_DEFAULT);
+		if (mw->stop_note()) {
+			parent()->update_key_colors();
+			parent()->redraw();
+		}
 		return 1;
 	}
 	return Fl_Box::handle(event);
