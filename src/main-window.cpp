@@ -1378,34 +1378,39 @@ void Main_Window::update_channel_detail() {
 	_piano_roll->align_cursor();
 }
 
-void Main_Window::apply_recent_config() {
-	for (int i = 0; i < NUM_RECENT; i++) {
-		if (_recent[i].filepath == _asm_file) {
-			Ruler_Config_Dialog::Ruler_Options ruler_config;
-			ruler_config.beats_per_measure = _recent[i].beats_per_measure;
-			ruler_config.steps_per_beat = _recent[i].steps_per_beat;
-			ruler_config.pickup_offset = _recent[i].pickup_offset;
-			_ruler->set_options(ruler_config);
-
-			_piano_roll->ticks_per_step(_recent[i].ticks_per_step);
-			if (_recent[i].ticks_per_step <= 4) {
-				_decrease_spacing_mi->deactivate();
-				_decrease_spacing_tb->deactivate();
+void Main_Window::apply_recent_config(const char *filename) {
+	Recent_Cache recent;
+	if (filename) {
+		for (int i = 0; i < NUM_RECENT; i++) {
+			if (_recent[i].filepath == filename) {
+				recent = _recent[i];
+				break;
 			}
-			else {
-				_decrease_spacing_mi->activate();
-				_decrease_spacing_tb->activate();
-			}
-			if (_recent[i].ticks_per_step >= 16) {
-				_increase_spacing_mi->deactivate();
-				_increase_spacing_tb->deactivate();
-			}
-			else {
-				_increase_spacing_mi->activate();
-				_increase_spacing_tb->activate();
-			}
-			break;
 		}
+	}
+
+	Ruler_Config_Dialog::Ruler_Options ruler_config;
+	ruler_config.beats_per_measure = recent.beats_per_measure;
+	ruler_config.steps_per_beat = recent.steps_per_beat;
+	ruler_config.pickup_offset = recent.pickup_offset;
+	_ruler->set_options(ruler_config);
+
+	_piano_roll->ticks_per_step(recent.ticks_per_step);
+	if (recent.ticks_per_step <= 4) {
+		_decrease_spacing_mi->deactivate();
+		_decrease_spacing_tb->deactivate();
+	}
+	else {
+		_decrease_spacing_mi->activate();
+		_decrease_spacing_tb->activate();
+	}
+	if (recent.ticks_per_step >= 16) {
+		_increase_spacing_mi->deactivate();
+		_increase_spacing_tb->deactivate();
+	}
+	else {
+		_increase_spacing_mi->activate();
+		_increase_spacing_tb->activate();
 	}
 }
 
@@ -1597,11 +1602,12 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	_status_message += basename;
 	_status_label->label(_status_message.c_str());
 
+	apply_recent_config(filename);
+
 	update_active_controls();
 	update_timestamp();
 
 	if (filename) {
-		apply_recent_config();
 		store_recent_song();
 	}
 

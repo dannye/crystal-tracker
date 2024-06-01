@@ -294,7 +294,7 @@ private:
 	inline void selected_channel(int i) { _selected_channel = i; }
 	void update_active_controls(void);
 	void update_channel_detail(void);
-	void apply_recent_config(void);
+	void apply_recent_config(const char *filename);
 	void store_recent_song(void);
 	void update_recent_songs(void);
 	void open_song(const char *directory, const char *filename);
