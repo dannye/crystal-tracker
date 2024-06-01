@@ -263,7 +263,7 @@ public:
 
 	void open_note_properties();
 	void close_note_properties();
-	void set_note_properties(const std::vector<const Note_View *> &notes) { _note_properties->set_note_properties(notes, selected_channel(), 16 + (int)_song.waves().size(), (int)_drumkits.size()); }
+	void set_note_properties(const std::vector<const Note_View *> &notes);
 	void refresh_note_properties();
 
 	void set_ruler_config(const Ruler_Config_Dialog::Ruler_Options &o) { _ruler->set_options(o); }

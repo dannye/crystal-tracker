@@ -1004,6 +1004,16 @@ void Main_Window::close_note_properties() {
 	redraw();
 }
 
+void Main_Window::set_note_properties(const std::vector<const Note_View *> &notes) {
+	_note_properties->set_note_properties(
+		notes,
+		selected_channel(),
+		16 + (int)_song.waves().size(),
+		(int)_drumkits.size(),
+		selected_channel() == _piano_roll->first_channel_number()
+	);
+}
+
 void Main_Window::refresh_note_properties() {
 	_piano_roll->refresh_note_properties();
 }

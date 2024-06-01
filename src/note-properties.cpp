@@ -125,7 +125,7 @@ Note_Properties::~Note_Properties() {
 	delete _basic_button;
 }
 
-void Note_Properties::set_note_properties(const std::vector<const Note_View *> &notes, int channel_number, int num_waves, int num_drumkits) {
+void Note_Properties::set_note_properties(const std::vector<const Note_View *> &notes, int channel_number, int num_waves, int num_drumkits, bool first_channel) {
 	assert(notes.size() > 0);
 	_note = *notes.front();
 	_channel_number = channel_number;
@@ -298,6 +298,9 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 		_slide_duration_input->deactivate();
 		_slide_octave_input->deactivate();
 		_slide_pitch_input->deactivate();
+	}
+	if (!first_channel) {
+		_tempo_input->deactivate();
 	}
 
 	redraw();
