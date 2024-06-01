@@ -1188,6 +1188,22 @@ std::set<int32_t> *Piano_Timeline::active_channel_tempo_changes() {
 	return nullptr;
 }
 
+std::set<int32_t> &Piano_Timeline::channel_tempo_changes(const int selected_channel) {
+	assert(selected_channel >= 1 && selected_channel <= 4);
+	if (selected_channel == 1) {
+		return _channel_1_tempo_changes;
+	}
+	else if (selected_channel == 2) {
+		return _channel_2_tempo_changes;
+	}
+	else if (selected_channel == 3) {
+		return _channel_3_tempo_changes;
+	}
+	else {
+		return _channel_4_tempo_changes;
+	}
+}
+
 void Piano_Timeline::draw() {
 	OS::Theme theme = OS::current_theme();
 	bool dark = theme == OS::Theme::DARK;
@@ -1249,7 +1265,10 @@ void Piano_Timeline::draw() {
 			}
 		}
 
-		std::set<int32_t> *tempo_changes = active_channel_tempo_changes();
+		int active_channel = selected_channel();
+		int first_channel = p->first_channel_number();
+
+		std::set<int32_t> *tempo_changes = (active_channel == 0 && first_channel != 0) ? &channel_tempo_changes(first_channel) : active_channel_tempo_changes();
 		if (tempo_changes) {
 			fl_color(tempo_marker);
 			for (int32_t tick : *tempo_changes) {
@@ -1258,8 +1277,6 @@ void Piano_Timeline::draw() {
 				fl_yxline(x_pos, y(), y() + h());
 			}
 		}
-
-		int active_channel = selected_channel();
 
 		int32_t loop_tick = p->get_loop_tick();
 		int32_t channel_1_loop_tick = p->channel_1_loop_tick();
@@ -2244,6 +2261,14 @@ int32_t Piano_Roll::get_last_note_x() const {
 	return last_note_x;
 }
 
+int Piano_Roll::first_channel_number() const {
+	if (_channel_1_end_tick != -1) return 1;
+	if (_channel_2_end_tick != -1) return 2;
+	if (_channel_3_end_tick != -1) return 3;
+	if (_channel_4_end_tick != -1) return 4;
+	return 0;
+}
+
 void Piano_Roll::update_channel_detail(int channel_number) {
 	_piano_timeline.set_channel_1_detail(channel_number == 1 ? 2 : channel_number == 0 ? 1 : 0);
 	_piano_timeline.set_channel_2_detail(channel_number == 2 ? 2 : channel_number == 0 ? 1 : 0);
@@ -2378,6 +2403,16 @@ int Piano_Roll::scroll_y_max() const {
 	return _piano_timeline.h() - (h() - hscrollbar.h());
 }
 
+void Piano_Roll::postprocess_channel(Song &song, int selected_channel) {
+	std::vector<Command> &commands = song.channel_commands(selected_channel);
+	postprocess(commands);
+
+	int first_channel = first_channel_number();
+	if (first_channel < selected_channel) {
+		split_tempo_change_rests(commands, _piano_timeline.channel_tempo_changes(first_channel));
+	}
+}
+
 bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
@@ -2436,6 +2471,7 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick)
 	}
 
 	int32_t length = song.put_note(selected_channel(), selected_boxes, pitch, octave, old_octave, speed, prev_length, prev_speed, index, tick, tick_offset / speed, set_drumkit);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	_piano_timeline.select_note_at_tick(*channel, tick);
 
@@ -2484,6 +2520,7 @@ bool Piano_Roll::set_speed(Song &song, int32_t speed) {
 	}
 
 	song.set_speed(selected_channel(), selected_notes, selected_boxes, *view, speed);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2514,6 +2551,7 @@ bool Piano_Roll::set_volume(Song &song, int32_t volume) {
 	}
 
 	song.set_volume(selected_channel(), selected_notes, selected_boxes, *view, volume);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2542,6 +2580,7 @@ bool Piano_Roll::set_fade(Song &song, int32_t fade) {
 	}
 
 	song.set_fade(selected_channel(), selected_notes, selected_boxes, *view, fade);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2570,6 +2609,7 @@ bool Piano_Roll::set_vibrato_delay(Song &song, int32_t delay) {
 	}
 
 	song.set_vibrato_delay(selected_channel(), selected_notes, selected_boxes, *view, delay);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2598,6 +2638,7 @@ bool Piano_Roll::set_vibrato_extent(Song &song, int32_t extent) {
 	}
 
 	song.set_vibrato_extent(selected_channel(), selected_notes, selected_boxes, *view, extent);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2626,6 +2667,7 @@ bool Piano_Roll::set_vibrato_rate(Song &song, int32_t rate) {
 	}
 
 	song.set_vibrato_rate(selected_channel(), selected_notes, selected_boxes, *view, rate);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2654,6 +2696,7 @@ bool Piano_Roll::set_wave(Song &song, int32_t wave) {
 	}
 
 	song.set_wave(selected_channel(), selected_notes, selected_boxes, *view, wave);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2680,6 +2723,7 @@ bool Piano_Roll::set_drumkit(Song &song, int32_t drumkit) {
 	}
 
 	song.set_drumkit(selected_channel(), selected_notes, selected_boxes, drumkit);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2706,6 +2750,7 @@ bool Piano_Roll::set_duty(Song &song, int32_t duty) {
 	}
 
 	song.set_duty(selected_channel(), selected_notes, selected_boxes, duty);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2732,6 +2777,7 @@ bool Piano_Roll::set_tempo(Song &song, int32_t tempo) {
 	}
 
 	song.set_tempo(selected_channel(), selected_notes, selected_boxes, tempo);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2760,6 +2806,7 @@ bool Piano_Roll::set_transpose_octaves(Song &song, int32_t octaves) {
 	}
 
 	song.set_transpose_octaves(selected_channel(), selected_notes, selected_boxes, *view, octaves);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2788,6 +2835,7 @@ bool Piano_Roll::set_transpose_pitches(Song &song, int32_t pitches) {
 	}
 
 	song.set_transpose_pitches(selected_channel(), selected_notes, selected_boxes, *view, pitches);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2816,6 +2864,7 @@ bool Piano_Roll::set_slide_duration(Song &song, int32_t duration) {
 	}
 
 	song.set_slide_duration(selected_channel(), selected_notes, selected_boxes, *view, duration);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2844,6 +2893,7 @@ bool Piano_Roll::set_slide_octave(Song &song, int32_t octave) {
 	}
 
 	song.set_slide_octave(selected_channel(), selected_notes, selected_boxes, *view, octave);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2872,6 +2922,7 @@ bool Piano_Roll::set_slide_pitch(Song &song, Pitch pitch) {
 	}
 
 	song.set_slide_pitch(selected_channel(), selected_notes, selected_boxes, *view, pitch);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2898,6 +2949,7 @@ bool Piano_Roll::set_slide(Song &song, int32_t duration, int32_t octave, Pitch p
 	}
 
 	song.set_slide(selected_channel(), selected_notes, selected_boxes, duration, octave, pitch);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2932,6 +2984,7 @@ bool Piano_Roll::pitch_up(Song &song, bool dry_run) {
 	}
 
 	song.pitch_up(selected_channel(), selected_notes, selected_boxes, *view);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -2966,6 +3019,7 @@ bool Piano_Roll::pitch_down(Song &song, bool dry_run) {
 	}
 
 	song.pitch_down(selected_channel(), selected_notes, selected_boxes, *view);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -3000,6 +3054,7 @@ bool Piano_Roll::octave_up(Song &song, bool dry_run) {
 	}
 
 	song.octave_up(selected_channel(), selected_notes, selected_boxes, *view);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -3034,6 +3089,7 @@ bool Piano_Roll::octave_down(Song &song, bool dry_run) {
 	}
 
 	song.octave_down(selected_channel(), selected_notes, selected_boxes, *view);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -3112,6 +3168,7 @@ bool Piano_Roll::move_left(Song &song, bool dry_run) {
 	}
 
 	song.move_left(selected_channel(), selected_notes, selected_boxes, *view);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -3186,6 +3243,7 @@ bool Piano_Roll::move_right(Song &song, bool dry_run) {
 	}
 
 	song.move_right(selected_channel(), selected_notes, selected_boxes, *view);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -3225,6 +3283,7 @@ bool Piano_Roll::shorten(Song &song, bool dry_run) {
 	}
 
 	song.shorten(selected_channel(), selected_notes, selected_boxes, tick_adjustment ? _tick : -1);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -3285,6 +3344,7 @@ bool Piano_Roll::lengthen(Song &song, bool dry_run) {
 	}
 
 	song.lengthen(selected_channel(), selected_notes, selected_boxes, *view, tick_adjustment ? _tick : -1);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -3321,6 +3381,7 @@ bool Piano_Roll::delete_selection(Song &song, bool dry_run) {
 	}
 
 	song.delete_selection(selected_channel(), selected_notes, selected_boxes);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	refresh_note_properties();
 
@@ -3350,6 +3411,7 @@ bool Piano_Roll::snip_selection(Song &song, bool dry_run) {
 	}
 
 	song.snip_selection(selected_channel(), selected_notes, selected_boxes);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	refresh_note_properties();
 
@@ -3395,6 +3457,7 @@ bool Piano_Roll::split_note(Song &song, bool dry_run) {
 	}
 
 	song.split_note(selected_channel(), selected_boxes, index, _tick, tick_offset / speed);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	_piano_timeline.select_note_at_tick(*channel, _tick);
 
@@ -3448,6 +3511,7 @@ bool Piano_Roll::glue_note(Song &song, bool dry_run) {
 	}
 
 	song.glue_note(selected_channel(), selected_boxes, index, _tick);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	_piano_timeline.select_note_at_tick(*channel, _tick);
 
@@ -3458,6 +3522,10 @@ bool Piano_Roll::glue_note(Song &song, bool dry_run) {
 
 bool Piano_Roll::resize_song(Song &song, const Song_Options_Dialog::Song_Options &options) {
 	song.resize_song(options);
+	if (options.channel_1) postprocess_channel(song, 1);
+	if (options.channel_2) postprocess_channel(song, 2);
+	if (options.channel_3) postprocess_channel(song, 3);
+	if (options.channel_4) postprocess_channel(song, 4);
 	clear();
 	set_timeline(song);
 	update_channel_detail(selected_channel());
@@ -3529,6 +3597,7 @@ bool Piano_Roll::reduce_loop(Song &song, bool dry_run) {
 	}
 
 	song.reduce_loop(selected_channel(), selected_boxes, _tick, loop_index, loop_length, start_view, end_view);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	refresh_note_properties();
 
@@ -3580,6 +3649,7 @@ bool Piano_Roll::extend_loop(Song &song, bool dry_run) {
 	}
 
 	song.extend_loop(selected_channel(), selected_boxes, _tick, loop_index, loop_length, start_view, end_view);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	refresh_note_properties();
 
@@ -3630,6 +3700,7 @@ bool Piano_Roll::unroll_loop(Song &song, bool dry_run) {
 	}
 
 	song.unroll_loop(selected_channel(), selected_boxes, _tick, loop_index, snippet);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -3739,6 +3810,7 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 	}
 
 	song.create_loop(selected_channel(), selected_boxes, t_left, start_index, end_index, loop_length, start_view, end_view);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	refresh_note_properties();
 	
@@ -3834,6 +3906,7 @@ bool Piano_Roll::delete_call(Song &song, bool dry_run) {
 	}
 
 	song.delete_call(selected_channel(), selected_boxes, _tick, call_index, ambiguous_ticks, unambiguous_ticks, start_view, end_view, erasable ? start_index : -1, erasable ? end_view.index : -1);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	refresh_note_properties();
 
@@ -3959,6 +4032,7 @@ bool Piano_Roll::unpack_call(Song &song, bool dry_run) {
 	}
 
 	song.unpack_call(selected_channel(), selected_boxes, _tick, call_index, snippet, erasable ? start_index : -1, erasable ? end_view.index : -1);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 
@@ -4139,6 +4213,7 @@ bool Piano_Roll::create_call(Song &song, bool dry_run) {
 	}
 
 	song.create_call(selected_channel(), selected_boxes, t_left, start_index, end_index, snippet);
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
 	
@@ -4241,6 +4316,7 @@ bool Piano_Roll::insert_call(Song &song, bool dry_run) {
 	}
 
 	song.insert_call(selected_channel(), selected_boxes, _tick, tick_offset, note_view->index, target_label, call_length, *note_view, *start_view, selected_call->end_note_view());
+	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	refresh_note_properties();
 

@@ -753,6 +753,171 @@ int32_t get_base_index(const std::vector<Command> &commands, int32_t start_tick,
 	return -1;
 }
 
+void split_tempo_change_rests(std::vector<Command> &commands, const std::set<int32_t> &tempo_changes) {
+	struct Split_Point {
+		int32_t index;
+		int32_t offset;
+		int32_t speed;
+	};
+
+	std::vector<Split_Point> split_points;
+
+	int32_t tick = 0;
+	int32_t speed = 1;
+
+	auto command_itr = commands.cbegin();
+
+	std::stack<std::pair<decltype(command_itr), int32_t>> loop_stack;
+	std::stack<decltype(command_itr)> call_stack;
+	std::set<std::string> visited_labels_during_call;
+	std::set<std::string> visited_labels_not_during_call;
+
+	while (command_itr != commands.end()) {
+		for (const std::string &label : command_itr->labels) {
+			if (call_stack.size() > 0) {
+				visited_labels_during_call.insert(label);
+			}
+			else {
+				visited_labels_not_during_call.insert(label);
+			}
+		}
+
+		if (command_itr->type == Command_Type::NOTE) {
+			tick += command_itr->note.length * speed;
+		}
+		else if (command_itr->type == Command_Type::DRUM_NOTE) {
+			tick += command_itr->drum_note.length * speed;
+		}
+		else if (command_itr->type == Command_Type::REST) {
+			int32_t t_right = tick + command_itr->rest.length * speed;
+
+			for (int32_t tempo_tick : tempo_changes) {
+				if (tempo_tick > tick && tempo_tick < t_right) {
+					int32_t tick_offset = tempo_tick - tick;
+					if (tick_offset % speed == 0) {
+						int32_t index = itr_index(commands, command_itr);
+						int32_t offset = tick_offset / speed;
+						bool duplicate = false;
+
+						for (const Split_Point &sp : split_points) {
+							if (sp.index == index && sp.offset == offset && sp.speed == speed) {
+								duplicate = true;
+								break;
+							}
+						}
+						if (!duplicate) {
+							split_points.push_back({ index, offset, speed });
+						}
+					}
+					else {
+						// don't auto-split poorly aligned rests for now...
+					}
+				}
+			}
+
+			tick = t_right;
+		}
+		else if (command_itr->type == Command_Type::NOTE_TYPE) {
+			speed = command_itr->note_type.speed;
+		}
+		else if (command_itr->type == Command_Type::DRUM_SPEED) {
+			speed = command_itr->drum_speed.speed;
+		}
+		else if (command_itr->type == Command_Type::SOUND_JUMP) {
+			if (
+				!visited_labels_not_during_call.count(command_itr->target) ||
+				(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
+			) {
+				command_itr = find_note_with_label(commands, command_itr->target);
+				continue;
+			}
+			break; // song is finished
+		}
+		else if (command_itr->type == Command_Type::SOUND_LOOP) {
+			if (loop_stack.size() > 0 && loop_stack.top().first == command_itr) {
+				loop_stack.top().second -= 1;
+				if (loop_stack.top().second == 0) {
+					loop_stack.pop();
+				}
+				else {
+					command_itr = find_note_with_label(commands, command_itr->target);
+					continue;
+				}
+			}
+			else {
+				if (command_itr->sound_loop.loop_count == 0) {
+					if (
+						!visited_labels_not_during_call.count(command_itr->target) ||
+						(call_stack.size() > 0 && !visited_labels_during_call.count(command_itr->target))
+					) {
+						command_itr = find_note_with_label(commands, command_itr->target);
+						continue;
+					}
+					break; // song is finished
+				}
+				else if (command_itr->sound_loop.loop_count > 1) {
+					// nested loops not allowed
+					assert(loop_stack.size() == 0);
+
+					loop_stack.emplace(command_itr, command_itr->sound_loop.loop_count - 1);
+					command_itr = find_note_with_label(commands, command_itr->target);
+					continue;
+				}
+			}
+		}
+		else if (command_itr->type == Command_Type::SOUND_CALL) {
+			// nested calls not allowed
+			assert(call_stack.size() == 0);
+
+			call_stack.push(command_itr);
+			command_itr = find_note_with_label(commands, command_itr->target);
+			continue;
+		}
+		else if (command_itr->type == Command_Type::SOUND_RET) {
+			if (call_stack.size() == 0) {
+				break; // song is finished
+			}
+			else {
+				command_itr = call_stack.top();
+				call_stack.pop();
+				visited_labels_during_call.clear();
+			}
+		}
+		else if (command_itr->type == Command_Type::SPEED) {
+			speed = command_itr->speed.speed;
+		}
+		++command_itr;
+	}
+
+	std::sort(split_points.begin(), split_points.end(),
+		[](const Split_Point &a, const Split_Point &b) {
+			return a.index < b.index || (a.index == b.index && a.offset < b.offset);
+		}
+	);
+
+	const auto is_ambiguous = [](const std::vector<Split_Point> &split_points, const Split_Point &split_point) {
+		for (const Split_Point &sp : split_points) {
+			if (sp.index == split_point.index && sp.speed != split_point.speed) {
+				return true;
+			}
+		}
+		return false;
+	};
+
+	for (auto sp_itr = split_points.rbegin(); sp_itr != split_points.rend(); ++sp_itr) {
+		if (!is_ambiguous(split_points, *sp_itr)) {
+			assert(commands[sp_itr->index].type == Command_Type::REST);
+			assert(commands[sp_itr->index].rest.length > sp_itr->offset);
+			assert(sp_itr->offset > 0);
+
+			Command command = Command(Command_Type::REST);
+			command.rest.length = commands[sp_itr->index].rest.length - sp_itr->offset;
+			commands[sp_itr->index].rest.length = sp_itr->offset;
+			commands.insert(commands.begin() + sp_itr->index + 1, command);
+		}
+	}
+}
+
 Song::Song() {}
 
 Song::~Song() {
@@ -2274,8 +2439,6 @@ int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &sele
 		}
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 
 	return length * speed;
@@ -2332,8 +2495,6 @@ void Song::set_speed(const int selected_channel, const std::set<int32_t> &select
 		}
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2351,8 +2512,6 @@ void Song::set_volume(const int selected_channel, const std::set<int32_t> &selec
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2369,8 +2528,6 @@ void Song::set_fade(const int selected_channel, const std::set<int32_t> &selecte
 		commands[*note_itr].labels.clear();
 		commands.insert(commands.begin() + *note_itr, command);
 	}
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -2390,8 +2547,6 @@ void Song::set_vibrato_delay(const int selected_channel, const std::set<int32_t>
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2409,8 +2564,6 @@ void Song::set_vibrato_extent(const int selected_channel, const std::set<int32_t
 		commands[*note_itr].labels.clear();
 		commands.insert(commands.begin() + *note_itr, command);
 	}
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -2430,8 +2583,6 @@ void Song::set_vibrato_rate(const int selected_channel, const std::set<int32_t> 
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2448,8 +2599,6 @@ void Song::set_wave(const int selected_channel, const std::set<int32_t> &selecte
 		commands[*note_itr].labels.clear();
 		commands.insert(commands.begin() + *note_itr, command);
 	}
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -2470,8 +2619,6 @@ void Song::set_drumkit(const int selected_channel, const std::set<int32_t> &sele
 		commands.insert(commands.begin() + *note_itr + 1, command);
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2487,8 +2634,6 @@ void Song::set_duty(const int selected_channel, const std::set<int32_t> &selecte
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2503,8 +2648,6 @@ void Song::set_tempo(const int selected_channel, const std::set<int32_t> &select
 		commands[*note_itr].labels.clear();
 		commands.insert(commands.begin() + *note_itr, command);
 	}
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -2523,8 +2666,6 @@ void Song::set_transpose_octaves(const int selected_channel, const std::set<int3
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2541,8 +2682,6 @@ void Song::set_transpose_pitches(const int selected_channel, const std::set<int3
 		commands[*note_itr].labels.clear();
 		commands.insert(commands.begin() + *note_itr, command);
 	}
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -2562,8 +2701,6 @@ void Song::set_slide_duration(const int selected_channel, const std::set<int32_t
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2581,8 +2718,6 @@ void Song::set_slide_octave(const int selected_channel, const std::set<int32_t> 
 		commands[*note_itr].labels.clear();
 		commands.insert(commands.begin() + *note_itr, command);
 	}
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -2602,8 +2737,6 @@ void Song::set_slide_pitch(const int selected_channel, const std::set<int32_t> &
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2620,8 +2753,6 @@ void Song::set_slide(const int selected_channel, const std::set<int32_t> &select
 		commands[*note_itr].labels.clear();
 		commands.insert(commands.begin() + *note_itr, command);
 	}
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -2649,8 +2780,6 @@ void Song::pitch_up(const int selected_channel, const std::set<int32_t> &selecte
 		}
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2677,8 +2806,6 @@ void Song::pitch_down(const int selected_channel, const std::set<int32_t> &selec
 		}
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2698,8 +2825,6 @@ void Song::octave_up(const int selected_channel, const std::set<int32_t> &select
 		commands.insert(commands.begin() + *note_itr, command);
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2718,8 +2843,6 @@ void Song::octave_down(const int selected_channel, const std::set<int32_t> &sele
 		commands[*note_itr].labels.clear();
 		commands.insert(commands.begin() + *note_itr, command);
 	}
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -2782,8 +2905,6 @@ void Song::move_left(const int selected_channel, const std::set<int32_t> &select
 		if (note_view.speed != rest_view.speed) offset += 2;
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2844,8 +2965,6 @@ void Song::move_right(const int selected_channel, const std::set<int32_t> &selec
 		commands[*note_itr].labels = std::move(labels);
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2860,8 +2979,6 @@ void Song::shorten(const int selected_channel, const std::set<int32_t> &selected
 		commands[*note_itr].note.length -= 1;
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2875,8 +2992,6 @@ void Song::lengthen(const int selected_channel, const std::set<int32_t> &selecte
 		erase_ticks(selected_channel, commands, note_view.speed, *note_itr, note_view.speed, note_view.volume, note_view.fade);
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2887,8 +3002,6 @@ void Song::delete_selection(const int selected_channel, const std::set<int32_t> 
 	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
 		commands[*note_itr].type = Command_Type::REST;
 	}
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -2903,8 +3016,6 @@ void Song::snip_selection(const int selected_channel, const std::set<int32_t> &s
 	}
 
 	resize_channel(selected_channel, commands, channel_label(selected_channel), channel_loop_tick(selected_channel), channel_end_tick(selected_channel));
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -2924,8 +3035,6 @@ void Song::split_note(const int selected_channel, const std::set<int32_t> &selec
 	command.note.pitch = commands[index].note.pitch;
 	commands[index].note.length = tick_offset;
 	commands.insert(commands.begin() + index + 1, command);
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -2949,8 +3058,6 @@ void Song::glue_note(const int selected_channel, const std::set<int32_t> &select
 	commands[index - 1].note.length += commands[index].note.length;
 	commands.erase(commands.begin() + index);
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -2961,28 +3068,24 @@ void Song::resize_song(const Song_Options_Dialog::Song_Options &options) {
 	if (options.channel_1) {
 		std::vector<Command> &commands = channel_commands(1);
 		resize_channel(1, commands, channel_label(1), options.looping ? options.channel_1_loop_tick : -1, options.channel_1_end_tick);
-		postprocess(commands);
 		if (options.looping) _channel_1_loop_tick = options.channel_1_loop_tick;
 		_channel_1_end_tick  = options.channel_1_end_tick;
 	}
 	if (options.channel_2) {
 		std::vector<Command> &commands = channel_commands(2);
 		resize_channel(2, commands, channel_label(2), options.looping ? options.channel_2_loop_tick : -1, options.channel_2_end_tick);
-		postprocess(commands);
 		if (options.looping) _channel_2_loop_tick = options.channel_2_loop_tick;
 		_channel_2_end_tick  = options.channel_2_end_tick;
 	}
 	if (options.channel_3) {
 		std::vector<Command> &commands = channel_commands(3);
 		resize_channel(3, commands, channel_label(3), options.looping ? options.channel_3_loop_tick : -1, options.channel_3_end_tick);
-		postprocess(commands);
 		if (options.looping) _channel_3_loop_tick = options.channel_3_loop_tick;
 		_channel_3_end_tick  = options.channel_3_end_tick;
 	}
 	if (options.channel_4) {
 		std::vector<Command> &commands = channel_commands(4);
 		resize_channel(4, commands, channel_label(4), options.looping ? options.channel_4_loop_tick : -1, options.channel_4_end_tick);
-		postprocess(commands);
 		if (options.looping) _channel_4_loop_tick = options.channel_4_loop_tick;
 		_channel_4_end_tick  = options.channel_4_end_tick;
 	}
@@ -3013,8 +3116,6 @@ void Song::reduce_loop(const int selected_channel, const std::set<int32_t> &sele
 		}
 	}
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -3029,8 +3130,6 @@ void Song::extend_loop(const int selected_channel, const std::set<int32_t> &sele
 	commands[loop_index].sound_loop.loop_count += 1;
 
 	erase_ticks(selected_channel, commands, loop_length, loop_index, end_view.speed, end_view.volume, end_view.fade);
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -3056,8 +3155,6 @@ void Song::unroll_loop(const int selected_channel, const std::set<int32_t> &sele
 			delete_label(commands, target);
 		}
 	}
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -3089,8 +3186,6 @@ void Song::create_loop(const int selected_channel, const std::set<int32_t> &sele
 	commands.insert(commands.begin() + end_index + 1, loop);
 
 	erase_ticks(selected_channel, commands, loop_length, end_index + 1, end_view.speed, end_view.volume, end_view.fade);
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -3164,8 +3259,6 @@ void Song::delete_call(const int selected_channel, const std::set<int32_t> &sele
 	commands[call_index + 1].labels.insert(commands[call_index + 1].labels.begin(), RANGE(commands[call_index].labels));
 	commands.erase(commands.begin() + call_index);
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -3186,8 +3279,6 @@ void Song::unpack_call(const int selected_channel, const std::set<int32_t> &sele
 	commands[call_index + 1].labels.insert(commands[call_index + 1].labels.begin(), RANGE(commands[call_index].labels));
 	commands.erase(commands.begin() + call_index);
 
-	postprocess(commands);
-
 	_modified = true;
 }
 
@@ -3207,8 +3298,6 @@ void Song::create_call(const int selected_channel, const std::set<int32_t> &sele
 	for (int32_t i = end_index; i >= start_index; --i) {
 		commands.erase(commands.begin() + i);
 	}
-
-	postprocess(commands);
 
 	_modified = true;
 }
@@ -3311,8 +3400,6 @@ void Song::insert_call(const int selected_channel, const std::set<int32_t> &sele
 	}
 
 	erase_ticks(selected_channel, commands, call_length, insert_index, insert_view.speed, insert_view.volume, insert_view.fade);
-
-	postprocess(commands);
 
 	_modified = true;
 }

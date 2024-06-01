@@ -358,6 +358,7 @@ private:
 	std::vector<Call_Box *> *active_channel_calls();
 	std::set<int32_t> *active_channel_unused_targets();
 	std::set<int32_t> *active_channel_tempo_changes();
+	std::set<int32_t> &channel_tempo_changes(const int selected_channel);
 protected:
 	void draw() override;
 };
@@ -483,6 +484,7 @@ public:
 	int32_t get_song_length() const;
 	int32_t get_loop_tick() const;
 	int32_t get_last_note_x() const;
+	int first_channel_number() const;
 
 	void update_channel_detail(int channel_number);
 
@@ -504,6 +506,7 @@ public:
 	int scroll_x_max() const;
 	int scroll_y_max() const;
 
+	void postprocess_channel(Song &song, int selected_channel);
 	bool put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick);
 	bool set_speed(Song &song, int32_t speed);
 	bool set_volume(Song &song, int32_t volume);

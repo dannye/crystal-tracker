@@ -52,6 +52,10 @@ int32_t calc_snippet_length(const std::vector<Command> &commands, const std::vec
 
 Note_View get_note_view(const std::vector<Command> &commands, int32_t index, int32_t min_tick = 0);
 
+void postprocess(std::vector<Command> &commands);
+
+void split_tempo_change_rests(std::vector<Command> &commands, const std::set<int32_t> &tempo_changes);
+
 class Song {
 public:
 	struct Song_State {
