@@ -45,7 +45,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	int ruler_config = Preferences::get("ruler", 1);
 
 	for (int i = 0; i < NUM_RECENT; i++) {
-		_recent[i] = Preferences::get_string(Fl_Preferences::Name("recent%d", i));
+		_recent[i].filepath          = Preferences::get_string(Fl_Preferences::Name("recent%d", i));
+		_recent[i].beats_per_measure = std::clamp(Preferences::get(Fl_Preferences::Name("recent%d_beats_per_measure", i),  4), 1, 64);
+		_recent[i].steps_per_beat    = std::clamp(Preferences::get(Fl_Preferences::Name("recent%d_steps_per_beat",    i),  4), 1, 64);
+		_recent[i].ticks_per_step    = std::clamp(Preferences::get(Fl_Preferences::Name("recent%d_ticks_per_step",    i), 12), 4, 16);
+		_recent[i].pickup_offset     = std::clamp(Preferences::get(Fl_Preferences::Name("recent%d_pickup_offset",     i),  0), 0, 64);
 	}
 
 	int fullscreen = Preferences::get("fullscreen", 0);
@@ -1374,10 +1378,42 @@ void Main_Window::update_channel_detail() {
 	_piano_roll->align_cursor();
 }
 
-void Main_Window::store_recent_song() {
-	std::string last(_asm_file);
+void Main_Window::apply_recent_config() {
 	for (int i = 0; i < NUM_RECENT; i++) {
-		if (_recent[i] == _asm_file) {
+		if (_recent[i].filepath == _asm_file) {
+			Ruler_Config_Dialog::Ruler_Options ruler_config;
+			ruler_config.beats_per_measure = _recent[i].beats_per_measure;
+			ruler_config.steps_per_beat = _recent[i].steps_per_beat;
+			ruler_config.pickup_offset = _recent[i].pickup_offset;
+			_ruler->set_options(ruler_config);
+
+			_piano_roll->ticks_per_step(_recent[i].ticks_per_step);
+			if (_recent[i].ticks_per_step <= 4) {
+				_decrease_spacing_mi->deactivate();
+				_decrease_spacing_tb->deactivate();
+			}
+			else {
+				_decrease_spacing_mi->activate();
+				_decrease_spacing_tb->activate();
+			}
+			if (_recent[i].ticks_per_step >= 16) {
+				_increase_spacing_mi->deactivate();
+				_increase_spacing_tb->deactivate();
+			}
+			else {
+				_increase_spacing_mi->activate();
+				_increase_spacing_tb->activate();
+			}
+			break;
+		}
+	}
+}
+
+void Main_Window::store_recent_song() {
+	Recent_Cache last;
+	last.filepath = _asm_file;
+	for (int i = 0; i < NUM_RECENT; i++) {
+		if (_recent[i].filepath == _asm_file) {
 			_recent[i] = last;
 			break;
 		}
@@ -1396,11 +1432,11 @@ void Main_Window::update_recent_songs() {
 			ml->labelb = "";
 		}
 #endif
-		if (_recent[i].empty()) {
+		if (_recent[i].filepath.empty()) {
 			_recent_mis[i]->hide();
 		}
 		else {
-			const char *basename = fl_filename_name(_recent[i].c_str());
+			const char *basename = fl_filename_name(_recent[i].filepath.c_str());
 #ifndef __APPLE__
 			char *label = new char[FL_PATH_MAX]();
 			strcpy(label, SYS_MENU_ITEM_PREFIX);
@@ -1565,6 +1601,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	update_timestamp();
 
 	if (filename) {
+		apply_recent_config();
 		store_recent_song();
 	}
 
@@ -1586,7 +1623,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 }
 
 void Main_Window::open_recent(int n) {
-	if (n < 0 || n >= NUM_RECENT || _recent[n].empty()) {
+	if (n < 0 || n >= NUM_RECENT || _recent[n].filepath.empty()) {
 		return;
 	}
 
@@ -1599,7 +1636,7 @@ void Main_Window::open_recent(int n) {
 		if (_confirm_dialog->canceled()) { return; }
 	}
 
-	const char *filename = _recent[n].c_str();
+	const char *filename = _recent[n].filepath.c_str();
 	open_song(filename);
 }
 
@@ -2030,7 +2067,7 @@ void Main_Window::open_recent_cb(Fl_Menu_ *m, Main_Window *mw) {
 
 void Main_Window::clear_recent_cb(Fl_Widget *, Main_Window *mw) {
 	for (int i = 0; i < NUM_RECENT; i++) {
-		mw->_recent[i].clear();
+		mw->_recent[i].filepath.clear();
 		mw->_recent_mis[i]->hide();
 	}
 	mw->_menu_bar->update();
@@ -2051,6 +2088,14 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	}
 
 	mw->stop_audio_thread();
+
+	if (mw->_recent[0].filepath == mw->_asm_file) {
+		Ruler_Config_Dialog::Ruler_Options ruler_config = mw->_ruler->get_options();
+		mw->_recent[0].beats_per_measure = ruler_config.beats_per_measure;
+		mw->_recent[0].steps_per_beat = ruler_config.steps_per_beat;
+		mw->_recent[0].pickup_offset = ruler_config.pickup_offset;
+		mw->_recent[0].ticks_per_step = mw->_piano_roll->ticks_per_step();
+	}
 
 	const char *basename;
 	if (mw->_asm_file.size()) {
@@ -2225,7 +2270,20 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 	Preferences::set("note_labels", mw->note_labels());
 	Preferences::set("ruler", mw->ruler());
 	for (int i = 0; i < NUM_RECENT; i++) {
-		Preferences::set_string(Fl_Preferences::Name("recent%d", i), mw->_recent[i]);
+		if (i == 0 && mw->_asm_file == mw->_recent[i].filepath) {
+			Ruler_Config_Dialog::Ruler_Options ruler_config = mw->_ruler->get_options();
+			Preferences::set_string(Fl_Preferences::Name("recent%d", i), mw->_recent[i].filepath);
+			Preferences::set(Fl_Preferences::Name("recent%d_beats_per_measure", i), ruler_config.beats_per_measure);
+			Preferences::set(Fl_Preferences::Name("recent%d_steps_per_beat", i), ruler_config.steps_per_beat);
+			Preferences::set(Fl_Preferences::Name("recent%d_ticks_per_step", i), mw->_piano_roll->ticks_per_step());
+			Preferences::set(Fl_Preferences::Name("recent%d_pickup_offset", i), ruler_config.pickup_offset);
+			continue;
+		}
+		Preferences::set_string(Fl_Preferences::Name("recent%d", i), mw->_recent[i].filepath);
+		Preferences::set(Fl_Preferences::Name("recent%d_beats_per_measure", i), mw->_recent[i].beats_per_measure);
+		Preferences::set(Fl_Preferences::Name("recent%d_steps_per_beat", i), mw->_recent[i].steps_per_beat);
+		Preferences::set(Fl_Preferences::Name("recent%d_ticks_per_step", i), mw->_recent[i].ticks_per_step);
+		Preferences::set(Fl_Preferences::Name("recent%d_pickup_offset", i), mw->_recent[i].pickup_offset);
 	}
 
 	Preferences::close();

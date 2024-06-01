@@ -25,6 +25,14 @@
 
 #define NUM_RECENT 10
 
+struct Recent_Cache {
+	std::string filepath;
+	int beats_per_measure = 4;
+	int steps_per_beat = 4;
+	int ticks_per_step = 12;
+	int pickup_offset = 0;
+};
+
 #define NEW_SONG_NAME "New Song"
 
 class Main_Window : public Fl_Double_Window {
@@ -176,7 +184,7 @@ private:
 	// Data
 	std::string _status_message = "Ready";
 	std::string _directory, _asm_file;
-	std::string _recent[NUM_RECENT];
+	Recent_Cache _recent[NUM_RECENT];
 	int _zoom = 0;
 	Song _song;
 	std::vector<Wave> _waves;
@@ -286,6 +294,7 @@ private:
 	inline void selected_channel(int i) { _selected_channel = i; }
 	void update_active_controls(void);
 	void update_channel_detail(void);
+	void apply_recent_config(void);
 	void store_recent_song(void);
 	void update_recent_songs(void);
 	void open_song(const char *directory, const char *filename);
