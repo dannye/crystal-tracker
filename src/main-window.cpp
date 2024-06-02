@@ -1961,6 +1961,7 @@ void Main_Window::update_zoom() {
 	}
 	_piano_roll->zoom(zoom());
 	update_layout();
+	_menu_bar->update();
 }
 
 void Main_Window::update_layout() {
