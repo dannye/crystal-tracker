@@ -434,6 +434,15 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 		return std::abs(fade) + std::max(192 - tempo, 0) / 32;
 	};
 
+	auto convert_vibrato_delay = [](int32_t tempo, int32_t speed, int32_t delay) {
+		return (int32_t)(delay * speed / std::pow(tempo, 0.35));
+	};
+
+	auto convert_vibrato_rate = [](int32_t tempo, int32_t rate) {
+		const int32_t v = 6 + tempo / 60;
+		return std::min(v - std::min(rate, v - 1), 15);
+	};
+
 	do {
 		std::vector<uint8_t> pattern;
 
@@ -513,7 +522,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					else if (
 						channel_1_prev_note.vibrato_rate &&
 						channel_1_prev_note.vibrato_extent &&
-						channel_1_note_duration > channel_1_prev_note.vibrato_delay * (channel_1_prev_note.speed / 4)
+						channel_1_note_duration > convert_vibrato_delay(global_tempo, channel_1_prev_note.speed, channel_1_prev_note.vibrato_delay)
 					) {
 						pattern_data.push_back(FADE_VIBRATO);
 					}
@@ -537,12 +546,12 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 				else if (
 					channel_1_prev_note.vibrato_rate &&
 					channel_1_prev_note.vibrato_extent &&
-					channel_1_note_duration >= channel_1_prev_note.vibrato_delay * (channel_1_prev_note.speed / 4)
+					channel_1_note_duration >= convert_vibrato_delay(global_tempo, channel_1_prev_note.speed, channel_1_prev_note.vibrato_delay)
 				) {
 					pattern_data.push_back(CHANNEL + CH1);
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(VIBRATO);
-					pattern_data.push_back((8 - std::min(channel_1_prev_note.vibrato_rate, 7)) << 4 | (channel_1_prev_note.vibrato_extent));
+					pattern_data.push_back(convert_vibrato_rate(global_tempo, channel_1_prev_note.vibrato_rate) << 4 | (channel_1_prev_note.vibrato_extent));
 				}
 				channel_1_note_length -= 1;
 				channel_1_note_duration += 1;
@@ -601,7 +610,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					else if (
 						channel_2_prev_note.vibrato_rate &&
 						channel_2_prev_note.vibrato_extent &&
-						channel_2_note_duration > channel_2_prev_note.vibrato_delay * (channel_2_prev_note.speed / 4)
+						channel_2_note_duration > convert_vibrato_delay(global_tempo, channel_2_prev_note.speed, channel_2_prev_note.vibrato_delay)
 					) {
 						pattern_data.push_back(FADE_VIBRATO);
 					}
@@ -625,12 +634,12 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 				else if (
 					channel_2_prev_note.vibrato_rate &&
 					channel_2_prev_note.vibrato_extent &&
-					channel_2_note_duration >= channel_2_prev_note.vibrato_delay * (channel_2_prev_note.speed / 4)
+					channel_2_note_duration >= convert_vibrato_delay(global_tempo, channel_2_prev_note.speed, channel_2_prev_note.vibrato_delay)
 				) {
 					pattern_data.push_back(CHANNEL + CH2);
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(VIBRATO);
-					pattern_data.push_back((8 - std::min(channel_2_prev_note.vibrato_rate, 7)) << 4 | (channel_2_prev_note.vibrato_extent));
+					pattern_data.push_back(convert_vibrato_rate(global_tempo, channel_2_prev_note.vibrato_rate) << 4 | (channel_2_prev_note.vibrato_extent));
 				}
 				channel_2_note_length -= 1;
 				channel_2_note_duration += 1;
@@ -692,12 +701,12 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 				else if (
 					channel_3_prev_note.vibrato_rate &&
 					channel_3_prev_note.vibrato_extent &&
-					channel_3_note_duration >= channel_3_prev_note.vibrato_delay * (channel_3_prev_note.speed / 4)
+					channel_3_note_duration >= convert_vibrato_delay(global_tempo, channel_3_prev_note.speed, channel_3_prev_note.vibrato_delay)
 				) {
 					pattern_data.push_back(CHANNEL + CH3);
 					pattern_data.push_back(COMMAND);
 					pattern_data.push_back(VIBRATO);
-					pattern_data.push_back((8 - std::min(channel_3_prev_note.vibrato_rate, 7)) << 4 | (channel_3_prev_note.vibrato_extent));
+					pattern_data.push_back(convert_vibrato_rate(global_tempo, channel_3_prev_note.vibrato_rate) << 4 | (channel_3_prev_note.vibrato_extent));
 				}
 				channel_3_note_length -= 1;
 				channel_3_note_duration += 1;
