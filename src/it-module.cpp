@@ -488,12 +488,16 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					pattern_data.push_back(TEMPO);
 					pattern_data.push_back(channel_1_tempo / 256);
 
-					if (
-						channel_2_note_length > 0 ||
-						channel_3_note_length > 0 ||
-						channel_4_note_length > 0
-					) {
-						_tempo_change_mid_note = 1;
+					if (_tempo_change_mid_note == -1) {
+						if (channel_2_note_length > 0) {
+							_tempo_change_mid_note = 2;
+						}
+						else if (channel_3_note_length > 0) {
+							_tempo_change_mid_note = 3;
+						}
+						else if (channel_4_note_length > 0) {
+							_tempo_change_mid_note = 4;
+						}
 					}
 				}
 				if (channel_1_itr->pitch != Pitch::REST) {
@@ -576,12 +580,16 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					if (first_channel != 2) {
 						_tempo_change_wrong_channel = 2;
 					}
-					if (
-						channel_1_note_length > 0 ||
-						channel_3_note_length > 0 ||
-						channel_4_note_length > 0
-					) {
-						_tempo_change_mid_note = 2;
+					if (_tempo_change_mid_note == -1) {
+						if (channel_1_note_length > 0) {
+							_tempo_change_mid_note = 1;
+						}
+						else if (channel_3_note_length > 0) {
+							_tempo_change_mid_note = 3;
+						}
+						else if (channel_4_note_length > 0) {
+							_tempo_change_mid_note = 4;
+						}
 					}
 				}
 				if (channel_2_itr->pitch != Pitch::REST) {
@@ -667,12 +675,16 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					if (first_channel != 3) {
 						_tempo_change_wrong_channel = 3;
 					}
-					if (
-						channel_1_note_length > 0 ||
-						channel_2_note_length > 0 ||
-						channel_4_note_length > 0
-					) {
-						_tempo_change_mid_note = 3;
+					if (_tempo_change_mid_note == -1) {
+						if (channel_1_note_length > 0) {
+							_tempo_change_mid_note = 1;
+						}
+						else if (channel_2_note_length > 0) {
+							_tempo_change_mid_note = 2;
+						}
+						else if (channel_4_note_length > 0) {
+							_tempo_change_mid_note = 4;
+						}
 					}
 				}
 				if (channel_3_itr->pitch != Pitch::REST && wave < 16 + 15) {
@@ -730,12 +742,16 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					if (first_channel != 4) {
 						_tempo_change_wrong_channel = 4;
 					}
-					if (
-						channel_1_note_length > 0 ||
-						channel_2_note_length > 0 ||
-						channel_3_note_length > 0
-					) {
-						_tempo_change_mid_note = 4;
+					if (_tempo_change_mid_note == -1) {
+						if (channel_1_note_length > 0) {
+							_tempo_change_mid_note = 1;
+						}
+						else if (channel_2_note_length > 0) {
+							_tempo_change_mid_note = 2;
+						}
+						else if (channel_3_note_length > 0) {
+							_tempo_change_mid_note = 3;
+						}
 					}
 				}
 				if (channel_4_itr->pitch != Pitch::REST && channel_4_itr->drumkit != -1 && drumkits[channel_4_itr->drumkit].drums[(int32_t)channel_4_itr->pitch] < 64) {
