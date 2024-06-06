@@ -2712,9 +2712,12 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_song.undo();
 	if (channel_number != mw->selected_channel()) {
 		mw->selected_channel(channel_number);
+		mw->_piano_roll->set_active_channel_timeline(mw->_song);
 		mw->sync_channel_buttons();
 	}
-	mw->_piano_roll->set_active_channel_timeline(mw->_song);
+	else {
+		mw->_piano_roll->set_active_channel_timeline(mw->_song);
+	}
 	mw->_piano_roll->align_cursor();
 	if (
 		action == Song::Song_State::Action::PUT_NOTE ||
@@ -2769,9 +2772,12 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_song.redo();
 	if (channel_number != mw->selected_channel()) {
 		mw->selected_channel(channel_number);
+		mw->_piano_roll->set_active_channel_timeline(mw->_song);
 		mw->sync_channel_buttons();
 	}
-	mw->_piano_roll->set_active_channel_timeline(mw->_song);
+	else {
+		mw->_piano_roll->set_active_channel_timeline(mw->_song);
+	}
 	mw->_piano_roll->align_cursor();
 	if (action == Song::Song_State::Action::PUT_NOTE) {
 		mw->_piano_roll->tick(tick);
