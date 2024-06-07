@@ -3786,6 +3786,12 @@ bool Piano_Roll::extend_loop(Song &song, bool dry_run) {
 	) {
 		return false;
 	}
+
+	assert(commands[loop_index].type == Command_Type::SOUND_LOOP);
+	if (commands[loop_index].sound_loop.loop_count >= 255) {
+		return false;
+	}
+
 	if (dry_run) {
 		return true;
 	}

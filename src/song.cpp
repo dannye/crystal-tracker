@@ -3125,6 +3125,7 @@ void Song::extend_loop(const int selected_channel, const std::set<int32_t> &sele
 
 	assert(commands[loop_index].type == Command_Type::SOUND_LOOP);
 	assert(commands[loop_index].sound_loop.loop_count > 1);
+	assert(commands[loop_index].sound_loop.loop_count < 255);
 	assert(end_view.speed != 0);
 
 	commands[loop_index].sound_loop.loop_count += 1;
