@@ -42,7 +42,7 @@ void Ruler::draw() {
 	fl_color(FL_DARK2);
 	fl_rectf(X, Y, W, H);
 	// edges
-	fl_color(fl_color_average(FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR, 0.4f));
+	fl_color(OS::current_theme() == OS::Theme::HIGH_CONTRAST ? FL_SELECTION_COLOR : fl_color_average(FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR, 0.4f));
 	fl_xyline(X, Y+H-1, X+W-1);
 	// tick marks and labels
 	int mx = mw->song_scroll_x();

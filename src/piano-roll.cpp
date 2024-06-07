@@ -2402,7 +2402,6 @@ void Piano_Roll::clear() {
 }
 
 void Piano_Roll::start_following() {
-	_piano_timeline.handle_note_pencil_cancel(0);
 	_following = true;
 	_paused = false;
 	_piano_timeline.reset_note_colors();
@@ -2411,6 +2410,12 @@ void Piano_Roll::start_following() {
 	_piano_timeline._selection_region.y = -1;
 	_piano_timeline._selection_region.w = 0;
 	_piano_timeline._selection_region.h = 0;
+	_piano_timeline._drawing = false;
+	_piano_timeline._drawing_tick = -1;
+	_piano_timeline._drawing_pitch = Pitch::REST;
+	_piano_timeline._drawing_octave = 0;
+	_piano_timeline._drawing_speed = 0;
+	_piano_timeline._drawing_length = 0;
 	if (_tick == -1) {
 		scroll_to(0, yposition());
 		sticky_keys();
