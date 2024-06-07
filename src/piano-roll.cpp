@@ -346,6 +346,12 @@ void Piano_Timeline::clear() {
 	_selection_region.y = -1;
 	_selection_region.w = 0;
 	_selection_region.h = 0;
+	_drawing = false;
+	_drawing_tick = -1;
+	_drawing_pitch = Pitch::REST;
+	_drawing_octave = 0;
+	_drawing_speed = 0;
+	_drawing_length = 0;
 	_erasing = false;
 	_positioning = false;
 }
@@ -556,6 +562,7 @@ int Piano_Timeline::handle(int event) {
 	bool pencil_mode = parent()->parent()->pencil_mode();
 	switch (event) {
 	case FL_PUSH:
+		handle_note_pencil_cancel(event);
 		_erasing = false;
 		_positioning = false;
 		if (
@@ -586,7 +593,7 @@ int Piano_Timeline::handle(int event) {
 			!Fl::event_inside(&_keys) &&
 			!parent()->following() &&
 			!parent()->paused() &&
-			handle_note_pencil(event)
+			handle_note_pencil_start(event)
 		) {
 			return 1;
 		}
@@ -623,7 +630,16 @@ int Piano_Timeline::handle(int event) {
 			handle_note_selection_cancel(event);
 			return 1;
 		}
+		else if (
+			pencil_mode &&
+			Fl::event_button() == FL_LEFT_MOUSE &&
+			handle_note_pencil_end(event)
+		) {
+			handle_note_pencil_cancel(event);
+			return 1;
+		}
 		handle_note_selection_cancel(event);
+		handle_note_pencil_cancel(event);
 		break;
 	case FL_DRAG:
 		if (
@@ -635,6 +651,12 @@ int Piano_Timeline::handle(int event) {
 		else if (
 			!pencil_mode &&
 			handle_note_selection_update(event)
+		) {
+			return 1;
+		}
+		else if (
+			pencil_mode &&
+			handle_note_pencil_update(event)
 		) {
 			return 1;
 		}
@@ -666,23 +688,84 @@ int Piano_Timeline::handle(int event) {
 		) {
 			return 1;
 		}
+		else if (
+			pencil_mode &&
+			Fl::event_key() == FL_Escape &&
+			handle_note_pencil_cancel(event)
+		) {
+			return 1;
+		}
 		break;
 	}
 	return Fl_Group::handle(event);
 }
 
-bool Piano_Timeline::handle_note_pencil(int event) {
+bool Piano_Timeline::handle_note_pencil_start(int event) {
 	int32_t tick = (Fl::event_x() - x() - WHITE_KEY_WIDTH) / parent()->tick_width();
 	tick = std::max(parent()->quantize_tick(tick), 0);
 
-	int32_t row = (Fl::event_y() - y()) / parent()->note_row_height();
-	Pitch pitch = (Pitch)(NUM_NOTES_PER_OCTAVE - row % NUM_NOTES_PER_OCTAVE);
-	int32_t octave = (NUM_OCTAVES - row / NUM_NOTES_PER_OCTAVE);
+	int32_t speed = 0, length = 0;
+	bool success = parent()->parent()->test_put_note(tick, 1, &speed, &length);
 
-	assert(pitch >= Pitch::C_NAT && pitch <= Pitch::B_NAT);
-	assert(octave >= 1 && octave <= 8);
+	if (success) {
+		_drawing = true;
+		_drawing_tick = tick;
 
-	return parent()->parent()->put_note(pitch, octave, tick);
+		int32_t row = (Fl::event_y() - y()) / parent()->note_row_height();
+		_drawing_pitch = (Pitch)(NUM_NOTES_PER_OCTAVE - row % NUM_NOTES_PER_OCTAVE);
+		_drawing_octave = (NUM_OCTAVES - row / NUM_NOTES_PER_OCTAVE);
+
+		assert(_drawing_pitch >= Pitch::C_NAT && _drawing_pitch <= Pitch::B_NAT);
+		assert(_drawing_octave >= 1 && _drawing_octave <= 8);
+
+		_drawing_speed = speed;
+		_drawing_length = length;
+
+		assert(_drawing_speed != 0);
+		assert(_drawing_length == 1);
+
+		redraw();
+		return true;
+	}
+	return false;
+}
+
+bool Piano_Timeline::handle_note_pencil_update(int event) {
+	if (!_drawing) return false;
+
+	int32_t tick = (Fl::event_x() - x() - WHITE_KEY_WIDTH) / parent()->tick_width();
+
+	int32_t new_length = std::clamp((tick - _drawing_tick) / _drawing_speed + 1, 1, 16);
+
+	int32_t speed = 0, length = 0;
+	bool success = parent()->parent()->test_put_note(_drawing_tick, new_length, &speed, &length);
+
+	if (success) {
+		assert(length == new_length);
+		_drawing_speed = speed;
+		_drawing_length = length;
+	}
+
+	redraw();
+	return true;
+}
+
+bool Piano_Timeline::handle_note_pencil_end(int event) {
+	if (!_drawing) return false;
+	parent()->parent()->put_note(_drawing_pitch, _drawing_octave, _drawing_tick, _drawing_length);
+	return true;
+}
+
+bool Piano_Timeline::handle_note_pencil_cancel(int event) {
+	if (!_drawing) return false;
+	_drawing = false;
+	_drawing_tick = -1;
+	_drawing_pitch = Pitch::REST;
+	_drawing_octave = 0;
+	_drawing_speed = 0;
+	_drawing_length = 0;
+	redraw();
+	return true;
 }
 
 bool Piano_Timeline::handle_note_eraser(int event) {
@@ -1222,12 +1305,15 @@ void Piano_Timeline::draw() {
 	Fl_Color cursor_color = (dark || hc) ? FL_YELLOW : fl_color_average(FL_MAGENTA, FL_BLACK, 0.9f);
 	Fl_Color tempo_marker = fl_color_average(cursor_color, FL_BLACK, 0.6f);
 
-	if (damage() & ~FL_DAMAGE_CHILD) {
-		Piano_Roll *p = parent();
-		const int note_row_height = p->note_row_height();
-		const int tick_width = p->tick_width();
-		const int ticks_per_step = p->ticks_per_step();
+	Piano_Roll *p = parent();
+	const int octave_height = p->octave_height();
+	const int note_row_height = p->note_row_height();
+	const int tick_width = p->tick_width();
+	const int ticks_per_step = p->ticks_per_step();
 
+	int active_channel = selected_channel();
+
+	if (damage() & ~FL_DAMAGE_CHILD) {
 		int y_pos = y();
 		for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
 			for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
@@ -1265,7 +1351,6 @@ void Piano_Timeline::draw() {
 			}
 		}
 
-		int active_channel = selected_channel();
 		int first_channel = p->first_channel_number();
 
 		std::set<int32_t> *tempo_changes = (active_channel == 0 && first_channel != 0) ? &channel_tempo_changes(first_channel) : active_channel_tempo_changes();
@@ -1400,6 +1485,12 @@ void Piano_Timeline::draw() {
 		fl_line_style((dark || hc) ? FL_DOT : FL_DASH);
 		fl_rect(selection_x, selection_y, selection_w, selection_h);
 		fl_line_style(FL_SOLID);
+	}
+	if (_drawing && active_channel != 0) {
+		int x_pos = x() + _drawing_tick * tick_width + WHITE_KEY_WIDTH;
+		int y_pos = y() + ((int)NUM_OCTAVES - _drawing_octave) * octave_height + ((int)NUM_NOTES_PER_OCTAVE - (int)(_drawing_pitch)) * note_row_height;
+		fl_color(NOTE_COLORS[active_channel-1]);
+		fl_rect(x_pos, y_pos, tick_width * _drawing_speed * _drawing_length, note_row_height);
 	}
 }
 
@@ -1744,6 +1835,7 @@ void Piano_Roll::set_timeline(const Song &song) {
 }
 
 void Piano_Roll::set_active_channel_timeline(const Song &song) {
+	_piano_timeline.handle_note_pencil_cancel(0);
 	_piano_timeline.begin();
 	if (selected_channel() == 1) {
 		_piano_timeline.clear_channel_1();
@@ -2270,6 +2362,7 @@ int Piano_Roll::first_channel_number() const {
 }
 
 void Piano_Roll::update_channel_detail(int channel_number) {
+	_piano_timeline.handle_note_pencil_cancel(0);
 	_piano_timeline.set_channel_1_detail(channel_number == 1 ? 2 : channel_number == 0 ? 1 : 0);
 	_piano_timeline.set_channel_2_detail(channel_number == 2 ? 2 : channel_number == 0 ? 1 : 0);
 	_piano_timeline.set_channel_3_detail(channel_number == 3 ? 2 : channel_number == 0 ? 1 : 0);
@@ -2413,7 +2506,65 @@ void Piano_Roll::postprocess_channel(Song &song, int selected_channel) {
 	}
 }
 
-bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick) {
+bool Piano_Roll::test_put_note(Song &song, int32_t tick, int32_t length, int32_t *out_speed, int32_t *out_length) {
+	auto view = active_channel_view();
+	if (!view) return false;
+
+	if (tick == -1) return false;
+
+	int32_t tick_offset = 0;
+
+	const Note_View *note_view = find_note_view_at_tick(*view, tick, &tick_offset);
+
+	if (!note_view || note_view->ghost) return false;
+
+	int32_t index = note_view->index;
+	int32_t speed = note_view->speed;
+
+	if (note_view->pitch != Pitch::REST) {
+		if (length != 1) return false;
+		*out_speed = speed;
+		*out_length = length;
+		return true;
+	}
+
+	const Note_View *prev_note = find_note_before_tick(*view, tick - tick_offset);
+
+	int32_t prev_speed = note_view->speed;
+	if (prev_note && note_view->pitch == Pitch::REST) {
+		prev_speed = prev_note->speed;
+	}
+
+	for (const Note_View &other : *view) {
+		if (other.index == note_view->index && other.speed != note_view->speed) {
+			if (length != 1) return false;
+			*out_speed = speed;
+			*out_length = length;
+			return true;
+		}
+	}
+
+	int32_t desired_tick_length = length * prev_speed;
+	int32_t rest_ticks = note_view->length * note_view->speed;
+	int32_t remaining_rest_ticks = rest_ticks - tick_offset;
+
+	const std::vector<Command> &commands = song.channel_commands(selected_channel());
+	assert(commands[index].type == Command_Type::REST);
+
+	if (desired_tick_length <= remaining_rest_ticks || is_followed_by_n_ticks_of_rest(commands.begin() + index, commands.end(), desired_tick_length - remaining_rest_ticks, note_view->speed)) {
+		*out_speed = prev_speed;
+		*out_length = length;
+		return true;
+	}
+
+	if (length != 1) return false;
+
+	*out_speed = speed;
+	*out_length = length;
+	return true;
+}
+
+bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick, int32_t length) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -2453,6 +2604,7 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick)
 		prev_length = prev_note->length;
 		prev_speed = prev_note->speed;
 	}
+	if (length != 0) prev_length = length;
 
 	for (const Note_View &other : *view) {
 		if (other.index == note_view->index && other.speed != note_view->speed) {
@@ -2470,12 +2622,12 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick)
 		}
 	}
 
-	int32_t length = song.put_note(selected_channel(), selected_boxes, pitch, octave, old_octave, speed, prev_length, prev_speed, index, tick, tick_offset / speed, set_drumkit);
+	int32_t final_length = song.put_note(selected_channel(), selected_boxes, pitch, octave, old_octave, speed, prev_length, prev_speed, index, tick, tick_offset / speed, set_drumkit);
 	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	_piano_timeline.select_note_at_tick(*channel, tick);
 
-	_tick = tick + length;
+	_tick = tick + final_length;
 	focus_cursor(true);
 
 	return true;

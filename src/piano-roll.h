@@ -21,6 +21,8 @@ const Fl_Color NOTE_BLUE  = fl_rgb_color(  0, 117, 253);
 const Fl_Color NOTE_GREEN = fl_rgb_color(  0, 165,   0);
 const Fl_Color NOTE_BROWN = fl_rgb_color(124,  60,  25);
 
+const Fl_Color NOTE_COLORS[] = { NOTE_RED, NOTE_BLUE, NOTE_GREEN, NOTE_BROWN };
+
 const Fl_Color NOTE_RED_LIGHT   = fl_lighter(NOTE_RED);
 const Fl_Color NOTE_BLUE_LIGHT  = fl_lighter(NOTE_BLUE);
 const Fl_Color NOTE_GREEN_LIGHT = fl_lighter(NOTE_GREEN);
@@ -296,6 +298,12 @@ private:
 		int x, y, w, h;
 	};
 	Selection_Region _selection_region { -1, -1, 0, 0 };
+	bool    _drawing = false;
+	int32_t _drawing_tick = -1;
+	Pitch   _drawing_pitch = Pitch::REST;
+	int32_t _drawing_octave = 0;
+	int32_t _drawing_speed = 0;
+	int32_t _drawing_length = 0;
 	bool _erasing = false;
 	bool _positioning = false;
 public:
@@ -318,7 +326,10 @@ public:
 	void note_labels(bool show);
 
 	int handle(int event) override;
-	bool handle_note_pencil(int event);
+	bool handle_note_pencil_start(int event);
+	bool handle_note_pencil_update(int event);
+	bool handle_note_pencil_end(int event);
+	bool handle_note_pencil_cancel(int event);
 	bool handle_note_eraser(int event);
 	bool handle_note_selection(int event);
 	bool handle_note_selection_start(int event);
@@ -507,7 +518,8 @@ public:
 	int scroll_y_max() const;
 
 	void postprocess_channel(Song &song, int selected_channel);
-	bool put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick);
+	bool test_put_note(Song &song, int32_t tick, int32_t length, int32_t *out_speed, int32_t *out_length);
+	bool put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick, int32_t length);
 	bool set_speed(Song &song, int32_t speed);
 	bool set_volume(Song &song, int32_t volume);
 	bool set_fade(Song &song, int32_t fade);

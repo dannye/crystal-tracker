@@ -273,7 +273,8 @@ public:
 	void set_context_menu(int X, int Y);
 
 	void delete_selection() { delete_selection_cb(nullptr, this); }
-	bool put_note(Pitch pitch, int32_t octave = 0, int32_t tick = -1);
+	bool test_put_note(int32_t tick, int32_t length, int32_t *out_speed, int32_t *out_length);
+	bool put_note(Pitch pitch, int32_t octave = 0, int32_t tick = -1, int32_t length = 0);
 	void set_speed(int32_t speed);
 	void set_volume(int32_t volume);
 	void set_fade(int32_t fade);

@@ -2506,9 +2506,14 @@ void Main_Window::skip_forward_cb(Fl_Widget *, Main_Window *mw) {
 	mw->redraw();
 }
 
-bool Main_Window::put_note(Pitch pitch, int32_t octave, int32_t tick) {
+bool Main_Window::test_put_note(int32_t tick, int32_t length, int32_t *out_speed, int32_t *out_length) {
 	if (!_song.loaded()) { return false; }
-	if (_piano_roll->put_note(_song, pitch, octave, tick)) {
+	return _piano_roll->test_put_note(_song, tick, length, out_speed, out_length);
+}
+
+bool Main_Window::put_note(Pitch pitch, int32_t octave, int32_t tick, int32_t length) {
+	if (!_song.loaded()) { return false; }
+	if (_piano_roll->put_note(_song, pitch, octave, tick, length)) {
 		set_song_position(_piano_roll->tick());
 		_status_message = _song.undo_action_message();
 		_status_label->label(_status_message.c_str());
