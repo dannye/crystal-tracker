@@ -744,9 +744,9 @@ bool Piano_Timeline::handle_note_pencil_update(int event) {
 		assert(length == new_length);
 		_drawing_speed = speed;
 		_drawing_length = length;
+		redraw();
 	}
 
-	redraw();
 	return true;
 }
 
@@ -2402,6 +2402,7 @@ void Piano_Roll::clear() {
 }
 
 void Piano_Roll::start_following() {
+	_piano_timeline.handle_note_pencil_cancel(0);
 	_following = true;
 	_paused = false;
 	_piano_timeline.reset_note_colors();
