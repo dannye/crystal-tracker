@@ -1,6 +1,27 @@
 Changelog
 =========
 
+### Crystal Tracker v0.7.0 (2024-06-08)
+
+ * Better Pencil: Click and drag to pick note length.
+ * Better tempo handling:
+   * Visualize all tempo changes with dark purple or dark yellow lines.
+   * Automatically split rests according to first channel tempo changes.
+   * Disable tempo property input box for non-first channels.
+   * Add Postprocess Channel to Edit menu to trigger automatic rest splitting on-demand.
+ * Better Measure Ruler:
+   * Add ruler config dialog to set the time signature of the ruler to match the song, including pickup notes.
+   * Remember ruler config for recent files.
+   * Increase max grid width from 16 to 32.
+ * Better toolbar:
+   * Add loop verification toolbar button.
+   * Add toolbar buttons for moving/resizing notes.
+   * Add Delete, Snip, Split, and Glue to toolbar.
+ * Better zoom: Add extra zoom-out zoom level.
+ * Better playback: Slightly improve vibrato playback for slow tempos.
+ * Better editing: Add Insert Rest to Edit menu; useful for widening inner loops and calls.
+ * Update to FLTK 1.4-alpha.
+
 ### Crystal Tracker v0.6.3 (2024-05-19)
 
  * Fix a few possible deadlocks on Mac and Windows.
