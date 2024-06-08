@@ -2329,9 +2329,7 @@ int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &sele
 		commands[index].type == Command_Type::REST
 	);
 
-	Command_Type old_type = commands[index].type;
 	int32_t old_length = commands[index].note.length;
-	Pitch old_pitch = commands[index].note.pitch;
 
 	int32_t length = 1;
 	int32_t speed = old_speed;
@@ -2354,9 +2352,8 @@ int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &sele
 	}
 
 	if (old_length > 1) {
-		Command command = Command(old_type);
-		command.note.length = old_length - 1;
-		command.note.pitch = old_pitch;
+		Command command = Command(Command_Type::REST);
+		command.rest.length = old_length - 1;
 		commands.insert(commands.begin() + index + 1, command);
 	}
 

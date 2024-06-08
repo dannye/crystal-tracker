@@ -2527,13 +2527,6 @@ bool Piano_Roll::test_put_note(Song &song, int32_t tick, int32_t length, int32_t
 	int32_t index = note_view->index;
 	int32_t speed = note_view->speed;
 
-	if (note_view->pitch != Pitch::REST) {
-		if (length != 1) return false;
-		*out_speed = speed;
-		*out_length = length;
-		return true;
-	}
-
 	const Note_View *prev_note = find_note_before_tick(*view, tick - tick_offset);
 
 	int32_t prev_speed = note_view->speed;
@@ -2555,7 +2548,6 @@ bool Piano_Roll::test_put_note(Song &song, int32_t tick, int32_t length, int32_t
 	int32_t remaining_rest_ticks = rest_ticks - tick_offset;
 
 	const std::vector<Command> &commands = song.channel_commands(selected_channel());
-	assert(commands[index].type == Command_Type::REST);
 
 	if (desired_tick_length <= remaining_rest_ticks || is_followed_by_n_ticks_of_rest(commands.begin() + index, commands.end(), desired_tick_length - remaining_rest_ticks, note_view->speed)) {
 		*out_speed = prev_speed;
