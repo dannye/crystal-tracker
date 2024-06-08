@@ -258,7 +258,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("&Redo", FL_COMMAND + 'y', (Fl_Callback *)redo_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Select &All", FL_COMMAND + 'a', (Fl_Callback *)select_all_cb, this, 0),
 		SYS_MENU_ITEM("Select N&one", FL_COMMAND + 'A', (Fl_Callback *)select_none_cb, this, 0),
-		SYS_MENU_ITEM("Select &Invert", FL_COMMAND + 'I', (Fl_Callback *)select_invert_cb, this, FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("Select In&vert", FL_COMMAND + 'I', (Fl_Callback *)select_invert_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("&Selection...", 0, NULL, NULL, FL_SUBMENU | FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Pitch Up", FL_COMMAND + UP_KEY, (Fl_Callback *)pitch_up_cb, this, 0),
 		SYS_MENU_ITEM("Pitch Down", FL_COMMAND + DOWN_KEY, (Fl_Callback *)pitch_down_cb, this, 0),
@@ -279,6 +279,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("Create Call", FL_COMMAND + 'c', (Fl_Callback *)create_call_cb, this, FL_MENU_INVISIBLE),
 		SYS_MENU_ITEM("Insert Call", FL_COMMAND + 'v', (Fl_Callback *)insert_call_cb, this, FL_MENU_INVISIBLE),
 		{},
+		SYS_MENU_ITEM("&Insert Rest", INSERT_REST_KEY, (Fl_Callback *)insert_rest_cb, this, 0),
 		SYS_MENU_ITEM("Spli&t Note", '/', (Fl_Callback *)split_note_cb, this, 0),
 		SYS_MENU_ITEM("&Glue Note", GLUE_KEY, (Fl_Callback *)glue_note_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("R&esize Song...", FL_COMMAND + 'e', (Fl_Callback *)resize_song_cb, this, FL_MENU_DIVIDER),
@@ -413,6 +414,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_lengthen_mi = CT_FIND_MENU_ITEM_CB(lengthen_cb);
 	_delete_selection_mi = CT_FIND_MENU_ITEM_CB(delete_selection_cb);
 	_snip_selection_mi = CT_FIND_MENU_ITEM_CB(snip_selection_cb);
+	_insert_rest_mi = CT_FIND_MENU_ITEM_CB(insert_rest_cb);
 	_split_note_mi = CT_FIND_MENU_ITEM_CB(split_note_cb);
 	_glue_note_mi = CT_FIND_MENU_ITEM_CB(glue_note_cb);
 	_resize_song_mi = CT_FIND_MENU_ITEM_CB(resize_song_cb);
@@ -937,6 +939,12 @@ int Main_Window::handle(int event) {
 void Main_Window::set_song_position(int32_t tick) {
 	_audio_mutex.lock();
 	if (_song.loaded() && stopped()) {
+		if (_piano_roll->insert_rest(_song, true)) {
+			_insert_rest_mi->activate();
+		}
+		else {
+			_insert_rest_mi->deactivate();
+		}
 		if (_piano_roll->split_note(_song, true)) {
 			_split_note_mi->activate();
 			_split_note_tb->activate();
@@ -1255,6 +1263,12 @@ void Main_Window::update_active_controls() {
 				_snip_selection_mi->deactivate();
 				_snip_selection_tb->deactivate();
 			}
+			if (_piano_roll->insert_rest(_song, true)) {
+				_insert_rest_mi->activate();
+			}
+			else {
+				_insert_rest_mi->deactivate();
+			}
 			if (_piano_roll->split_note(_song, true)) {
 				_split_note_mi->activate();
 				_split_note_tb->activate();
@@ -1299,6 +1313,7 @@ void Main_Window::update_active_controls() {
 			_delete_selection_tb->deactivate();
 			_snip_selection_mi->deactivate();
 			_snip_selection_tb->deactivate();
+			_insert_rest_mi->deactivate();
 			_split_note_mi->deactivate();
 			_split_note_tb->deactivate();
 			_glue_note_mi->deactivate();
@@ -1387,6 +1402,7 @@ void Main_Window::update_active_controls() {
 		_delete_selection_tb->deactivate();
 		_snip_selection_mi->deactivate();
 		_snip_selection_tb->deactivate();
+		_insert_rest_mi->deactivate();
 		_split_note_mi->deactivate();
 		_split_note_tb->deactivate();
 		_glue_note_mi->deactivate();
@@ -2770,7 +2786,8 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 		action == Song::Song_State::Action::DELETE_CALL ||
 		action == Song::Song_State::Action::UNPACK_CALL ||
 		action == Song::Song_State::Action::CREATE_CALL ||
-		action == Song::Song_State::Action::INSERT_CALL
+		action == Song::Song_State::Action::INSERT_CALL ||
+		action == Song::Song_State::Action::INSERT_REST
 	) {
 		if (tick != -1) {
 			mw->_piano_roll->tick(tick);
@@ -2861,7 +2878,8 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 		action == Song::Song_State::Action::EXTEND_LOOP ||
 		action == Song::Song_State::Action::CREATE_LOOP ||
 		action == Song::Song_State::Action::DELETE_CALL ||
-		action == Song::Song_State::Action::INSERT_CALL
+		action == Song::Song_State::Action::INSERT_CALL ||
+		action == Song::Song_State::Action::INSERT_REST
 	) {
 		mw->close_note_properties();
 		mw->_piano_roll->tick(tick);
@@ -2997,6 +3015,17 @@ void Main_Window::delete_selection_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::snip_selection_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (mw->_piano_roll->snip_selection(mw->_song)) {
+		mw->_status_message = mw->_song.undo_action_message();
+		mw->_status_label->label(mw->_status_message.c_str());
+
+		mw->update_active_controls();
+		mw->redraw();
+	}
+}
+
+void Main_Window::insert_rest_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	if (mw->_piano_roll->insert_rest(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
 

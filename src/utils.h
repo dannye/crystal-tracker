@@ -47,6 +47,7 @@
 #define LEFT_KEY      NSLeftArrowFunctionKey
 #define RIGHT_KEY     NSRightArrowFunctionKey
 
+#define INSERT_REST_KEY FL_CONTROL + FL_SHIFT + 'i'
 #define GLUE_KEY '?'
 #define FULLSCREEN_KEY FL_COMMAND + FL_SHIFT + 'f'
 
@@ -78,6 +79,7 @@
 #define LEFT_KEY      FL_Left
 #define RIGHT_KEY     FL_Right
 
+#define INSERT_REST_KEY FL_SHIFT + FL_Insert
 #define GLUE_KEY FL_SHIFT + '/'
 #define FULLSCREEN_KEY FL_F + 11
 
