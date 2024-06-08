@@ -301,7 +301,7 @@ int OS_Spinner::handle(int event) {
 		if (input_.take_focus()) return 1;
 		else return 0;
 	case FL_SHORTCUT:
-		if (input_.test_shortcut() && input_.take_focus()) return 1;
+		if (Fl::event_state(FL_ALT) && input_.test_shortcut() && input_.take_focus()) return 1;
 		else return 0;
 	}
 	return Fl_Group::handle(event);
