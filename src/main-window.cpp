@@ -963,6 +963,7 @@ void Main_Window::set_song_position(int32_t tick) {
 			_glue_note_mi->deactivate();
 			_glue_note_tb->deactivate();
 		}
+		_menu_bar->update();
 	}
 	if (_it_module) {
 		_it_module->set_tick(tick);
