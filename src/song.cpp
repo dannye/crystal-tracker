@@ -3088,6 +3088,11 @@ void Song::glue_note(const int selected_channel, const std::set<int32_t> &select
 	_modified = true;
 }
 
+void Song::postprocess_channel(const int selected_channel, const std::set<int32_t> &selected_boxes) {
+	remember(selected_channel, selected_boxes, Song_State::Action::POSTPROCESS_CHANNEL);
+	_modified = true;
+}
+
 void Song::resize_song(const Song_Options_Dialog::Song_Options &options) {
 	_history.clear();
 	_future.clear();
@@ -3734,6 +3739,8 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Split note";
 	case Song_State::Action::GLUE_NOTE:
 		return "Glue note";
+	case Song_State::Action::POSTPROCESS_CHANNEL:
+		return "Postprocess Channel";
 	case Song_State::Action::REDUCE_LOOP:
 		return "Reduce loop";
 	case Song_State::Action::EXTEND_LOOP:

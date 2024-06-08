@@ -282,6 +282,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("&Insert Rest", INSERT_REST_KEY, (Fl_Callback *)insert_rest_cb, this, 0),
 		SYS_MENU_ITEM("Spli&t Note", '/', (Fl_Callback *)split_note_cb, this, 0),
 		SYS_MENU_ITEM("&Glue Note", GLUE_KEY, (Fl_Callback *)glue_note_cb, this, FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("Postprocess &Channel", FL_COMMAND + 'P', (Fl_Callback *)postprocess_channel_cb, this, 0),
 		SYS_MENU_ITEM("R&esize Song...", FL_COMMAND + 'e', (Fl_Callback *)resize_song_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Pencil &Mode", '`', (Fl_Callback *)pencil_mode_cb, this, FL_MENU_TOGGLE | FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Channel &1", '1', (Fl_Callback *)channel_1_cb, this,
@@ -417,6 +418,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_insert_rest_mi = CT_FIND_MENU_ITEM_CB(insert_rest_cb);
 	_split_note_mi = CT_FIND_MENU_ITEM_CB(split_note_cb);
 	_glue_note_mi = CT_FIND_MENU_ITEM_CB(glue_note_cb);
+	_postprocess_channel_mi = CT_FIND_MENU_ITEM_CB(postprocess_channel_cb);
 	_resize_song_mi = CT_FIND_MENU_ITEM_CB(resize_song_cb);
 	_pencil_mode_mi = CT_FIND_MENU_ITEM_CB(pencil_mode_cb);
 	_channel_1_mi = CT_FIND_MENU_ITEM_CB(channel_1_cb);
@@ -1285,6 +1287,12 @@ void Main_Window::update_active_controls() {
 				_glue_note_mi->deactivate();
 				_glue_note_tb->deactivate();
 			}
+			if (selected_channel()) {
+				_postprocess_channel_mi->activate();
+			}
+			else {
+				_postprocess_channel_mi->deactivate();
+			}
 			_resize_song_mi->activate();
 			_pencil_mode_mi->activate();
 			_pencil_mode_tb->activate();
@@ -1318,6 +1326,7 @@ void Main_Window::update_active_controls() {
 			_split_note_tb->deactivate();
 			_glue_note_mi->deactivate();
 			_glue_note_tb->deactivate();
+			_postprocess_channel_mi->deactivate();
 			_resize_song_mi->deactivate();
 			_pencil_mode_mi->deactivate();
 			_pencil_mode_tb->deactivate();
@@ -1407,6 +1416,7 @@ void Main_Window::update_active_controls() {
 		_split_note_tb->deactivate();
 		_glue_note_mi->deactivate();
 		_glue_note_tb->deactivate();
+		_postprocess_channel_mi->deactivate();
 		_resize_song_mi->deactivate();
 		_pencil_mode_mi->deactivate();
 		_pencil_mode_tb->deactivate();
@@ -1849,7 +1859,8 @@ void Main_Window::toggle_playback() {
 		}
 		else if (_it_module->tempo_change_mid_note() != -1) {
 			std::string warning = "Detected tempo change in the middle of a note or rest on channel " + std::to_string(_it_module->tempo_change_mid_note()) + ".\n\n"
-				"Tempo changes should only be used when all active channels are simultaneously triggering a note or a rest. A desync in-game may occur.";
+				"Tempo changes should only be used when all active channels are simultaneously triggering a note or a rest. A desync in-game may occur.\n\n"
+				"This can be fixed automatically for most kinds of rests by selecting Postprocess Channel from the Edit menu while channel " + std::to_string(_it_module->tempo_change_mid_note()) + " is active or by making any edit to that channel.";
 			_warning_dialog->message(warning);
 			_warning_dialog->show(this);
 		}
@@ -3048,6 +3059,17 @@ void Main_Window::split_note_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::glue_note_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (mw->_piano_roll->glue_note(mw->_song)) {
+		mw->_status_message = mw->_song.undo_action_message();
+		mw->_status_label->label(mw->_status_message.c_str());
+
+		mw->update_active_controls();
+		mw->redraw();
+	}
+}
+
+void Main_Window::postprocess_channel_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	if (mw->_piano_roll->postprocess_channel(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
 

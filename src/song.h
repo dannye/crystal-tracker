@@ -90,6 +90,7 @@ public:
 			INSERT_REST,
 			SPLIT_NOTE,
 			GLUE_NOTE,
+			POSTPROCESS_CHANNEL,
 			REDUCE_LOOP,
 			EXTEND_LOOP,
 			UNROLL_LOOP,
@@ -213,6 +214,8 @@ public:
 	void insert_rest(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick, int32_t tick_offset);
 	void split_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick, int32_t tick_offset);
 	void glue_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick);
+
+	void postprocess_channel(const int selected_channel, const std::set<int32_t> &selected_boxes);
 	void resize_song(const Song_Options_Dialog::Song_Options &options);
 
 	void reduce_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t loop_index, int32_t loop_length, Note_View start_view, Note_View end_view);

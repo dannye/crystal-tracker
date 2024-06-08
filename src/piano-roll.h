@@ -550,6 +550,8 @@ public:
 	bool insert_rest(Song &song, bool dry_run = false);
 	bool split_note(Song &song, bool dry_run = false);
 	bool glue_note(Song &song, bool dry_run = false);
+
+	bool postprocess_channel(Song &song);
 	bool resize_song(Song &song, const Song_Options_Dialog::Song_Options &options);
 
 	bool is_point_in_loop(int X, int Y);

@@ -3715,6 +3715,27 @@ bool Piano_Roll::glue_note(Song &song, bool dry_run) {
 	return true;
 }
 
+bool Piano_Roll::postprocess_channel(Song &song) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			selected_boxes.insert(itr_index(*channel, note_itr));
+		}
+	}
+
+	song.postprocess_channel(selected_channel(), selected_boxes);
+	postprocess_channel(song, selected_channel());
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
 bool Piano_Roll::resize_song(Song &song, const Song_Options_Dialog::Song_Options &options) {
 	song.resize_song(options);
 	if (options.channel_1) postprocess_channel(song, 1);
