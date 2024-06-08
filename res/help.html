@@ -69,6 +69,7 @@ R"(<html>
 </ul>
 <p>Inner loops and calls are shown with color-coded boxes that wrap the notes. Light boxes are loops and dark boxes are calls. When no channel is selected, all wrapper boxes for all channels are shown at once. When a channel is selected, only the selected channel's wrapper boxes are shown; wrapper boxes for all other channels are hidden and their notes become colored outlines.</p>
 <p>If all channels' end points are the same, this point is shown with a white or black line (depending on theme). If at least one channel's end point is different than the others, each individual channel's end point is shown with a color-coded line. The same applies to the loop points, if the song loops. Unreferenced labels are shown with a gray line.</p>
+<p>All tempo changes are marked with a dark yellow or dark purple line (depending on theme).</p>
 <p>If the song loops and the loop points or end points are not exactly the same for all channels, then the shorter channels continue to repeat their main loop until such a point that all channels arrive at the beginning of their loop at the same time (ie, until the song truly repeats). These repeated notes have a thick gray border and cannot be selected or edited. This repeating may continue for an exceptionally long time if the lengths of the channels' main loops have a large least common multiple.</p>
 <p>If a channel is selected, some of the notes for that channel may have color-coded "flags" attached to the note which indicate that the note is played with some different settings than the previous note. The flags are color-coded as follows:</p>
 <ul>
@@ -105,10 +106,12 @@ R"(<html>
 <h3>Editing Notes</h3>
 <p>The menu options under Edit&nbsp;→&nbsp;Selection… can be used to manipulate the selected notes. Each menu option is only available if the operation would succeed for all selected notes. If the operation would fail for any of the selected notes, such as "Octave Up" on a note which is already in the highest octave, then the menu option is disabled.</p>
 <p>"Delete Selection" replaces the selected notes with rests. "Snip Selection" removes the selected notes, adding the appropriate amount of rest at the end of the channel. This operation always preserves the position of the loop point and end point.</p>
+<p>"Insert Rest" is useful for widening inner loops and calls, as well as generally adding more space by moving the rest of the channel to the right. Like "Snip Selection", this operation always preserves the position of the loop point and end point.</p>
 <p>"Split Note" is useful for changing note properties, such as volume envelope or vibrato, part way through a note. It places the split at the playhead's position.</p>
 <p>With one or more notes selected, the Note Properties Panel opens. From here, the most common settings can be edited: Speed, Volume Envelope, Vibrato, and Duty Cycle/Wave/Drumkit. Use the "Advanced" button to edit the uncommon settings: Tempo, Transpose, and Pitch Slide. The remaining commands, such as Pitch Sweep, Pitch Offset, and Stereo Panning, are currently not supported by the editor, although those commands will be preserved if already part of an existing song file.</p>
 <p>If more than one note is selected, an asterisk (*) will appear next to any property which has multiple distinct values among the selected notes. In such a case, the displayed value is that of the left-most selected note.</p>
 <p>The up and down arrow buttons next to a property are applied immediately if clicked. If typing into a property text box, apply the change with the Enter key or cancel the change with the Escape key. The change will not be applied if the selected channel or selected notes are changed without pressing Enter.</p>
+<p>When creating tempo changes on the first channel, the notes and rests at that point on all other channels need to be split at the new tempo change. Notes need to be split manually, but rests are split automatically; either automatically after any edit to that channel, or on-demand by selecting "Postprocess Channel" from the Edit menu for each channel that needs to have its rests split. If the speed setting of the rest makes it unaligned from the point where the tempo change occurs, the rest will not be split automatically.</p>
 <p>The "Resize Song" dialog works just like the "New" dialog, but is used to adjust the length of each channel of the current song. The loop points can also be adjusted, if the song loops. If every length is a whole multiple of a beat then "Beats" will be preselected, otherwise "Ticks" will be selected. If all channels are already synchronized then the "Synchronize Channels" checkbox will be checked, otherwise it will be unchecked. When the OK button is clicked, every channel will be resized as necessary. If a channel is shortened and an inner loop or call no longer fits, it will be removed. The first iteration of an inner loop will be preserved as much as possible.</p>
 <a name="PlacingNotes"></a>
 <h3>Placing Notes</h3>
@@ -128,9 +131,8 @@ R"(<html>
 <li><code>m</code>&nbsp;→&nbsp;B</li>
 <li><code>r</code>&nbsp;→&nbsp;Rest</li>
 </ul>
-<p>These shortcuts place the corresponding note at the playhead's current position and automatically advance the playhead to the next position. This isn't as convenient as Pencil Mode (explained below) but is useful as a keyboard-only alternative which doesn't require the mouse.</p>
-<p>Use Backtick (`) to toggle Pencil Mode. While in Pencil Mode, left-click to place notes (instead of selecting notes). When a note is placed, it is automatically selected so that it may quickly be manipulated (ie, )" COMMAND_SHIFT_KEYS_PLUS RIGHT_SYMBOL R"( to lengthen the note) and have its properties edited. Right-click and drag to erase notes.</p>
-<p>Newly placed notes will try to match the length and speed of the previous note, if it fits.</p>
+<p>These shortcuts place the corresponding note at the playhead's current position and automatically advance the playhead to the next position. This isn't as convenient as Pencil Mode (explained below) but is useful as a keyboard-only alternative which doesn't require the mouse. Newly placed notes using this method will try to match the length and speed of the previous note, if it fits.</p>
+<p>Use Backtick (`) to toggle Pencil Mode. While in Pencil Mode, left-click to place notes (instead of selecting notes). Click and drag to determine the length of the new note. When a note is placed, it is automatically selected so that it may quickly be manipulated (ie, )" COMMAND_SHIFT_KEYS_PLUS RIGHT_SYMBOL R"( to lengthen the note) and have its properties edited. Right-click and drag to erase notes.</p>
 <p><b>Note:</b> Since the mouse cannot be used to select notes while in Pencil Mode, it is useful to use the Enter key to manage the selection without needing to exit Pencil Mode.</p>
 <a name="LoopsAndCalls"></a>
 <h3>Loops and Calls</h3>
@@ -142,8 +144,8 @@ R"(<html>
 <hr>
 <a name="View"></a>
 <h2>View</h2>
+<p>Zoom In is useful when working with a sequence of very small notes, and Zoom Out is useful for observing the whole height of the timeline at once.</p>
 <p>The piano key pitch labels can be toggled with )" COMMAND_KEY_PLUS R"(K. Pitch labels for every note can be toggled with )" COMMAND_SHIFT_KEYS_PLUS R"(K.</p>
-<p>The Ruler (toggled with )" COMMAND_KEY_PLUS R"(R) is also controlled by the grid spacing setting. The grid spacing can be adjusted to make the ruler better fit the speed or time signature of the song. Clicking into the measure ruler will also set the playhead if a song is opened.</p>
-<p>The Zoom setting ()" COMMAND_KEY_PLUS R"(=) is useful when working with a sequence of very small notes.</p>
+<p>The Measure Ruler can be reconfigured to match the speed and time signature of the song. Use )" COMMAND_SHIFT_KEYS_PLUS R"(R to open the Configure Ruler dialog in order to set the beats per measure, steps per beat, ticks per step (ie, grid spacing), as well as the pickup offset. The editor will remember the measure ruler configuration for the Recent files and automatically reapply that configuration when those files are reopened. Clicking into the measure ruler will also set the playhead if a song is opened.</p>
 </body>
 </html>)"
