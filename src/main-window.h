@@ -266,7 +266,7 @@ public:
 	void set_note_properties(const std::vector<const Note_View *> &notes);
 	void refresh_note_properties();
 
-	void set_ruler_config(const Ruler_Config_Dialog::Ruler_Options &o) { _ruler->set_options(o); }
+	void set_ruler_config(const Ruler_Config_Dialog::Ruler_Options &o);
 
 	void set_tick_from_x_pos(int X);
 

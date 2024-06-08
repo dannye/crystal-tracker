@@ -713,6 +713,7 @@ Ruler_Config_Dialog::Ruler_Config_Dialog(const char *t) : Option_Dialog(325, t) 
 Ruler_Config_Dialog::~Ruler_Config_Dialog() {
 	delete _beats_per_measure;
 	delete _steps_per_beat;
+	delete _ticks_per_step;
 	delete _pickup_offset;
 }
 
@@ -721,10 +722,12 @@ Ruler_Config_Dialog::Ruler_Options Ruler_Config_Dialog::get_options() {
 
 	options.beats_per_measure = (int)_beats_per_measure->value();
 	options.steps_per_beat = (int)_steps_per_beat->value();
+	options.ticks_per_step = (int)_ticks_per_step->value();
 	options.pickup_offset = (int)_pickup_offset->value();
 
 	if (options.beats_per_measure < 1) options.beats_per_measure = 1;
 	if (options.steps_per_beat < 1) options.steps_per_beat = 1;
+	if (options.ticks_per_step < 1) options.ticks_per_step = 1;
 	if (options.pickup_offset < 0) options.pickup_offset = 0;
 
 	return options;
@@ -735,6 +738,7 @@ void Ruler_Config_Dialog::set_options(const Ruler_Options &options) {
 
 	_beats_per_measure->value(options.beats_per_measure);
 	_steps_per_beat->value(options.steps_per_beat);
+	_ticks_per_step->value(options.ticks_per_step);
 	_pickup_offset->value(options.pickup_offset);
 }
 
@@ -742,12 +746,15 @@ void Ruler_Config_Dialog::initialize_content() {
 	// Populate content group
 	_beats_per_measure = new OS_Spinner(0, 0, 0, 0, "&Beats per Measure:");
 	_steps_per_beat = new OS_Spinner(0, 0, 0, 0, "&Steps per Beat:");
+	_ticks_per_step = new OS_Spinner(0, 0, 0, 0, "&Ticks per Step:");
 	_pickup_offset = new OS_Spinner(0, 0, 0, 0, "&Pickup Offset:");
 	// Initialize content group's children
 	_beats_per_measure->range(1, 64);
 	_beats_per_measure->callback((Fl_Callback *)ruler_config_cb, this);
 	_steps_per_beat->range(1, 64);
 	_steps_per_beat->callback((Fl_Callback *)ruler_config_cb, this);
+	_ticks_per_step->range(4, 32);
+	_ticks_per_step->callback((Fl_Callback *)ruler_config_cb, this);
 	_pickup_offset->range(0, 64);
 	_pickup_offset->callback((Fl_Callback *)ruler_config_cb, this);
 }
@@ -755,17 +762,21 @@ void Ruler_Config_Dialog::initialize_content() {
 int Ruler_Config_Dialog::refresh_content(int ww, int dy, bool reset) {
 	int wgt_h = 22, win_m = 10, wgt_m = 4;
 	int dx = win_m;
-	int ch = wgt_h * 3 + wgt_m * 4;
+	int ch = wgt_h * 4 + wgt_m * 6;
 	_content->resize(dx, dy, ww, ch);
 
 	int wgt_w = 50;
-	dx = ww / 2 + wgt_w / 2;
+	dx = ww / 2 + 36;
 	_beats_per_measure->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _beats_per_measure->value(4);
 
 	dy += wgt_h + wgt_m + wgt_m;
 	_steps_per_beat->resize(dx, dy, wgt_w, wgt_h);
 	if (reset) _steps_per_beat->value(4);
+
+	dy += wgt_h + wgt_m + wgt_m;
+	_ticks_per_step->resize(dx, dy, wgt_w, wgt_h);
+	if (reset) _ticks_per_step->value(12);
 
 	dy += wgt_h + wgt_m + wgt_m;
 	_pickup_offset->resize(dx, dy, wgt_w, wgt_h);
@@ -787,6 +798,7 @@ void Ruler_Config_Dialog::ruler_config_cb(Fl_Widget *, Ruler_Config_Dialog *rcd)
 void Ruler_Config_Dialog::reset_button_cb(Fl_Widget *, Ruler_Config_Dialog *rcd) {
 	rcd->_beats_per_measure->value(4);
 	rcd->_steps_per_beat->value(4);
+	rcd->_ticks_per_step->value(12);
 	rcd->_pickup_offset->value(0);
 	rcd->ruler_config_cb(nullptr, rcd);
 }

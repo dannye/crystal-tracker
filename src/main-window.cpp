@@ -48,7 +48,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		_recent[i].filepath          = Preferences::get_string(Fl_Preferences::Name("recent%d", i));
 		_recent[i].beats_per_measure = std::clamp(Preferences::get(Fl_Preferences::Name("recent%d_beats_per_measure", i),  4), 1, 64);
 		_recent[i].steps_per_beat    = std::clamp(Preferences::get(Fl_Preferences::Name("recent%d_steps_per_beat",    i),  4), 1, 64);
-		_recent[i].ticks_per_step    = std::clamp(Preferences::get(Fl_Preferences::Name("recent%d_ticks_per_step",    i), 12), 4, 16);
+		_recent[i].ticks_per_step    = std::clamp(Preferences::get(Fl_Preferences::Name("recent%d_ticks_per_step",    i), 12), 4, 32);
 		_recent[i].pickup_offset     = std::clamp(Preferences::get(Fl_Preferences::Name("recent%d_pickup_offset",     i),  0), 0, 64);
 	}
 
@@ -1018,6 +1018,32 @@ void Main_Window::refresh_note_properties() {
 	_piano_roll->refresh_note_properties();
 }
 
+void Main_Window::set_ruler_config(const Ruler_Config_Dialog::Ruler_Options &o) {
+	_ruler->set_options(o);
+
+	_piano_roll->ticks_per_step(o.ticks_per_step);
+	if (_piano_roll->ticks_per_step() <= 4) {
+		_decrease_spacing_mi->deactivate();
+		_decrease_spacing_tb->deactivate();
+	}
+	else {
+		_decrease_spacing_mi->activate();
+		_decrease_spacing_tb->activate();
+	}
+	if (_piano_roll->ticks_per_step() >= 32) {
+		_increase_spacing_mi->deactivate();
+		_increase_spacing_tb->deactivate();
+	}
+	else {
+		_increase_spacing_mi->activate();
+		_increase_spacing_tb->activate();
+	}
+	if (_piano_roll->following() && continuous_scroll()) {
+		_piano_roll->focus_cursor();
+	}
+	_menu_bar->update();
+}
+
 void Main_Window::set_tick_from_x_pos(int X) {
 	_piano_roll->set_tick_from_x_pos(X);
 }
@@ -1414,7 +1440,7 @@ void Main_Window::apply_recent_config(const char *filename) {
 		_decrease_spacing_mi->activate();
 		_decrease_spacing_tb->activate();
 	}
-	if (recent.ticks_per_step >= 16) {
+	if (recent.ticks_per_step >= 32) {
 		_increase_spacing_mi->deactivate();
 		_increase_spacing_tb->deactivate();
 	}
@@ -3421,10 +3447,11 @@ void Main_Window::configure_ruler_cb(Fl_Widget *, Main_Window *mw) {
 	if (Fl::modal()) return;
 
 	Ruler_Config_Dialog::Ruler_Options options = mw->_ruler->get_options();
+	options.ticks_per_step = mw->_piano_roll->ticks_per_step();
 	mw->_ruler_config_dialog->set_options(options);
 	mw->_ruler_config_dialog->show(mw, false);
 	if (mw->_ruler_config_dialog->canceled()) {
-		mw->_ruler->set_options(options);
+		mw->set_ruler_config(options);
 		mw->redraw();
 		return;
 	}
@@ -3447,7 +3474,7 @@ void Main_Window::decrease_spacing_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::increase_spacing_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->ticks_per_step(mw->_piano_roll->ticks_per_step() + 1);
-	if (mw->_piano_roll->ticks_per_step() == 16) {
+	if (mw->_piano_roll->ticks_per_step() == 32) {
 		mw->_increase_spacing_mi->deactivate();
 		mw->_increase_spacing_tb->deactivate();
 	}

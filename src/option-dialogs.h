@@ -99,11 +99,13 @@ public:
 	struct Ruler_Options {
 		int beats_per_measure = 4;
 		int steps_per_beat = 4;
+		int ticks_per_step = 12;
 		int pickup_offset = 0;
 	};
 private:
 	OS_Spinner *_beats_per_measure = nullptr;
 	OS_Spinner *_steps_per_beat = nullptr;
+	OS_Spinner *_ticks_per_step = nullptr;
 	OS_Spinner *_pickup_offset = nullptr;
 public:
 	Ruler_Config_Dialog(const char *t);
