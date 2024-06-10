@@ -804,14 +804,17 @@ void Main_Window::show() {
 
 void Main_Window::resize(int X, int Y, int W, int H) {
 	Fl_Double_Window::resize(X, Y, W, H);
+
+	int piano_roll_height = H - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT;
+	int max_piano_roll_height = (int)NUM_OCTAVES * _piano_roll->octave_height() + Fl::scrollbar_size();
+	int offset = (note_properties() ? NOTE_PROP_HEIGHT : std::clamp(piano_roll_height - max_piano_roll_height, 0, NOTE_PROP_HEIGHT));
+
 	_menu_bar->size(W, MENU_BAR_HEIGHT);
 	_toolbar->size(W, TOOLBAR_HEIGHT);
 	_note_properties->size(W, NOTE_PROP_HEIGHT);
-	_ruler->size(W, Fl::scrollbar_size());
-	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0));
-	int piano_roll_height = H - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (note_properties() ? NOTE_PROP_HEIGHT : 0) - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT;
-	int max_piano_roll_height = (int)NUM_OCTAVES * _piano_roll->octave_height() + Fl::scrollbar_size() - (note_properties() ? NOTE_PROP_HEIGHT : 0);
-	_piano_roll->set_size(W, std::min(piano_roll_height, max_piano_roll_height));
+	_ruler->resize(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + offset, W, Fl::scrollbar_size());
+	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + offset + (ruler() ? Fl::scrollbar_size() : 0));
+	_piano_roll->set_size(W, std::min(piano_roll_height - offset, max_piano_roll_height));
 	_status_bar->resize(0, H - STATUS_BAR_HEIGHT, W, STATUS_BAR_HEIGHT);
 	_context_menu->resize(_piano_roll->x() + WHITE_KEY_WIDTH, _piano_roll->y(), _piano_roll->w() - WHITE_KEY_WIDTH - Fl::scrollbar_size(), _piano_roll->h() - Fl::scrollbar_size());
 }
@@ -993,7 +996,10 @@ void Main_Window::open_note_properties() {
 	_note_properties->activate();
 	_note_properties->show();
 	update_layout();
-	_piano_roll->scroll_to(_piano_roll->xposition(), _piano_roll->yposition() + NOTE_PROP_HEIGHT);
+	int piano_roll_height = h() - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT;
+	int max_piano_roll_height = (int)NUM_OCTAVES * _piano_roll->octave_height() + Fl::scrollbar_size();
+	int offset = std::clamp(piano_roll_height - max_piano_roll_height, 0, NOTE_PROP_HEIGHT);
+	_piano_roll->scroll_to(_piano_roll->xposition(), _piano_roll->yposition() + (NOTE_PROP_HEIGHT - offset));
 	redraw();
 }
 
@@ -1004,7 +1010,10 @@ void Main_Window::close_note_properties() {
 	_note_properties->deactivate();
 	int y_pos = _piano_roll->yposition();
 	update_layout();
-	_piano_roll->scroll_to(_piano_roll->xposition(), std::max(y_pos - NOTE_PROP_HEIGHT, 0));
+	int piano_roll_height = h() - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT;
+	int max_piano_roll_height = (int)NUM_OCTAVES * _piano_roll->octave_height() + Fl::scrollbar_size();
+	int offset = std::clamp(piano_roll_height - max_piano_roll_height, 0, NOTE_PROP_HEIGHT);
+	_piano_roll->scroll_to(_piano_roll->xposition(), std::max(y_pos - (NOTE_PROP_HEIGHT - offset), 0));
 	redraw();
 }
 
@@ -2012,15 +2021,17 @@ void Main_Window::update_zoom() {
 }
 
 void Main_Window::update_layout() {
-	_ruler->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0));
-	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0));
-	int piano_roll_height = h() - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (note_properties() ? NOTE_PROP_HEIGHT : 0) - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT;
-	int max_piano_roll_height = (int)NUM_OCTAVES * _piano_roll->octave_height() + Fl::scrollbar_size() - (note_properties() ? NOTE_PROP_HEIGHT : 0);
-	_piano_roll->set_size(w(), std::min(piano_roll_height, max_piano_roll_height));
+	int piano_roll_height = h() - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT;
+	int max_piano_roll_height = (int)NUM_OCTAVES * _piano_roll->octave_height() + Fl::scrollbar_size();
+	int offset = (note_properties() ? NOTE_PROP_HEIGHT : std::clamp(piano_roll_height - max_piano_roll_height, 0, NOTE_PROP_HEIGHT));
+
+	_ruler->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + offset);
+	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + offset + (ruler() ? Fl::scrollbar_size() : 0));
+	_piano_roll->set_size(w(), std::min(piano_roll_height - offset, max_piano_roll_height));
 	_context_menu->resize(_piano_roll->x() + WHITE_KEY_WIDTH, _piano_roll->y(), _piano_roll->w() - WHITE_KEY_WIDTH - Fl::scrollbar_size(), _piano_roll->h() - Fl::scrollbar_size());
 	size_range(
 		WHITE_KEY_WIDTH * 3 + Fl::scrollbar_size(),
-		MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + (note_properties() ? NOTE_PROP_HEIGHT : 0) + (ruler() ? Fl::scrollbar_size() : 0) + _piano_roll->octave_height() + Fl::scrollbar_size() + STATUS_BAR_HEIGHT
+		MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + offset + (ruler() ? Fl::scrollbar_size() : 0) + _piano_roll->octave_height() + Fl::scrollbar_size() + STATUS_BAR_HEIGHT
 	);
 }
 
