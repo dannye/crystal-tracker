@@ -26,7 +26,7 @@ See [INSTALL.md](INSTALL.md) to build from source or run the Windows executable 
 ### Mac
 
 Download the latest dmg from the [Releases](https://github.com/dannye/crystal-tracker/releases) section or run the Windows executable via Wine.
-To build from source, follow the Linux instructions in [INSTALL.md](INSTALL.md) plus a dash of common sense (ie, perhaps use clang++ in place of g++-8 if building libopenmpt from source).
+To build from source, see [INSTALL.md](INSTALL.md).
 
 ---
 
