@@ -146,7 +146,9 @@ sudo make install
 
 ## Mac
 
-Follow the ["Install and build"](#install-and-build-crystal-tracker) instructions for Linux, but when building libopenmpt from source use `CXX="clang++"` instead of `CXX="g++-8"`.
+Follow the ["Install and build"](#install-and-build-crystal-tracker) instructions for Linux, but with the following changes:
+
+### FLTK
 
 If building FLTK with CMake, use the following `cmake` command instead of the one shown above:
 
@@ -156,13 +158,23 @@ cmake \
 	-D CMAKE_BUILD_TYPE=Release \
 	-D CMAKE_OSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion | cut -d '.' -f 1).0" \
 	-D FLTK_USE_SYSTEM_LIBPNG=ON \
-	-D PNG_PNG_INCLUDE_DIR="$(pkg-config --cflags-only-I libpng | cut -d ' ' -f 1 | cut -c 3-)" \
-	-D PNG_LIBRARY_RELEASE="$(pkg-config --static --libs-only-L libpng | cut -d ' ' -f 1 | cut -c 3-)/libpng.a" \
-	-D LIB_png="$(pkg-config --static --libs-only-L libpng | cut -d ' ' -f 1 | cut -c 3-)/libpng.a" \
+	-D PNG_PNG_INCLUDE_DIR="$(pkg-config --cflags-only-I libpng | cut -c 3-)" \
+	-D PNG_LIBRARY_RELEASE="$(pkg-config --static --libs-only-L libpng | cut -c 3-)/libpng.a" \
+	-D LIB_png="$(pkg-config --static --libs-only-L libpng | cut -c 3-)/libpng.a" \
 	-D FLTK_USE_SYSTEM_ZLIB=ON \
 	-D ZLIB_INCLUDE_DIR="$(PKG_CONFIG_PATH=/usr/local/opt/zlib/lib/pkgconfig pkg-config --cflags-only-I zlib | cut -c 3-)" \
 	-D ZLIB_LIBRARY_RELEASE="$(PKG_CONFIG_PATH=/usr/local/opt/zlib/lib/pkgconfig pkg-config --static --libs-only-L zlib | cut -c 3-)/libz.a" \
 	-D LIB_zlib="$(PKG_CONFIG_PATH=/usr/local/opt/zlib/lib/pkgconfig pkg-config --static --libs-only-L zlib | cut -c 3-)/libz.a"
 ```
 
+zlib may be installed in a different directory, such as `/opt/homebrew/opt/zlib` instead of `/usr/local/opt/zlib`.
+
+### PortAudio
+
+If errors about unused variables are encountered when building PortAudio, apply [this fix](https://github.com/PortAudio/portaudio/commit/bc3ad0214a358be3cc01f6b2cc2eaaf284c6de34) and try again.
+
 When relocating the PortAudio headers, there will be no pa_linux_alsa.h, so that step will just be: `mv include/portaudio.h include/portaudiocpp/`
+
+### libopenmpt
+
+When building libopenmpt from source use `CXX="clang++"` instead of `CXX="g++-8"`.
