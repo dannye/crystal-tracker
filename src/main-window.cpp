@@ -1158,8 +1158,14 @@ void Main_Window::update_active_controls() {
 			_loop_mi->activate();
 			_loop_tb->activate();
 		}
-		_step_backward_mi->activate();
-		_step_forward_mi->activate();
+		if (playing) {
+			_step_backward_mi->deactivate();
+			_step_forward_mi->deactivate();
+		}
+		else {
+			_step_backward_mi->activate();
+			_step_forward_mi->activate();
+		}
 		_skip_backward_mi->activate();
 		_skip_forward_mi->activate();
 		_center_playhead_mi->activate();
