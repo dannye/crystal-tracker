@@ -138,6 +138,7 @@ private:
 		*_step_forward_mi = NULL,
 		*_skip_backward_mi = NULL,
 		*_skip_forward_mi = NULL,
+		*_center_playhead_mi = NULL,
 		*_undo_mi = NULL,
 		*_redo_mi = NULL,
 		*_select_all_mi = NULL,
@@ -340,6 +341,7 @@ private:
 	static void step_forward_cb(Fl_Widget *w, Main_Window *mw);
 	static void skip_backward_cb(Fl_Widget *w, Main_Window *mw);
 	static void skip_forward_cb(Fl_Widget *w, Main_Window *mw);
+	static void center_playhead_cb(Fl_Widget *w, Main_Window *mw);
 	// Edit menu
 	static void undo_cb(Fl_Widget *w, Main_Window *mw);
 	static void redo_cb(Fl_Widget *w, Main_Window *mw);

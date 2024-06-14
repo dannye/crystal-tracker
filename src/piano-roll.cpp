@@ -1764,6 +1764,12 @@ void Piano_Roll::skip_forward() {
 	parent()->set_song_position(_tick);
 }
 
+void Piano_Roll::center_playhead() {
+	if (_song_length == -1) return;
+
+	set_tick_from_x_pos((w() - Fl::scrollbar_size()) / 2);
+}
+
 void Piano_Roll::zoom(int z) {
 	if (_zoom == z) return;
 	_zoom = z;

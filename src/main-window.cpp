@@ -252,6 +252,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("Step Forward", ']', (Fl_Callback *)step_forward_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Skip Backward", FL_COMMAND + '[', (Fl_Callback *)skip_backward_cb, this, 0),
 		SYS_MENU_ITEM("Skip Forward", FL_COMMAND + ']', (Fl_Callback *)skip_forward_cb, this, 0),
+		SYS_MENU_ITEM("Center Playhead", FL_COMMAND + '\\', (Fl_Callback *)center_playhead_cb, this, 0),
 		{},
 		OS_SUBMENU("&Edit"),
 		SYS_MENU_ITEM("&Undo", FL_COMMAND + 'z', (Fl_Callback *)undo_cb, this, 0),
@@ -402,6 +403,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_step_forward_mi = CT_FIND_MENU_ITEM_CB(step_forward_cb);
 	_skip_backward_mi = CT_FIND_MENU_ITEM_CB(skip_backward_cb);
 	_skip_forward_mi = CT_FIND_MENU_ITEM_CB(skip_forward_cb);
+	_center_playhead_mi = CT_FIND_MENU_ITEM_CB(center_playhead_cb);
 	_undo_mi = CT_FIND_MENU_ITEM_CB(undo_cb);
 	_redo_mi = CT_FIND_MENU_ITEM_CB(redo_cb);
 	_select_all_mi = CT_FIND_MENU_ITEM_CB(select_all_cb);
@@ -1156,18 +1158,11 @@ void Main_Window::update_active_controls() {
 			_loop_mi->activate();
 			_loop_tb->activate();
 		}
-		if (playing) {
-			_step_backward_mi->deactivate();
-			_step_forward_mi->deactivate();
-			_skip_backward_mi->deactivate();
-			_skip_forward_mi->deactivate();
-		}
-		else {
-			_step_backward_mi->activate();
-			_step_forward_mi->activate();
-			_skip_backward_mi->activate();
-			_skip_forward_mi->activate();
-		}
+		_step_backward_mi->activate();
+		_step_forward_mi->activate();
+		_skip_backward_mi->activate();
+		_skip_forward_mi->activate();
+		_center_playhead_mi->activate();
 		if (_song.can_undo() && stopped) {
 			_undo_mi->activate();
 			_undo_tb->activate();
@@ -1387,6 +1382,7 @@ void Main_Window::update_active_controls() {
 		_step_forward_mi->deactivate();
 		_skip_backward_mi->deactivate();
 		_skip_forward_mi->deactivate();
+		_center_playhead_mi->deactivate();
 		_undo_mi->deactivate();
 		_undo_tb->deactivate();
 		_redo_mi->deactivate();
@@ -2538,25 +2534,31 @@ void Main_Window::channel_4_mute_cb(Fl_Widget *w, Main_Window *mw) {
 
 void Main_Window::step_backward_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->step_backward();
-	mw->_piano_roll->focus_cursor(true);
+	mw->_piano_roll->focus_cursor(!(mw->_piano_roll->following() && mw->continuous_scroll()));
 	mw->redraw();
 }
 
 void Main_Window::step_forward_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->step_forward();
-	mw->_piano_roll->focus_cursor(true);
+	mw->_piano_roll->focus_cursor(!(mw->_piano_roll->following() && mw->continuous_scroll()));
 	mw->redraw();
 }
 
 void Main_Window::skip_backward_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->skip_backward();
-	mw->_piano_roll->focus_cursor(true);
+	mw->_piano_roll->focus_cursor(!(mw->_piano_roll->following() && mw->continuous_scroll()));
 	mw->redraw();
 }
 
 void Main_Window::skip_forward_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->skip_forward();
-	mw->_piano_roll->focus_cursor(true);
+	mw->_piano_roll->focus_cursor(!(mw->_piano_roll->following() && mw->continuous_scroll()));
+	mw->redraw();
+}
+
+void Main_Window::center_playhead_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_piano_roll->center_playhead();
+	mw->_piano_roll->focus_cursor(!(mw->_piano_roll->following() && mw->continuous_scroll()));
 	mw->redraw();
 }
 
