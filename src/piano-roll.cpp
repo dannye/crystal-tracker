@@ -799,7 +799,7 @@ bool Piano_Timeline::handle_note_selection(int event) {
 		}
 	}
 
-	int32_t tick = parent()->tick();
+	int32_t tick = parent()->tick() + (Fl::event_alt() ? -1 : 0);
 
 	bool clicked_note = false;
 	for (Note_Box *note : *channel) {
