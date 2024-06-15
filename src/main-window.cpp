@@ -2563,9 +2563,10 @@ void Main_Window::skip_forward_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::center_playhead_cb(Fl_Widget *, Main_Window *mw) {
-	mw->_piano_roll->center_playhead();
-	mw->_piano_roll->focus_cursor(!(mw->_piano_roll->following() && mw->continuous_scroll()));
-	mw->redraw();
+	if (mw->_piano_roll->center_playhead()) {
+		mw->_piano_roll->focus_cursor(!(mw->_piano_roll->following() && mw->continuous_scroll()));
+		mw->redraw();
+	}
 }
 
 bool Main_Window::test_put_note(int32_t tick, int32_t length, int32_t *out_speed, int32_t *out_length) {

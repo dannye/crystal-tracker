@@ -1633,7 +1633,7 @@ int Piano_Roll::handle(int event) {
 	return OS_Scroll::handle(event);
 }
 
-void Piano_Roll::set_tick_from_x_pos(int X) {
+bool Piano_Roll::set_tick_from_x_pos(int X) {
 	int32_t t = (X - _piano_timeline.x() - WHITE_KEY_WIDTH) / tick_width();
 	t = std::max(quantize_tick(t), 0);
 
@@ -1641,7 +1641,9 @@ void Piano_Roll::set_tick_from_x_pos(int X) {
 		_tick = t;
 		parent()->set_song_position(_tick);
 		redraw();
+		return true;
 	}
+	return false;
 }
 
 bool Piano_Roll::handle_mouse_click_song_position(int event) {
@@ -1764,10 +1766,10 @@ void Piano_Roll::skip_forward() {
 	parent()->set_song_position(_tick);
 }
 
-void Piano_Roll::center_playhead() {
-	if (_song_length == -1) return;
+bool Piano_Roll::center_playhead() {
+	if (_song_length == -1) return false;
 
-	set_tick_from_x_pos((w() - Fl::scrollbar_size()) / 2);
+	return set_tick_from_x_pos((w() - Fl::scrollbar_size()) / 2);
 }
 
 void Piano_Roll::zoom(int z) {

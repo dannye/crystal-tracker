@@ -459,7 +459,7 @@ public:
 	inline int32_t song_length(void) const { return _song_length; }
 
 	int handle(int event) override;
-	void set_tick_from_x_pos(int X);
+	bool set_tick_from_x_pos(int X);
 	bool handle_mouse_click_song_position(int event);
 	bool handle_mouse_click_continuous_scroll(int event);
 
@@ -471,7 +471,7 @@ public:
 	void step_forward();
 	void skip_backward();
 	void skip_forward();
-	void center_playhead();
+	bool center_playhead();
 	void zoom(int z);
 	void ticks_per_step(int t) { _ticks_per_step = t; }
 	void key_labels(bool show) { _piano_timeline._keys.key_labels(show); }
