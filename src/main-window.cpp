@@ -281,6 +281,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("Insert Call", FL_COMMAND + 'v', (Fl_Callback *)insert_call_cb, this, FL_MENU_INVISIBLE),
 		{},
 		SYS_MENU_ITEM("&Insert Rest", INSERT_REST_KEY, (Fl_Callback *)insert_rest_cb, this, 0),
+		SYS_MENU_ITEM("&Duplicate Note", FL_COMMAND + 'd', (Fl_Callback *)duplicate_note_cb, this, 0),
 		SYS_MENU_ITEM("Spli&t Note", '/', (Fl_Callback *)split_note_cb, this, 0),
 		SYS_MENU_ITEM("&Glue Note", GLUE_KEY, (Fl_Callback *)glue_note_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Postprocess &Channel", FL_COMMAND + 'P', (Fl_Callback *)postprocess_channel_cb, this, 0),
@@ -420,6 +421,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_delete_selection_mi = CT_FIND_MENU_ITEM_CB(delete_selection_cb);
 	_snip_selection_mi = CT_FIND_MENU_ITEM_CB(snip_selection_cb);
 	_insert_rest_mi = CT_FIND_MENU_ITEM_CB(insert_rest_cb);
+	_duplicate_note_mi = CT_FIND_MENU_ITEM_CB(duplicate_note_cb);
 	_split_note_mi = CT_FIND_MENU_ITEM_CB(split_note_cb);
 	_glue_note_mi = CT_FIND_MENU_ITEM_CB(glue_note_cb);
 	_postprocess_channel_mi = CT_FIND_MENU_ITEM_CB(postprocess_channel_cb);
@@ -945,6 +947,12 @@ void Main_Window::set_song_position(int32_t tick) {
 		else {
 			_insert_rest_mi->deactivate();
 		}
+		if (_piano_roll->duplicate_note(_song, true)) {
+			_duplicate_note_mi->activate();
+		}
+		else {
+			_duplicate_note_mi->deactivate();
+		}
 		if (_piano_roll->split_note(_song, true)) {
 			_split_note_mi->activate();
 			_split_note_tb->activate();
@@ -1275,6 +1283,12 @@ void Main_Window::update_active_controls() {
 			else {
 				_insert_rest_mi->deactivate();
 			}
+			if (_piano_roll->duplicate_note(_song, true)) {
+				_duplicate_note_mi->activate();
+			}
+			else {
+				_duplicate_note_mi->deactivate();
+			}
 			if (_piano_roll->split_note(_song, true)) {
 				_split_note_mi->activate();
 				_split_note_tb->activate();
@@ -1326,6 +1340,7 @@ void Main_Window::update_active_controls() {
 			_snip_selection_mi->deactivate();
 			_snip_selection_tb->deactivate();
 			_insert_rest_mi->deactivate();
+			_duplicate_note_mi->deactivate();
 			_split_note_mi->deactivate();
 			_split_note_tb->deactivate();
 			_glue_note_mi->deactivate();
@@ -1417,6 +1432,7 @@ void Main_Window::update_active_controls() {
 		_snip_selection_mi->deactivate();
 		_snip_selection_tb->deactivate();
 		_insert_rest_mi->deactivate();
+		_duplicate_note_mi->deactivate();
 		_split_note_mi->deactivate();
 		_split_note_tb->deactivate();
 		_glue_note_mi->deactivate();
@@ -3047,6 +3063,18 @@ void Main_Window::snip_selection_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::insert_rest_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (mw->_piano_roll->insert_rest(mw->_song)) {
+		mw->_status_message = mw->_song.undo_action_message();
+		mw->_status_label->label(mw->_status_message.c_str());
+
+		mw->update_active_controls();
+		mw->redraw();
+	}
+}
+
+void Main_Window::duplicate_note_cb(Fl_Widget *, Main_Window *mw) {
+	if (!mw->_song.loaded()) { return; }
+	if (mw->_piano_roll->duplicate_note(mw->_song)) {
+		mw->set_song_position(mw->_piano_roll->tick());
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
 

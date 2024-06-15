@@ -2571,7 +2571,7 @@ bool Piano_Roll::test_put_note(Song &song, int32_t tick, int32_t length, int32_t
 	return true;
 }
 
-bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick, int32_t length) {
+bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick, int32_t length, bool duplicate_previous, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -2593,6 +2593,17 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick,
 
 	const Note_View *prev_note = find_note_before_tick(*view, tick - tick_offset);
 
+	if (duplicate_previous) {
+		if (!prev_note || (note_view->pitch != Pitch::REST && tick_offset != 0)) {
+			return false;
+		}
+		pitch = prev_note->pitch;
+	}
+
+	if (dry_run) {
+		return true;
+	}
+
 	if (octave == 0) {
 		if (prev_note && (tick_offset == 0 || note_view->pitch == Pitch::REST)) {
 			octave = prev_note->octave;
@@ -2607,9 +2618,9 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick,
 
 	int32_t prev_length = 1;
 	int32_t prev_speed = note_view->speed;
-	if (prev_note && note_view->pitch == Pitch::REST) {
+	if (prev_note && (tick_offset == 0 || note_view->pitch == Pitch::REST)) {
 		prev_length = prev_note->length;
-		prev_speed = prev_note->speed;
+		if (duplicate_previous || note_view->pitch == Pitch::REST) prev_speed = prev_note->speed;
 	}
 	if (length != 0) prev_length = length;
 
@@ -3622,6 +3633,10 @@ bool Piano_Roll::insert_rest(Song &song, bool dry_run) {
 	focus_cursor(true);
 
 	return true;
+}
+
+bool Piano_Roll::duplicate_note(Song &song, bool dry_run) {
+	return put_note(song, Pitch::REST, 0, _tick, 0, true, dry_run);
 }
 
 bool Piano_Roll::split_note(Song &song, bool dry_run) {

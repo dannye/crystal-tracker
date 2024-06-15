@@ -520,7 +520,7 @@ public:
 
 	void postprocess_channel(Song &song, int selected_channel);
 	bool test_put_note(Song &song, int32_t tick, int32_t length, int32_t *out_speed, int32_t *out_length);
-	bool put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick, int32_t length);
+	bool put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick, int32_t length, bool duplicate_previous = false, bool dry_run = false);
 	bool set_speed(Song &song, int32_t speed);
 	bool set_volume(Song &song, int32_t volume);
 	bool set_fade(Song &song, int32_t fade);
@@ -549,6 +549,7 @@ public:
 	bool delete_selection(Song &song, bool dry_run = false);
 	bool snip_selection(Song &song, bool dry_run = false);
 	bool insert_rest(Song &song, bool dry_run = false);
+	bool duplicate_note(Song &song, bool dry_run = false);
 	bool split_note(Song &song, bool dry_run = false);
 	bool glue_note(Song &song, bool dry_run = false);
 
