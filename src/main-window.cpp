@@ -43,6 +43,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	int key_labels_config = Preferences::get("key_labels", 0);
 	int note_labels_config = Preferences::get("note_labels", 0);
 	int ruler_config = Preferences::get("ruler", 1);
+	int bpm_config = Preferences::get("bpm", 1);
 
 	for (int i = 0; i < NUM_RECENT; i++) {
 		_recent[i].filepath          = Preferences::get_string(Fl_Preferences::Name("recent%d", i));
@@ -134,7 +135,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	wh -= _status_bar->h();
 	_timestamp_label = new Label(0, 0, text_width("00:00.00 / 00:00.00", 8), STATUS_BAR_HEIGHT - 2, "00:00.00 / 00:00.00");
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
-	_tempo_label = new Label(0, 0, text_width("Tempo: 9999", 8), STATUS_BAR_HEIGHT - 2, "Tempo: 0");
+	_tempo_label = new Label_Button(0, 0, text_width("Tempo: 9999", 8), STATUS_BAR_HEIGHT - 2, bpm_config ? "BPM: 0" : "Tempo: 0");
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
 	_channel_1_status_label = new Label_Button(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
@@ -339,6 +340,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("&Configure Ruler...", FL_COMMAND + 'R', (Fl_Callback *)configure_ruler_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Decrease Spacing", FL_SHIFT + '-', (Fl_Callback *)decrease_spacing_cb, this, 0),
 		SYS_MENU_ITEM("Increase Spacing", FL_SHIFT + '=', (Fl_Callback *)increase_spacing_cb, this, FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("Approximate &BPM", FL_COMMAND + 'b', (Fl_Callback *)bpm_cb, this,
+			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (bpm_config ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("Full &Screen", FULLSCREEN_KEY, (Fl_Callback *)full_screen_cb, this,
 			FL_MENU_TOGGLE | (fullscreen ? FL_MENU_VALUE : 0u)),
 		{},
@@ -394,6 +397,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_note_labels_mi = CT_FIND_MENU_ITEM_CB(note_labels_cb);
 	_ruler_mi = CT_FIND_MENU_ITEM_CB(ruler_cb);
 	_configure_ruler_mi = CT_FIND_MENU_ITEM_CB(configure_ruler_cb);
+	_bpm_mi = CT_FIND_MENU_ITEM_CB(bpm_cb);
 	_full_screen_mi = CT_FIND_MENU_ITEM_CB(full_screen_cb);
 	// Conditional menu items
 	_close_mi = CT_FIND_MENU_ITEM_CB(close_cb);
@@ -687,6 +691,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 #endif
 
 	// Configure status bar
+	_tempo_label->callback((Fl_Callback *)bpm_cb, this);
 	_channel_1_status_label->callback((Fl_Callback *)channel_1_mute_cb, this);
 	_channel_2_status_label->callback((Fl_Callback *)channel_2_mute_cb, this);
 	_channel_3_status_label->callback((Fl_Callback *)channel_3_mute_cb, this);
@@ -976,7 +981,7 @@ void Main_Window::set_song_position(int32_t tick) {
 	if (_it_module) {
 		_it_module->set_tick(tick);
 	}
-	update_status();
+	update_song_status();
 	_audio_mutex.unlock();
 }
 
@@ -1067,6 +1072,8 @@ void Main_Window::set_ruler_config(const Ruler_Config_Dialog::Ruler_Options &o) 
 		_piano_roll->focus_cursor();
 	}
 	_menu_bar->update();
+
+	update_tempo();
 }
 
 void Main_Window::set_tick_from_x_pos(int X) {
@@ -1690,7 +1697,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	apply_recent_config(filename);
 
 	update_active_controls();
-	update_status();
+	update_song_status();
 
 	if (filename) {
 		store_recent_song();
@@ -2055,7 +2062,7 @@ void Main_Window::update_layout() {
 	);
 }
 
-void Main_Window::update_status() {
+void Main_Window::update_song_status() {
 	update_timestamp();
 	update_tempo();
 }
@@ -2083,12 +2090,18 @@ void Main_Window::update_timestamp() {
 
 void Main_Window::update_tempo() {
 	if (!_song.loaded()) {
-		_tempo_label->label("Tempo: 0");
+		_tempo_label->label(bpm() ? "BPM: 0" : "Tempo: 0");
 	}
 	else {
 		char buffer[16] = {};
 		int32_t tempo = _piano_roll->get_current_tempo();
-		sprintf(buffer, "Tempo: %d", tempo);
+		if (bpm()) {
+			tempo = (int32_t)(19200.0f * 48.0f / (song_ticks_per_step() * _ruler->get_options().steps_per_beat) / tempo + 0.5f);
+			sprintf(buffer, "BPM: %d", tempo);
+		}
+		else {
+			sprintf(buffer, "Tempo: %d", tempo);
+		}
 		_tempo_label->copy_label(buffer);
 	}
 }
@@ -2232,7 +2245,7 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	}
 	mw->_showed_it_warning = false;
 	mw->init_sizes();
-	mw->update_status();
+	mw->update_song_status();
 	mw->_directory.clear();
 	mw->_asm_file.clear();
 
@@ -2377,6 +2390,7 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 	Preferences::set("key_labels", mw->key_labels());
 	Preferences::set("note_labels", mw->note_labels());
 	Preferences::set("ruler", mw->ruler());
+	Preferences::set("bpm", mw->bpm());
 	for (int i = 0; i < NUM_RECENT; i++) {
 		if (i == 0 && mw->_asm_file == mw->_recent[i].filepath) {
 			Ruler_Config_Dialog::Ruler_Options ruler_config = mw->_ruler->get_options();
@@ -2730,6 +2744,7 @@ void Main_Window::set_tempo(int32_t tempo) {
 		_status_label->label(_status_message.c_str());
 
 		update_active_controls();
+		update_tempo();
 		redraw();
 	}
 }
@@ -2857,6 +2872,7 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 	}
 
 	mw->update_active_controls();
+	mw->update_tempo();
 	mw->redraw();
 }
 
@@ -2951,6 +2967,7 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 	}
 
 	mw->update_active_controls();
+	mw->update_tempo();
 	mw->redraw();
 }
 
@@ -3075,6 +3092,7 @@ void Main_Window::snip_selection_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
+		mw->update_song_status();
 		mw->redraw();
 	}
 }
@@ -3086,6 +3104,7 @@ void Main_Window::insert_rest_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
+		mw->update_song_status();
 		mw->redraw();
 	}
 }
@@ -3179,7 +3198,7 @@ void Main_Window::resize_song_cb(Fl_Widget *, Main_Window *mw) {
 		mw->regenerate_it_module();
 
 		mw->update_active_controls();
-		mw->update_status();
+		mw->update_song_status();
 		mw->redraw();
 	}
 }
@@ -3352,6 +3371,7 @@ void Main_Window::reduce_loop_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
+		mw->update_song_status();
 		mw->redraw();
 	}
 }
@@ -3363,6 +3383,7 @@ void Main_Window::extend_loop_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
+		mw->update_song_status();
 		mw->redraw();
 	}
 }
@@ -3374,6 +3395,7 @@ void Main_Window::unroll_loop_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
+		mw->update_song_status();
 		mw->redraw();
 	}
 }
@@ -3385,6 +3407,7 @@ void Main_Window::create_loop_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
+		mw->update_song_status();
 		mw->redraw();
 	}
 }
@@ -3396,6 +3419,7 @@ void Main_Window::delete_call_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
+		mw->update_song_status();
 		mw->redraw();
 	}
 }
@@ -3407,6 +3431,7 @@ void Main_Window::unpack_call_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
+		mw->update_song_status();
 		mw->redraw();
 	}
 }
@@ -3418,6 +3443,7 @@ void Main_Window::create_call_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
+		mw->update_song_status();
 		mw->redraw();
 	}
 }
@@ -3429,6 +3455,7 @@ void Main_Window::insert_call_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_status_label->label(mw->_status_message.c_str());
 
 		mw->update_active_controls();
+		mw->update_song_status();
 		mw->redraw();
 	}
 }
@@ -3595,6 +3622,19 @@ void Main_Window::increase_spacing_cb(Fl_Widget *, Main_Window *mw) {
 	mw->redraw();
 }
 
+void Main_Window::bpm_cb(Fl_Widget *w, Main_Window *mw) {
+	if (w == mw->_tempo_label) {
+		if (mw->bpm()) {
+			mw->_bpm_mi->clear();
+		}
+		else {
+			mw->_bpm_mi->set();
+		}
+		Fl::focus(nullptr);
+	}
+	mw->update_tempo();
+}
+
 void Main_Window::full_screen_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->full_screen()) {
 		if (!mw->maximized()) {
@@ -3664,7 +3704,7 @@ void Main_Window::sync_cb(Main_Window *mw) {
 		if (mod) mod->set_tick(0);
 		mw->update_active_controls();
 	}
-	mw->update_status();
+	mw->update_song_status();
 	mw->_sync_requested = false;
 	mw->_audio_mutex.unlock();
 }

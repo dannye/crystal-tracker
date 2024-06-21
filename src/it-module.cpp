@@ -424,9 +424,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 	};
 
 	auto convert_tempo = [](int32_t tempo) {
-		// this is a purely empirical approximation.
-		// i have no idea what the real formula is.
-		int32_t bpm = (int32_t)(38177.0f / tempo + 0.5f);
+		int32_t bpm = (int32_t)(19200.0f * 2.0f / tempo + 0.5f);
 		return std::max(bpm, 32);
 	};
 

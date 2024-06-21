@@ -69,6 +69,7 @@ private:
 		*_note_labels_mi = NULL,
 		*_ruler_mi = NULL,
 		*_configure_ruler_mi = NULL,
+		*_bpm_mi = NULL,
 		*_full_screen_mi = NULL;
 	Toolbar_Button
 		*_new_tb = NULL,
@@ -118,9 +119,9 @@ private:
 	Ruler *_ruler = NULL;
 	Piano_Roll *_piano_roll = NULL;
 	Label
-		*_timestamp_label = NULL,
-		*_tempo_label = NULL;
+		*_timestamp_label = NULL;
 	Label_Button
+		*_tempo_label = NULL,
 		*_channel_1_status_label = NULL,
 		*_channel_2_status_label = NULL,
 		*_channel_3_status_label = NULL,
@@ -237,6 +238,7 @@ public:
 	inline bool key_labels(void) const { return _key_labels_mi && !!_key_labels_mi->value(); }
 	inline bool note_labels(void) const { return _note_labels_mi && !!_note_labels_mi->value(); }
 	inline bool ruler(void) const { return _ruler_mi && !!_ruler_mi->value(); }
+	inline bool bpm(void) const { return _bpm_mi && !!_bpm_mi->value(); }
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
 	inline void continuous_scroll(bool c) { _continuous_tb->value(c); continuous_tb_cb(nullptr, this); }
 	inline void pencil_mode(bool p) { _pencil_mode_tb->value(p); pencil_mode_tb_cb(nullptr, this); }
@@ -318,7 +320,7 @@ private:
 	void update_ruler(void);
 	void update_zoom(void);
 	void update_layout(void);
-	void update_status(void);
+	void update_song_status(void);
 	void update_timestamp(void);
 	void update_tempo(void);
 	void update_channel_status(void);
@@ -406,6 +408,7 @@ private:
 	static void configure_ruler_cb(Fl_Widget *w, Main_Window *mw);
 	static void decrease_spacing_cb(Fl_Widget *w, Main_Window *mw);
 	static void increase_spacing_cb(Fl_Widget *w, Main_Window *mw);
+	static void bpm_cb(Fl_Widget *w, Main_Window *mw);
 	static void full_screen_cb(Fl_Widget *w, Main_Window *mw);
 	// Toolbar buttons
 	static void loop_verification_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
