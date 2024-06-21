@@ -2527,6 +2527,7 @@ void Main_Window::channel_1_mute_cb(Fl_Widget *w, Main_Window *mw) {
 		else {
 			mw->_channel_1_mute_mi->set();
 		}
+		mw->_menu_bar->update();
 		Fl::focus(nullptr);
 	}
 	mw->_piano_roll->channel_1_muted(mw->channel_1_muted());
@@ -2544,6 +2545,7 @@ void Main_Window::channel_2_mute_cb(Fl_Widget *w, Main_Window *mw) {
 		else {
 			mw->_channel_2_mute_mi->set();
 		}
+		mw->_menu_bar->update();
 		Fl::focus(nullptr);
 	}
 	mw->_piano_roll->channel_2_muted(mw->channel_2_muted());
@@ -2561,6 +2563,7 @@ void Main_Window::channel_3_mute_cb(Fl_Widget *w, Main_Window *mw) {
 		else {
 			mw->_channel_3_mute_mi->set();
 		}
+		mw->_menu_bar->update();
 		Fl::focus(nullptr);
 	}
 	mw->_piano_roll->channel_3_muted(mw->channel_3_muted());
@@ -2578,6 +2581,7 @@ void Main_Window::channel_4_mute_cb(Fl_Widget *w, Main_Window *mw) {
 		else {
 			mw->_channel_4_mute_mi->set();
 		}
+		mw->_menu_bar->update();
 		Fl::focus(nullptr);
 	}
 	mw->_piano_roll->channel_4_muted(mw->channel_4_muted());
@@ -3630,6 +3634,7 @@ void Main_Window::bpm_cb(Fl_Widget *w, Main_Window *mw) {
 		else {
 			mw->_bpm_mi->set();
 		}
+		mw->_menu_bar->update();
 		Fl::focus(nullptr);
 	}
 	mw->update_tempo();
