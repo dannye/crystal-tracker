@@ -496,6 +496,7 @@ public:
 	int32_t get_song_length() const;
 	int32_t get_loop_tick() const;
 	int32_t get_last_note_x() const;
+	int32_t get_current_tempo();
 	int first_channel_number() const;
 
 	void update_channel_detail(int channel_number);
@@ -583,6 +584,7 @@ private:
 	const Note_View *find_note_before_tick(const std::vector<Note_View> &view, int32_t tick);
 
 	std::vector<Note_View> *active_channel_view();
+	std::vector<Note_View> &channel_view(const int selected_channel);
 	int32_t active_channel_length();
 
 	static void scrollbar_cb(Fl_Scrollbar *sb, void *);

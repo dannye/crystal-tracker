@@ -2362,6 +2362,22 @@ int32_t Piano_Roll::get_last_note_x() const {
 	return last_note_x;
 }
 
+int32_t Piano_Roll::get_current_tempo() {
+	int32_t tempo = 256;
+
+	int first_channel = first_channel_number();
+	if (first_channel != 0) {
+		const std::vector<Note_View> &view = channel_view(first_channel);
+		const Note_View *note_view = find_note_view_at_tick(view, _tick != -1 ? _tick : 0);
+
+		if (note_view && note_view->tempo != 0) {
+			tempo = note_view->tempo;
+		}
+	}
+
+	return tempo;
+}
+
 int Piano_Roll::first_channel_number() const {
 	if (_channel_1_end_tick != -1) return 1;
 	if (_channel_2_end_tick != -1) return 2;
@@ -4712,6 +4728,22 @@ std::vector<Note_View> *Piano_Roll::active_channel_view() {
 	if (active_channel == 3) return &_channel_3_notes;
 	if (active_channel == 4) return &_channel_4_notes;
 	return nullptr;
+}
+
+std::vector<Note_View> &Piano_Roll::channel_view(const int selected_channel) {
+	assert(selected_channel >= 1 && selected_channel <= 4);
+	if (selected_channel == 1) {
+		return _channel_1_notes;
+	}
+	else if (selected_channel == 2) {
+		return _channel_2_notes;
+	}
+	else if (selected_channel == 3) {
+		return _channel_3_notes;
+	}
+	else {
+		return _channel_4_notes;
+	}
 }
 
 int32_t Piano_Roll::active_channel_length() {

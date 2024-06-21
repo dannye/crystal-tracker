@@ -134,6 +134,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	wh -= _status_bar->h();
 	_timestamp_label = new Label(0, 0, text_width("00:00.00 / 00:00.00", 8), STATUS_BAR_HEIGHT - 2, "00:00.00 / 00:00.00");
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
+	_tempo_label = new Label(0, 0, text_width("Tempo: 9999", 8), STATUS_BAR_HEIGHT - 2, "Tempo: 0");
+	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
 	_channel_1_status_label = new Label_Button(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
 	_channel_2_status_label = new Label_Button(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
@@ -974,7 +976,7 @@ void Main_Window::set_song_position(int32_t tick) {
 	if (_it_module) {
 		_it_module->set_tick(tick);
 	}
-	update_timestamp();
+	update_status();
 	_audio_mutex.unlock();
 }
 
@@ -1688,7 +1690,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	apply_recent_config(filename);
 
 	update_active_controls();
-	update_timestamp();
+	update_status();
 
 	if (filename) {
 		store_recent_song();
@@ -2053,6 +2055,11 @@ void Main_Window::update_layout() {
 	);
 }
 
+void Main_Window::update_status() {
+	update_timestamp();
+	update_tempo();
+}
+
 void Main_Window::update_timestamp() {
 	if (!_song.loaded() || !_it_module) {
 		_timestamp_label->label("00:00.00 / 00:00.00");
@@ -2071,6 +2078,18 @@ void Main_Window::update_timestamp() {
 			(int)(duration_seconds * 100) % 100
 		);
 		_timestamp_label->copy_label(buffer);
+	}
+}
+
+void Main_Window::update_tempo() {
+	if (!_song.loaded()) {
+		_tempo_label->label("Tempo: 0");
+	}
+	else {
+		char buffer[16] = {};
+		int32_t tempo = _piano_roll->get_current_tempo();
+		sprintf(buffer, "Tempo: %d", tempo);
+		_tempo_label->copy_label(buffer);
 	}
 }
 
@@ -2213,7 +2232,7 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	}
 	mw->_showed_it_warning = false;
 	mw->init_sizes();
-	mw->update_timestamp();
+	mw->update_status();
 	mw->_directory.clear();
 	mw->_asm_file.clear();
 
@@ -3160,7 +3179,7 @@ void Main_Window::resize_song_cb(Fl_Widget *, Main_Window *mw) {
 		mw->regenerate_it_module();
 
 		mw->update_active_controls();
-		mw->update_timestamp();
+		mw->update_status();
 		mw->redraw();
 	}
 }
@@ -3645,7 +3664,7 @@ void Main_Window::sync_cb(Main_Window *mw) {
 		if (mod) mod->set_tick(0);
 		mw->update_active_controls();
 	}
-	mw->update_timestamp();
+	mw->update_status();
 	mw->_sync_requested = false;
 	mw->_audio_mutex.unlock();
 }

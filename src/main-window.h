@@ -118,7 +118,8 @@ private:
 	Ruler *_ruler = NULL;
 	Piano_Roll *_piano_roll = NULL;
 	Label
-		*_timestamp_label = NULL;
+		*_timestamp_label = NULL,
+		*_tempo_label = NULL;
 	Label_Button
 		*_channel_1_status_label = NULL,
 		*_channel_2_status_label = NULL,
@@ -317,7 +318,9 @@ private:
 	void update_ruler(void);
 	void update_zoom(void);
 	void update_layout(void);
+	void update_status(void);
 	void update_timestamp(void);
+	void update_tempo(void);
 	void update_channel_status(void);
 	// File menu
 	static void new_cb(Fl_Widget *w, Main_Window *mw);
