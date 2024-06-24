@@ -333,6 +333,7 @@ private:
 	static void save_cb(Fl_Widget *w, Main_Window *mw);
 	static void save_as_cb(Fl_Widget *w, Main_Window *mw);
 	static void exit_cb(Fl_Widget *w, Main_Window *mw);
+	static void export_it_cb(Fl_Widget *w, Main_Window *mw);
 	// Play menu
 	static void play_pause_cb(Fl_Widget *w, Main_Window *mw);
 	static void stop_cb(Fl_Widget *w, Main_Window *mw);

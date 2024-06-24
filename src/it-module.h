@@ -52,6 +52,8 @@ public:
 	IT_Module(const IT_Module&) = delete;
 	IT_Module& operator=(const IT_Module&) = delete;
 
+	bool export_file(const char *f);
+
 	std::string get_warnings() { return _mod->get_metadata("warnings"); }
 	int32_t tempo_change_wrong_channel() const { return _tempo_change_wrong_channel; }
 	int32_t tempo_change_mid_note() const { return _tempo_change_mid_note; }

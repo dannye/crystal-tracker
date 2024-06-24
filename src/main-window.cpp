@@ -240,6 +240,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("Save &As...", FL_COMMAND + 'S', (Fl_Callback *)save_as_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("E&xit", FL_ALT + FL_F + 4, (Fl_Callback *)exit_cb, this, 0),
 #endif
+		SYS_MENU_ITEM("Export IT File", FL_COMMAND + FL_F + 3, (Fl_Callback *)export_it_cb, this, FL_MENU_INVISIBLE),
 		{},
 		OS_SUBMENU("&Play"),
 		SYS_MENU_ITEM("&Play/Pause", ' ', (Fl_Callback *)play_pause_cb, this, 0),
@@ -2411,6 +2412,29 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 	Preferences::close();
 
 	exit(EXIT_SUCCESS);
+}
+
+void Main_Window::export_it_cb(Fl_Widget *, Main_Window *mw) {
+	if (Fl::modal()) return;
+
+	if (!mw->_song.loaded() || mw->_asm_file.empty()) {
+		return;
+	}
+
+	char filename[FL_PATH_MAX] = {};
+	strcpy(filename, mw->_asm_file.c_str());
+	fl_filename_setext(filename, ".it");
+
+	if (mw->stopped()) {
+		mw->regenerate_it_module();
+	}
+
+	if (mw->_it_module->export_file(filename)) {
+		const char *basename = fl_filename_name(filename);
+		mw->_status_message = "Dumped ";
+		mw->_status_message += basename;
+		mw->_status_label->label(mw->_status_message.c_str());
+	}
 }
 
 void Main_Window::play_pause_cb(Fl_Widget *, Main_Window *mw) {

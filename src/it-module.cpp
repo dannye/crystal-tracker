@@ -2,6 +2,8 @@
 
 #include "it-module.h"
 
+#include "utils.h"
+
 IT_Module::IT_Module() {
 	generate_it_module();
 
@@ -44,6 +46,17 @@ IT_Module::~IT_Module() noexcept {
 		delete _mod;
 		_mod = nullptr;
 	}
+}
+
+bool IT_Module::export_file(const char *f) {
+	std::ofstream ofs;
+	open_ofstream(ofs, f);
+	if (!ofs.good()) return false;
+
+	ofs.write((char *)&_data[0], _data.size());
+	ofs.close();
+
+	return true;
 }
 
 bool IT_Module::play() {
