@@ -49,7 +49,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		_recent[i].filepath          = Preferences::get_string(Fl_Preferences::Name("recent%d", i));
 		_recent[i].beats_per_measure = std::clamp(Preferences::get(Fl_Preferences::Name("recent%d_beats_per_measure", i),  4), 1, 64);
 		_recent[i].steps_per_beat    = std::clamp(Preferences::get(Fl_Preferences::Name("recent%d_steps_per_beat",    i),  4), 1, 64);
-		_recent[i].ticks_per_step    = std::clamp(Preferences::get(Fl_Preferences::Name("recent%d_ticks_per_step",    i), 12), 4, 32);
+		_recent[i].ticks_per_step    = std::clamp(Preferences::get(Fl_Preferences::Name("recent%d_ticks_per_step",    i), 12), 4, 48);
 		_recent[i].pickup_offset     = std::clamp(Preferences::get(Fl_Preferences::Name("recent%d_pickup_offset",     i),  0), 0, 64);
 	}
 
@@ -1061,7 +1061,7 @@ void Main_Window::set_ruler_config(const Ruler_Config_Dialog::Ruler_Options &o) 
 		_decrease_spacing_mi->activate();
 		_decrease_spacing_tb->activate();
 	}
-	if (_piano_roll->ticks_per_step() >= 32) {
+	if (_piano_roll->ticks_per_step() >= 48) {
 		_increase_spacing_mi->deactivate();
 		_increase_spacing_tb->deactivate();
 	}
@@ -1497,7 +1497,7 @@ void Main_Window::apply_recent_config(const char *filename) {
 		_decrease_spacing_mi->activate();
 		_decrease_spacing_tb->activate();
 	}
-	if (recent.ticks_per_step >= 32) {
+	if (recent.ticks_per_step >= 48) {
 		_increase_spacing_mi->deactivate();
 		_increase_spacing_tb->deactivate();
 	}
@@ -1688,7 +1688,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 
 	// set filenames
 	char buffer[FL_PATH_MAX] = {};
-	sprintf(buffer, PROGRAM_NAME " - %s", basename);
+	snprintf(buffer, sizeof(buffer), PROGRAM_NAME " - %s", basename);
 	copy_label(buffer);
 
 	_status_message = "Opened ";
@@ -2076,8 +2076,8 @@ void Main_Window::update_timestamp() {
 		char buffer[64] = {};
 		double position_seconds = _it_module->get_position_seconds();
 		double duration_seconds = _it_module->get_duration_seconds();
-		sprintf(
-			buffer, "%02d:%02d.%02d / %02d:%02d.%02d",
+		snprintf(
+			buffer, sizeof(buffer), "%02d:%02d.%02d / %02d:%02d.%02d",
 			(int)position_seconds / 60,
 			(int)position_seconds % 60,
 			(int)(position_seconds * 100) % 100,
@@ -2098,10 +2098,10 @@ void Main_Window::update_tempo() {
 		int32_t tempo = _piano_roll->get_current_tempo();
 		if (bpm()) {
 			tempo = (int32_t)(19200.0f * 48.0f / (song_ticks_per_step() * _ruler->get_options().steps_per_beat) / tempo + 0.5f);
-			sprintf(buffer, "BPM: %d", tempo);
+			snprintf(buffer, sizeof(buffer), "BPM: %d", tempo);
 		}
 		else {
-			sprintf(buffer, "Tempo: %d", tempo);
+			snprintf(buffer, sizeof(buffer), "Tempo: %d", tempo);
 		}
 		_tempo_label->copy_label(buffer);
 	}
@@ -2109,13 +2109,13 @@ void Main_Window::update_tempo() {
 
 void Main_Window::update_channel_status() {
 	char buffer[16] = {};
-	sprintf(buffer, "Ch1: %s", channel_1_muted() ? "Off" : "On");
+	snprintf(buffer, sizeof(buffer), "Ch1: %s", channel_1_muted() ? "Off" : "On");
 	_channel_1_status_label->copy_label(buffer);
-	sprintf(buffer, "Ch2: %s", channel_2_muted() ? "Off" : "On");
+	snprintf(buffer, sizeof(buffer), "Ch2: %s", channel_2_muted() ? "Off" : "On");
 	_channel_2_status_label->copy_label(buffer);
-	sprintf(buffer, "Ch3: %s", channel_3_muted() ? "Off" : "On");
+	snprintf(buffer, sizeof(buffer), "Ch3: %s", channel_3_muted() ? "Off" : "On");
 	_channel_3_status_label->copy_label(buffer);
-	sprintf(buffer, "Ch4: %s", channel_4_muted() ? "Off" : "On");
+	snprintf(buffer, sizeof(buffer), "Ch4: %s", channel_4_muted() ? "Off" : "On");
 	_channel_4_status_label->copy_label(buffer);
 }
 
@@ -2313,7 +2313,7 @@ void Main_Window::save_as_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_asm_file.assign(filename);
 
 	char buffer[FL_PATH_MAX] = {};
-	sprintf(buffer, PROGRAM_NAME " - %s", basename);
+	snprintf(buffer, sizeof(buffer), PROGRAM_NAME " - %s", basename);
 	mw->copy_label(buffer);
 
 	mw->save_song(true);
@@ -3637,7 +3637,7 @@ void Main_Window::decrease_spacing_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::increase_spacing_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->ticks_per_step(mw->_piano_roll->ticks_per_step() + 1);
-	if (mw->_piano_roll->ticks_per_step() == 32) {
+	if (mw->_piano_roll->ticks_per_step() == 48) {
 		mw->_increase_spacing_mi->deactivate();
 		mw->_increase_spacing_tb->deactivate();
 	}

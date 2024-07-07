@@ -27,8 +27,8 @@ int Ruler::handle(int event) {
 	return Fl_Box::handle(event);
 }
 
-static inline void print_tick_label(char *s, int n) {
-	sprintf(s, "%d", n);
+static inline void print_tick_label(char *s, size_t size, int n) {
+	snprintf(s, size, "%d", n);
 }
 
 void Ruler::draw() {
@@ -64,7 +64,7 @@ void Ruler::draw() {
 	int N = mx / S - p / S;
 	for (int i = S-R-1; i < W+S + O; i += S, N++) {
 		if (N >= 0) {
-			print_tick_label(t, N);
+			print_tick_label(t, sizeof(t), N);
 			fl_draw(t, X+i-S+1 - O, Y, S-2, H, FL_ALIGN_BOTTOM_RIGHT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
 		}
 	}

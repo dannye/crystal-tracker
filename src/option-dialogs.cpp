@@ -755,7 +755,7 @@ void Ruler_Config_Dialog::initialize_content() {
 	_steps_per_beat->range(1, 64);
 	_steps_per_beat->wrap(0);
 	_steps_per_beat->callback((Fl_Callback *)ruler_config_cb, this);
-	_ticks_per_step->range(4, 32);
+	_ticks_per_step->range(4, 48);
 	_ticks_per_step->wrap(0);
 	_ticks_per_step->callback((Fl_Callback *)ruler_config_cb, this);
 	_pickup_offset->range(0, 64);
