@@ -19,6 +19,8 @@ constexpr uint32_t ROWS_PER_PATTERN = 192;
 
 constexpr uint32_t NOISE_SAMPLE_SPEED_FACTOR = 4;
 
+constexpr float UNITS_PER_MINUTE = 256.0f /* units per frame */ * (262144.0f / 4389.0f) /* frames per second */ * 60.0f /* seconds per minute */;
+
 class IT_Module {
 private:
 	std::vector<uint8_t> _data;

@@ -437,7 +437,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 	};
 
 	auto convert_tempo = [](int32_t tempo) {
-		int32_t bpm = (int32_t)(19200.0f * 2.0f / tempo + 0.5f);
+		int32_t bpm = (int32_t)(2.0f * UNITS_PER_MINUTE / 48.0f / tempo + 0.5f);
 		return std::max(bpm, 32);
 	};
 

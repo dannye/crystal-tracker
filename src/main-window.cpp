@@ -2097,7 +2097,7 @@ void Main_Window::update_tempo() {
 		char buffer[16] = {};
 		int32_t tempo = _piano_roll->get_current_tempo();
 		if (bpm()) {
-			tempo = (int32_t)(19200.0f * 48.0f / (song_ticks_per_step() * _ruler->get_options().steps_per_beat) / tempo + 0.5f);
+			tempo = (int32_t)(UNITS_PER_MINUTE / (song_ticks_per_step() * _ruler->get_options().steps_per_beat) / tempo + 0.5f);
 			snprintf(buffer, sizeof(buffer), "BPM: %d", tempo);
 		}
 		else {
