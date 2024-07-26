@@ -306,6 +306,7 @@ private:
 	int32_t _drawing_length = 0;
 	bool _erasing = false;
 	bool _positioning = false;
+	int32_t _format_tick = -1;
 public:
 	Piano_Timeline(int X, int Y, int W, int H, const char *l = nullptr);
 	~Piano_Timeline() noexcept;
@@ -340,6 +341,10 @@ public:
 	bool select_none();
 	bool select_invert();
 	bool any_note_selected();
+
+	void format_painter_start();
+	void format_painter_end();
+	void format_painter_cancel();
 
 	void highlight_channel_1_tick(int32_t tick, bool muted) { highlight_tick(_channel_1_notes, 1, tick, muted, NOTE_RED_LIGHT); }
 	void highlight_channel_2_tick(int32_t tick, bool muted) { highlight_tick(_channel_2_notes, 2, tick, muted, NOTE_BLUE_LIGHT); }
@@ -522,6 +527,7 @@ public:
 	void postprocess_channel(Song &song, int selected_channel);
 	bool test_put_note(Song &song, int32_t tick, int32_t length, int32_t *out_speed, int32_t *out_length);
 	bool put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick, int32_t length, bool duplicate_previous = false, bool dry_run = false);
+	bool apply_format_painter(Song &song, int32_t from_tick, int32_t to_tick);
 	bool set_speed(Song &song, int32_t speed);
 	bool set_volume(Song &song, int32_t volume);
 	bool set_fade(Song &song, int32_t fade);
@@ -574,6 +580,9 @@ public:
 	bool select_invert() { return _piano_timeline.select_invert(); }
 
 	bool any_note_selected() { return _piano_timeline.any_note_selected(); }
+
+	void format_painter_start() { _piano_timeline.format_painter_start(); }
+	void format_painter_end() { _piano_timeline.format_painter_end(); }
 
 	int32_t quantize_tick(int32_t tick, bool round = false);
 private:

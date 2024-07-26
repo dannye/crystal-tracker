@@ -98,7 +98,8 @@ private:
 		*_split_note_tb = NULL,
 		*_glue_note_tb = NULL;
 	Toolbar_Toggle_Button
-		*_pencil_mode_tb = NULL;
+		*_pencil_mode_tb = NULL,
+		*_format_painter_tb = NULL;
 	Toolbar_Radio_Button
 		*_channel_1_tb = NULL,
 		*_channel_2_tb = NULL,
@@ -171,6 +172,7 @@ private:
 		*_postprocess_channel_mi = NULL,
 		*_resize_song_mi = NULL,
 		*_pencil_mode_mi = NULL,
+		*_format_painter_mi = NULL,
 		*_channel_1_mi = NULL,
 		*_channel_2_mi = NULL,
 		*_channel_3_mi = NULL,
@@ -234,6 +236,7 @@ public:
 	inline bool channel_3_muted(void) const { return _channel_3_mute_mi && !!_channel_3_mute_mi->value(); }
 	inline bool channel_4_muted(void) const { return _channel_4_mute_mi && !!_channel_4_mute_mi->value(); }
 	inline bool pencil_mode(void) const { return _pencil_mode_mi && !!_pencil_mode_mi->value(); }
+	inline bool format_painter(void) const { return _format_painter_mi && !!_format_painter_mi->value(); }
 	inline bool note_properties(void) const { return _note_properties && _note_properties->visible(); }
 	inline bool key_labels(void) const { return _key_labels_mi && !!_key_labels_mi->value(); }
 	inline bool note_labels(void) const { return _note_labels_mi && !!_note_labels_mi->value(); }
@@ -242,6 +245,7 @@ public:
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
 	inline void continuous_scroll(bool c) { _continuous_tb->value(c); continuous_tb_cb(nullptr, this); }
 	inline void pencil_mode(bool p) { _pencil_mode_tb->value(p); pencil_mode_tb_cb(nullptr, this); }
+	inline void format_painter(bool f) { _format_painter_tb->value(f); format_painter_tb_cb(nullptr, this); }
 
 	inline int zoom() const { return _zoom; }
 	inline void zoom(int z) { _zoom = z; }
@@ -283,6 +287,7 @@ public:
 	void delete_selection() { delete_selection_cb(nullptr, this); }
 	bool test_put_note(int32_t tick, int32_t length, int32_t *out_speed, int32_t *out_length);
 	bool put_note(Pitch pitch, int32_t octave = 0, int32_t tick = -1, int32_t length = 0);
+	void apply_format_painter(int32_t from_tick, int32_t to_tick);
 	void set_speed(int32_t speed);
 	void set_volume(int32_t volume);
 	void set_fade(int32_t fade);
@@ -372,6 +377,7 @@ private:
 	static void postprocess_channel_cb(Fl_Widget *w, Main_Window *mw);
 	static void resize_song_cb(Fl_Widget *w, Main_Window *mw);
 	static void pencil_mode_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void format_painter_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void channel_1_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_2_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_3_cb(Fl_Widget *w, Main_Window *mw);
@@ -416,6 +422,7 @@ private:
 	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void continuous_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void pencil_mode_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
+	static void format_painter_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void channel_1_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
 	static void channel_2_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);
 	static void channel_3_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);

@@ -91,6 +91,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_redo_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	SEPARATE_TOOLBAR_BUTTONS;
 	_pencil_mode_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_format_painter_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	SEPARATE_TOOLBAR_BUTTONS;
 	_channel_1_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
 	_channel_1_tb->when(FL_WHEN_RELEASE_ALWAYS);
@@ -290,7 +291,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("&Glue Note", GLUE_KEY, (Fl_Callback *)glue_note_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Postprocess &Channel", FL_COMMAND + 'P', (Fl_Callback *)postprocess_channel_cb, this, 0),
 		SYS_MENU_ITEM("R&esize Song...", FL_COMMAND + 'e', (Fl_Callback *)resize_song_cb, this, FL_MENU_DIVIDER),
-		SYS_MENU_ITEM("Pencil &Mode", '`', (Fl_Callback *)pencil_mode_cb, this, FL_MENU_TOGGLE | FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("Pencil &Mode", '`', (Fl_Callback *)pencil_mode_cb, this, FL_MENU_TOGGLE),
+		SYS_MENU_ITEM("&Format Painter", '~', (Fl_Callback *)format_painter_cb, this, FL_MENU_TOGGLE | FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Channel &1", '1', (Fl_Callback *)channel_1_cb, this,
 			FL_MENU_RADIO | (selected_channel() == 1 ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("Channel &2", '2', (Fl_Callback *)channel_2_cb, this,
@@ -434,6 +436,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_postprocess_channel_mi = CT_FIND_MENU_ITEM_CB(postprocess_channel_cb);
 	_resize_song_mi = CT_FIND_MENU_ITEM_CB(resize_song_cb);
 	_pencil_mode_mi = CT_FIND_MENU_ITEM_CB(pencil_mode_cb);
+	_format_painter_mi = CT_FIND_MENU_ITEM_CB(format_painter_cb);
 	_channel_1_mi = CT_FIND_MENU_ITEM_CB(channel_1_cb);
 	_channel_2_mi = CT_FIND_MENU_ITEM_CB(channel_2_cb);
 	_channel_3_mi = CT_FIND_MENU_ITEM_CB(channel_3_cb);
@@ -623,6 +626,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_pencil_mode_tb->callback((Fl_Callback *)pencil_mode_tb_cb, this);
 	_pencil_mode_tb->image(PENCIL_ICON);
 	_pencil_mode_tb->value(pencil_mode());
+
+	_format_painter_tb->tooltip("Format Painter (~)");
+	_format_painter_tb->callback((Fl_Callback *)format_painter_tb_cb, this);
+	_format_painter_tb->image(BRUSH_ICON);
+	_format_painter_tb->value(format_painter());
 
 	_channel_1_tb->tooltip("Channel 1 (1)");
 	_channel_1_tb->callback((Fl_Callback *)channel_1_tb_cb, this);
@@ -1317,9 +1325,13 @@ void Main_Window::update_active_controls() {
 			}
 			if (selected_channel()) {
 				_postprocess_channel_mi->activate();
+				_format_painter_mi->activate();
+				_format_painter_tb->activate();
 			}
 			else {
 				_postprocess_channel_mi->deactivate();
+				_format_painter_mi->deactivate();
+				_format_painter_tb->deactivate();
 			}
 			_resize_song_mi->activate();
 			_pencil_mode_mi->activate();
@@ -1359,6 +1371,8 @@ void Main_Window::update_active_controls() {
 			_resize_song_mi->deactivate();
 			_pencil_mode_mi->deactivate();
 			_pencil_mode_tb->deactivate();
+			_format_painter_mi->deactivate();
+			_format_painter_tb->deactivate();
 		}
 		if (_song.channel_1_end_tick() != -1) {
 			_channel_1_mi->activate();
@@ -1451,6 +1465,8 @@ void Main_Window::update_active_controls() {
 		_resize_song_mi->deactivate();
 		_pencil_mode_mi->deactivate();
 		_pencil_mode_tb->deactivate();
+		_format_painter_mi->deactivate();
+		_format_painter_tb->deactivate();
 		_channel_1_mi->deactivate();
 		_channel_1_tb->deactivate();
 		_channel_2_mi->deactivate();
@@ -2003,6 +2019,7 @@ void Main_Window::update_icons() {
 	make_deimage(_split_note_tb);
 	make_deimage(_glue_note_tb);
 	make_deimage(_pencil_mode_tb);
+	make_deimage(_format_painter_tb);
 	make_deimage(_channel_1_tb);
 	make_deimage(_channel_2_tb);
 	make_deimage(_channel_3_tb);
@@ -2251,6 +2268,7 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_asm_file.clear();
 
 	mw->pencil_mode(false);
+	mw->format_painter(false);
 	mw->selected_channel(0);
 	mw->_channel_1_mi->clear();
 	mw->_channel_1_tb->clear();
@@ -2471,6 +2489,17 @@ void Main_Window::pencil_mode_cb(Fl_Menu_ *m, Main_Window *mw) {
 	mw->redraw();
 }
 
+void Main_Window::format_painter_cb(Fl_Menu_ *m, Main_Window *mw) {
+	SYNC_TB_WITH_M(mw->_format_painter_tb, m);
+	if (mw->format_painter()) {
+		mw->_piano_roll->format_painter_start();
+	}
+	else {
+		mw->_piano_roll->format_painter_end();
+	}
+	mw->redraw();
+}
+
 void Main_Window::key_labels_cb(Fl_Menu_ *m, Main_Window *mw) {
 	SYNC_TB_WITH_M(mw->_key_labels_tb, m);
 	mw->_piano_roll->key_labels(mw->key_labels());
@@ -2516,6 +2545,18 @@ void Main_Window::pencil_mode_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 	SYNC_MI_WITH_TB(mw->_pencil_mode_tb, mw->_pencil_mode_mi);
 	if (mw->pencil_mode() && mw->selected_channel() == 0) next_channel_cb(nullptr, mw);
 	fl_cursor(mw->pencil_mode() ? FL_CURSOR_CROSS : FL_CURSOR_DEFAULT);
+	mw->_menu_bar->update();
+	mw->redraw();
+}
+
+void Main_Window::format_painter_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
+	SYNC_MI_WITH_TB(mw->_format_painter_tb, mw->_format_painter_mi);
+	if (mw->format_painter()) {
+		mw->_piano_roll->format_painter_start();
+	}
+	else {
+		mw->_piano_roll->format_painter_end();
+	}
 	mw->_menu_bar->update();
 	mw->redraw();
 }
@@ -2663,6 +2704,18 @@ bool Main_Window::put_note(Pitch pitch, int32_t octave, int32_t tick, int32_t le
 		return true;
 	}
 	return false;
+}
+
+void Main_Window::apply_format_painter(int32_t from_tick, int32_t to_tick) {
+	if (!_song.loaded()) { return; }
+	if (_piano_roll->apply_format_painter(_song, from_tick, to_tick)) {
+		_status_message = _song.undo_action_message();
+		_status_label->label(_status_message.c_str());
+
+		update_active_controls();
+		redraw();
+	}
+	_piano_roll->refresh_note_properties();
 }
 
 void Main_Window::set_speed(int32_t speed) {
@@ -2876,6 +2929,7 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 		mw->set_song_position(tick);
 	}
 	else if (
+		action == Song::Song_State::Action::FORMAT_PAINTER ||
 		action == Song::Song_State::Action::SHORTEN ||
 		action == Song::Song_State::Action::LENGTHEN ||
 		action == Song::Song_State::Action::REDUCE_LOOP ||
@@ -2950,6 +3004,7 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 		mw->close_note_properties();
 	}
 	else if (
+		action == Song::Song_State::Action::FORMAT_PAINTER ||
 		action == Song::Song_State::Action::SHORTEN ||
 		action == Song::Song_State::Action::LENGTHEN ||
 		action == Song::Song_State::Action::UNROLL_LOOP ||

@@ -354,6 +354,7 @@ void Piano_Timeline::clear() {
 	_drawing_length = 0;
 	_erasing = false;
 	_positioning = false;
+	_format_tick = -1;
 }
 
 void Piano_Timeline::clear_channel_1() {
@@ -1028,6 +1029,22 @@ bool Piano_Timeline::any_note_selected() {
 	return false;
 }
 
+void Piano_Timeline::format_painter_start() {
+	_format_tick = parent()->tick() != -1 ? parent()->tick() : 0;
+}
+
+void Piano_Timeline::format_painter_end() {
+	if (_format_tick != -1 && parent()->tick() != -1) {
+		parent()->parent()->apply_format_painter(_format_tick, parent()->tick());
+	}
+	_format_tick = -1;
+}
+
+void Piano_Timeline::format_painter_cancel() {
+	_format_tick = -1;
+	parent()->parent()->format_painter(false);
+}
+
 void Piano_Timeline::reset_note_colors() {
 	for (Note_Box *note : _channel_1_notes) {
 		note->color(NOTE_RED);
@@ -1465,6 +1482,13 @@ void Piano_Timeline::draw() {
 		fl_color(cursor_color);
 		yxline(x_pos - 1, y(), y() + h(), px, pw);
 		yxline(x_pos, y(), y() + h(), px, pw);
+
+		if (_format_tick != -1) {
+			x_pos = x() + _format_tick * tick_width + WHITE_KEY_WIDTH;
+			fl_color(FL_CYAN);
+			yxline(x_pos - 1, y(), y() + h(), px, pw);
+			yxline(x_pos, y(), y() + h(), px, pw);
+		}
 	}
 	draw_children();
 
@@ -1623,10 +1647,16 @@ int Piano_Roll::handle(int event) {
 			return 1;
 		}
 
-		if (Fl::event_key() == FL_Escape && _tick != -1) {
+		if (Fl::event_key() == FL_Escape && _piano_timeline._format_tick != -1 && !_following && !_paused) {
+			_piano_timeline.format_painter_cancel();
+			redraw();
+			return 1;
+		}
+		else if (Fl::event_key() == FL_Escape && _tick != -1 && !_following && !_paused) {
 			_tick = -1;
 			parent()->set_song_position(0);
 			redraw();
+			return 1;
 		}
 		break;
 	}
@@ -2388,6 +2418,7 @@ int Piano_Roll::first_channel_number() const {
 
 void Piano_Roll::update_channel_detail(int channel_number) {
 	_piano_timeline.handle_note_pencil_cancel(0);
+	_piano_timeline.format_painter_cancel();
 	_piano_timeline.set_channel_1_detail(channel_number == 1 ? 2 : channel_number == 0 ? 1 : 0);
 	_piano_timeline.set_channel_2_detail(channel_number == 2 ? 2 : channel_number == 0 ? 1 : 0);
 	_piano_timeline.set_channel_3_detail(channel_number == 3 ? 2 : channel_number == 0 ? 1 : 0);
@@ -2663,6 +2694,34 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick,
 
 	_tick = tick + final_length;
 	focus_cursor(true);
+
+	return true;
+}
+
+bool Piano_Roll::apply_format_painter(Song &song, int32_t from_tick, int32_t to_tick) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	const Note_View *from_view = find_note_view_at_tick(*view, from_tick);
+	const Note_View *to_view = find_note_view_at_tick(*view, to_tick);
+
+	if (!from_view || !to_view) return false;
+
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			selected_boxes.insert(itr_index(*channel, note_itr));
+		}
+	}
+
+	song.apply_format_painter(selected_channel(), selected_boxes, *from_view, to_view->index, to_tick);
+	postprocess_channel(song, selected_channel());
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
 
 	return true;
 }

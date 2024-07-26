@@ -2441,6 +2441,62 @@ int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &sele
 	return length * speed;
 }
 
+void Song::apply_format_painter(const int selected_channel, const std::set<int32_t> &selected_boxes, const Note_View &view, int32_t index, int32_t tick) {
+	remember(selected_channel, selected_boxes, Song_State::Action::FORMAT_PAINTER, tick);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	if (selected_channel == 1 || selected_channel == 2) {
+		{
+			Command command = Command(Command_Type::DUTY_CYCLE);
+			command.duty_cycle.duty = view.duty;
+			command.labels = std::move(commands[index].labels);
+			commands[index].labels.clear();
+			commands.insert(commands.begin() + index, command);
+		}
+		{
+			Command command = Command(Command_Type::VIBRATO);
+			command.vibrato.delay = view.vibrato_delay;
+			command.vibrato.extent = view.vibrato_extent;
+			command.vibrato.rate = view.vibrato_rate;
+			command.labels = std::move(commands[index].labels);
+			commands[index].labels.clear();
+			commands.insert(commands.begin() + index, command);
+		}
+		{
+			Command command = Command(Command_Type::VOLUME_ENVELOPE);
+			command.volume_envelope.volume = view.volume;
+			command.volume_envelope.fade = view.fade;
+			command.labels = std::move(commands[index].labels);
+			commands[index].labels.clear();
+			commands.insert(commands.begin() + index, command);
+		}
+	}
+	else if (selected_channel == 3) {
+		{
+			Command command = Command(Command_Type::VIBRATO);
+			command.vibrato.delay = view.vibrato_delay;
+			command.vibrato.extent = view.vibrato_extent;
+			command.vibrato.rate = view.vibrato_rate;
+			command.labels = std::move(commands[index].labels);
+			commands[index].labels.clear();
+			commands.insert(commands.begin() + index, command);
+		}
+		{
+			Command command = Command(Command_Type::VOLUME_ENVELOPE);
+			command.volume_envelope.volume = view.volume;
+			command.volume_envelope.wave = view.wave;
+			command.labels = std::move(commands[index].labels);
+			commands[index].labels.clear();
+			commands.insert(commands.begin() + index, command);
+		}
+	}
+	else if (selected_channel == 4) {
+		//
+	}
+
+	_modified = true;
+}
+
 void Song::set_speed(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t speed) {
 	remember(selected_channel, selected_boxes, Song_State::Action::SET_SPEED);
 	std::vector<Command> &commands = channel_commands(selected_channel);
@@ -3681,6 +3737,8 @@ const char *Song::get_action_message(Song_State::Action action) const {
 	switch (action) {
 	case Song_State::Action::PUT_NOTE:
 		return "Put note";
+	case Song_State::Action::FORMAT_PAINTER:
+		return "Format painter";
 	case Song_State::Action::SET_SPEED:
 		return "Set speed";
 	case Song_State::Action::SET_VOLUME:

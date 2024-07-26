@@ -6,6 +6,7 @@
 #pragma warning(pop)
 
 #include "blank.xpm"
+#include "brush.xpm"
 #include "decrease-spacing.xpm"
 #include "delete.xpm"
 #include "down.xpm"
@@ -47,6 +48,7 @@
 #include "zoom-out.xpm"
 
 static Fl_Pixmap BLANK_ICON(BLANK_XPM);
+static Fl_Pixmap BRUSH_ICON(BRUSH_XPM);
 static Fl_Pixmap DECREASE_SPACING_ICON(DECREASE_SPACING_XPM);
 static Fl_Pixmap DELETE_ICON(DELETE_XPM);
 static Fl_Pixmap DOWN_ICON(DOWN_XPM);
