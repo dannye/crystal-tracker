@@ -631,6 +631,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_format_painter_tb->callback((Fl_Callback *)format_painter_tb_cb, this);
 	_format_painter_tb->image(BRUSH_ICON);
 	_format_painter_tb->value(format_painter());
+	_format_painter_tb->shortcut(FL_ALT + FL_SHIFT + '`');
 
 	_channel_1_tb->tooltip("Channel 1 (1)");
 	_channel_1_tb->callback((Fl_Callback *)channel_1_tb_cb, this);
@@ -2706,9 +2707,9 @@ bool Main_Window::put_note(Pitch pitch, int32_t octave, int32_t tick, int32_t le
 	return false;
 }
 
-void Main_Window::apply_format_painter(int32_t from_tick, int32_t to_tick) {
+void Main_Window::apply_format_painter(int32_t from_tick, int32_t to_tick, bool full) {
 	if (!_song.loaded()) { return; }
-	if (_piano_roll->apply_format_painter(_song, from_tick, to_tick)) {
+	if (_piano_roll->apply_format_painter(_song, from_tick, to_tick, full)) {
 		_status_message = _song.undo_action_message();
 		_status_label->label(_status_message.c_str());
 

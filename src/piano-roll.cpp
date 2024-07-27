@@ -1035,7 +1035,7 @@ void Piano_Timeline::format_painter_start() {
 
 void Piano_Timeline::format_painter_end() {
 	if (_format_tick != -1 && parent()->tick() != -1) {
-		parent()->parent()->apply_format_painter(_format_tick, parent()->tick());
+		parent()->parent()->apply_format_painter(_format_tick, parent()->tick(), !!Fl::event_alt());
 	}
 	_format_tick = -1;
 }
@@ -2698,7 +2698,7 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick,
 	return true;
 }
 
-bool Piano_Roll::apply_format_painter(Song &song, int32_t from_tick, int32_t to_tick) {
+bool Piano_Roll::apply_format_painter(Song &song, int32_t from_tick, int32_t to_tick, bool full) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
 
@@ -2718,7 +2718,7 @@ bool Piano_Roll::apply_format_painter(Song &song, int32_t from_tick, int32_t to_
 		}
 	}
 
-	song.apply_format_painter(selected_channel(), selected_boxes, *from_view, to_view->index, to_tick);
+	song.apply_format_painter(selected_channel(), selected_boxes, *from_view, *to_view, to_tick, full);
 	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);

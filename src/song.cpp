@@ -2441,31 +2441,62 @@ int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &sele
 	return length * speed;
 }
 
-void Song::apply_format_painter(const int selected_channel, const std::set<int32_t> &selected_boxes, const Note_View &view, int32_t index, int32_t tick) {
+void Song::apply_format_painter(const int selected_channel, const std::set<int32_t> &selected_boxes, const Note_View &from_view, const Note_View &to_view, int32_t tick, bool full) {
 	remember(selected_channel, selected_boxes, Song_State::Action::FORMAT_PAINTER, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	int32_t index = to_view.index;
+
+	if (full) {
+		if (selected_channel != 4) {
+			if (from_view.slide_duration != 0 && from_view.slide_octave != 0 && from_view.slide_pitch != Pitch::REST) {
+				Command command = Command(Command_Type::PITCH_SLIDE);
+				command.pitch_slide.duration = from_view.slide_duration;
+				command.pitch_slide.octave = from_view.slide_octave;
+				command.pitch_slide.pitch = from_view.slide_pitch;
+				command.labels = std::move(commands[index].labels);
+				commands[index].labels.clear();
+				commands.insert(commands.begin() + index, command);
+			}
+			{
+				Command command = Command(Command_Type::TRANSPOSE);
+				command.transpose.num_octaves = from_view.transpose_octaves;
+				command.transpose.num_pitches = from_view.transpose_pitches;
+				command.labels = std::move(commands[index].labels);
+				commands[index].labels.clear();
+				commands.insert(commands.begin() + index, command);
+			}
+		}
+		if (from_view.tempo != 0) {
+			Command command = Command(Command_Type::TEMPO);
+			command.tempo.tempo = from_view.tempo;
+			command.labels = std::move(commands[index].labels);
+			commands[index].labels.clear();
+			commands.insert(commands.begin() + index, command);
+		}
+	}
 
 	if (selected_channel == 1 || selected_channel == 2) {
 		{
 			Command command = Command(Command_Type::DUTY_CYCLE);
-			command.duty_cycle.duty = view.duty;
+			command.duty_cycle.duty = from_view.duty;
 			command.labels = std::move(commands[index].labels);
 			commands[index].labels.clear();
 			commands.insert(commands.begin() + index, command);
 		}
 		{
 			Command command = Command(Command_Type::VIBRATO);
-			command.vibrato.delay = view.vibrato_delay;
-			command.vibrato.extent = view.vibrato_extent;
-			command.vibrato.rate = view.vibrato_rate;
+			command.vibrato.delay = from_view.vibrato_delay;
+			command.vibrato.extent = from_view.vibrato_extent;
+			command.vibrato.rate = from_view.vibrato_rate;
 			command.labels = std::move(commands[index].labels);
 			commands[index].labels.clear();
 			commands.insert(commands.begin() + index, command);
 		}
 		{
 			Command command = Command(Command_Type::VOLUME_ENVELOPE);
-			command.volume_envelope.volume = view.volume;
-			command.volume_envelope.fade = view.fade;
+			command.volume_envelope.volume = from_view.volume;
+			command.volume_envelope.fade = from_view.fade;
 			command.labels = std::move(commands[index].labels);
 			commands[index].labels.clear();
 			commands.insert(commands.begin() + index, command);
@@ -2474,24 +2505,34 @@ void Song::apply_format_painter(const int selected_channel, const std::set<int32
 	else if (selected_channel == 3) {
 		{
 			Command command = Command(Command_Type::VIBRATO);
-			command.vibrato.delay = view.vibrato_delay;
-			command.vibrato.extent = view.vibrato_extent;
-			command.vibrato.rate = view.vibrato_rate;
+			command.vibrato.delay = from_view.vibrato_delay;
+			command.vibrato.extent = from_view.vibrato_extent;
+			command.vibrato.rate = from_view.vibrato_rate;
 			command.labels = std::move(commands[index].labels);
 			commands[index].labels.clear();
 			commands.insert(commands.begin() + index, command);
 		}
 		{
 			Command command = Command(Command_Type::VOLUME_ENVELOPE);
-			command.volume_envelope.volume = view.volume;
-			command.volume_envelope.wave = view.wave;
+			command.volume_envelope.volume = from_view.volume;
+			command.volume_envelope.wave = from_view.wave;
 			command.labels = std::move(commands[index].labels);
 			commands[index].labels.clear();
 			commands.insert(commands.begin() + index, command);
 		}
 	}
 	else if (selected_channel == 4) {
-		//
+		if (from_view.drumkit != -1 && to_view.drumkit != -1) {
+			Command command = Command(Command_Type::TOGGLE_NOISE);
+			command.toggle_noise.drumkit = -1;
+			command.labels = std::move(commands[index].labels);
+			commands[index].labels.clear();
+			commands.insert(commands.begin() + index, command);
+
+			command = Command(Command_Type::TOGGLE_NOISE);
+			command.toggle_noise.drumkit = from_view.drumkit;
+			commands.insert(commands.begin() + index + 1, command);
+		}
 	}
 
 	_modified = true;
