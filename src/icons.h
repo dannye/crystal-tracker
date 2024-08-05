@@ -25,6 +25,10 @@
 #include "open.xpm"
 #include "pause.xpm"
 #include "pencil.xpm"
+#include "pencil-blue.xpm"
+#include "pencil-brown.xpm"
+#include "pencil-green.xpm"
+#include "pencil-red.xpm"
 #include "play.xpm"
 #include "plus.xpm"
 #include "redo.xpm"
@@ -67,6 +71,10 @@ static Fl_Pixmap ONE_ICON(ONE_XPM);
 static Fl_Pixmap OPEN_ICON(OPEN_XPM);
 static Fl_Pixmap PAUSE_ICON(PAUSE_XPM);
 static Fl_Pixmap PENCIL_ICON(PENCIL_XPM);
+static Fl_Pixmap PENCIL_BLUE_ICON(PENCIL_BLUE_XPM);
+static Fl_Pixmap PENCIL_BROWN_ICON(PENCIL_BROWN_XPM);
+static Fl_Pixmap PENCIL_GREEN_ICON(PENCIL_GREEN_XPM);
+static Fl_Pixmap PENCIL_RED_ICON(PENCIL_RED_XPM);
 static Fl_Pixmap PLAY_ICON(PLAY_XPM);
 static Fl_Pixmap PLUS_ICON(PLUS_XPM);
 static Fl_Pixmap REDO_ICON(REDO_XPM);

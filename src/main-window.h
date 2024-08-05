@@ -305,7 +305,7 @@ public:
 	void set_slide_pitch(Pitch pitch);
 	void set_slide(int32_t duration, int32_t octave, Pitch pitch);
 private:
-	inline void selected_channel(int i) { _selected_channel = i; }
+	void selected_channel(int i);
 	void update_active_controls(void);
 	void update_channel_detail(void);
 	void apply_recent_config(const char *filename);

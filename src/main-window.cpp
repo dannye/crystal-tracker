@@ -1155,6 +1155,27 @@ void Main_Window::set_context_menu(int X, int Y) {
 	}
 }
 
+void Main_Window::selected_channel(int i) {
+	_selected_channel = i;
+	if (_pencil_mode_tb) {
+		if (i == 1) {
+			_pencil_mode_tb->image(PENCIL_RED_ICON);
+		}
+		else if (i == 2) {
+			_pencil_mode_tb->image(PENCIL_BLUE_ICON);
+		}
+		else if (i == 3) {
+			_pencil_mode_tb->image(PENCIL_GREEN_ICON);
+		}
+		else if (i == 4) {
+			_pencil_mode_tb->image(PENCIL_BROWN_ICON);
+		}
+		else {
+			_pencil_mode_tb->image(PENCIL_ICON);
+		}
+	}
+}
+
 void Main_Window::update_active_controls() {
 	if (_song.loaded()) {
 		bool playing = this->playing();

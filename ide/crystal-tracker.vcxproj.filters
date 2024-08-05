@@ -239,6 +239,18 @@
     <None Include="..\res\pencil.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\pencil-blue.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\pencil-brown.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\pencil-green.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\pencil-red.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\play.xpm">
       <Filter>Resource Files</Filter>
     </None>
