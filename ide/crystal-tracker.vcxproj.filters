@@ -176,6 +176,9 @@
     <None Include="..\res\brush.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\brush-cmy.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\brushed-metal.dat">
       <Filter>Resource Files</Filter>
     </None>

@@ -7,6 +7,7 @@
 
 #include "blank.xpm"
 #include "brush.xpm"
+#include "brush-cmy.xpm"
 #include "decrease-spacing.xpm"
 #include "delete.xpm"
 #include "down.xpm"
@@ -53,6 +54,7 @@
 
 static Fl_Pixmap BLANK_ICON(BLANK_XPM);
 static Fl_Pixmap BRUSH_ICON(BRUSH_XPM);
+static Fl_Pixmap BRUSH_CMY_ICON(BRUSH_CMY_XPM);
 static Fl_Pixmap DECREASE_SPACING_ICON(DECREASE_SPACING_XPM);
 static Fl_Pixmap DELETE_ICON(DELETE_XPM);
 static Fl_Pixmap DOWN_ICON(DOWN_XPM);

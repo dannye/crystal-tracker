@@ -2515,9 +2515,11 @@ void Main_Window::format_painter_cb(Fl_Menu_ *m, Main_Window *mw) {
 	SYNC_TB_WITH_M(mw->_format_painter_tb, m);
 	if (mw->format_painter()) {
 		mw->_piano_roll->format_painter_start();
+		mw->_format_painter_tb->image(BRUSH_CMY_ICON);
 	}
 	else {
 		mw->_piano_roll->format_painter_end();
+		mw->_format_painter_tb->image(BRUSH_ICON);
 	}
 	mw->redraw();
 }
@@ -2575,9 +2577,11 @@ void Main_Window::format_painter_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw)
 	SYNC_MI_WITH_TB(mw->_format_painter_tb, mw->_format_painter_mi);
 	if (mw->format_painter()) {
 		mw->_piano_roll->format_painter_start();
+		mw->_format_painter_tb->image(BRUSH_CMY_ICON);
 	}
 	else {
 		mw->_piano_roll->format_painter_end();
+		mw->_format_painter_tb->image(BRUSH_ICON);
 	}
 	mw->_menu_bar->update();
 	mw->redraw();

@@ -250,6 +250,7 @@
     <None Include="..\res\app-icon.xpm" />
     <None Include="..\res\blank.xpm" />
     <None Include="..\res\brush.xpm" />
+    <None Include="..\res\brush-cmy.xpm" />
     <None Include="..\res\brushed-metal.dat" />
     <None Include="..\res\decrease-spacing.xpm" />
     <None Include="..\res\delete.xpm" />
