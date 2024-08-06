@@ -2021,7 +2021,7 @@ void Main_Window::update_icons() {
 	make_deimage(_open_tb);
 	make_deimage(_save_tb);
 	make_deimage(_save_as_tb);
-	make_deimage(_play_pause_tb);
+	make_deimage(_play_pause_tb, &PLAY_ICON);
 	make_deimage(_stop_tb);
 	make_deimage(_loop_verification_tb);
 	make_deimage(_loop_tb);
@@ -2040,8 +2040,8 @@ void Main_Window::update_icons() {
 	make_deimage(_snip_selection_tb);
 	make_deimage(_split_note_tb);
 	make_deimage(_glue_note_tb);
-	make_deimage(_pencil_mode_tb);
-	make_deimage(_format_painter_tb);
+	make_deimage(_pencil_mode_tb, &PENCIL_ICON);
+	make_deimage(_format_painter_tb, &BRUSH_ICON);
 	make_deimage(_channel_1_tb);
 	make_deimage(_channel_2_tb);
 	make_deimage(_channel_3_tb);

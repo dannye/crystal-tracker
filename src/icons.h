@@ -99,11 +99,12 @@ static Fl_Pixmap VERIFY_ICON(VERIFY_XPM);
 static Fl_Pixmap ZOOM_IN_ICON(ZOOM_IN_XPM);
 static Fl_Pixmap ZOOM_OUT_ICON(ZOOM_OUT_XPM);
 
-bool make_deimage(Fl_Widget *wgt) {
+bool make_deimage(Fl_Widget *wgt, Fl_Image *image = nullptr) {
 	if (!wgt || !wgt->image()) {
 		return false;
 	}
-	Fl_Image *deimg = wgt->image()->copy();
+	if (!image) image = wgt->image();
+	Fl_Image *deimg = image->copy();
 	if (!deimg) {
 		return false;
 	}
