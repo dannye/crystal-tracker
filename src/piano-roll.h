@@ -432,6 +432,9 @@ public:
 	inline int zoom(void) const { return _zoom; }
 	inline int ticks_per_step(void) const { return _ticks_per_step; }
 
+	inline int steps_per_beat(void) const;
+	inline int pickup_offset(void) const;
+
 	void tick(int32_t t) { _tick = t; }
 
 	void channel_1_muted(bool m) { _channel_1_muted = m; }

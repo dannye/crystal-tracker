@@ -1317,7 +1317,12 @@ void Piano_Timeline::draw() {
 		(gray || colorful) ? fl_color_average(light_row, FL_DARK2, 0.5f) :
 		FL_DARK2;
 	Fl_Color row_divider = dark ? FL_DARK2 : dark_row;
-	Fl_Color col_divider = (gray || colorful) ? FL_DARK2 : FL_DARK3;
+	Fl_Color col_divider =
+		(dark) ? fl_color_average(dark_row, FL_DARK3, 0.5f) :
+		(hc) ? fl_color_average(dark_row, light_row, 0.5f) :
+		(gray || colorful) ? FL_DARK2 :
+		FL_DARK3;
+	Fl_Color beat_divider = (dark || hc) ? FL_DARK3 : fl_color_average(col_divider, FL_BLACK, 0.85f);
 	Fl_Color label_marker = fl_color_average(dark_row, FL_FOREGROUND_COLOR, 0.67f);
 	Fl_Color cursor_color = (dark || hc) ? FL_YELLOW : fl_color_average(FL_MAGENTA, FL_BLACK, 0.9f);
 	Fl_Color tempo_marker = fl_color_average(cursor_color, FL_BLACK, 0.6f);
@@ -1327,6 +1332,9 @@ void Piano_Timeline::draw() {
 	const int note_row_height = p->note_row_height();
 	const int tick_width = p->tick_width();
 	const int ticks_per_step = p->ticks_per_step();
+	const int steps_per_beat = p->steps_per_beat();
+	const int pickup_offset = p->pickup_offset();
+	const bool ruler = p->parent()->ruler();
 	const int px = p->x();
 	const int pw = p->w();
 
@@ -1359,7 +1367,12 @@ void Piano_Timeline::draw() {
 		int time_step_width = tick_width * ticks_per_step;
 		const size_t num_dividers = (w() - WHITE_KEY_WIDTH) / time_step_width + 1;
 		for (size_t i = 0; i < num_dividers; ++i) {
-			fl_color(col_divider);
+			if ((ruler && i % steps_per_beat == pickup_offset % steps_per_beat) || (!ruler && hc)) {
+				fl_color(beat_divider);
+			}
+			else {
+				fl_color(col_divider);
+			}
 			yxline(x_pos - 1, y(), y() + h(), px, pw);
 			x_pos += time_step_width;
 		}
@@ -1541,6 +1554,14 @@ Piano_Roll::~Piano_Roll() noexcept {
 
 inline int Piano_Roll::selected_channel() const {
 	return parent()->selected_channel();
+}
+
+inline int Piano_Roll::steps_per_beat() const {
+	return parent()->get_ruler_config().steps_per_beat;
+}
+
+inline int Piano_Roll::pickup_offset() const {
+	return parent()->get_ruler_config().pickup_offset;
 }
 
 int Piano_Roll::white_key_height() const {
