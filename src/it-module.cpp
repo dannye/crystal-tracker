@@ -369,6 +369,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 	const uint8_t FADE_VIBRATO     = 0x0b;
 	const uint8_t FADE_PITCH_SLIDE = 0x0c;
 	const uint8_t TEMPO            = 0x14;
+	const uint8_t STEREO_PANNING   = 0x18;
 	const uint8_t EXTENSION        = 0x1b;
 
 	const uint8_t CUT = 0xfe;
@@ -454,6 +455,13 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 		return std::min(v - std::min(rate, v - 1), 15);
 	};
 
+	auto get_stereo_panning = [](bool left, bool right) {
+		if (left && right)  return 0x80;
+		if (left && !right) return 0x00;
+		if (!left && right) return 0xFF;
+		return 0x80;
+	};
+
 	do {
 		std::vector<uint8_t> pattern;
 
@@ -522,6 +530,15 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					pattern_data.push_back(CHANNEL + CH1);
 					pattern_data.push_back(NOTE);
 					pattern_data.push_back(CUT);
+				}
+				if (
+					(channel_1_itr->panning_left != channel_1_prev_note.panning_left) ||
+					(channel_1_itr->panning_right != channel_1_prev_note.panning_right)
+				) {
+					pattern_data.push_back(CHANNEL + CH1);
+					pattern_data.push_back(COMMAND);
+					pattern_data.push_back(STEREO_PANNING);
+					pattern_data.push_back(get_stereo_panning(channel_1_itr->panning_left, channel_1_itr->panning_right));
 				}
 				channel_1_prev_note = *channel_1_itr;
 				++channel_1_itr;
@@ -614,6 +631,15 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					pattern_data.push_back(CHANNEL + CH2);
 					pattern_data.push_back(NOTE);
 					pattern_data.push_back(CUT);
+				}
+				if (
+					(channel_2_itr->panning_left != channel_2_prev_note.panning_left) ||
+					(channel_2_itr->panning_right != channel_2_prev_note.panning_right)
+				) {
+					pattern_data.push_back(CHANNEL + CH2);
+					pattern_data.push_back(COMMAND);
+					pattern_data.push_back(STEREO_PANNING);
+					pattern_data.push_back(get_stereo_panning(channel_2_itr->panning_left, channel_2_itr->panning_right));
 				}
 				channel_2_prev_note = *channel_2_itr;
 				++channel_2_itr;
@@ -710,6 +736,15 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					pattern_data.push_back(NOTE);
 					pattern_data.push_back(CUT);
 				}
+				if (
+					(channel_3_itr->panning_left != channel_3_prev_note.panning_left) ||
+					(channel_3_itr->panning_right != channel_3_prev_note.panning_right)
+				) {
+					pattern_data.push_back(CHANNEL + CH3);
+					pattern_data.push_back(COMMAND);
+					pattern_data.push_back(STEREO_PANNING);
+					pattern_data.push_back(get_stereo_panning(channel_3_itr->panning_left, channel_3_itr->panning_right));
+				}
 				channel_3_prev_note = *channel_3_itr;
 				++channel_3_itr;
 			}
@@ -771,6 +806,15 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					pattern_data.push_back(60); // note
 					pattern_data.push_back(drumkits[channel_4_itr->drumkit].drums[(int32_t)channel_4_itr->pitch] + 1 + 4 + 16 + num_inline_waves); // sample
 					pattern_data.push_back(64); // volume
+				}
+				if (
+					(channel_4_itr->panning_left != channel_4_prev_note.panning_left) ||
+					(channel_4_itr->panning_right != channel_4_prev_note.panning_right)
+				) {
+					pattern_data.push_back(CHANNEL + CH4);
+					pattern_data.push_back(COMMAND);
+					pattern_data.push_back(STEREO_PANNING);
+					pattern_data.push_back(get_stereo_panning(channel_4_itr->panning_left, channel_4_itr->panning_right));
 				}
 				channel_4_prev_note = *channel_4_itr;
 				++channel_4_itr;

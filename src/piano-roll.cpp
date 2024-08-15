@@ -2203,6 +2203,14 @@ void Piano_Roll::build_note_view(
 		else if (command_itr->type == Command_Type::TOGGLE_NOISE) {
 			note.drumkit = command_itr->toggle_noise.drumkit;
 		}
+		else if (command_itr->type == Command_Type::FORCE_STEREO_PANNING) {
+			note.panning_left = command_itr->force_stereo_panning.left;
+			note.panning_right = command_itr->force_stereo_panning.right;
+		}
+		else if (command_itr->type == Command_Type::STEREO_PANNING) {
+			note.panning_left = command_itr->stereo_panning.left;
+			note.panning_right = command_itr->stereo_panning.right;
+		}
 		else if (command_itr->type == Command_Type::SOUND_JUMP) {
 			if (
 				!visited_labels_not_during_call.count(command_itr->target) ||

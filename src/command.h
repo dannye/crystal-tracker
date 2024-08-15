@@ -374,6 +374,9 @@ struct Note_View {
 	int32_t slide_octave   = 0;
 	Pitch   slide_pitch    = Pitch::REST;
 
+	bool panning_left = true;
+	bool panning_right = true;
+
 	int32_t index = 0;
 	bool ghost = false;
 };
