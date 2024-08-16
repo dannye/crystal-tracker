@@ -13,6 +13,7 @@ protected:
 	const char *_title;
 	bool _has_reset;
 	bool _canceled;
+	void *_user_data;
 	Fl_Double_Window *_dialog;
 	Fl_Group *_content;
 	Default_Button *_ok_button;
@@ -26,6 +27,8 @@ public:
 protected:
 	void initialize(void);
 	void refresh(bool reset);
+	void *user_data() const { return _user_data; }
+	void user_data(void *v) { _user_data = v; }
 	virtual void initialize_content(void) = 0;
 	virtual int refresh_content(int ww, int dy, bool reset) = 0;
 	virtual void set_reset_cb() {}

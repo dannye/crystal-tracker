@@ -49,7 +49,7 @@ void Modal_Dialog::initialize() {
 	// Initialize dialog
 	_dialog->box(OS_BG_BOX);
 	_dialog->resizable(NULL);
-	_dialog->callback((Fl_Callback *)close_cb, this);
+	_dialog->callback((Fl_Callback *)cancel_cb, this);
 	_dialog->set_modal();
 	// Initialize dialog's children
 	_icon->align(FL_ALIGN_CENTER | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);

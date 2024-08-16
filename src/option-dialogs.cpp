@@ -3,7 +3,7 @@
 #include "themes.h"
 #include "main-window.h"
 
-Option_Dialog::Option_Dialog(int w, const char *t) : _width(w), _title(t), _has_reset(false), _canceled(false),
+Option_Dialog::Option_Dialog(int w, const char *t) : _width(w), _title(t), _has_reset(false), _canceled(false), _user_data(NULL),
 	_dialog(NULL), _content(NULL), _ok_button(NULL), _cancel_button(NULL), _reset_button(NULL) {}
 
 Option_Dialog::~Option_Dialog() {
@@ -76,12 +76,12 @@ void Option_Dialog::refresh(bool reset) {
 void Option_Dialog::show(Fl_Widget *p, bool reset) {
 	initialize();
 	refresh(reset);
+	user_data(p);
 	Fl_Window *prev_grab = Fl::grab();
 	Fl::grab(NULL);
 	int x = p->x() + (p->w() - _dialog->w()) / 2;
 	int y = p->y() + (p->h() - _dialog->h()) / 2;
 	_dialog->position(x, y);
-	_dialog->user_data(p);
 	_ok_button->take_focus();
 	_dialog->show();
 	while (_dialog->shown()) { Fl::wait(); }
@@ -794,7 +794,7 @@ void Ruler_Config_Dialog::set_reset_cb() {
 }
 
 void Ruler_Config_Dialog::ruler_config_cb(Fl_Widget *, Ruler_Config_Dialog *rcd) {
-	Main_Window *mw = (Main_Window *)rcd->_dialog->user_data();
+	Main_Window *mw = (Main_Window *)rcd->user_data();
 	mw->set_ruler_config(rcd->get_options());
 	mw->redraw();
 }

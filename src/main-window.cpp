@@ -219,7 +219,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_SUBMENU("&File"),
 		SYS_MENU_ITEM("&New...", FL_COMMAND + 'n', (Fl_Callback *)new_cb, this, 0),
 		SYS_MENU_ITEM("&Open...", FL_COMMAND + 'o', (Fl_Callback *)open_cb, this, 0),
-		SYS_MENU_ITEM("Open Recent", 0, NULL, NULL, FL_SUBMENU | FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("Open &Recent", 0, NULL, NULL, FL_SUBMENU | FL_MENU_DIVIDER),
 		// NUM_RECENT items with callback open_recent_cb
 		OS_NULL_MENU_ITEM(FL_ALT + '1', (Fl_Callback *)open_recent_cb, this, 0),
 		OS_NULL_MENU_ITEM(FL_ALT + '2', (Fl_Callback *)open_recent_cb, this, 0),
@@ -341,8 +341,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("&Ruler", FL_COMMAND + 'r', (Fl_Callback *)ruler_cb, this,
 			FL_MENU_TOGGLE | (ruler_config ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("&Configure Ruler...", FL_COMMAND + 'R', (Fl_Callback *)configure_ruler_cb, this, FL_MENU_DIVIDER),
-		SYS_MENU_ITEM("Decrease Spacing", FL_SHIFT + '-', (Fl_Callback *)decrease_spacing_cb, this, 0),
-		SYS_MENU_ITEM("Increase Spacing", FL_SHIFT + '=', (Fl_Callback *)increase_spacing_cb, this, FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("&Decrease Spacing", FL_SHIFT + '-', (Fl_Callback *)decrease_spacing_cb, this, 0),
+		SYS_MENU_ITEM("Incr&ease Spacing", FL_SHIFT + '=', (Fl_Callback *)increase_spacing_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Approximate &BPM", FL_COMMAND + 'b', (Fl_Callback *)bpm_cb, this,
 			FL_MENU_DIVIDER | FL_MENU_TOGGLE | (bpm_config ? FL_MENU_VALUE : 0u)),
 		SYS_MENU_ITEM("Full &Screen", FULLSCREEN_KEY, (Fl_Callback *)full_screen_cb, this,
@@ -1567,6 +1567,11 @@ void Main_Window::update_recent_songs() {
 			delete [] ml->labelb;
 			ml->labelb = "";
 		}
+#else
+		if (_recent_mis[i]->label()[0]) {
+			delete [] _recent_mis[i]->label();
+			_recent_mis[i]->label("");
+		}
 #endif
 		if (_recent[i].filepath.empty()) {
 			_recent_mis[i]->hide();
@@ -1575,12 +1580,12 @@ void Main_Window::update_recent_songs() {
 			const char *basename = fl_filename_name(_recent[i].filepath.c_str());
 #ifndef __APPLE__
 			char *label = new char[FL_PATH_MAX]();
-			strcpy(label, SYS_MENU_ITEM_PREFIX);
-			strcat(label, basename);
-			strcat(label, SYS_MENU_ITEM_SUFFIX);
+			snprintf(label, FL_PATH_MAX, "%s%s&%d. %s%s", SYS_MENU_ITEM_PREFIX, i+1 == 10 ? "1" : "  ", i+1 == 10 ? 0 : i+1, basename, SYS_MENU_ITEM_SUFFIX);
 			ml->labelb = label;
 #else
-			_recent_mis[i]->label(basename);
+			char *label = new char[FL_PATH_MAX]();
+			snprintf(label, FL_PATH_MAX, "%d. %s", i+1, basename); // alt codes don't work on mac so don't bother
+			_recent_mis[i]->label(label);
 #endif
 			_recent_mis[i]->show();
 			last = i;
@@ -2231,6 +2236,13 @@ void Main_Window::open_recent_cb(Fl_Menu_ *m, Main_Window *mw) {
 }
 
 void Main_Window::clear_recent_cb(Fl_Widget *, Main_Window *mw) {
+	if (Fl::modal()) return;
+
+	std::string msg = "Clear recent song list?";
+	mw->_confirm_dialog->message(msg);
+	mw->_confirm_dialog->show(mw);
+	if (mw->_confirm_dialog->canceled()) { return; }
+
 	for (int i = 0; i < NUM_RECENT; i++) {
 		mw->_recent[i].filepath.clear();
 		mw->_recent_mis[i]->hide();
