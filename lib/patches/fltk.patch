@@ -1,30 +1,51 @@
+diff --git a/src/Fl_MacOS_Sys_Menu_Bar.mm b/src/Fl_MacOS_Sys_Menu_Bar.mm
+index a7c5e2f20..950a52e29 100644
+--- a/src/Fl_MacOS_Sys_Menu_Bar.mm
++++ b/src/Fl_MacOS_Sys_Menu_Bar.mm
+@@ -378,7 +378,9 @@ static void createSubMenu( NSMenu *mh, pFl_Menu_Item &mm,  const Fl_Menu_Item *m
+       mm = mm->next(0);
+       continue;
+     }
+-    miCnt = [FLMenuItem addNewItem:mm menu:submenu action:selector];
++    miCnt = [FLMenuItem addNewItem:mm menu:submenu
++                            action:( (mm->flags & (FL_SUBMENU+FL_SUBMENU_POINTER) && !mm->callback()) ? nil : selector)
++            ];
+     setMenuFlags( submenu, miCnt, mm );
+     setMenuShortcut( submenu, miCnt, mm );
+     if (mitem && (mm->flags & FL_MENU_INACTIVE || mitem->flags & FL_MENU_INACTIVE)) {
 diff --git a/src/Fl_Menu.cxx b/src/Fl_Menu.cxx
-index 53c6a6c35..868e2e7e7 100644
+index 79228de80..9588ff48a 100644
 --- a/src/Fl_Menu.cxx
 +++ b/src/Fl_Menu.cxx
-@@ -1148,6 +1148,10 @@ const Fl_Menu_Item* Fl_Menu_Item::popup(
-   return pulldown(X, Y, 0, 0, picked, menu_button, title ? &dummy : 0);
- }
- 
-+static bool is_special_labeltype(uchar t) {
-+  return t == _FL_MULTI_LABEL || t == _FL_ICON_LABEL || t == _FL_IMAGE_LABEL;
-+}
-+
- /**
-   Search only the top level menu for a shortcut.
-   Either &x in the label or the shortcut fields are used.
-@@ -1165,7 +1169,13 @@ const Fl_Menu_Item* Fl_Menu_Item::find_shortcut(int* ip, const bool require_alt)
-   if (m) for (int ii = 0; m->text; m = next_visible_or_not(m), ii++) {
-     if (m->active()) {
-       if (Fl::test_shortcut(m->shortcut_)
--         || Fl_Widget::test_shortcut(m->text, require_alt)) {
-+         || (!is_special_labeltype(m->labeltype_) && Fl_Widget::test_shortcut(m->text, require_alt))
-+         || (m->labeltype_ == _FL_MULTI_LABEL
-+             && !is_special_labeltype(((Fl_Multi_Label*)m->text)->typea)
-+             && Fl_Widget::test_shortcut(((Fl_Multi_Label*)m->text)->labela, require_alt))
-+         || (m->labeltype_ == _FL_MULTI_LABEL
-+             && !is_special_labeltype(((Fl_Multi_Label*)m->text)->typeb)
-+             && Fl_Widget::test_shortcut(((Fl_Multi_Label*)m->text)->labelb, require_alt))) {
-         if (ip) *ip=ii;
-         return m;
+@@ -821,6 +821,7 @@ int menuwindow::handle_part1(int e) {
        }
+       return 1;
+     case FL_Right:
++    RIGHT:
+       if (pp.menubar && (pp.menu_number<=0 || (pp.menu_number == pp.nummenus-1)))
+         forward(0);
+       else if (pp.menu_number < pp.nummenus-1) forward(pp.menu_number+1);
+@@ -833,6 +834,11 @@ int menuwindow::handle_part1(int e) {
+     case FL_Enter:
+     case FL_KP_Enter:
+     case ' ':
++      // if the current item is a submenu with no callback,
++      // simulate FL_Right to enter the submenu
++      if (pp.current_item && (!pp.menubar || pp.menu_number > 0) &&
++          pp.current_item->activevisible() && pp.current_item->submenu() && !pp.current_item->callback_)
++        goto RIGHT;
+       pp.state = DONE_STATE;
+       return 1;
+     case FL_Escape:
+@@ -922,8 +928,9 @@ int menuwindow::handle_part1(int e) {
+         pp.p[pp.menu_number]->redraw();
+       } else
+ #endif
+-      // do nothing if they try to pick inactive items
+-      if (!pp.current_item || pp.current_item->activevisible())
++      // do nothing if they try to pick an inactive item, or a submenu with no callback
++      if (!pp.current_item || (pp.current_item->activevisible() &&
++         (!pp.current_item->submenu() || pp.current_item->callback_ || (pp.menubar && pp.menu_number <= 0))))
+         pp.state = DONE_STATE;
+     }
+     return 1;
