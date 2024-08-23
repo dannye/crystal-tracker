@@ -78,6 +78,7 @@ public:
 			SET_SLIDE_OCTAVE,
 			SET_SLIDE_PITCH,
 			SET_SLIDE,
+			SET_STEREO_PANNING,
 			PITCH_UP,
 			PITCH_DOWN,
 			OCTAVE_UP,
@@ -202,6 +203,7 @@ public:
 	void set_slide_octave(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t octave);
 	void set_slide_pitch(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, Pitch pitch);
 	void set_slide(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t duration, int32_t octave, Pitch pitch);
+	void set_stereo_panning(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, bool left, bool right);
 
 	void pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);

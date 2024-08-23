@@ -1164,7 +1164,9 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 				note.transpose_pitches != prev_note.transpose_pitches ||
 				note.slide_duration != prev_note.slide_duration ||
 				note.slide_octave != prev_note.slide_octave ||
-				note.slide_pitch != prev_note.slide_pitch)
+				note.slide_pitch != prev_note.slide_pitch ||
+				note.panning_left != prev_note.panning_left ||
+				note.panning_right != prev_note.panning_right)
 			) {
 				add_flag(FLAG_OTHER);
 			}
@@ -3223,6 +3225,33 @@ bool Piano_Roll::set_slide(Song &song, int32_t duration, int32_t octave, Pitch p
 	}
 
 	song.set_slide(selected_channel(), selected_notes, selected_boxes, duration, octave, pitch);
+	postprocess_channel(song, selected_channel());
+	set_active_channel_timeline(song);
+	set_active_channel_selection(selected_boxes);
+
+	return true;
+}
+
+bool Piano_Roll::set_stereo_panning(Song &song, bool left, bool right) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	std::set<int32_t> selected_notes;
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			Note_View note_view = note->note_view();
+			selected_notes.insert(note_view.index);
+			selected_boxes.insert(itr_index(*channel, note_itr));
+		}
+	}
+	if (selected_notes.size() == 0) {
+		return false;
+	}
+
+	song.set_stereo_panning(selected_channel(), selected_notes, selected_boxes, left, right);
 	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);

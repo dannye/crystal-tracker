@@ -547,6 +547,7 @@ public:
 	bool set_slide_octave(Song &song, int32_t octave);
 	bool set_slide_pitch(Song &song, Pitch pitch);
 	bool set_slide(Song &song, int32_t duration, int32_t octave, Pitch pitch);
+	bool set_stereo_panning(Song &song, bool left, bool right);
 
 	bool pitch_up(Song &song, bool dry_run = false);
 	bool pitch_down(Song &song, bool dry_run = false);

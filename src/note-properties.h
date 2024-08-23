@@ -25,6 +25,8 @@ private:
 	OS_Spinner *_slide_duration_input = nullptr;
 	OS_Spinner *_slide_octave_input = nullptr;
 	Dropdown *_slide_pitch_input = nullptr;
+	OS_Check_Button *_panning_left_input = nullptr;
+	OS_Check_Button *_panning_right_input = nullptr;
 	OS_Button *_basic_button = nullptr;
 
 	Note_View _note;
@@ -50,6 +52,8 @@ private:
 	static void slide_duration_input_cb(OS_Spinner *s, Note_Properties *np);
 	static void slide_octave_input_cb(OS_Spinner *s, Note_Properties *np);
 	static void slide_pitch_input_cb(Dropdown *d, Note_Properties *np);
+	static void panning_left_input_cb(OS_Check_Button *c, Note_Properties *np);
+	static void panning_right_input_cb(OS_Check_Button *c, Note_Properties *np);
 	static void basic_button_cb(OS_Button *b, Note_Properties *np);
 };
 

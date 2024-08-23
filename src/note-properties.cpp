@@ -12,13 +12,13 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 	int dx = wgt_m;
 
 	_speed_input = new OS_Spinner(x() + dx + text_width("Speed:", 2), y() + wgt_m, wgt_w, wgt_h, "&Speed:");
-	dx += wgt_w + wgt_m + text_width("Speed:", 2);
+	dx += wgt_w + wgt_m + text_width("Speed:", 2) + wgt_m + wgt_m + wgt_m;
 
 	_volume_input = new OS_Spinner(x() + dx + text_width("Volume:", 2), y() + wgt_m, wgt_w, wgt_h, "V&olume:");
 	dx += wgt_w + wgt_m + text_width("Volume:", 2);
 
 	_fade_input = new OS_Spinner(x() + dx + text_width("Fade:", 2), y() + wgt_m, wgt_w, wgt_h, "Fa&de:");
-	dx += wgt_w + wgt_m + text_width("Fade:", 2);
+	dx += wgt_w + wgt_m + text_width("Fade:", 2) + wgt_m + wgt_m + wgt_m;
 
 	_vibrato_delay_input = new OS_Spinner(x() + dx + text_width("Vibrato delay:", 2), y() + wgt_m, wgt_w2, wgt_h, "Vibrato dela&y:");
 	dx += wgt_w2 + wgt_m + text_width("Vibrato delay:", 2);
@@ -27,7 +27,7 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 	dx += wgt_w + wgt_m + text_width("Vibrato depth:", 2);
 
 	_vibrato_rate_input = new OS_Spinner(x() + dx + text_width("Vibrato rate:", 2), y() + wgt_m, wgt_w, wgt_h, "Vibrato &rate:");
-	dx += wgt_w + wgt_m + text_width("Vibrato rate:", 2);
+	dx += wgt_w + wgt_m + text_width("Vibrato rate:", 2) + wgt_m + wgt_m + wgt_m;
 
 	_duty_wave_drumkit_input = new OS_Spinner(x() + dx + text_width("Drumkit:", 2), y() + wgt_m, wgt_w, wgt_h, "Drum&kit:");
 	dx += wgt_w + wgt_m + text_width("Drumkit:", 2);
@@ -52,10 +52,16 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 	dx += wgt_w + wgt_m + text_width("Slide octave:", 2);
 
 	_slide_pitch_input = new Dropdown(x() + dx + text_width("Slide pitch:", 2), y() + wgt_m, wgt_w2, wgt_h, "Slide pit&ch:");
-	dx += wgt_w2 + wgt_m + text_width("Slide pitch:", 2);
+	dx += wgt_w2 + wgt_m + text_width("Slide pitch:", 2) + wgt_m;
 	for (int i = 0; i <= NUM_PITCHES; ++i) {
 		_slide_pitch_input->add(PITCH_NAMES[i]);
 	}
+
+	_panning_left_input = new OS_Check_Button(x() + dx, y() + wgt_m, wgt_h + wgt_m, wgt_h, "&L");
+	dx += wgt_h + wgt_m;
+
+	_panning_right_input = new OS_Check_Button(x() + dx, y() + wgt_m, wgt_h + wgt_m, wgt_h, "&R");
+	dx += wgt_h + wgt_m;
 
 	_basic_button = new OS_Button(x() + dx + wgt_m, y() + wgt_m, text_width("Advanced", 8), wgt_h, "&Basic");
 	_advanced_button->position(_basic_button->x(), _basic_button->y());
@@ -101,6 +107,12 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 	_slide_pitch_input->callback((Fl_Callback *)slide_pitch_input_cb, this);
 	_slide_pitch_input->clear_visible_focus();
 
+	_panning_left_input->callback((Fl_Callback *)panning_left_input_cb, this);
+	_panning_left_input->clear_visible_focus();
+
+	_panning_right_input->callback((Fl_Callback *)panning_right_input_cb, this);
+	_panning_right_input->clear_visible_focus();
+
 	_basic_button->callback((Fl_Callback *)basic_button_cb, this);
 
 	basic_button_cb(nullptr, this);
@@ -122,6 +134,8 @@ Note_Properties::~Note_Properties() {
 	delete _slide_duration_input;
 	delete _slide_octave_input;
 	delete _slide_pitch_input;
+	delete _panning_left_input;
+	delete _panning_right_input;
 	delete _basic_button;
 }
 
@@ -156,6 +170,8 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	_slide_duration_input->value(_note.slide_duration);
 	_slide_octave_input->value(_note.slide_octave);
 	_slide_pitch_input->value((int)_note.slide_pitch);
+	_panning_left_input->value(_note.panning_left);
+	_panning_right_input->value(_note.panning_right);
 
 	_speed_input->label("&Speed:");
 	_volume_input->label("V&olume:");
@@ -179,6 +195,8 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	_slide_duration_input->label("Slide &duration:");
 	_slide_octave_input->label("Slide &octave:");
 	_slide_pitch_input->label("Slide pit&ch:");
+	_panning_left_input->label("&L");
+	_panning_right_input->label("&R");
 
 	for (const Note_View *note : notes) {
 		if (note->speed != (int32_t)_speed_input->value()) {
@@ -239,6 +257,12 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 		if ((int)note->slide_pitch != _slide_pitch_input->value()) {
 			_slide_pitch_input->label("*Slide pit&ch:");
 		}
+		if (note->panning_left != (bool)_panning_left_input->value()) {
+			_panning_left_input->label("&L*");
+		}
+		if (note->panning_right != (bool)_panning_right_input->value()) {
+			_panning_right_input->label("&R*");
+		}
 	}
 
 	_speed_input->range(1, 15);
@@ -282,6 +306,8 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	_slide_duration_input->activate();
 	_slide_octave_input->activate();
 	_slide_pitch_input->activate();
+	_panning_left_input->activate();
+	_panning_right_input->activate();
 
 	if (channel_number == 3) {
 		_fade_input->deactivate();
@@ -426,6 +452,8 @@ void Note_Properties::advanced_button_cb(OS_Button *, Note_Properties *np) {
 	np->_slide_duration_input->show();
 	np->_slide_octave_input->show();
 	np->_slide_pitch_input->show();
+	np->_panning_left_input->show();
+	np->_panning_right_input->show();
 	np->_basic_button->show();
 }
 
@@ -542,6 +570,32 @@ void Note_Properties::slide_pitch_input_cb(Dropdown *s, Note_Properties *np) {
 	Fl::focus(nullptr);
 }
 
+void Note_Properties::panning_left_input_cb(OS_Check_Button *c, Note_Properties *np) {
+	if (!c->active()) return;
+
+	if (!c->value() && !np->_panning_right_input->value()) {
+		c->set();
+		return;
+	}
+
+	Main_Window *mw = (Main_Window *)np->user_data();
+	mw->set_stereo_panning(c->value(), np->_panning_right_input->value());
+	Fl::focus(nullptr);
+}
+
+void Note_Properties::panning_right_input_cb(OS_Check_Button *c, Note_Properties *np) {
+	if (!c->active()) return;
+
+	if (!c->value() && !np->_panning_left_input->value()) {
+		c->set();
+		return;
+	}
+
+	Main_Window *mw = (Main_Window *)np->user_data();
+	mw->set_stereo_panning(np->_panning_left_input->value(), c->value());
+	Fl::focus(nullptr);
+}
+
 void Note_Properties::basic_button_cb(OS_Button *, Note_Properties *np) {
 	np->_speed_input->show();
 	np->_volume_input->show();
@@ -558,5 +612,7 @@ void Note_Properties::basic_button_cb(OS_Button *, Note_Properties *np) {
 	np->_slide_duration_input->hide();
 	np->_slide_octave_input->hide();
 	np->_slide_pitch_input->hide();
+	np->_panning_left_input->hide();
+	np->_panning_right_input->hide();
 	np->_basic_button->hide();
 }

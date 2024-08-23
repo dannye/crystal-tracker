@@ -1304,6 +1304,7 @@ struct Command_Indexes {
 	int32_t toggle_noise_off_index = -1;
 	int32_t toggle_noise_on_index = -1;
 	int32_t toggle_noise_off_again_index = -1;
+	int32_t panning_index = -1;
 };
 
 void shift_indexes(Command_Indexes &indexes, int32_t index) {
@@ -1343,12 +1344,17 @@ void shift_indexes(Command_Indexes &indexes, int32_t index) {
 	if (indexes.toggle_noise_off_again_index > index) {
 		indexes.toggle_noise_off_again_index -= 1;
 	}
+	if (indexes.panning_index > index) {
+		indexes.panning_index -= 1;
+	}
 }
 
 void postprocess(std::vector<Command> &commands) {
 	bool deleted = false;
 	do {
 		Note_View view;
+		int32_t panning_left = -1;
+		int32_t panning_right = -1;
 		Command_Indexes indexes;
 		deleted = false;
 		for (uint32_t i = 0; i < commands.size(); ++i) {
@@ -1367,6 +1373,8 @@ void postprocess(std::vector<Command> &commands) {
 				view.vibrato_delay = -1;
 				view.vibrato_extent = -1;
 				view.vibrato_rate = -1;
+				panning_left = -1;
+				panning_right = -1;
 				indexes.rest_index = -1;
 				indexes.octave_index = -1;
 				indexes.speed_index = -1;
@@ -1379,6 +1387,7 @@ void postprocess(std::vector<Command> &commands) {
 				indexes.toggle_noise_off_index = -1;
 				indexes.toggle_noise_on_index = -1;
 				indexes.toggle_noise_off_again_index = -1;
+				indexes.panning_index = -1;
 			}
 			if (
 				is_global_command(commands[i].type) ||
@@ -1413,6 +1422,7 @@ void postprocess(std::vector<Command> &commands) {
 				indexes.toggle_noise_off_index = -1;
 				indexes.toggle_noise_on_index = -1;
 				indexes.toggle_noise_off_again_index = -1;
+				indexes.panning_index = -1;
 			}
 
 			if (commands[i].type == Command_Type::REST) {
@@ -1815,6 +1825,44 @@ void postprocess(std::vector<Command> &commands) {
 						indexes.toggle_noise_off_again_index = -1;
 					}
 				}
+			}
+
+			else if (commands[i].type == Command_Type::STEREO_PANNING) {
+				if (indexes.panning_index == -1) {
+					// if the panning isn't changing, delete it
+					if (
+						panning_left == commands[i].stereo_panning.left &&
+						panning_right == commands[i].stereo_panning.right
+					) {
+						deleted = true;
+						assert(commands[i].labels.size() == 0);
+						commands.erase(commands.begin() + i);
+						i -= 1;
+					}
+					// otherwise, track it
+					else {
+						panning_left = commands[i].stereo_panning.left;
+						panning_right = commands[i].stereo_panning.right;
+						indexes.panning_index = i;
+					}
+				}
+				else {
+					// panning changed twice in a row, so delete the old one
+					deleted = true;
+					commands[indexes.panning_index + 1].labels.insert(commands[indexes.panning_index + 1].labels.begin(), RANGE(commands[indexes.panning_index].labels));
+					commands.erase(commands.begin() + indexes.panning_index);
+					i -= 1;
+					shift_indexes(indexes, indexes.panning_index);
+
+					panning_left = commands[i].stereo_panning.left;
+					panning_right = commands[i].stereo_panning.right;
+					indexes.panning_index = i;
+				}
+			}
+			else if (commands[i].type == Command_Type::FORCE_STEREO_PANNING) {
+				panning_left = -1;
+				panning_right = -1;
+				indexes.panning_index = -1;
 			}
 		}
 	} while (deleted);
@@ -2859,6 +2907,22 @@ void Song::set_slide(const int selected_channel, const std::set<int32_t> &select
 	_modified = true;
 }
 
+void Song::set_stereo_panning(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, bool left, bool right) {
+	remember(selected_channel, selected_boxes, Song_State::Action::SET_STEREO_PANNING);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	for (auto note_itr = selected_notes.rbegin(); note_itr != selected_notes.rend(); ++note_itr) {
+		Command command = Command(Command_Type::STEREO_PANNING);
+		command.stereo_panning.left = left;
+		command.stereo_panning.right = right;
+		command.labels = std::move(commands[*note_itr].labels);
+		commands[*note_itr].labels.clear();
+		commands.insert(commands.begin() + *note_itr, command);
+	}
+
+	_modified = true;
+}
+
 void Song::pitch_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view) {
 	remember(selected_channel, selected_boxes, Song_State::Action::PITCH_UP);
 	std::vector<Command> &commands = channel_commands(selected_channel);
@@ -3820,6 +3884,8 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Set slide pitch";
 	case Song_State::Action::SET_SLIDE:
 		return "Set slide";
+	case Song_State::Action::SET_STEREO_PANNING:
+		return "Set stereo panning";
 	case Song_State::Action::PITCH_UP:
 		return "Pitch up";
 	case Song_State::Action::PITCH_DOWN:
