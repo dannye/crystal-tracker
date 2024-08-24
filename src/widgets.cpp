@@ -51,7 +51,7 @@ Label_Button::Label_Button(int x, int y, int w, int h, const char *l) : Fl_Butto
 }
 
 int Label_Button::handle(int event) {
-	if (event == FL_ENTER) {
+	if (event == FL_ENTER && _enabled) {
 		fl_cursor(FL_CURSOR_HAND);
 		return 1;
 	}
@@ -59,6 +59,7 @@ int Label_Button::handle(int event) {
 		fl_cursor(FL_CURSOR_DEFAULT);
 		return 1;
 	}
+	if (event == FL_PUSH && !_enabled) return 0;
 	return Fl_Button::handle(event);
 }
 

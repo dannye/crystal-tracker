@@ -53,8 +53,12 @@ public:
 };
 
 class Label_Button : public Fl_Button {
+private:
+	bool _enabled = true;
 public:
 	Label_Button(int x, int y, int w, int h, const char *l = NULL);
+	inline void enable(void) { _enabled = true; }
+	inline void disable(void) { _enabled = false; }
 	int handle(int event);
 };
 

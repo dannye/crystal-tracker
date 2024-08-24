@@ -138,6 +138,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
 	_tempo_label = new Label_Button(0, 0, text_width("Tempo: 9999", 8), STATUS_BAR_HEIGHT - 2, bpm_config ? "BPM: 0" : "Tempo: 0");
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
+	_stereo_label = new Label_Button(0, 0, text_width("Stereo", 8), STATUS_BAR_HEIGHT - 2, "Stereo");
+	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
 	_channel_1_status_label = new Label_Button(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
 	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
 	_channel_2_status_label = new Label_Button(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
@@ -249,6 +251,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("Loop &Verification", FL_COMMAND + 'L', (Fl_Callback *)loop_verification_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("&Loop", FL_COMMAND + 'l', (Fl_Callback *)loop_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE),
 		SYS_MENU_ITEM("&Continuous Scroll", '\\', (Fl_Callback *)continuous_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("S&tereo", FL_COMMAND + 't', (Fl_Callback *)stereo_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Mute Channel &1", FL_F + 5, (Fl_Callback *)channel_1_mute_cb, this, FL_MENU_TOGGLE),
 		SYS_MENU_ITEM("Mute Channel &2", FL_F + 6, (Fl_Callback *)channel_2_mute_cb, this, FL_MENU_TOGGLE),
 		SYS_MENU_ITEM("Mute Channel &3", FL_F + 7, (Fl_Callback *)channel_3_mute_cb, this, FL_MENU_TOGGLE),
@@ -409,6 +412,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_play_pause_mi = CT_FIND_MENU_ITEM_CB(play_pause_cb);
 	_stop_mi = CT_FIND_MENU_ITEM_CB(stop_cb);
 	_loop_mi = CT_FIND_MENU_ITEM_CB(loop_cb);
+	_stereo_mi = CT_FIND_MENU_ITEM_CB(stereo_cb);
 	_step_backward_mi = CT_FIND_MENU_ITEM_CB(step_backward_cb);
 	_step_forward_mi = CT_FIND_MENU_ITEM_CB(step_forward_cb);
 	_skip_backward_mi = CT_FIND_MENU_ITEM_CB(skip_backward_cb);
@@ -702,6 +706,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	// Configure status bar
 	_tempo_label->callback((Fl_Callback *)bpm_cb, this);
+	_stereo_label->callback((Fl_Callback *)stereo_cb, this);
 	_channel_1_status_label->callback((Fl_Callback *)channel_1_mute_cb, this);
 	_channel_2_status_label->callback((Fl_Callback *)channel_2_mute_cb, this);
 	_channel_3_status_label->callback((Fl_Callback *)channel_3_mute_cb, this);
@@ -1199,12 +1204,16 @@ void Main_Window::update_active_controls() {
 			_stop_tb->activate();
 			_loop_mi->deactivate();
 			_loop_tb->deactivate();
+			_stereo_mi->deactivate();
+			_stereo_label->disable();
 		}
 		else {
 			_stop_mi->deactivate();
 			_stop_tb->deactivate();
 			_loop_mi->activate();
 			_loop_tb->activate();
+			_stereo_mi->activate();
+			_stereo_label->enable();
 		}
 		if (playing) {
 			_step_backward_mi->deactivate();
@@ -1445,6 +1454,8 @@ void Main_Window::update_active_controls() {
 		_stop_tb->deactivate();
 		_loop_mi->activate();
 		_loop_tb->activate();
+		_stereo_mi->activate();
+		_stereo_label->enable();
 		_step_backward_mi->deactivate();
 		_step_forward_mi->deactivate();
 		_skip_backward_mi->deactivate();
@@ -1835,7 +1846,8 @@ void Main_Window::regenerate_it_module() {
 		_waves,
 		_drumkits,
 		_drum_samples,
-		loop() ? _piano_roll->get_loop_tick() : -1
+		loop() ? _piano_roll->get_loop_tick() : -1,
+		stereo()
 	);
 }
 
@@ -2621,6 +2633,20 @@ void Main_Window::ruler_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 }
 
 #undef SYNC_MI_WITH_TB
+
+void Main_Window::stereo_cb(Fl_Widget *w, Main_Window *mw) {
+	if (w == mw->_stereo_label) {
+		if (mw->stereo()) {
+			mw->_stereo_mi->clear();
+		}
+		else {
+			mw->_stereo_mi->set();
+		}
+		mw->_menu_bar->update();
+		Fl::focus(nullptr);
+	}
+	mw->_stereo_label->label(mw->stereo() ? "Stereo" : "Mono");
+}
 
 void Main_Window::channel_1_mute_cb(Fl_Widget *w, Main_Window *mw) {
 	if (w == mw->_channel_1_status_label) {

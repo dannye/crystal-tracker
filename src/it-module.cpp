@@ -25,9 +25,10 @@ IT_Module::IT_Module(
 	const std::vector<Wave> &waves,
 	const std::vector<Drumkit> &drumkits,
 	const std::vector<std::vector<uint8_t>> &drums,
-	int32_t loop_tick
+	int32_t loop_tick,
+	bool stereo
 ) {
-	generate_it_module(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, waves, drumkits, drums, loop_tick);
+	generate_it_module(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, waves, drumkits, drums, loop_tick, stereo);
 
 	_mod = new openmpt::module_ext(_data);
 	if (loop_tick != -1) {
@@ -342,6 +343,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 	const std::vector<Note_View> &channel_4_notes,
 	const std::vector<Drumkit> &drumkits,
 	int32_t loop_tick,
+	bool stereo,
 	int32_t num_inline_waves
 ) {
 	const uint8_t CHANNEL = 0x80;
@@ -532,8 +534,9 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					pattern_data.push_back(CUT);
 				}
 				if (
-					(channel_1_itr->panning_left != channel_1_prev_note.panning_left) ||
-					(channel_1_itr->panning_right != channel_1_prev_note.panning_right)
+					stereo &&
+					((channel_1_itr->panning_left != channel_1_prev_note.panning_left) ||
+					(channel_1_itr->panning_right != channel_1_prev_note.panning_right))
 				) {
 					pattern_data.push_back(CHANNEL + CH1);
 					pattern_data.push_back(COMMAND);
@@ -633,8 +636,9 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					pattern_data.push_back(CUT);
 				}
 				if (
-					(channel_2_itr->panning_left != channel_2_prev_note.panning_left) ||
-					(channel_2_itr->panning_right != channel_2_prev_note.panning_right)
+					stereo &&
+					((channel_2_itr->panning_left != channel_2_prev_note.panning_left) ||
+					(channel_2_itr->panning_right != channel_2_prev_note.panning_right))
 				) {
 					pattern_data.push_back(CHANNEL + CH2);
 					pattern_data.push_back(COMMAND);
@@ -737,8 +741,9 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					pattern_data.push_back(CUT);
 				}
 				if (
-					(channel_3_itr->panning_left != channel_3_prev_note.panning_left) ||
-					(channel_3_itr->panning_right != channel_3_prev_note.panning_right)
+					stereo &&
+					((channel_3_itr->panning_left != channel_3_prev_note.panning_left) ||
+					(channel_3_itr->panning_right != channel_3_prev_note.panning_right))
 				) {
 					pattern_data.push_back(CHANNEL + CH3);
 					pattern_data.push_back(COMMAND);
@@ -808,8 +813,9 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					pattern_data.push_back(64); // volume
 				}
 				if (
-					(channel_4_itr->panning_left != channel_4_prev_note.panning_left) ||
-					(channel_4_itr->panning_right != channel_4_prev_note.panning_right)
+					stereo &&
+					((channel_4_itr->panning_left != channel_4_prev_note.panning_left) ||
+					(channel_4_itr->panning_right != channel_4_prev_note.panning_right))
 				) {
 					pattern_data.push_back(CHANNEL + CH4);
 					pattern_data.push_back(COMMAND);
@@ -870,7 +876,8 @@ void IT_Module::generate_it_module(
 	const std::vector<Wave> &waves,
 	const std::vector<Drumkit> &drumkits,
 	const std::vector<std::vector<uint8_t>> &drums,
-	int32_t loop_tick
+	int32_t loop_tick,
+	bool stereo
 ) {
 	const uint32_t song_name_length = 26;
 	const uint32_t pattern_row_highlight = 0x1004; // ???
@@ -894,7 +901,7 @@ void IT_Module::generate_it_module(
 
 	std::vector<std::vector<uint8_t>> instruments = get_instruments();
 	std::vector<std::vector<uint8_t>> samples = get_samples(waves, drums);
-	std::vector<std::vector<uint8_t>> patterns = get_patterns(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, drumkits, loop_tick, (int32_t)waves.size() - 0x10);
+	std::vector<std::vector<uint8_t>> patterns = get_patterns(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, drumkits, loop_tick, stereo, (int32_t)waves.size() - 0x10);
 
 	const uint32_t number_of_orders = (uint32_t)patterns.size() + 1;
 	const uint32_t number_of_instruments = (uint32_t)instruments.size();

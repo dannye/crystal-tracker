@@ -47,7 +47,8 @@ public:
 		const std::vector<Wave> &waves,
 		const std::vector<Drumkit> &drumkits,
 		const std::vector<std::vector<uint8_t>> &drums,
-		int32_t loop_tick = -1
+		int32_t loop_tick,
+		bool stereo
 	);
 	~IT_Module() noexcept;
 
@@ -92,6 +93,7 @@ private:
 		const std::vector<Note_View> &channel_4_notes,
 		const std::vector<Drumkit> &drumkits,
 		int32_t loop_tick,
+		bool stereo,
 		int32_t num_inline_waves
 	);
 	void generate_it_module(
@@ -102,7 +104,8 @@ private:
 		const std::vector<Wave> &waves = {},
 		const std::vector<Drumkit> &drumkits = {},
 		const std::vector<std::vector<uint8_t>> &drums = {},
-		int32_t loop_tick = -1
+		int32_t loop_tick = -1,
+		bool stereo = true
 	);
 };
 

@@ -123,6 +123,7 @@ private:
 		*_timestamp_label = NULL;
 	Label_Button
 		*_tempo_label = NULL,
+		*_stereo_label = NULL,
 		*_channel_1_status_label = NULL,
 		*_channel_2_status_label = NULL,
 		*_channel_3_status_label = NULL,
@@ -137,6 +138,7 @@ private:
 		*_play_pause_mi = NULL,
 		*_stop_mi = NULL,
 		*_loop_mi = NULL,
+		*_stereo_mi = NULL,
 		*_step_backward_mi = NULL,
 		*_step_forward_mi = NULL,
 		*_skip_backward_mi = NULL,
@@ -231,6 +233,7 @@ public:
 	inline bool loop_verification(void) const { return _loop_verification_mi && !!_loop_verification_mi->value(); }
 	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
 	inline bool continuous_scroll(void) const { return _continuous_mi && !!_continuous_mi->value(); }
+	inline bool stereo(void) const { return _stereo_mi && !!_stereo_mi->value(); }
 	inline bool channel_1_muted(void) const { return _channel_1_mute_mi && !!_channel_1_mute_mi->value(); }
 	inline bool channel_2_muted(void) const { return _channel_2_mute_mi && !!_channel_2_mute_mi->value(); }
 	inline bool channel_3_muted(void) const { return _channel_3_mute_mi && !!_channel_3_mute_mi->value(); }
@@ -347,6 +350,7 @@ private:
 	static void loop_verification_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void loop_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void continuous_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void stereo_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_1_mute_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_2_mute_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_3_mute_cb(Fl_Widget *w, Main_Window *mw);
