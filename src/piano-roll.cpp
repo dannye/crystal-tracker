@@ -4548,11 +4548,12 @@ bool Piano_Roll::create_call(Song &song, bool dry_run) {
 			loop_targets.insert(command.target);
 		}
 	}
-	for (Command &command : snippet) {
-		for (size_t i = command.labels.size() - 1; i < command.labels.size(); --i) {
-			if (count_label_references(commands, command.labels[i]) > count_label_references(snippet, command.labels[i])) return false;
-			if (loop_targets.count(command.labels[i]) == 0) {
-				command.labels.erase(command.labels.begin() + i);
+	for (size_t i = 0; i < snippet.size(); ++i) {
+		Command &command = snippet[i];
+		for (size_t j = command.labels.size() - 1; j < command.labels.size(); --j) {
+			if (i > 0 && count_label_references(commands, command.labels[j]) > count_label_references(snippet, command.labels[j])) return false;
+			if (loop_targets.count(command.labels[j]) == 0) {
+				command.labels.erase(command.labels.begin() + j);
 			}
 		}
 	}
