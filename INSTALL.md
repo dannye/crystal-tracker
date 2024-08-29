@@ -68,12 +68,7 @@ After building the x64 libs for fltk, portaudio, portaudiocpp, and openmpt, copy
 You need at least g++ 7 for C++17 support.
 g++ 8 is needed if building libopenmpt from source.
 
-CMake (version 3.15 or later) is preferred for building FLTK 1.4.
-To build without CMake, replace the `cmake` command below with:
-
-```bash
-./autogen.sh --prefix="$(realpath "$PWD/../..")"
-```
+CMake (version 3.15 or later) is required for building FLTK 1.4.
 
 #### Ubuntu/Debian
 
@@ -150,7 +145,7 @@ Follow the ["Install and build"](#install-and-build-crystal-tracker) instruction
 
 ### FLTK
 
-If building FLTK with CMake, use the following `cmake` command instead of the one shown above:
+When building FLTK with CMake, use the following `cmake` command instead of the one shown above:
 
 ```bash
 cmake \
@@ -162,12 +157,12 @@ cmake \
 	-D PNG_LIBRARY_RELEASE="$(pkg-config --static --libs-only-L libpng | cut -c 3-)/libpng.a" \
 	-D LIB_png="$(pkg-config --static --libs-only-L libpng | cut -c 3-)/libpng.a" \
 	-D FLTK_USE_SYSTEM_ZLIB=ON \
-	-D ZLIB_INCLUDE_DIR="$(PKG_CONFIG_PATH=/usr/local/opt/zlib/lib/pkgconfig pkg-config --cflags-only-I zlib | cut -c 3-)" \
-	-D ZLIB_LIBRARY_RELEASE="$(PKG_CONFIG_PATH=/usr/local/opt/zlib/lib/pkgconfig pkg-config --static --libs-only-L zlib | cut -c 3-)/libz.a" \
-	-D LIB_zlib="$(PKG_CONFIG_PATH=/usr/local/opt/zlib/lib/pkgconfig pkg-config --static --libs-only-L zlib | cut -c 3-)/libz.a"
+	-D ZLIB_INCLUDE_DIR="$(PKG_CONFIG_PATH=/opt/homebrew/opt/zlib/lib/pkgconfig pkg-config --cflags-only-I zlib | cut -c 3-)" \
+	-D ZLIB_LIBRARY_RELEASE="$(PKG_CONFIG_PATH=/opt/homebrew/opt/zlib/lib/pkgconfig pkg-config --static --libs-only-L zlib | cut -c 3-)/libz.a" \
+	-D LIB_zlib="$(PKG_CONFIG_PATH=/opt/homebrew/opt/zlib/lib/pkgconfig pkg-config --static --libs-only-L zlib | cut -c 3-)/libz.a"
 ```
 
-zlib may be installed in a different directory, such as `/opt/homebrew/opt/zlib` instead of `/usr/local/opt/zlib`.
+zlib may be installed in a different directory, such as `/usr/local/opt/zlib` instead of `/opt/homebrew/opt/zlib`.
 
 ### PortAudio
 
