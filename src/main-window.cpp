@@ -1912,7 +1912,7 @@ void Main_Window::toggle_playback() {
 
 			if (differences_list.size() > 0) {
 				std::string warning = "Channel " + std::to_string(channel_number) + ": The following properties are different at the start of the second iteration of the main loop. The song may not loop correctly in-game.\n\n"
-					"Fix this by explicitly setting these properties on the first note or rest at the beginning of the main loop.\n" + differences_list + "\n\n"
+					"Fix this by explicitly setting these properties on the first note or rest at the beginning of the main loop. This can be done by using the Format Painter to apply the properties of the first note or rest onto itself.\n" + differences_list + "\n\n"
 					"If this is intentional, disable this warning via the Play -> Loop Verification checkbox.";
 				_warning_dialog->message(warning);
 				_warning_dialog->show(this);
