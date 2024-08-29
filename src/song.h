@@ -228,7 +228,7 @@ public:
 	void create_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t start_index, int32_t end_index, int32_t loop_length, Note_View start_view, Note_View end_view);
 	void delete_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, int32_t ambiguous_ticks, int32_t unambiguous_ticks, Note_View start_view, Note_View end_view, int32_t start_index, int32_t end_index);
 	void unpack_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t call_index, const std::vector<Command> &snippet, int32_t start_index, int32_t end_index);
-	void create_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t start_index, int32_t end_index, const std::vector<Command> &snippet);
+	void create_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t start_index, int32_t end_index, const std::vector<Command> &snippet, const std::vector<std::string> &call_labels);
 	void insert_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t tick_offset, int32_t insert_index, const std::string &target_label, int32_t call_length, Note_View insert_view, Note_View start_view, Note_View end_view);
 
 	std::vector<Command> &channel_commands(const int selected_channel);

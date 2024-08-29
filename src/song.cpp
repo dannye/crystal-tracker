@@ -3484,7 +3484,7 @@ void Song::unpack_call(const int selected_channel, const std::set<int32_t> &sele
 	_modified = true;
 }
 
-void Song::create_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t start_index, int32_t end_index, const std::vector<Command> &snippet) {
+void Song::create_call(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t start_index, int32_t end_index, const std::vector<Command> &snippet, const std::vector<std::string> &call_labels) {
 	remember(selected_channel, selected_boxes, Song_State::Action::CREATE_CALL, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
@@ -3494,7 +3494,7 @@ void Song::create_call(const int selected_channel, const std::set<int32_t> &sele
 
 	Command call = Command(Command_Type::SOUND_CALL);
 	call.target = snippet[0].labels[0];
-	call.labels = std::move(commands[start_index].labels);
+	call.labels = call_labels;
 	commands.insert(commands.begin() + end_index + 1, call);
 
 	for (int32_t i = end_index; i >= start_index; --i) {

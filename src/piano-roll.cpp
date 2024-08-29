@@ -4541,6 +4541,8 @@ bool Piano_Roll::create_call(Song &song, bool dry_run) {
 		return false;
 	};
 
+	std::vector<std::string> call_labels;
+
 	std::set<std::string> loop_targets;
 	for (const Command &command : snippet) {
 		if (command.type == Command_Type::SOUND_LOOP) {
@@ -4553,6 +4555,9 @@ bool Piano_Roll::create_call(Song &song, bool dry_run) {
 		for (size_t j = command.labels.size() - 1; j < command.labels.size(); --j) {
 			if (i > 0 && count_label_references(commands, command.labels[j]) > count_label_references(snippet, command.labels[j])) return false;
 			if (loop_targets.count(command.labels[j]) == 0) {
+				if (i == 0) {
+					call_labels.insert(call_labels.begin(), command.labels[j]);
+				}
 				command.labels.erase(command.labels.begin() + j);
 			}
 		}
@@ -4592,7 +4597,7 @@ bool Piano_Roll::create_call(Song &song, bool dry_run) {
 		}
 	}
 
-	song.create_call(selected_channel(), selected_boxes, t_left, start_index, end_index, snippet);
+	song.create_call(selected_channel(), selected_boxes, t_left, start_index, end_index, snippet, call_labels);
 	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
