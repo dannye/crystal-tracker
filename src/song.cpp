@@ -3361,7 +3361,7 @@ void Song::unroll_loop(const int selected_channel, const std::set<int32_t> &sele
 	_modified = true;
 }
 
-void Song::create_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t start_index, int32_t end_index, int32_t loop_length, Note_View start_view, Note_View end_view) {
+void Song::create_loop(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t tick, int32_t start_index, int32_t end_index, int32_t loop_length, Note_View start_view, Note_View end_view, bool ambiguous_start) {
 	remember(selected_channel, selected_boxes, Song_State::Action::CREATE_LOOP, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
@@ -3379,6 +3379,20 @@ void Song::create_loop(const int selected_channel, const std::set<int32_t> &sele
 		end_index += 1;
 
 		command.octave.octave = end_view.octave;
+		commands.insert(commands.begin() + end_index + 1, command);
+	}
+
+	if (start_view.speed != end_view.speed && !ambiguous_start) {
+		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+		command.note_type.speed = start_view.speed;
+		command.note_type.volume = start_view.volume;
+		command.note_type.fade = start_view.fade;
+		commands.insert(commands.begin() + end_index + 1, command);
+		end_index += 1;
+
+		command.note_type.speed = end_view.speed;
+		command.note_type.volume = end_view.volume;
+		command.note_type.fade = end_view.fade;
 		commands.insert(commands.begin() + end_index + 1, command);
 	}
 

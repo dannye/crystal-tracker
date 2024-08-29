@@ -4131,6 +4131,14 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 		}
 	}
 
+	bool ambiguous_start = false;
+	for (Note_Box *other : *channel) {
+		if (other->note_view().index == start_view.index && other->note_view().speed != start_view.speed) {
+			ambiguous_start = true;
+			break;
+		}
+	}
+
 	int32_t start_index = start_view.index;
 	int32_t end_index = end_view.index;
 
@@ -4154,6 +4162,11 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 		return false;
 	}
 
+	Note_View loop_view = end_view;
+	if (!ambiguous_start) {
+		loop_view.speed = start_view.speed;
+	}
+
 	const std::vector<Command> &commands = song.channel_commands(selected_channel());
 
 	auto start_itr = commands.begin() + start_index;
@@ -4170,8 +4183,8 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 		}
 	}
 
-	int32_t loop_length = calc_snippet_length(commands, start_itr, end_itr + 1, end_view);
-	if (!is_followed_by_n_ticks_of_rest(end_itr, commands.end(), loop_length, end_view.speed)) {
+	int32_t loop_length = calc_snippet_length(commands, start_itr, end_itr + 1, loop_view);
+	if (!is_followed_by_n_ticks_of_rest(end_itr, commands.end(), loop_length, loop_view.speed)) {
 		return false;
 	}
 
@@ -4188,7 +4201,7 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 		}
 	}
 
-	song.create_loop(selected_channel(), selected_boxes, t_left, start_index, end_index, loop_length, start_view, end_view);
+	song.create_loop(selected_channel(), selected_boxes, t_left, start_index, end_index, loop_length, start_view, end_view, ambiguous_start);
 	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	refresh_note_properties();
