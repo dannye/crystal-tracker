@@ -2739,6 +2739,7 @@ bool Piano_Roll::apply_format_painter(Song &song, int32_t from_tick, int32_t to_
 	const Note_View *to_view = find_note_view_at_tick(*view, to_tick);
 
 	if (!from_view || !to_view) return false;
+	if (from_view->ghost || to_view->ghost) return false;
 
 	bool ambiguous = false;
 	for (const Note_View &other : *view) {
