@@ -2740,6 +2740,14 @@ bool Piano_Roll::apply_format_painter(Song &song, int32_t from_tick, int32_t to_
 
 	if (!from_view || !to_view) return false;
 
+	bool ambiguous = false;
+	for (const Note_View &other : *view) {
+		if (other.index == to_view->index && other.speed != to_view->speed) {
+			ambiguous = true;
+			break;
+		}
+	}
+
 	std::set<int32_t> selected_boxes;
 
 	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
@@ -2749,7 +2757,7 @@ bool Piano_Roll::apply_format_painter(Song &song, int32_t from_tick, int32_t to_
 		}
 	}
 
-	song.apply_format_painter(selected_channel(), selected_boxes, *from_view, *to_view, to_tick, full);
+	song.apply_format_painter(selected_channel(), selected_boxes, *from_view, *to_view, to_tick, full, ambiguous);
 	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	set_active_channel_selection(selected_boxes);
