@@ -9,8 +9,6 @@ include/FL/
 include/libopenmpt/
 include/portaudiocpp/
 
-FLTK.Framework/
-
 # no IDE files
 .vs/
 *.sdf
