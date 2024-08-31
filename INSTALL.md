@@ -92,7 +92,7 @@ cd crystal-tracker
 git clone -b master https://github.com/fltk/fltk.git lib/fltk
 pushd lib/fltk
 git apply ../patches/fltk.patch
-cmake -D CMAKE_INSTALL_PREFIX="$(realpath "$PWD/../..")" -D CMAKE_BUILD_TYPE=Release
+cmake -D CMAKE_INSTALL_PREFIX="$(realpath "$PWD/../..")" -D CMAKE_BUILD_TYPE=Release -D FLTK_GRAPHICS_CAIRO=1 -D FLTK_BACKEND_WAYLAND=0
 make
 make install
 popd

@@ -3227,7 +3227,7 @@ void OS::use_native_fonts() {
 	use_any_font(FL_COURIER, monospace_fonts, _countof(monospace_fonts));
 	// Use common bold monospace font
 	const char *bold_monospace_fonts[] = {
-		"Ubuntu Mono bold", "Noto Sans Mono bold", "Droid Sans Mono bold", "DejaVu Sans Mono bold"
+		"Ubuntu Mono Bold", "Noto Sans Mono Bold", "Droid Sans Mono Bold", "DejaVu Sans Mono Bold"
 	};
 	use_any_font(FL_COURIER_BOLD, bold_monospace_fonts, _countof(bold_monospace_fonts));
 #endif
