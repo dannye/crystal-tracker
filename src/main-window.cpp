@@ -1243,9 +1243,16 @@ void Main_Window::update_active_controls() {
 			_redo_tb->deactivate();
 		}
 		if (stopped) {
-			_select_all_mi->activate();
-			_select_none_mi->activate();
-			_select_invert_mi->activate();
+			if (selected_channel()) {
+				_select_all_mi->activate();
+				_select_none_mi->activate();
+				_select_invert_mi->activate();
+			}
+			else {
+				_select_all_mi->deactivate();
+				_select_none_mi->deactivate();
+				_select_invert_mi->deactivate();
+			}
 			if (_piano_roll->pitch_up(_song, true)) {
 				_pitch_up_mi->activate();
 				_pitch_up_tb->activate();
