@@ -3771,6 +3771,7 @@ bool Piano_Roll::insert_rest(Song &song, bool dry_run) {
 	song.insert_rest(selected_channel(), selected_boxes, index, _tick, tick_offset / speed);
 	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
+	refresh_note_properties();
 
 	focus_cursor(true);
 
