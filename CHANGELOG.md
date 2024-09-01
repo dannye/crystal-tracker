@@ -1,6 +1,22 @@
 Changelog
 =========
 
+### Crystal Tracker v0.8.0 (2024-08-31)
+
+ * Add Format Painter: Copy note properties from one note to another.
+ * Add full support for stereo panning command.
+ * Add BPM display to status bar.
+ * Add Duplicate Note to Edit menu.
+ * Add Ctrl+F3 for dumping .it file.
+ * Add Ctrl+\ for centering the playhead in the middle of the screen.
+ * Add confirmation dialog for clearing recent songs.
+ * Pencil icon now matches selected channel color.
+ * Slightly emphasize beat lines when ruler is active.
+ * Increase max grid width to 48.
+ * Selecting notes with Enter key: Select the note to the left of the playhead if Alt is also pressed.
+ * Keep Skip Backward/Forward enabled while the song is playing, which now act like rewind and fast-forward.
+ * Minor bug fixes.
+
 ### Crystal Tracker v0.7.0 (2024-06-08)
 
  * Better Pencil: Click and drag to pick note length.
