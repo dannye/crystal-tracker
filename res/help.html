@@ -20,6 +20,7 @@ R"(<html>
 <li><a href="#SelectingNotes">Selecting Notes</a></li>
 <li><a href="#EditingNotes">Editing Notes</a></li>
 <li><a href="#PlacingNotes">Placing Notes</a></li>
+<li><a href="#PencilModeAndFormatPainter">Pencil Mode and Format Painter</a></li>
 <li><a href="#LoopsAndCalls">Loops and Calls</a></li>
 </ul>
 <li><a href="#View">View</a></li>
@@ -57,6 +58,7 @@ R"(<html>
 <p><b>Note:</b> When loading a file, if some pattern of notes is called by multiple channels then this pattern will be duplicated in-memory so that each channel is entirely independent. This has the side effect of creating duplicate labels in the file when re-saved. These duplicated labels will have to be fixed afterward in a text editor. This only has to be done once for a particular song that is affected by this.</p>
 <p><b>Note:</b> When saving a file, the song data is serialized and no comments or formatting details from the original file are preserved.</p>
 <p>To quickly create and test custom channel 3 waveforms, check out <a href="https://github.com/dannye/waveform-gb">waveform-gb</a>.</p>
+<p>An Impulse Tracker mod file for the current song can be exported by pressing )" COMMAND_KEY_PLUS R"(F3. This file is designed for playback only and is not suitable for direct editing. This export function is provided only for convenience. It will be saved in the same directory as the current song, with the same name but with the .it file extension.</p>
 <hr>
 <a name="TheTimeline"></a>
 <h2>The Timeline</h2>
@@ -85,14 +87,17 @@ R"(<html>
 <p>The menu bar is extremely useful as a reference for all the keyboard shortcuts.</p>
 <p>For example, the Play menu shows that the song can be played/paused with the Spacebar and stopped with the Escape key.</p>
 <p><b>Note:</b> When editing note properties (which is explained in more detail below), Spacebar will not play the song while a property text box is selected. The text box can be deselected by pressing Escape.</p>
-<p>If the song loops, a warning will be shown if any of the channels have different settings at the start of the second iteration of the main loop than it had on the first iteration. To ensure the second iteration uses the same settings as the first, explicitly set the properties at the start of the loop. This can be done by changing the property value and then changing it back (not with Undo). If the different settings on the second iteration are intentional, the warning can be toggled off with the Play&nbsp;→&nbsp;Loop&nbsp;Verification checkbox.</p>
-<p><b>Note:</b> Playback is reasonably accurate but does not sound exactly how it sounds on the Game Boy. Things like tempo, volume fade, vibrato, etc, are only approximations.</p>
+<p>If the song loops, a warning will be shown if any of the channels have different settings at the start of the second iteration of the main loop than it had on the first iteration. To ensure the second iteration uses the same settings as the first, explicitly set the properties at the start of the loop. This can be done by using the Format Painter (explained in more detail below) to apply the properties of the first note or rest onto itself. If the different settings on the second iteration are intentional, the warning can be toggled off with the Play&nbsp;→&nbsp;Loop&nbsp;Verification checkbox.</p>
+<p><b>Note:</b> Playback is reasonably accurate but does not sound exactly how it sounds on the Game Boy. Things like volume fade, vibrato, etc, are only approximations.</p>
 <p>The playhead (yellow or magenta line, depending on theme) can be moved with the mouse. Middle-click or hold )" COMMAND_KEY R"( and right-click to move the playhead. This is useful for starting playback at a specific point rather than playing from the very beginning.</p>
 <p>While the song is playing, left-click anywhere on the timeline to toggle continuous scroll mode.</p>
 <p>Left-click on the piano keys on the left to hear any note on-demand. These interactive notes currently always play a 50% square wave at full volume.</p>
+<p>Stereo output can be toggled in the Play menu. It can also be toggled using the button in the status bar.</p>
 <p>Each channel can be individually muted in order to focus on only specific channels. The mute statuses for each channel are also shown in the status bar at the bottom, which also act as buttons to toggle the mute status.</p>
 <p>If a channel is selected (explained below), "Step Backward/Forward" moves the playhead by the selected channel's <i>speed</i> at that point. "Skip Backward/Forward" moves the playhead to the start/end of the note or rest (of the selected channel) at the playhead's current position.</p>
 <p>If no channel is selected, "Step Backward/Forward" moves the playhead by the current grid spacing while "Skip Backward/Forward" moves by four times that distance.</p>
+<p>"Skip Backward/Forward" can be used while the song is playing and acts like rewind/fast-forward.</p>
+<p>Press )" COMMAND_KEY_PLUS R"(\ to center the playhead, which is useful both during playback and while editing.</p>
 <hr>
 <a name="Editing"></a>
 <h2>Editing</h2>
@@ -100,15 +105,16 @@ R"(<html>
 <h3>Selecting Notes</h3>
 <p>Before anything can be edited, a channel must be selected. Only the currently selected channel can be edited. Channels can be selected with the 1, 2, 3, and 4 keys, as well as )" TAB_SYMBOL R"( and )" SHIFT_KEY_PLUS TAB_SYMBOL R"( to cycle through the channels. Selecting the same channel which is already selected will deselect it and editing will essentially be disabled.</p>
 <p>Left-click on a note (of the selected channel) to select the note. Hold )" COMMAND_KEY R"( while clicking to add (or remove) the note to (or from) the current selection. Hold )" SHIFT_KEY R"( while clicking to select all notes between the left-most selected note and the right-most selected note. Left-click and drag to select multiple notes at once. )" COMMAND_KEY R"( and )" SHIFT_KEY R"( can also be used while dragging.</p>
-<p>The Enter key can also be used to select the note at the playhead. )" COMMAND_KEY R"( and )" SHIFT_KEY R"( work the same in combination with the Enter key.</p>
+<p>The Enter key can also be used to select the note at the playhead. Hold )" ALT_KEY R"( while pressing Enter to select the note to the left of the playhead. )" COMMAND_KEY R"( and )" SHIFT_KEY R"( work the same in combination with the Enter key.</p>
 <p>"Select All" is useful for quickly changing the entire channel, such as moving the entire channel up or down.</p>
 <a name="EditingNotes"></a>
 <h3>Editing Notes</h3>
 <p>The menu options under Edit&nbsp;→&nbsp;Selection… can be used to manipulate the selected notes. Each menu option is only available if the operation would succeed for all selected notes. If the operation would fail for any of the selected notes, such as "Octave Up" on a note which is already in the highest octave, then the menu option is disabled.</p>
 <p>"Delete Selection" replaces the selected notes with rests. "Snip Selection" removes the selected notes, adding the appropriate amount of rest at the end of the channel. This operation always preserves the position of the loop point and end point.</p>
-<p>"Insert Rest" is useful for widening inner loops and calls, as well as generally adding more space by moving the rest of the channel to the right. Like "Snip Selection", this operation always preserves the position of the loop point and end point.</p>
+<p>"Insert Rest" is useful for widening inner loops and calls, as well as generally adding more space, by inserting a rest at the playhead's position and moving the rest of the channel to the right. Like "Snip Selection", this operation always preserves the position of the loop point and end point.</p>
+<p>"Duplicate Note" duplicates the previous note at the playhead's current position. This operation matches the previous note's pitch and octave, and tries to match the speed and length if it fits.</p>
 <p>"Split Note" is useful for changing note properties, such as volume envelope or vibrato, part way through a note. It places the split at the playhead's position.</p>
-<p>With one or more notes selected, the Note Properties Panel opens. From here, the most common settings can be edited: Speed, Volume Envelope, Vibrato, and Duty Cycle/Wave/Drumkit. Use the "Advanced" button to edit the uncommon settings: Tempo, Transpose, and Pitch Slide. The remaining commands, such as Pitch Sweep, Pitch Offset, and Stereo Panning, are currently not supported by the editor, although those commands will be preserved if already part of an existing song file.</p>
+<p>With one or more notes selected, the Note Properties Panel opens. From here, the most common settings can be edited: Speed, Volume Envelope, Vibrato, and Duty Cycle/Wave/Drumkit. Use the "Advanced" button to edit the uncommon settings: Tempo, Transpose, Pitch Slide, and Stereo Panning. The remaining commands, such as Pitch Sweep and Pitch Offset, are currently not supported by the editor, although those commands will be preserved if already part of an existing song file.</p>
 <p>If more than one note is selected, an asterisk (*) will appear next to any property which has multiple distinct values among the selected notes. In such a case, the displayed value is that of the left-most selected note.</p>
 <p>The up and down arrow buttons next to a property are applied immediately if clicked. If typing into a property text box, apply the change with the Enter key or cancel the change with the Escape key. The change will not be applied if the selected channel or selected notes are changed without pressing Enter.</p>
 <p>When creating tempo changes on the first channel, the notes and rests at that point on all other channels need to be split at the new tempo change. Notes need to be split manually, but rests are split automatically; either automatically after any edit to that channel, or on-demand by selecting "Postprocess Channel" from the Edit menu for each channel that needs to have its rests split. If the speed setting of the rest makes it unaligned from the point where the tempo change occurs, the rest will not be split automatically.</p>
@@ -132,8 +138,13 @@ R"(<html>
 <li><code>r</code>&nbsp;→&nbsp;Rest</li>
 </ul>
 <p>These shortcuts place the corresponding note at the playhead's current position and automatically advance the playhead to the next position. This isn't as convenient as Pencil Mode (explained below) but is useful as a keyboard-only alternative which doesn't require the mouse. Newly placed notes using this method will try to match the length and speed of the previous note, if it fits.</p>
+<a name="PencilModeAndFormatPainter"></a>
+<h3>Pencil Mode and Format Painter</h3>
 <p>Use Backtick (`) to toggle Pencil Mode. While in Pencil Mode, left-click to place notes (instead of selecting notes). Click and drag to determine the length of the new note. When a note is placed, it is automatically selected so that it may quickly be manipulated (ie, )" COMMAND_SHIFT_KEYS_PLUS RIGHT_SYMBOL R"( to lengthen the note) and have its properties edited. Right-click and drag to erase notes.</p>
 <p><b>Note:</b> Since the mouse cannot be used to select notes while in Pencil Mode, it is useful to use the Enter key to manage the selection without needing to exit Pencil Mode.</p>
+<p> Use Tilde (~) to activate the Format Painter. The Format Painter is used to copy note properties (volume, vibrato, etc) from one note (or rest) to another. When the Format Painter is activated, the current position of the playhead will be marked with a cyan line. This marks the note or rest whose properties will be copied. At this point, the Format Painter may be canceled by pressing Escape.</p>
+<p>To finish applying the Format Painter, move the playhead to the desired note or rest and press Tilde (~) again. Hold )" ALT_KEY R"( while finishing the Format Painter to also copy "Advanced" properties.</p>
+<p>If the Format Painter is used to apply the properties of a note or rest onto itself, then octave and speed will also be explicitly applied. This is useful when trying to guarantee that the beginning of a loop always plays with the same properties on each iteration.</p>
 <a name="LoopsAndCalls"></a>
 <h3>Loops and Calls</h3>
 <p>Loops and calls can be created and modified via the context menu which can be brought up by right-clicking on the timeline.</p>
@@ -147,5 +158,8 @@ R"(<html>
 <p>Zoom In is useful when working with a sequence of very small notes, and Zoom Out is useful for observing the whole height of the timeline at once.</p>
 <p>The piano key pitch labels can be toggled with )" COMMAND_KEY_PLUS R"(K. Pitch labels for every note can be toggled with )" COMMAND_SHIFT_KEYS_PLUS R"(K.</p>
 <p>The Measure Ruler can be reconfigured to match the speed and time signature of the song. Use )" COMMAND_SHIFT_KEYS_PLUS R"(R to open the Configure Ruler dialog in order to set the beats per measure, steps per beat, ticks per step (ie, grid spacing), as well as the pickup offset. The editor will remember the measure ruler configuration for the Recent files and automatically reapply that configuration when those files are reopened. Clicking into the measure ruler will also set the playhead if a song is opened.</p>
+<p>By default, the status bar displays the current beats per minute (BPM). This can be toggled to instead display the raw tempo value.</p>
+<p>BPM is determined by the following: <code>BPM = 256 × (262144 ÷ 4389) × 60 ÷ (ticks-per-step * steps-per-beat) ÷ tempo</code></p>
+<p>Or, simplified: <code>BPM ≈ 917414.4 ÷ ticks-per-beat ÷ tempo</code></p>
 </body>
 </html>)"
