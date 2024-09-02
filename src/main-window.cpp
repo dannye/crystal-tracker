@@ -66,7 +66,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	// Toolbar
 	_toolbar = new Toolbar(wx, wy, ww, TOOLBAR_HEIGHT);
-	int tx = wx + 1, ty = wy + 1;
+	int tx = wx + 1, ty = wy + (TOOLBAR_HEIGHT - TOOLBAR_BUTTON_HEIGHT) / 2;
 #ifdef __APPLE__
 #define SEPARATE_TOOLBAR_BUTTONS tx += 12
 	tx += 6;
