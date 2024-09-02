@@ -66,89 +66,92 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	// Toolbar
 	_toolbar = new Toolbar(wx, wy, ww, TOOLBAR_HEIGHT);
+	int tx = wx + 1, ty = wy + 1;
 #ifdef __APPLE__
-#define SEPARATE_TOOLBAR_BUTTONS new Fl_Box(0, 0, 12, TOOLBAR_HEIGHT - 2);
-	new Fl_Box(0, 0, 6, TOOLBAR_HEIGHT - 2);
+#define SEPARATE_TOOLBAR_BUTTONS tx += 12
+	tx += 6;
 #else
-#define SEPARATE_TOOLBAR_BUTTONS new Fl_Box(0, 0, 2, TOOLBAR_BUTTON_HEIGHT); new Spacer(0, 0, 2, TOOLBAR_BUTTON_HEIGHT); new Fl_Box(0, 0, 2, TOOLBAR_BUTTON_HEIGHT)
+#define SEPARATE_TOOLBAR_BUTTONS tx += 2; new Spacer(tx, ty, 2, TOOLBAR_BUTTON_HEIGHT); tx += 2; tx += 2
 #endif
 	wy += _toolbar->h();
 	wh -= _toolbar->h();
-	_new_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_open_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_save_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_save_as_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_new_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_open_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_save_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_save_as_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
-	_play_pause_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_stop_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_play_pause_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_stop_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
-	_loop_verification_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_loop_verification_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
-	_loop_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_continuous_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_loop_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_continuous_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
-	_undo_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_redo_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_undo_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_redo_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
-	_pencil_mode_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_format_painter_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_pencil_mode_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_format_painter_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
-	_channel_1_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_channel_1_tb = new Toolbar_Radio_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	_channel_1_tb->when(FL_WHEN_RELEASE_ALWAYS);
-	_channel_2_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_channel_2_tb = new Toolbar_Radio_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	_channel_2_tb->when(FL_WHEN_RELEASE_ALWAYS);
-	_channel_3_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_channel_3_tb = new Toolbar_Radio_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	_channel_3_tb->when(FL_WHEN_RELEASE_ALWAYS);
-	_channel_4_tb = new Toolbar_Radio_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_channel_4_tb = new Toolbar_Radio_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	_channel_4_tb->when(FL_WHEN_RELEASE_ALWAYS);
 	SEPARATE_TOOLBAR_BUTTONS;
-	_pitch_up_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_pitch_down_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_octave_up_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_octave_down_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_pitch_up_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_pitch_down_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_octave_up_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_octave_down_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
-	_move_left_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_move_right_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_shorten_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_lengthen_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_move_left_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_move_right_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_shorten_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_lengthen_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
-	_delete_selection_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_snip_selection_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_delete_selection_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_snip_selection_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
-	_split_note_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_glue_note_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_split_note_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_glue_note_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
-	_zoom_out_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_zoom_in_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_zoom_out_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_zoom_in_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
-	_key_labels_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_note_labels_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_key_labels_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_note_labels_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
-	_ruler_tb = new Toolbar_Toggle_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_ruler_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
-	_decrease_spacing_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
-	_increase_spacing_tb = new Toolbar_Button(0, 0, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT);
+	_decrease_spacing_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_increase_spacing_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	_toolbar->end();
 	begin();
 
 	// Status bar
 	_status_bar = new Toolbar(wx, h - STATUS_BAR_HEIGHT, ww, STATUS_BAR_HEIGHT);
+	tx = wx + 1;
+	ty = h - STATUS_BAR_HEIGHT + 1;
 	wh -= _status_bar->h();
-	_timestamp_label = new Label(0, 0, text_width("00:00.00 / 00:00.00", 8), STATUS_BAR_HEIGHT - 2, "00:00.00 / 00:00.00");
-	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
-	_tempo_label = new Label_Button(0, 0, text_width("Tempo: 9999", 8), STATUS_BAR_HEIGHT - 2, bpm_config ? "BPM: 0" : "Tempo: 0");
-	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
-	_stereo_label = new Label_Button(0, 0, text_width("Stereo", 8), STATUS_BAR_HEIGHT - 2, "Stereo");
-	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
-	_channel_1_status_label = new Label_Button(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
-	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
-	_channel_2_status_label = new Label_Button(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
-	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
-	_channel_3_status_label = new Label_Button(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
-	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
-	_channel_4_status_label = new Label_Button(0, 0, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2);
-	new Spacer(0, 0, 2, STATUS_BAR_HEIGHT - 2);
-	_status_label = new Label(0, 0, ww, STATUS_BAR_HEIGHT - 2, _status_message.c_str());
+	_timestamp_label = new Label(tx, ty, text_width("00:00.00 / 00:00.00", 8), STATUS_BAR_HEIGHT - 2, "00:00.00 / 00:00.00"); tx += _timestamp_label->w();
+	new Spacer(tx, ty, 2, STATUS_BAR_HEIGHT - 2); tx += 2;
+	_tempo_label = new Label_Button(tx, ty, text_width("Tempo: 9999", 8), STATUS_BAR_HEIGHT - 2, bpm_config ? "BPM: 0" : "Tempo: 0"); tx += _tempo_label->w();
+	new Spacer(tx, ty, 2, STATUS_BAR_HEIGHT - 2); tx += 2;
+	_stereo_label = new Label_Button(tx, ty, text_width("Stereo", 8), STATUS_BAR_HEIGHT - 2, "Stereo"); tx += _stereo_label->w();
+	new Spacer(tx, ty, 2, STATUS_BAR_HEIGHT - 2); tx += 2;
+	_channel_1_status_label = new Label_Button(tx, ty, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2); tx += _channel_1_status_label->w();
+	new Spacer(tx, ty, 2, STATUS_BAR_HEIGHT - 2); tx += 2;
+	_channel_2_status_label = new Label_Button(tx, ty, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2); tx += _channel_2_status_label->w();
+	new Spacer(tx, ty, 2, STATUS_BAR_HEIGHT - 2); tx += 2;
+	_channel_3_status_label = new Label_Button(tx, ty, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2); tx += _channel_3_status_label->w();
+	new Spacer(tx, ty, 2, STATUS_BAR_HEIGHT - 2); tx += 2;
+	_channel_4_status_label = new Label_Button(tx, ty, text_width("Ch4: Off", 4), STATUS_BAR_HEIGHT - 2); tx += _channel_4_status_label->w();
+	new Spacer(tx, ty, 2, STATUS_BAR_HEIGHT - 2); tx += 2;
+	_status_label = new Label(tx, ty, std::max(ww - tx + 2, 20), STATUS_BAR_HEIGHT - 2, _status_message.c_str()); tx += _status_label->w();
 	_status_bar->end();
 	begin();
 
@@ -842,6 +845,7 @@ void Main_Window::resize(int X, int Y, int W, int H) {
 	_piano_roll->position(0, MENU_BAR_HEIGHT + TOOLBAR_HEIGHT + offset + (ruler() ? Fl::scrollbar_size() : 0));
 	_piano_roll->set_size(W, std::min(piano_roll_height - offset, max_piano_roll_height));
 	_status_bar->resize(0, H - STATUS_BAR_HEIGHT, W, STATUS_BAR_HEIGHT);
+	_status_label->size(std::max(W - _status_label->x() + 2, 20), _status_label->h());
 	_context_menu->resize(_piano_roll->x() + WHITE_KEY_WIDTH, _piano_roll->y(), _piano_roll->w() - WHITE_KEY_WIDTH - Fl::scrollbar_size(), _piano_roll->h() - Fl::scrollbar_size());
 }
 

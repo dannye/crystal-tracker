@@ -208,13 +208,8 @@ private:
 };
 
 class Toolbar : public Fl_Group {
-private:
-	Fl_Group _spacer;
 public:
 	Toolbar(int x, int y, int w, int h, const char *l = NULL);
-	void resize(int x, int y, int w, int h);
-	void draw(void);
-	void end(void) { resize(x(), y(), w(), h()); }
 };
 
 class Toolbar_Button : public Fl_Button {
