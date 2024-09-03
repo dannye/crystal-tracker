@@ -2064,8 +2064,13 @@ void Piano_Roll::build_note_view(
 			tick += note.length * note.speed;
 			if (tick > end_tick) {
 				assert(restarted);
-				note.length = note.length * note.speed - (tick - end_tick);
-				note.speed = 1;
+				if ((tick - end_tick) % note.speed == 0) {
+					note.length -= (tick - end_tick) / note.speed;
+				}
+				else {
+					note.length = note.length * note.speed - (tick - end_tick);
+					note.speed = 1;
+				}
 			}
 			note.index = itr_index(commands, command_itr);
 			note.ghost = restarted;
@@ -2106,8 +2111,13 @@ void Piano_Roll::build_note_view(
 			tick += note.length * note.speed;
 			if (tick > end_tick) {
 				assert(restarted);
-				note.length = note.length * note.speed - (tick - end_tick);
-				note.speed = 1;
+				if ((tick - end_tick) % note.speed == 0) {
+					note.length -= (tick - end_tick) / note.speed;
+				}
+				else {
+					note.length = note.length * note.speed - (tick - end_tick);
+					note.speed = 1;
+				}
 			}
 			note.index = itr_index(commands, command_itr);
 			note.ghost = restarted;
@@ -2144,8 +2154,13 @@ void Piano_Roll::build_note_view(
 			tick += note.length * note.speed;
 			if (tick > end_tick) {
 				assert(restarted);
-				note.length = note.length * note.speed - (tick - end_tick);
-				note.speed = 1;
+				if ((tick - end_tick) % note.speed == 0) {
+					note.length -= (tick - end_tick) / note.speed;
+				}
+				else {
+					note.length = note.length * note.speed - (tick - end_tick);
+					note.speed = 1;
+				}
 			}
 			note.index = itr_index(commands, command_itr);
 			note.ghost = restarted;
@@ -2622,6 +2637,7 @@ bool Piano_Roll::test_put_note(Song &song, int32_t tick, int32_t length, int32_t
 	}
 
 	for (const Note_View &other : *view) {
+		if (other.ghost) break;
 		if (other.index == note_view->index && other.speed != note_view->speed) {
 			if (length != 1) return false;
 			*out_speed = speed;
@@ -2703,6 +2719,7 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick,
 	if (length != 0) prev_length = length;
 
 	for (const Note_View &other : *view) {
+		if (other.ghost) break;
 		if (other.index == note_view->index && other.speed != note_view->speed) {
 			prev_speed = 0;
 			break;
@@ -2743,6 +2760,7 @@ bool Piano_Roll::apply_format_painter(Song &song, int32_t from_tick, int32_t to_
 
 	bool ambiguous = false;
 	for (const Note_View &other : *view) {
+		if (other.ghost) break;
 		if (other.index == to_view->index && other.speed != to_view->speed) {
 			ambiguous = true;
 			break;
@@ -2792,6 +2810,7 @@ bool Piano_Roll::set_speed(Song &song, int32_t speed) {
 			}
 
 			for (Note_Box *other : *channel) {
+				if (other->ghost()) break;
 				if (other->note_view().index == note_view.index && other->note_view().speed != note_view.speed) {
 					return false; // volatile speed changes not allowed
 				}
@@ -3427,8 +3446,10 @@ bool Piano_Roll::move_left(Song &song, bool dry_run) {
 
 			bool ambiguous = false;
 			for (const Note_View &other : *view) {
+				if (other.ghost) break;
 				if (other.index == note_view.index && other.speed != note_view.speed) {
 					ambiguous = true;
+					break;
 				}
 			}
 
@@ -3446,6 +3467,7 @@ bool Piano_Roll::move_left(Song &song, bool dry_run) {
 						const Note_View *rest_view = find_note_view_at_tick(*view, note->tick() - 1);
 						assert(rest_view && rest_view->index == itr_index(commands, itr.base() - 1));
 						for (const Note_View &other : *view) {
+							if (other.ghost) break;
 							if (other.index == rest_view->index && other.speed != rest_view->speed) {
 								return false;
 							}
@@ -3508,8 +3530,10 @@ bool Piano_Roll::move_right(Song &song, bool dry_run) {
 
 			bool ambiguous = false;
 			for (const Note_View &other : *view) {
+				if (other.ghost) break;
 				if (other.index == note_view.index && other.speed != note_view.speed) {
 					ambiguous = true;
+					break;
 				}
 			}
 
@@ -3629,8 +3653,10 @@ bool Piano_Roll::lengthen(Song &song, bool dry_run) {
 
 			bool ambiguous = false;
 			for (const Note_View &other : *view) {
+				if (other.ghost) break;
 				if (other.index == note_view.index && other.speed != note_view.speed) {
 					ambiguous = true;
+					break;
 				}
 			}
 
@@ -4136,6 +4162,7 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 	}
 
 	for (Note_Box *other : *channel) {
+		if (other->ghost()) break;
 		if (other->note_view().index == end_view.index && other->note_view().speed != end_view.speed) {
 			return false;
 		}
@@ -4143,6 +4170,7 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 
 	bool ambiguous_start = false;
 	for (Note_Box *other : *channel) {
+		if (other->ghost()) break;
 		if (other->note_view().index == start_view.index && other->note_view().speed != start_view.speed) {
 			ambiguous_start = true;
 			break;
@@ -4689,6 +4717,7 @@ bool Piano_Roll::insert_call(Song &song, bool dry_run) {
 	}
 
 	for (const Note_View &other : *view) {
+		if (other.ghost) break;
 		if (other.index == note_view->index && other.speed != note_view->speed) {
 			return false;
 		}
