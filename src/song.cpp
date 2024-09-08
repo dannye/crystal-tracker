@@ -1350,6 +1350,18 @@ void shift_indexes(Command_Indexes &indexes, int32_t index) {
 }
 
 void postprocess(std::vector<Command> &commands) {
+	for (Command &command : commands) {
+		if (command.type == Command_Type::NOTE_TYPE && command.note_type.wave > 15) {
+			command.note_type.wave = 15;
+		}
+		else if (command.type == Command_Type::VOLUME_ENVELOPE && command.volume_envelope.wave > 15) {
+			command.volume_envelope.wave = 15;
+		}
+		else if (command.type == Command_Type::FADE_WAVE && command.fade_wave.wave > 15) {
+			command.fade_wave.wave = 15;
+		}
+	}
+
 	bool deleted = false;
 	do {
 		Note_View view;

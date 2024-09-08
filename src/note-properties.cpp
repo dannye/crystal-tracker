@@ -155,7 +155,7 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	_vibrato_depth_input->value(_note.vibrato_extent);
 	_vibrato_rate_input->value(_note.vibrato_rate);
 	if (channel_number == 3) {
-		_duty_wave_drumkit_input->value(_note.wave);
+		_duty_wave_drumkit_input->value(_note.wave > 15 ? 15 : _note.wave);
 	}
 	else if (channel_number == 4) {
 		_duty_wave_drumkit_input->value(_note.drumkit);
@@ -222,7 +222,8 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 		}
 		if (
 			channel_number == 3 &&
-			note->wave != (int32_t)_duty_wave_drumkit_input->value()
+			note->wave != (int32_t)_duty_wave_drumkit_input->value() &&
+			(note->wave < 15 || (int32_t)_duty_wave_drumkit_input->value() < 15)
 		) {
 			_duty_wave_drumkit_input->label("*&Wave:");
 		}
@@ -419,8 +420,8 @@ void Note_Properties::vibrato_rate_input_cb(OS_Spinner *s, Note_Properties *np) 
 void Note_Properties::duty_wave_drumkit_input_cb(OS_Spinner *s, Note_Properties *np) {
 	if (!s->active()) return;
 
-	int32_t val = (int32_t)s->value();
-	if (np->_channel_number == 3 && val != np->_note.wave) {
+	int32_t val = std::min((int32_t)s->value(), (int32_t)np->_duty_wave_drumkit_input->maximum());
+	if (np->_channel_number == 3 && val != np->_note.wave && (val < 15 || np->_note.wave < 15)) {
 		Main_Window *mw = (Main_Window *)np->user_data();
 		mw->set_wave(val);
 	}
