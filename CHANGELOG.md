@@ -1,6 +1,10 @@
 Changelog
 =========
 
+### Crystal Tracker v0.8.1 (2024-09-08)
+
+ * Minor bug fixes.
+
 ### Crystal Tracker v0.8.0 (2024-08-31)
 
  * Add Format Painter: Copy note properties from one note to another.
