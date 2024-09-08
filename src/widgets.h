@@ -179,6 +179,8 @@ class Dropdown : public Fl_Choice {
 public:
 	Dropdown(int x, int y, int w, int h, const char *l = NULL);
 	void draw(void);
+protected:
+	int handle(int event);
 };
 
 class OS_Scroll : public Fl_Scroll {

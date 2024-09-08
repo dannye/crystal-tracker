@@ -524,6 +524,11 @@ void Dropdown::draw() {
 	draw_label();
 }
 
+int Dropdown::handle(int event) {
+	if (event == FL_SHORTCUT && !Fl::event_state(FL_ALT)) return 0;
+	return Fl_Choice::handle(event);
+}
+
 OS_Scroll::OS_Scroll(int x, int y, int w, int h, const char *l) : Fl_Scroll(x, y, w, h, l) {
 	scrollbar.slider(OS_MINI_BUTTON_UP_BOX);
 	hscrollbar.slider(OS_MINI_BUTTON_UP_BOX);
