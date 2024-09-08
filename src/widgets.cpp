@@ -124,6 +124,7 @@ int OS_Button::handle(int event) {
 	if (event == FL_PUSH) {
 		Fl::focus(this);
 	}
+	if (event == FL_SHORTCUT && !Fl::event_state(FL_ALT)) return 0;
 	return Fl_Button::handle(event);
 }
 
