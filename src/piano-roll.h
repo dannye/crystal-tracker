@@ -341,6 +341,8 @@ public:
 	bool select_none();
 	bool select_invert();
 	bool any_note_selected();
+	int selected_x_min();
+	int selected_x_max();
 
 	void format_painter_start();
 	void format_painter_end();
@@ -584,6 +586,9 @@ public:
 	bool select_invert() { return _piano_timeline.select_invert(); }
 
 	bool any_note_selected() { return _piano_timeline.any_note_selected(); }
+
+	int selected_x_min() { return _piano_timeline.selected_x_min(); };
+	int selected_x_max() { return _piano_timeline.selected_x_max(); };
 
 	void format_painter_start() { _piano_timeline.format_painter_start(); }
 	void format_painter_end() { _piano_timeline.format_painter_end(); }

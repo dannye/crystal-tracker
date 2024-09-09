@@ -1031,6 +1031,34 @@ bool Piano_Timeline::any_note_selected() {
 	return false;
 }
 
+int Piano_Timeline::selected_x_min() {
+	auto channel = active_channel_boxes();
+	assert(channel);
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		if ((*note_itr)->selected()) {
+			return (*note_itr)->x() - x();
+		}
+	}
+
+	assert(false);
+	return 0;
+}
+
+int Piano_Timeline::selected_x_max() {
+	auto channel = active_channel_boxes();
+	assert(channel);
+
+	for (auto note_itr = channel->rbegin(); note_itr != channel->rend(); ++note_itr) {
+		if ((*note_itr)->selected()) {
+			return (*note_itr)->x() - x();
+		}
+	}
+
+	assert(false);
+	return 0;
+}
+
 void Piano_Timeline::format_painter_start() {
 	_format_tick = parent()->tick() != -1 ? parent()->tick() : 0;
 }
@@ -1649,7 +1677,7 @@ int Piano_Roll::handle(int event) {
 			}
 			return 1;
 		}
-		else if (Fl::event_key() == FL_Home) {
+		else if (Fl::event_command() && Fl::event_key() == FL_Home) {
 			if (xposition() > 0) {
 				scroll_to(0, yposition());
 				sticky_keys();
@@ -1660,9 +1688,31 @@ int Piano_Roll::handle(int event) {
 			}
 			return 1;
 		}
-		else if (Fl::event_key() == FL_End) {
+		else if (Fl::event_key() == FL_Home) {
+			if (any_note_selected()) {
+				scroll_to(std::min(std::max(selected_x_min() - (w() - Fl::scrollbar_size()) / 2, 0), scroll_x_max()), yposition());
+				sticky_keys();
+				if (_following) {
+					focus_cursor();
+				}
+				redraw();
+			}
+			return 1;
+		}
+		else if (Fl::event_command() && Fl::event_key() == FL_End) {
 			if (xposition() < scroll_x_max()) {
 				scroll_to(scroll_x_max(), yposition());
+				sticky_keys();
+				if (_following) {
+					focus_cursor();
+				}
+				redraw();
+			}
+			return 1;
+		}
+		else if (Fl::event_key() == FL_End) {
+			if (any_note_selected()) {
+				scroll_to(std::min(std::max(selected_x_max() - (w() - Fl::scrollbar_size()) / 2, 0), scroll_x_max()), yposition());
 				sticky_keys();
 				if (_following) {
 					focus_cursor();
