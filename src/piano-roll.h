@@ -62,21 +62,22 @@ struct Note_Key {
 	const char *label;
 	Pitch pitch;
 	bool white;
+	int neighbor1, neighbor2;
 };
 
 constexpr Note_Key NOTE_KEYS[NUM_NOTES_PER_OCTAVE] {
-	{  0, {  0,  0,  0 }, "B",     Pitch::B_NAT,   true },
-	{  1, {  0,  0, +1 }, "A",     Pitch::A_NAT,   true },
-	{  2, {  0, +1, +1 }, "G",     Pitch::G_NAT,   true },
-	{  3, { +1, +1, +1 }, "F",     Pitch::F_NAT,   true },
-	{  4, { -1, -1, -1 }, "E",     Pitch::E_NAT,   true },
-	{  5, {  0, -1, -1 }, "D",     Pitch::D_NAT,   true },
-	{  6, {  0,  0, -1 }, "C",     Pitch::C_NAT,   true },
-	{  1, {  0,  0,  0 }, "B♭/A♯", Pitch::A_SHARP, false },
-	{  3, {  0,  0,  0 }, "A♭/G♯", Pitch::G_SHARP, false },
-	{  5, {  0,  0,  0 }, "G♭/F♯", Pitch::F_SHARP, false },
-	{  8, {  0,  0,  0 }, "E♭/D♯", Pitch::D_SHARP, false },
-	{ 10, {  0,  0,  0 }, "D♭/C♯", Pitch::C_SHARP, false },
+	{  0, {  0,  0,  0 }, "B",     Pitch::B_NAT,   true,  -1,  7 },
+	{  1, {  0,  0, +1 }, "A",     Pitch::A_NAT,   true,   7,  8 },
+	{  2, {  0, +1, +1 }, "G",     Pitch::G_NAT,   true,   8,  9 },
+	{  3, { +1, +1, +1 }, "F",     Pitch::F_NAT,   true,   9, -1 },
+	{  4, { -1, -1, -1 }, "E",     Pitch::E_NAT,   true,  -1, 10 },
+	{  5, {  0, -1, -1 }, "D",     Pitch::D_NAT,   true,  10, 11 },
+	{  6, {  0,  0, -1 }, "C",     Pitch::C_NAT,   true,  11, -1 },
+	{  1, {  0,  0,  0 }, "B♭/A♯", Pitch::A_SHARP, false, -1, -1 },
+	{  3, {  0,  0,  0 }, "A♭/G♯", Pitch::G_SHARP, false, -1, -1 },
+	{  5, {  0,  0,  0 }, "G♭/F♯", Pitch::F_SHARP, false, -1, -1 },
+	{  8, {  0,  0,  0 }, "E♭/D♯", Pitch::D_SHARP, false, -1, -1 },
+	{ 10, {  0,  0,  0 }, "D♭/C♯", Pitch::C_SHARP, false, -1, -1 },
 };
 constexpr size_t PITCH_TO_KEY_INDEX[NUM_NOTES_PER_OCTAVE] {
 	6,  // C
@@ -244,7 +245,6 @@ public:
 
 	void set_key_color(Pitch pitch, int32_t octave, Fl_Color color);
 	void update_key_colors();
-	void reset_key_colors();
 
 	bool find_key_below_mouse(Key_Box *&key);
 

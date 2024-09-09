@@ -75,14 +75,12 @@ int Key_Box::handle(int event) {
 			mw->play_note(_pitch, _octave)
 		) {
 			parent()->update_key_colors();
-			parent()->redraw();
 			return 1;
 		}
 		break;
 	case FL_RELEASE:
 		if (mw->stop_note()) {
 			parent()->update_key_colors();
-			parent()->redraw();
 			return 1;
 		}
 		break;
@@ -93,7 +91,6 @@ int Key_Box::handle(int event) {
 			mw->play_note(key_below_mouse->_pitch, key_below_mouse->_octave)
 		) {
 			parent()->update_key_colors();
-			parent()->redraw();
 			return 1;
 		}
 		break;
@@ -104,7 +101,6 @@ int Key_Box::handle(int event) {
 		fl_cursor(mw->pencil_mode() ? FL_CURSOR_CROSS : FL_CURSOR_DEFAULT);
 		if (mw->stop_note()) {
 			parent()->update_key_colors();
-			parent()->redraw();
 		}
 		return 1;
 	}
@@ -210,45 +206,51 @@ void Piano_Keys::set_key_color(Pitch pitch, int32_t octave, Fl_Color color) {
 	size_t _y = NUM_OCTAVES - octave;
 	size_t _x = PITCH_TO_KEY_INDEX[(size_t)pitch - 1];
 	size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
-	if (_keys[i]->color() != color) {
+
+	auto reset_key_color = [this, i, pitch, color]() {
+		for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
+			for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
+				size_t ii = _y * NUM_NOTES_PER_OCTAVE + _x;
+				Fl_Color default_color = NOTE_KEYS[_x].white ? BACKGROUND3_COLOR : FL_FOREGROUND_COLOR;
+				if (_keys[ii]->color() == color) {
+					if (pitch == Pitch::REST || i != ii) {
+						_keys[ii]->color(default_color);
+						_keys[ii]->redraw();
+						if (NOTE_KEYS[_x].neighbor1 != -1) {
+							_keys[_y * NUM_NOTES_PER_OCTAVE + NOTE_KEYS[_x].neighbor1]->redraw();
+						}
+						if (NOTE_KEYS[_x].neighbor2 != -1) {
+							_keys[_y * NUM_NOTES_PER_OCTAVE + NOTE_KEYS[_x].neighbor2]->redraw();
+						}
+					}
+					return;
+				}
+			}
+		}
+	};
+	reset_key_color();
+
+	if (pitch != Pitch::REST && _keys[i]->color() != color) {
 		_keys[i]->color(color);
 		_keys[i]->redraw();
+		if (NOTE_KEYS[_x].neighbor1 != -1) {
+			_keys[_y * NUM_NOTES_PER_OCTAVE + NOTE_KEYS[_x].neighbor1]->redraw();
+		}
+		if (NOTE_KEYS[_x].neighbor2 != -1) {
+			_keys[_y * NUM_NOTES_PER_OCTAVE + NOTE_KEYS[_x].neighbor2]->redraw();
+		}
 	}
 }
 
 void Piano_Keys::update_key_colors() {
-	reset_key_colors();
-	if (_channel_1_pitch != Pitch::REST) {
-		set_key_color(_channel_1_pitch, _channel_1_octave, NOTE_RED_LIGHT);
-	}
-	if (_channel_2_pitch != Pitch::REST) {
-		set_key_color(_channel_2_pitch, _channel_2_octave, NOTE_BLUE_LIGHT);
-	}
-	if (_channel_3_pitch != Pitch::REST) {
-		set_key_color(_channel_3_pitch, _channel_3_octave, NOTE_GREEN_LIGHT);
-	}
-	if (_channel_4_pitch != Pitch::REST) {
-		set_key_color(_channel_4_pitch, _channel_4_octave, NOTE_BROWN_LIGHT);
-	}
+	set_key_color(_channel_1_pitch, _channel_1_octave, NOTE_RED_LIGHT);
+	set_key_color(_channel_2_pitch, _channel_2_octave, NOTE_BLUE_LIGHT);
+	set_key_color(_channel_3_pitch, _channel_3_octave, NOTE_GREEN_LIGHT);
+	set_key_color(_channel_4_pitch, _channel_4_octave, NOTE_BROWN_LIGHT);
 
 	Pitch interactive_pitch = parent()->parent()->parent()->playing_pitch();
 	int32_t interactive_octave = parent()->parent()->parent()->playing_octave();
-	if (interactive_pitch != Pitch::REST) {
-		set_key_color(interactive_pitch, interactive_octave, fl_color_average(FL_FOREGROUND_COLOR, BACKGROUND3_COLOR, 0.5f));
-	}
-}
-
-void Piano_Keys::reset_key_colors() {
-	for (size_t _y = 0; _y < NUM_OCTAVES; ++_y) {
-		for (size_t _x = 0; _x < NUM_NOTES_PER_OCTAVE; ++_x) {
-			size_t i = _y * NUM_NOTES_PER_OCTAVE + _x;
-			Fl_Color color = NOTE_KEYS[_x].white ? BACKGROUND3_COLOR : FL_FOREGROUND_COLOR;
-			if (_keys[i]->color() != color) {
-				_keys[i]->color(color);
-				_keys[i]->redraw();
-			}
-		}
-	}
+	set_key_color(interactive_pitch, interactive_octave, fl_color_average(FL_FOREGROUND_COLOR, BACKGROUND3_COLOR, 0.5f));
 }
 
 bool Piano_Keys::find_key_below_mouse(Key_Box *&key) {
@@ -2561,7 +2563,6 @@ void Piano_Roll::highlight_tick(int32_t t) {
 	_piano_timeline.highlight_channel_3_tick(_tick, _channel_3_muted);
 	_piano_timeline.highlight_channel_4_tick(_tick, _channel_4_muted);
 	_piano_timeline._keys.update_key_colors();
-	_piano_timeline._keys.redraw();
 
 	focus_cursor();
 	if (
