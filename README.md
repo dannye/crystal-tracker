@@ -28,6 +28,12 @@ See [INSTALL.md](INSTALL.md) to build from source or run the Windows executable 
 Download the latest dmg from the [Releases](https://github.com/dannye/crystal-tracker/releases) section or run the Windows executable via Wine.
 To build from source, see [INSTALL.md](INSTALL.md).
 
+After installing from the dmg, launching the app may show an error that says that Crystal Tracker "cannot be opened because the developer cannot be verified" or "is damaged and can't be opened". To fix this, clear the "com.apple.quarantine" attribute from the app by running the following command:
+
+```sh
+xattr -c "/Applications/Crystal Tracker.app"
+```
+
 ---
 
 The [example/](example/) directory contains crystaltracked.asm, an original composition by Mickey-A 42.
