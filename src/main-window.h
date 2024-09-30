@@ -144,6 +144,10 @@ private:
 		*_skip_backward_mi = NULL,
 		*_skip_forward_mi = NULL,
 		*_center_playhead_mi = NULL,
+		*_next_bookmark_mi = NULL,
+		*_previous_bookmark_mi = NULL,
+		*_toggle_bookmark_mi = NULL,
+		*_clear_bookmarks_mi = NULL,
 		*_undo_mi = NULL,
 		*_redo_mi = NULL,
 		*_select_all_mi = NULL,
@@ -361,6 +365,10 @@ private:
 	static void skip_backward_cb(Fl_Widget *w, Main_Window *mw);
 	static void skip_forward_cb(Fl_Widget *w, Main_Window *mw);
 	static void center_playhead_cb(Fl_Widget *w, Main_Window *mw);
+	static void next_bookmark_cb(Fl_Widget *w, Main_Window *mw);
+	static void previous_bookmark_cb(Fl_Widget *w, Main_Window *mw);
+	static void toggle_bookmark_cb(Fl_Widget *w, Main_Window *mw);
+	static void clear_bookmarks_cb(Fl_Widget *w, Main_Window *mw);
 	// Edit menu
 	static void undo_cb(Fl_Widget *w, Main_Window *mw);
 	static void redo_cb(Fl_Widget *w, Main_Window *mw);

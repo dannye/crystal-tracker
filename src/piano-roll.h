@@ -36,6 +36,8 @@ const Fl_Color FLAG_VIBRATO           = FL_YELLOW;
 const Fl_Color FLAG_DUTY_WAVE_DRUMKIT = fl_rgb_color(255, 128, 0);
 const Fl_Color FLAG_OTHER             = fl_rgb_color(128);
 
+const Fl_Color BOOKMARK_COLOR = fl_rgb_color(255, 128, 0);
+
 constexpr size_t NUM_WHITE_NOTES = 7;
 constexpr size_t NUM_BLACK_NOTES = 5;
 
@@ -292,6 +294,8 @@ private:
 	std::set<int32_t> _channel_3_tempo_changes;
 	std::set<int32_t> _channel_4_tempo_changes;
 
+	std::set<int32_t> _bookmarks;
+
 	int32_t _cursor_tick = -1;
 
 	struct Selection_Region {
@@ -482,6 +486,10 @@ public:
 	void skip_backward();
 	void skip_forward();
 	bool center_playhead();
+	bool next_bookmark();
+	bool previous_bookmark();
+	bool toggle_bookmark();
+	bool clear_bookmarks();
 	void zoom(int z);
 	void ticks_per_step(int t) { _ticks_per_step = t; }
 	void key_labels(bool show) { _piano_timeline._keys.key_labels(show); }
@@ -520,7 +528,7 @@ public:
 	void stop_following();
 	void pause_following();
 	void highlight_tick(int32_t t);
-	void focus_cursor(bool center = false);
+	void focus_cursor(bool center = false, bool force = false);
 	void sticky_keys();
 
 	void scroll_to_y_max();
@@ -603,7 +611,6 @@ private:
 
 	std::vector<Note_View> *active_channel_view();
 	std::vector<Note_View> &channel_view(const int selected_channel);
-	int32_t active_channel_length();
 
 	static void scrollbar_cb(Fl_Scrollbar *sb, void *);
 	static void hscrollbar_cb(Fl_Scrollbar *sb, void *);

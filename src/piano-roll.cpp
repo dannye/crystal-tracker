@@ -344,6 +344,8 @@ void Piano_Timeline::clear() {
 	_channel_3_tempo_changes.clear();
 	_channel_4_tempo_changes.clear();
 
+	_bookmarks.clear();
+
 	_selection_region.x = -1;
 	_selection_region.y = -1;
 	_selection_region.w = 0;
@@ -1519,6 +1521,13 @@ void Piano_Timeline::draw() {
 			}
 		}
 
+		fl_color(BOOKMARK_COLOR);
+		for (int32_t tick : _bookmarks) {
+			x_pos = x() + tick * tick_width + WHITE_KEY_WIDTH;
+			yxline(x_pos - 1, y(), y() + h(), px, pw);
+			yxline(x_pos, y(), y() + h(), px, pw);
+		}
+
 		_cursor_tick = p->tick();
 		if (_cursor_tick != -1 && (parent()->following() || parent()->paused())) {
 			_cursor_tick = _cursor_tick / ticks_per_step * ticks_per_step;
@@ -1875,6 +1884,65 @@ bool Piano_Roll::center_playhead() {
 	if (_song_length == -1) return false;
 
 	return set_tick_from_x_pos((w() - Fl::scrollbar_size()) / 2);
+}
+
+bool Piano_Roll::next_bookmark() {
+	if (_song_length == -1) return false;
+	if (_piano_timeline._bookmarks.size() == 0) return false;
+
+	int32_t next_bookmark = quantize_tick(*_piano_timeline._bookmarks.begin());
+	for (auto itr = _piano_timeline._bookmarks.begin(); itr != _piano_timeline._bookmarks.end(); ++itr) {
+		int32_t bookmark = quantize_tick(*itr);
+		if (bookmark > _tick) {
+			next_bookmark = bookmark;
+			break;
+		}
+	}
+
+	_tick = next_bookmark;
+	parent()->set_song_position(_tick);
+	return true;
+}
+
+bool Piano_Roll::previous_bookmark() {
+	if (_song_length == -1) return false;
+	if (_piano_timeline._bookmarks.size() == 0) return false;
+
+	int32_t prev_bookmark = quantize_tick(*_piano_timeline._bookmarks.rbegin());
+	for (auto itr = _piano_timeline._bookmarks.rbegin(); itr != _piano_timeline._bookmarks.rend(); ++itr) {
+		int32_t bookmark = quantize_tick(*itr);
+		if (bookmark < _tick) {
+			prev_bookmark = bookmark;
+			break;
+		}
+	}
+
+	_tick = prev_bookmark;
+	parent()->set_song_position(_tick);
+	return true;
+}
+
+bool Piano_Roll::toggle_bookmark() {
+	if (_song_length == -1) return false;
+	if (_tick == -1) return false;
+
+	if (_piano_timeline._bookmarks.count(_tick)) {
+		_piano_timeline._bookmarks.erase(_tick);
+	}
+	else {
+		_piano_timeline._bookmarks.insert(_tick);
+	}
+
+	return true;
+}
+
+bool Piano_Roll::clear_bookmarks() {
+	if (_song_length == -1) return false;
+	if (_piano_timeline._bookmarks.size() == 0) return false;
+
+	_piano_timeline._bookmarks.clear();
+
+	return true;
 }
 
 void Piano_Roll::zoom(int z) {
@@ -2492,11 +2560,12 @@ int32_t Piano_Roll::get_last_note_x() const {
 
 int32_t Piano_Roll::get_current_tempo() {
 	int32_t tempo = 256;
+	int32_t tick = _tick == _song_length ? _tick - 1 : _tick;
 
 	int first_channel = first_channel_number();
 	if (first_channel != 0) {
 		const std::vector<Note_View> &view = channel_view(first_channel);
-		const Note_View *note_view = find_note_view_at_tick(view, _tick != -1 ? _tick : 0);
+		const Note_View *note_view = find_note_view_at_tick(view, tick != -1 ? tick : 0);
 
 		if (note_view && note_view->tempo != 0) {
 			tempo = note_view->tempo;
@@ -2623,10 +2692,10 @@ void Piano_Roll::highlight_tick(int32_t t) {
 	}
 }
 
-void Piano_Roll::focus_cursor(bool center) {
+void Piano_Roll::focus_cursor(bool center, bool force) {
 	int x_pos = (_tick / ticks_per_step() * ticks_per_step()) * tick_width();
-	if ((_following && _continuous) || x_pos > xposition() + w() - WHITE_KEY_WIDTH * 2 || x_pos < xposition()) {
-		int scroll_pos = center ? x_pos + WHITE_KEY_WIDTH - w() / 2 : x_pos;
+	if ((_following && _continuous) || force || x_pos > xposition() + w() - WHITE_KEY_WIDTH * 2 || x_pos < xposition()) {
+		int scroll_pos = center ? x_pos + WHITE_KEY_WIDTH - (w() - Fl::scrollbar_size()) / 2 : x_pos;
 		scroll_to(std::min(std::max(scroll_pos, 0), scroll_x_max()), yposition());
 		sticky_keys();
 	}
@@ -4824,7 +4893,6 @@ int32_t Piano_Roll::quantize_tick(int32_t tick, bool round) {
 			}
 			t_left = t_right;
 		}
-		return active_channel_length();
 	}
 	return tick / ticks_per_step() * ticks_per_step();
 }
@@ -4970,15 +5038,6 @@ std::vector<Note_View> &Piano_Roll::channel_view(const int selected_channel) {
 	else {
 		return _channel_4_notes;
 	}
-}
-
-int32_t Piano_Roll::active_channel_length() {
-	int active_channel = selected_channel();
-	if (active_channel == 1) return _channel_1_end_tick;
-	if (active_channel == 2) return _channel_2_end_tick;
-	if (active_channel == 3) return _channel_3_end_tick;
-	if (active_channel == 4) return _channel_4_end_tick;
-	return -1;
 }
 
 void Piano_Roll::scrollbar_cb(Fl_Scrollbar *sb, void *) {

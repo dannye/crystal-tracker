@@ -263,7 +263,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("Step Forward", ']', (Fl_Callback *)step_forward_cb, this, FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Skip Backward", FL_COMMAND + '[', (Fl_Callback *)skip_backward_cb, this, 0),
 		SYS_MENU_ITEM("Skip Forward", FL_COMMAND + ']', (Fl_Callback *)skip_forward_cb, this, 0),
-		SYS_MENU_ITEM("Center Playhead", FL_COMMAND + '\\', (Fl_Callback *)center_playhead_cb, this, 0),
+		SYS_MENU_ITEM("Center Playhead", FL_COMMAND + '\\', (Fl_Callback *)center_playhead_cb, this, FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("Next Bookmark", FL_F + 2, (Fl_Callback *)next_bookmark_cb, this, 0),
+		SYS_MENU_ITEM("Previous Bookmark", FL_SHIFT + FL_F + 2, (Fl_Callback *)previous_bookmark_cb, this, 0),
+		SYS_MENU_ITEM("Toggle Bookmark", FL_COMMAND + FL_F + 2, (Fl_Callback *)toggle_bookmark_cb, this, 0),
+		SYS_MENU_ITEM("Clear All Bookmarks", FL_COMMAND + FL_SHIFT + FL_F + 2, (Fl_Callback *)clear_bookmarks_cb, this, 0),
 		{},
 		OS_SUBMENU("&Edit"),
 		SYS_MENU_ITEM("&Undo", FL_COMMAND + 'z', (Fl_Callback *)undo_cb, this, 0),
@@ -421,6 +425,10 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_skip_backward_mi = CT_FIND_MENU_ITEM_CB(skip_backward_cb);
 	_skip_forward_mi = CT_FIND_MENU_ITEM_CB(skip_forward_cb);
 	_center_playhead_mi = CT_FIND_MENU_ITEM_CB(center_playhead_cb);
+	_next_bookmark_mi = CT_FIND_MENU_ITEM_CB(next_bookmark_cb);
+	_previous_bookmark_mi = CT_FIND_MENU_ITEM_CB(previous_bookmark_cb);
+	_toggle_bookmark_mi = CT_FIND_MENU_ITEM_CB(toggle_bookmark_cb);
+	_clear_bookmarks_mi = CT_FIND_MENU_ITEM_CB(clear_bookmarks_cb);
 	_undo_mi = CT_FIND_MENU_ITEM_CB(undo_cb);
 	_redo_mi = CT_FIND_MENU_ITEM_CB(redo_cb);
 	_select_all_mi = CT_FIND_MENU_ITEM_CB(select_all_cb);
@@ -1230,6 +1238,10 @@ void Main_Window::update_active_controls() {
 		_skip_backward_mi->activate();
 		_skip_forward_mi->activate();
 		_center_playhead_mi->activate();
+		_next_bookmark_mi->activate();
+		_previous_bookmark_mi->activate();
+		_toggle_bookmark_mi->activate();
+		_clear_bookmarks_mi->activate();
 		if (_song.can_undo() && stopped) {
 			_undo_mi->activate();
 			_undo_tb->activate();
@@ -1472,6 +1484,10 @@ void Main_Window::update_active_controls() {
 		_skip_backward_mi->deactivate();
 		_skip_forward_mi->deactivate();
 		_center_playhead_mi->deactivate();
+		_next_bookmark_mi->deactivate();
+		_previous_bookmark_mi->deactivate();
+		_toggle_bookmark_mi->deactivate();
+		_clear_bookmarks_mi->deactivate();
 		_undo_mi->deactivate();
 		_undo_tb->deactivate();
 		_redo_mi->deactivate();
@@ -2760,6 +2776,32 @@ void Main_Window::skip_forward_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::center_playhead_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->_piano_roll->center_playhead()) {
 		mw->_piano_roll->focus_cursor(!(mw->_piano_roll->following() && mw->continuous_scroll()));
+		mw->redraw();
+	}
+}
+
+void Main_Window::next_bookmark_cb(Fl_Widget *, Main_Window *mw) {
+	if (mw->_piano_roll->next_bookmark()) {
+		mw->_piano_roll->focus_cursor(!(mw->_piano_roll->following() && mw->continuous_scroll()), true);
+		mw->redraw();
+	}
+}
+
+void Main_Window::previous_bookmark_cb(Fl_Widget *, Main_Window *mw) {
+	if (mw->_piano_roll->previous_bookmark()) {
+		mw->_piano_roll->focus_cursor(!(mw->_piano_roll->following() && mw->continuous_scroll()), true);
+		mw->redraw();
+	}
+}
+
+void Main_Window::toggle_bookmark_cb(Fl_Widget *, Main_Window *mw) {
+	if (mw->_piano_roll->toggle_bookmark()) {
+		mw->redraw();
+	}
+}
+
+void Main_Window::clear_bookmarks_cb(Fl_Widget *, Main_Window *mw) {
+	if (mw->_piano_roll->clear_bookmarks()) {
 		mw->redraw();
 	}
 }
