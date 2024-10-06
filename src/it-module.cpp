@@ -176,7 +176,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave>
 	const uint32_t sample_length = 64;
 	const uint32_t sample_loop_begin = 0;
 	const uint32_t sample_loop_end = 64;
-	const uint32_t sample_speed = 8363 * 4;
+	const uint32_t sample_speed = 33520;
 	const uint32_t sample_sustain_loop_begin = 0;
 	const uint32_t sample_sustain_loop_end = 0;
 	const uint32_t sample_vibrato_speed = 0;

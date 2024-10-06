@@ -505,9 +505,9 @@ void Piano_Timeline::calc_sizes() {
 
 	const auto resize_wrappers = [&](auto &wrappers) {
 		for (Wrapper_Box *wrapper : wrappers) {
-			int x_left =   tick_to_x_pos(wrapper->start_tick());
-			int x_right =  tick_to_x_pos(wrapper->end_tick());
-			int y_top =    pitch_to_y_pos(wrapper->max_pitch(), wrapper->max_octave());
+			int x_left   = tick_to_x_pos(wrapper->start_tick());
+			int x_right  = tick_to_x_pos(wrapper->end_tick());
+			int y_top    = pitch_to_y_pos(wrapper->max_pitch(), wrapper->max_octave());
 			int y_bottom = pitch_to_y_pos(wrapper->min_pitch(), wrapper->min_octave());
 			wrapper->resize(
 				x_left,
@@ -2482,9 +2482,9 @@ void Piano_Roll::build_note_view(
 				wrapper->set_min_pitch(Pitch::C_NAT, 1);
 				wrapper->set_max_pitch(Pitch::B_NAT, 8);
 			}
-			int x_left =   tick_to_x_pos(wrapper->start_tick());
-			int x_right =  tick_to_x_pos(wrapper->end_tick());
-			int y_top =    pitch_to_y_pos(wrapper->max_pitch(), wrapper->max_octave());
+			int x_left   = tick_to_x_pos(wrapper->start_tick());
+			int x_right  = tick_to_x_pos(wrapper->end_tick());
+			int y_top    = pitch_to_y_pos(wrapper->max_pitch(), wrapper->max_octave());
 			int y_bottom = pitch_to_y_pos(wrapper->min_pitch(), wrapper->min_octave());
 			wrapper->resize(
 				x_left,

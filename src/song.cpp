@@ -3321,25 +3321,25 @@ void Song::resize_song(const Song_Options_Dialog::Song_Options &options) {
 		std::vector<Command> &commands = channel_commands(1);
 		resize_channel(1, commands, channel_label(1), options.looping ? options.channel_1_loop_tick : -1, options.channel_1_end_tick);
 		if (options.looping) _channel_1_loop_tick = options.channel_1_loop_tick;
-		_channel_1_end_tick  = options.channel_1_end_tick;
+		_channel_1_end_tick = options.channel_1_end_tick;
 	}
 	if (options.channel_2) {
 		std::vector<Command> &commands = channel_commands(2);
 		resize_channel(2, commands, channel_label(2), options.looping ? options.channel_2_loop_tick : -1, options.channel_2_end_tick);
 		if (options.looping) _channel_2_loop_tick = options.channel_2_loop_tick;
-		_channel_2_end_tick  = options.channel_2_end_tick;
+		_channel_2_end_tick = options.channel_2_end_tick;
 	}
 	if (options.channel_3) {
 		std::vector<Command> &commands = channel_commands(3);
 		resize_channel(3, commands, channel_label(3), options.looping ? options.channel_3_loop_tick : -1, options.channel_3_end_tick);
 		if (options.looping) _channel_3_loop_tick = options.channel_3_loop_tick;
-		_channel_3_end_tick  = options.channel_3_end_tick;
+		_channel_3_end_tick = options.channel_3_end_tick;
 	}
 	if (options.channel_4) {
 		std::vector<Command> &commands = channel_commands(4);
 		resize_channel(4, commands, channel_label(4), options.looping ? options.channel_4_loop_tick : -1, options.channel_4_end_tick);
 		if (options.looping) _channel_4_loop_tick = options.channel_4_loop_tick;
-		_channel_4_end_tick  = options.channel_4_end_tick;
+		_channel_4_end_tick = options.channel_4_end_tick;
 	}
 
 	_modified = true;

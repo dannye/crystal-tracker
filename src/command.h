@@ -359,7 +359,7 @@ struct Note_View {
 	};
 	int32_t drumkit = 0;
 
-	int32_t tempo  = 0;
+	int32_t tempo = 0;
 
 	int32_t duty = 0;
 

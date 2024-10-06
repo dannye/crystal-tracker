@@ -67,9 +67,9 @@ public:
 	bool stopped() { return !playing() && !paused(); }
 	bool looping() { return _mod->get_repeat_count() == -1; }
 
-	bool start()   { _paused = false; return Pa_StartStream(_stream.paStream()) == paNoError; }
-	bool stop()    { _paused = false; return Pa_StopStream(_stream.paStream())  == paNoError; }
-	bool pause()   { _paused = true;  return Pa_StopStream(_stream.paStream())  == paNoError; }
+	bool start() { _paused = false; return Pa_StartStream(_stream.paStream()) == paNoError; }
+	bool stop()  { _paused = false; return Pa_StopStream(_stream.paStream())  == paNoError; }
+	bool pause() { _paused = true;  return Pa_StopStream(_stream.paStream())  == paNoError; }
 	bool play();
 
 	void mute_channel(int32_t channel, bool mute);
