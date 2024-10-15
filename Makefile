@@ -113,7 +113,6 @@ appdir: release
 	install -m644 $(resdir)/Info.plist $(CONTENTS)/Info.plist
 	printf 'APPL????' > $(CONTENTS)/PkgInfo
 
-
 create-dmg = create-dmg
 
 appdmg: appdir
@@ -136,7 +135,6 @@ appdmg: appdir
 install: appdir
 	rm -rf "/Applications/$(APPNAME).app"
 	cp -av $(APPDIR) "/Applications/$(APPNAME).app"
-# Remove admin-owned files if ran as "sudo"
 	rm -rf $(APPDIR)
 
 uninstall:
