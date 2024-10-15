@@ -3016,8 +3016,9 @@ void OS::use_brushed_metal_theme() {
 
 static void high_contrast_button_up_frame(int x, int y, int w, int h, Fl_Color) {
 	fl_color(activated_color(fl_rgb_color(0x00, 0xFF, 0xFF)));
-	fl_rect(x, y, w, h);
-	fl_rect(x+1, y+1, w-2, h-2);
+	fl_line_style(FL_SOLID, 2);
+	fl_rect(x+1, y+1, w-1, h-1);
+	fl_line_style(FL_SOLID);
 }
 
 static void high_contrast_button_up_box(int x, int y, int w, int h, Fl_Color c) {
@@ -3028,8 +3029,9 @@ static void high_contrast_button_up_box(int x, int y, int w, int h, Fl_Color c) 
 
 static void high_contrast_check_down_frame(int x, int y, int w, int h, Fl_Color) {
 	fl_color(activated_color(fl_rgb_color(0x00, 0x80, 0x80)));
-	fl_rect(x, y, w, h);
-	fl_rect(x+1, y+1, w-2, h-2);
+	fl_line_style(FL_SOLID, 2);
+	fl_rect(x+1, y+1, w-1, h-1);
+	fl_line_style(FL_SOLID);
 }
 
 static void high_contrast_check_down_box(int x, int y, int w, int h, Fl_Color c) {
@@ -3062,8 +3064,9 @@ static void high_contrast_spacer_thin_down_box(int x, int y, int w, int h, Fl_Co
 
 static void high_contrast_default_button_up_frame(int x, int y, int w, int h, Fl_Color) {
 	fl_color(activated_color(fl_rgb_color(0xFF, 0xFF, 0xFF)));
-	fl_rect(x, y, w, h);
-	fl_rect(x+1, y+1, w-2, h-2);
+	fl_line_style(FL_SOLID, 2);
+	fl_rect(x+1, y+1, w-1, h-1);
+	fl_line_style(FL_SOLID);
 }
 
 static void high_contrast_default_button_up_box(int x, int y, int w, int h, Fl_Color c) {
@@ -3086,8 +3089,9 @@ static void high_contrast_radio_round_down_box(int x, int y, int w, int h, Fl_Co
 
 static void high_contrast_hovered_up_frame(int x, int y, int w, int h, Fl_Color) {
 	fl_color(activated_color(fl_rgb_color(0xFF, 0xFF, 0xFF)));
-	fl_rect(x, y, w, h);
-	fl_rect(x+1, y+1, w-2, h-2);
+	fl_line_style(FL_SOLID, 2);
+	fl_rect(x+1, y+1, w-1, h-1);
+	fl_line_style(FL_SOLID);
 }
 
 static void high_contrast_hovered_up_box(int x, int y, int w, int h, Fl_Color c) {

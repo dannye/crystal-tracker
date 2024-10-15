@@ -26,42 +26,60 @@ Note_Box::Note_Box(const Note_View &n, int32_t t, int X, int Y, int W, int H, co
 }
 
 void Note_Box::draw() {
-	draw_box();
+	if (box() != FL_BORDER_FRAME) draw_box();
 	if (ghost()) {
-		draw_box(FL_BORDER_FRAME, NOTE_GHOST);
-		if (box() != FL_BORDER_FRAME && x() + w() > 1) {
-			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, NOTE_GHOST);
-			draw_box(FL_BORDER_FRAME, x() + 2, y() + 2, w() - 4, h() - 4, NOTE_GHOST);
+		if (box() == FL_BORDER_FRAME) {
+			fl_color(NOTE_GHOST);
+			fl_line_style(FL_SOLID, 2);
+			fl_rect(x()+1, y()+1, w()-1, h()-1);
+			fl_line_style(FL_SOLID);
 		}
-		else if (box() == FL_BORDER_FRAME && x() + w() > 1) {
-			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, NOTE_GHOST);
+		else {
+			fl_color(NOTE_GHOST);
+			fl_line_style(FL_SOLID, 3);
+			fl_rect(x()+1, y()+1, w()-2, h()-2);
+			fl_line_style(FL_SOLID);
 		}
 	}
 	else if (selected()) {
-		draw_box(FL_BORDER_FRAME, FL_FOREGROUND_COLOR);
-		if (box() != FL_BORDER_FRAME && x() + w() > 1) {
-			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, FL_WHITE);
-			draw_box(FL_BORDER_FRAME, x() + 2, y() + 2, w() - 4, h() - 4, FL_WHITE);
+		if (box() == FL_BORDER_FRAME) {
+			fl_color(FL_FOREGROUND_COLOR);
+			fl_line_style(FL_SOLID, 2);
+			fl_rect(x()+1, y()+1, w()-1, h()-1);
+			fl_line_style(FL_SOLID);
 		}
-		else if (box() == FL_BORDER_FRAME && x() + w() > 1) {
-			draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, FL_FOREGROUND_COLOR);
+		else {
+			fl_color(FL_WHITE);
+			fl_line_style(FL_SOLID, 3);
+			fl_rect(x()+1, y()+1, w()-2, h()-2);
+			fl_line_style(FL_SOLID);
+			draw_box(FL_BORDER_FRAME, FL_FOREGROUND_COLOR);
 		}
 	}
-	else if (box() == FL_BORDER_FRAME && x() + w() > 1) {
-		draw_box(FL_BORDER_FRAME, x() + 1, y() + 1, w() - 2, h() - 2, color());
+	else if (box() == FL_BORDER_FRAME) {
+		fl_color(color());
+		fl_line_style(FL_SOLID, 2);
+		fl_rect(x()+1, y()+1, w()-1, h()-1);
+		fl_line_style(FL_SOLID);
 	}
 	draw_label();
 }
 
 void Loop_Box::draw() {
-	draw_box();
-	draw_box(box(), x() - 1, y() - 1, w() + 2, h() + 2, color());
+	if (box() == FL_NO_BOX) return;
+	fl_color(color());
+	fl_line_style(FL_SOLID, 2);
+	fl_rect(x(), y(), w() + 1, h() + 1);
+	fl_line_style(FL_SOLID);
 	draw_label();
 }
 
 void Call_Box::draw() {
-	draw_box(box(), selected() ? FL_CYAN : color());
-	draw_box(box(), x() - 1, y() - 1, w() + 2, h() + 2, selected() ? FL_CYAN : color());
+	if (box() == FL_NO_BOX) return;
+	fl_color(selected() ? FL_CYAN : color());
+	fl_line_style(FL_SOLID, 2);
+	fl_rect(x(), y(), w() + 1, h() + 1);
+	fl_line_style(FL_SOLID);
 	draw_label();
 }
 
