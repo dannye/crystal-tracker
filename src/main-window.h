@@ -224,6 +224,7 @@ private:
 	std::promise<void> _interactive_kill_signal;
 	// Window size cache
 	int _wx, _wy, _ww, _wh;
+	float _scale = 1.0f;
 #ifdef __X11__
 	// Window icons
 	Pixmap _icon_pixmap, _icon_mask;
@@ -233,6 +234,7 @@ public:
 	~Main_Window();
 	void show(void) override;
 	void resize(int X, int Y, int W, int H) override;
+	void draw() override;
 	bool maximized(void) const;
 	void maximize(void);
 	inline bool loop_verification(void) const { return _loop_verification_mi && !!_loop_verification_mi->value(); }
@@ -331,6 +333,7 @@ private:
 	void stop_audio_thread();
 	void start_interactive_thread();
 	void stop_interactive_thread();
+	void update_icon_resolution(void);
 	void update_icons(void);
 	void update_ruler(void);
 	void update_zoom(void);

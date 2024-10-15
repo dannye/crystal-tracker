@@ -489,7 +489,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	_new_tb->tooltip("New... (" COMMAND_KEY_PLUS "N)");
 	_new_tb->callback((Fl_Callback *)new_cb, this);
-	_new_tb->image(NEW_ICON);
+	_new_tb->image(NEW_ICON.get(_scale));
 #ifndef __APPLE__
 	_new_tb->shortcut(FL_COMMAND + 'n');
 #endif
@@ -497,209 +497,209 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	_open_tb->tooltip("Open... (" COMMAND_KEY_PLUS "O)");
 	_open_tb->callback((Fl_Callback *)open_cb, this);
-	_open_tb->image(OPEN_ICON);
+	_open_tb->image(OPEN_ICON.get(_scale));
 #ifndef __APPLE__
 	_open_tb->shortcut(FL_COMMAND + 'o');
 #endif
 
 	_save_tb->tooltip("Save (" COMMAND_KEY_PLUS "S)");
 	_save_tb->callback((Fl_Callback *)save_cb, this);
-	_save_tb->image(SAVE_ICON);
+	_save_tb->image(SAVE_ICON.get(_scale));
 #ifndef __APPLE__
 	_save_tb->shortcut(FL_COMMAND + 's');
 #endif
 
 	_save_as_tb->tooltip("Save As... (" COMMAND_SHIFT_KEYS_PLUS "S)");
 	_save_as_tb->callback((Fl_Callback *)save_as_cb, this);
-	_save_as_tb->image(SAVE_AS_ICON);
+	_save_as_tb->image(SAVE_AS_ICON.get(_scale));
 #ifndef __APPLE__
 	_save_as_tb->shortcut(FL_COMMAND + 'S');
 #endif
 
 	_play_pause_tb->tooltip("Play/Pause (Spacebar)");
 	_play_pause_tb->callback((Fl_Callback *)play_pause_cb, this);
-	_play_pause_tb->image(PLAY_ICON);
+	_play_pause_tb->image(PLAY_ICON.get(_scale));
 
 	_stop_tb->tooltip("Stop (Esc)");
 	_stop_tb->callback((Fl_Callback *)stop_cb, this);
-	_stop_tb->image(STOP_ICON);
+	_stop_tb->image(STOP_ICON.get(_scale));
 
 	_loop_verification_tb->tooltip("Loop Verification (" COMMAND_SHIFT_KEYS_PLUS "L)");
 	_loop_verification_tb->callback((Fl_Callback *)loop_verification_tb_cb, this);
-	_loop_verification_tb->image(VERIFY_ICON);
+	_loop_verification_tb->image(VERIFY_ICON.get(_scale));
 	_loop_verification_tb->value(loop_verification());
 
 	_loop_tb->tooltip("Loop (" COMMAND_KEY_PLUS "L)");
 	_loop_tb->callback((Fl_Callback *)loop_tb_cb, this);
-	_loop_tb->image(LOOP_ICON);
+	_loop_tb->image(LOOP_ICON.get(_scale));
 	_loop_tb->value(loop());
 
 	_continuous_tb->tooltip("Continuous Scroll (\\)");
 	_continuous_tb->callback((Fl_Callback *)continuous_tb_cb, this);
-	_continuous_tb->image(SCROLL_LIGHT_ICON);
+	_continuous_tb->image(SCROLL_LIGHT_ICON.get(_scale));
 	_continuous_tb->value(continuous_scroll());
 
 	_undo_tb->tooltip("Undo (" COMMAND_KEY_PLUS "Z)");
 	_undo_tb->callback((Fl_Callback *)undo_cb, this);
-	_undo_tb->image(UNDO_ICON);
+	_undo_tb->image(UNDO_ICON.get(_scale));
 #ifndef __APPLE__
 	_undo_tb->shortcut(FL_COMMAND + 'z');
 #endif
 
 	_redo_tb->tooltip("Redo (" COMMAND_KEY_PLUS "Y)");
 	_redo_tb->callback((Fl_Callback *)redo_cb, this);
-	_redo_tb->image(REDO_ICON);
+	_redo_tb->image(REDO_ICON.get(_scale));
 #ifndef __APPLE__
 	_redo_tb->shortcut(FL_COMMAND + 'y');
 #endif
 
 	_pitch_up_tb->tooltip("Pitch Up (" COMMAND_KEY_PLUS UP_SYMBOL ")");
 	_pitch_up_tb->callback((Fl_Callback *)pitch_up_cb, this);
-	_pitch_up_tb->image(UP_ICON);
+	_pitch_up_tb->image(UP_ICON.get(_scale));
 #ifndef __APPLE__
 	_pitch_up_tb->shortcut(FL_COMMAND + FL_Up);
 #endif
 
 	_pitch_down_tb->tooltip("Pitch Down (" COMMAND_KEY_PLUS DOWN_SYMBOL ")");
 	_pitch_down_tb->callback((Fl_Callback *)pitch_down_cb, this);
-	_pitch_down_tb->image(DOWN_ICON);
+	_pitch_down_tb->image(DOWN_ICON.get(_scale));
 #ifndef __APPLE__
 	_pitch_down_tb->shortcut(FL_COMMAND + FL_Down);
 #endif
 
 	_octave_up_tb->tooltip("Octave Up (" COMMAND_SHIFT_KEYS_PLUS UP_SYMBOL ")");
 	_octave_up_tb->callback((Fl_Callback *)octave_up_cb, this);
-	_octave_up_tb->image(UP_UP_ICON);
+	_octave_up_tb->image(UP_UP_ICON.get(_scale));
 #ifndef __APPLE__
 	_octave_up_tb->shortcut(FL_COMMAND + FL_SHIFT + FL_Up);
 #endif
 
 	_octave_down_tb->tooltip("Octave Down (" COMMAND_SHIFT_KEYS_PLUS DOWN_SYMBOL ")");
 	_octave_down_tb->callback((Fl_Callback *)octave_down_cb, this);
-	_octave_down_tb->image(DOWN_DOWN_ICON);
+	_octave_down_tb->image(DOWN_DOWN_ICON.get(_scale));
 #ifndef __APPLE__
 	_octave_down_tb->shortcut(FL_COMMAND + FL_SHIFT + FL_Down);
 #endif
 
 	_move_left_tb->tooltip("Move Left (" COMMAND_KEY_PLUS LEFT_SYMBOL ")");
 	_move_left_tb->callback((Fl_Callback *)move_left_cb, this);
-	_move_left_tb->image(LEFT_ICON);
+	_move_left_tb->image(LEFT_ICON.get(_scale));
 #ifndef __APPLE__
 	_move_left_tb->shortcut(FL_COMMAND + FL_Left);
 #endif
 
 	_move_right_tb->tooltip("Move Right (" COMMAND_KEY_PLUS RIGHT_SYMBOL ")");
 	_move_right_tb->callback((Fl_Callback *)move_right_cb, this);
-	_move_right_tb->image(RIGHT_ICON);
+	_move_right_tb->image(RIGHT_ICON.get(_scale));
 #ifndef __APPLE__
 	_move_right_tb->shortcut(FL_COMMAND + FL_Right);
 #endif
 
 	_shorten_tb->tooltip("Shorten (" COMMAND_SHIFT_KEYS_PLUS LEFT_SYMBOL ")");
 	_shorten_tb->callback((Fl_Callback *)shorten_cb, this);
-	_shorten_tb->image(MINUS_ICON);
+	_shorten_tb->image(MINUS_ICON.get(_scale));
 #ifndef __APPLE__
 	_shorten_tb->shortcut(FL_COMMAND + FL_SHIFT + FL_Left);
 #endif
 
 	_lengthen_tb->tooltip("Lengthen (" COMMAND_SHIFT_KEYS_PLUS RIGHT_SYMBOL ")");
 	_lengthen_tb->callback((Fl_Callback *)lengthen_cb, this);
-	_lengthen_tb->image(PLUS_ICON);
+	_lengthen_tb->image(PLUS_ICON.get(_scale));
 #ifndef __APPLE__
 	_lengthen_tb->shortcut(FL_COMMAND + FL_SHIFT + FL_Right);
 #endif
 
 	_delete_selection_tb->tooltip("Delete Selection (" DELETE_SYMBOL ")");
 	_delete_selection_tb->callback((Fl_Callback *)delete_selection_cb, this);
-	_delete_selection_tb->image(DELETE_ICON);
+	_delete_selection_tb->image(DELETE_ICON.get(_scale));
 #ifndef __APPLE__
 	_delete_selection_tb->shortcut(DELETE_KEY);
 #endif
 
 	_snip_selection_tb->tooltip("Snip Selection (" SHIFT_KEY_PLUS DELETE_SYMBOL ")");
 	_snip_selection_tb->callback((Fl_Callback *)snip_selection_cb, this);
-	_snip_selection_tb->image(SNIP_ICON);
+	_snip_selection_tb->image(SNIP_ICON.get(_scale));
 #ifndef __APPLE__
 	_snip_selection_tb->shortcut(FL_SHIFT + DELETE_KEY);
 #endif
 
 	_split_note_tb->tooltip("Split Note (/)");
 	_split_note_tb->callback((Fl_Callback *)split_note_cb, this);
-	_split_note_tb->image(SPLIT_LIGHT_ICON);
+	_split_note_tb->image(SPLIT_LIGHT_ICON.get(_scale));
 #ifndef __APPLE__
 	_split_note_tb->shortcut('/');
 #endif
 
 	_glue_note_tb->tooltip("Glue Note (" SHIFT_KEY_PLUS "/)");
 	_glue_note_tb->callback((Fl_Callback *)glue_note_cb, this);
-	_glue_note_tb->image(GLUE_LIGHT_ICON);
+	_glue_note_tb->image(GLUE_LIGHT_ICON.get(_scale));
 #ifndef __APPLE__
 	_glue_note_tb->shortcut(GLUE_KEY);
 #endif
 
 	_pencil_mode_tb->tooltip("Pencil Mode (`)");
 	_pencil_mode_tb->callback((Fl_Callback *)pencil_mode_tb_cb, this);
-	_pencil_mode_tb->image(PENCIL_ICON);
+	_pencil_mode_tb->image(PENCIL_ICON.get(_scale));
 	_pencil_mode_tb->value(pencil_mode());
 
 	_format_painter_tb->tooltip("Format Painter (~)");
 	_format_painter_tb->callback((Fl_Callback *)format_painter_tb_cb, this);
-	_format_painter_tb->image(BRUSH_ICON);
+	_format_painter_tb->image(BRUSH_ICON.get(_scale));
 	_format_painter_tb->value(format_painter());
 	_format_painter_tb->shortcut(FL_ALT + FL_SHIFT + '`');
 
 	_channel_1_tb->tooltip("Channel 1 (1)");
 	_channel_1_tb->callback((Fl_Callback *)channel_1_tb_cb, this);
-	_channel_1_tb->image(ONE_ICON);
+	_channel_1_tb->image(ONE_ICON.get(_scale));
 	_channel_1_tb->value(selected_channel() == 1);
 
 	_channel_2_tb->tooltip("Channel 2 (2)");
 	_channel_2_tb->callback((Fl_Callback *)channel_2_tb_cb, this);
-	_channel_2_tb->image(TWO_ICON);
+	_channel_2_tb->image(TWO_ICON.get(_scale));
 	_channel_2_tb->value(selected_channel() == 2);
 
 	_channel_3_tb->tooltip("Channel 3 (3)");
 	_channel_3_tb->callback((Fl_Callback *)channel_3_tb_cb, this);
-	_channel_3_tb->image(THREE_ICON);
+	_channel_3_tb->image(THREE_ICON.get(_scale));
 	_channel_3_tb->value(selected_channel() == 3);
 
 	_channel_4_tb->tooltip("Channel 4 (4)");
 	_channel_4_tb->callback((Fl_Callback *)channel_4_tb_cb, this);
-	_channel_4_tb->image(FOUR_ICON);
+	_channel_4_tb->image(FOUR_ICON.get(_scale));
 	_channel_4_tb->value(selected_channel() == 4);
 
 	_zoom_out_tb->tooltip("Zoom Out (" COMMAND_KEY_PLUS "-)");
 	_zoom_out_tb->callback((Fl_Callback *)zoom_out_cb, this);
-	_zoom_out_tb->image(ZOOM_OUT_ICON);
+	_zoom_out_tb->image(ZOOM_OUT_ICON.get(_scale));
 #ifndef __APPLE__
 	_zoom_out_tb->shortcut(FL_COMMAND + '-');
 #endif
 
 	_zoom_in_tb->tooltip("Zoom In (" COMMAND_KEY_PLUS "=)");
 	_zoom_in_tb->callback((Fl_Callback *)zoom_in_cb, this);
-	_zoom_in_tb->image(ZOOM_IN_ICON);
+	_zoom_in_tb->image(ZOOM_IN_ICON.get(_scale));
 #ifndef __APPLE__
 	_zoom_in_tb->shortcut(FL_COMMAND + '=');
 #endif
 
 	_key_labels_tb->tooltip("Key Labels (" COMMAND_KEY_PLUS "K)");
 	_key_labels_tb->callback((Fl_Callback *)key_labels_tb_cb, this);
-	_key_labels_tb->image(KEYS_ICON);
+	_key_labels_tb->image(KEYS_ICON.get(_scale));
 	_key_labels_tb->value(key_labels());
 
 	_note_labels_tb->tooltip("Note Labels (" COMMAND_SHIFT_KEYS_PLUS "K)");
 	_note_labels_tb->callback((Fl_Callback *)note_labels_tb_cb, this);
-	_note_labels_tb->image(NOTES_ICON);
+	_note_labels_tb->image(NOTES_ICON.get(_scale));
 	_note_labels_tb->value(note_labels());
 
 	_ruler_tb->tooltip("Ruler (" COMMAND_KEY_PLUS "R)");
 	_ruler_tb->callback((Fl_Callback *)ruler_tb_cb, this);
-	_ruler_tb->image(RULER_ICON);
+	_ruler_tb->image(RULER_ICON.get(_scale));
 	_ruler_tb->value(ruler());
 
 	_decrease_spacing_tb->tooltip("Decrease Spacing (" SHIFT_KEY_PLUS "-)");
 	_decrease_spacing_tb->callback((Fl_Callback *)decrease_spacing_cb, this);
-	_decrease_spacing_tb->image(DECREASE_SPACING_ICON);
+	_decrease_spacing_tb->image(DECREASE_SPACING_ICON.get(_scale));
 #ifndef __APPLE__
 	_decrease_spacing_tb->shortcut(FL_SHIFT + '-');
 #else
@@ -708,7 +708,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	_increase_spacing_tb->tooltip("Increase Spacing (" SHIFT_KEY_PLUS "=)");
 	_increase_spacing_tb->callback((Fl_Callback *)increase_spacing_cb, this);
-	_increase_spacing_tb->image(INCREASE_SPACING_ICON);
+	_increase_spacing_tb->image(INCREASE_SPACING_ICON.get(_scale));
 #ifndef __APPLE__
 	_increase_spacing_tb->shortcut(FL_SHIFT + '=');
 #else
@@ -855,6 +855,15 @@ void Main_Window::resize(int X, int Y, int W, int H) {
 	_status_bar->resize(0, H - STATUS_BAR_HEIGHT, W, STATUS_BAR_HEIGHT);
 	_status_label->size(std::max(W - _status_label->x() + 2, 20), _status_label->h());
 	_context_menu->resize(_piano_roll->x() + WHITE_KEY_WIDTH, _piano_roll->y(), _piano_roll->w() - WHITE_KEY_WIDTH - Fl::scrollbar_size(), _piano_roll->h() - Fl::scrollbar_size());
+}
+
+void Main_Window::draw() {
+	float s = Fl::screen_scale(screen_num());
+	if (_scale != s) {
+		_scale = s;
+		update_icon_resolution();
+	}
+	Fl_Double_Window::draw();
 }
 
 bool Main_Window::maximized() const {
@@ -1176,19 +1185,19 @@ void Main_Window::selected_channel(int i) {
 	_selected_channel = i;
 	if (_pencil_mode_tb) {
 		if (i == 1) {
-			_pencil_mode_tb->image(PENCIL_RED_ICON);
+			_pencil_mode_tb->image(PENCIL_RED_ICON.get(_scale));
 		}
 		else if (i == 2) {
-			_pencil_mode_tb->image(PENCIL_BLUE_ICON);
+			_pencil_mode_tb->image(PENCIL_BLUE_ICON.get(_scale));
 		}
 		else if (i == 3) {
-			_pencil_mode_tb->image(PENCIL_GREEN_ICON);
+			_pencil_mode_tb->image(PENCIL_GREEN_ICON.get(_scale));
 		}
 		else if (i == 4) {
-			_pencil_mode_tb->image(PENCIL_BROWN_ICON);
+			_pencil_mode_tb->image(PENCIL_BROWN_ICON.get(_scale));
 		}
 		else {
-			_pencil_mode_tb->image(PENCIL_ICON);
+			_pencil_mode_tb->image(PENCIL_ICON.get(_scale));
 		}
 	}
 }
@@ -1205,10 +1214,10 @@ void Main_Window::update_active_controls() {
 		_play_pause_mi->activate();
 		_play_pause_tb->activate();
 		if (playing) {
-			_play_pause_tb->image(PAUSE_ICON);
+			_play_pause_tb->image(PAUSE_ICON.get(_scale));
 		}
 		else {
-			_play_pause_tb->image(PLAY_ICON);
+			_play_pause_tb->image(PLAY_ICON.get(_scale));
 		}
 		_play_pause_tb->redraw();
 		if (!stopped) {
@@ -1471,7 +1480,7 @@ void Main_Window::update_active_controls() {
 		_save_as_tb->deactivate();
 		_play_pause_mi->deactivate();
 		_play_pause_tb->deactivate();
-		_play_pause_tb->image(PLAY_ICON);
+		_play_pause_tb->image(PLAY_ICON.get(_scale));
 		_play_pause_tb->redraw();
 		_stop_mi->deactivate();
 		_stop_tb->deactivate();
@@ -2057,16 +2066,59 @@ void Main_Window::stop_interactive_thread() {
 	}
 }
 
+void Main_Window::update_icon_resolution() {
+	_new_tb->image(NEW_ICON.get(_scale));
+	_open_tb->image(OPEN_ICON.get(_scale));
+	_save_tb->image(SAVE_ICON.get(_scale));
+	_save_as_tb->image(SAVE_AS_ICON.get(_scale));
+	_play_pause_tb->image(PLAY_ICON.get(_scale));
+	_stop_tb->image(STOP_ICON.get(_scale));
+	_loop_verification_tb->image(VERIFY_ICON.get(_scale));
+	_loop_tb->image(LOOP_ICON.get(_scale));
+	_continuous_tb->image(SCROLL_LIGHT_ICON.get(_scale));
+	_undo_tb->image(UNDO_ICON.get(_scale));
+	_redo_tb->image(REDO_ICON.get(_scale));
+	_pitch_up_tb->image(UP_ICON.get(_scale));
+	_pitch_down_tb->image(DOWN_ICON.get(_scale));
+	_octave_up_tb->image(UP_UP_ICON.get(_scale));
+	_octave_down_tb->image(DOWN_DOWN_ICON.get(_scale));
+	_move_left_tb->image(LEFT_ICON.get(_scale));
+	_move_right_tb->image(RIGHT_ICON.get(_scale));
+	_shorten_tb->image(MINUS_ICON.get(_scale));
+	_lengthen_tb->image(PLUS_ICON.get(_scale));
+	_delete_selection_tb->image(DELETE_ICON.get(_scale));
+	_snip_selection_tb->image(SNIP_ICON.get(_scale));
+	_split_note_tb->image(SPLIT_LIGHT_ICON.get(_scale));
+	_glue_note_tb->image(GLUE_LIGHT_ICON.get(_scale));
+	_pencil_mode_tb->image(PENCIL_ICON.get(_scale));
+	_format_painter_tb->image(BRUSH_ICON.get(_scale));
+	_channel_1_tb->image(ONE_ICON.get(_scale));
+	_channel_2_tb->image(TWO_ICON.get(_scale));
+	_channel_3_tb->image(THREE_ICON.get(_scale));
+	_channel_4_tb->image(FOUR_ICON.get(_scale));
+	_zoom_out_tb->image(ZOOM_OUT_ICON.get(_scale));
+	_zoom_in_tb->image(ZOOM_IN_ICON.get(_scale));
+	_key_labels_tb->image(KEYS_ICON.get(_scale));
+	_note_labels_tb->image(NOTES_ICON.get(_scale));
+	_ruler_tb->image(RULER_ICON.get(_scale));
+	_decrease_spacing_tb->image(DECREASE_SPACING_ICON.get(_scale));
+	_increase_spacing_tb->image(INCREASE_SPACING_ICON.get(_scale));
+	update_icons();
+}
+
 void Main_Window::update_icons() {
 	bool dark = OS::is_dark_theme(OS::current_theme());
-	_continuous_tb->image(dark ? SCROLL_DARK_ICON : SCROLL_LIGHT_ICON);
-	_split_note_tb->image(dark ? SPLIT_DARK_ICON : SPLIT_LIGHT_ICON);
-	_glue_note_tb->image(dark ? GLUE_DARK_ICON : GLUE_LIGHT_ICON);
+	_play_pause_tb->image(playing() ? PAUSE_ICON.get(_scale) : PLAY_ICON.get(_scale));
+	_continuous_tb->image(dark ? SCROLL_DARK_ICON.get(_scale) : SCROLL_LIGHT_ICON.get(_scale));
+	_split_note_tb->image(dark ? SPLIT_DARK_ICON.get(_scale) : SPLIT_LIGHT_ICON.get(_scale));
+	_glue_note_tb->image(dark ? GLUE_DARK_ICON.get(_scale) : GLUE_LIGHT_ICON.get(_scale));
+	selected_channel(selected_channel());
+	_format_painter_tb->image(format_painter() ? BRUSH_CMY_ICON.get(_scale) : BRUSH_ICON.get(_scale));
 	make_deimage(_new_tb);
 	make_deimage(_open_tb);
 	make_deimage(_save_tb);
 	make_deimage(_save_as_tb);
-	make_deimage(_play_pause_tb, &PLAY_ICON);
+	make_deimage(_play_pause_tb, PLAY_ICON.get(_scale));
 	make_deimage(_stop_tb);
 	make_deimage(_loop_verification_tb);
 	make_deimage(_loop_tb);
@@ -2085,8 +2137,8 @@ void Main_Window::update_icons() {
 	make_deimage(_snip_selection_tb);
 	make_deimage(_split_note_tb);
 	make_deimage(_glue_note_tb);
-	make_deimage(_pencil_mode_tb, &PENCIL_ICON);
-	make_deimage(_format_painter_tb, &BRUSH_ICON);
+	make_deimage(_pencil_mode_tb, PENCIL_ICON.get(_scale));
+	make_deimage(_format_painter_tb, BRUSH_ICON.get(_scale));
 	make_deimage(_channel_1_tb);
 	make_deimage(_channel_2_tb);
 	make_deimage(_channel_3_tb);
@@ -2568,11 +2620,11 @@ void Main_Window::format_painter_cb(Fl_Menu_ *m, Main_Window *mw) {
 	SYNC_TB_WITH_M(mw->_format_painter_tb, m);
 	if (mw->format_painter()) {
 		mw->_piano_roll->format_painter_start();
-		mw->_format_painter_tb->image(BRUSH_CMY_ICON);
+		mw->_format_painter_tb->image(BRUSH_CMY_ICON.get(mw->_scale));
 	}
 	else {
 		mw->_piano_roll->format_painter_end();
-		mw->_format_painter_tb->image(BRUSH_ICON);
+		mw->_format_painter_tb->image(BRUSH_ICON.get(mw->_scale));
 	}
 	mw->redraw();
 }
@@ -2630,11 +2682,11 @@ void Main_Window::format_painter_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw)
 	SYNC_MI_WITH_TB(mw->_format_painter_tb, mw->_format_painter_mi);
 	if (mw->format_painter()) {
 		mw->_piano_roll->format_painter_start();
-		mw->_format_painter_tb->image(BRUSH_CMY_ICON);
+		mw->_format_painter_tb->image(BRUSH_CMY_ICON.get(mw->_scale));
 	}
 	else {
 		mw->_piano_roll->format_painter_end();
-		mw->_format_painter_tb->image(BRUSH_ICON);
+		mw->_format_painter_tb->image(BRUSH_ICON.get(mw->_scale));
 	}
 	mw->_menu_bar->update();
 	mw->redraw();
