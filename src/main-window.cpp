@@ -2067,6 +2067,7 @@ void Main_Window::stop_interactive_thread() {
 }
 
 void Main_Window::update_icon_resolution() {
+#ifndef __APPLE__
 	_new_tb->image(NEW_ICON.get(_scale));
 	_open_tb->image(OPEN_ICON.get(_scale));
 	_save_tb->image(SAVE_ICON.get(_scale));
@@ -2104,6 +2105,7 @@ void Main_Window::update_icon_resolution() {
 	_decrease_spacing_tb->image(DECREASE_SPACING_ICON.get(_scale));
 	_increase_spacing_tb->image(INCREASE_SPACING_ICON.get(_scale));
 	update_icons();
+#endif
 }
 
 void Main_Window::update_icons() {
