@@ -15,6 +15,9 @@ R"(<html>
 <li><a href="#Files">Files</a></li>
 <li><a href="#TheTimeline">The Timeline</a></li>
 <li><a href="#Playback">Playback</a></li>
+<ul>
+<li><a href="#Bookmarks">Bookmarks</a></li>
+</ul>
 <li><a href="#Editing">Editing</a></li>
 <ul>
 <li><a href="#SelectingNotes">Selecting Notes</a></li>
@@ -98,6 +101,10 @@ R"(<html>
 <p>If no channel is selected, "Step Backward/Forward" moves the playhead by the current grid spacing while "Skip Backward/Forward" moves by four times that distance.</p>
 <p>"Skip Backward/Forward" can be used while the song is playing and acts like rewind/fast-forward.</p>
 <p>Press )" COMMAND_KEY_PLUS R"(\ to center the playhead, which is useful both during playback and while editing.</p>
+<a name="Bookmarks"></a>
+<h3>Bookmarks</h3>
+<p>Bookmarks are a useful way to quickly return to a certain point in the song. To create a bookmark, first place the playhead at the desired location then press )" COMMAND_KEY_PLUS R"(F2. Press it again to remove the bookmark.</p>
+<p>Cycle through all bookmarks with F2 and )" SHIFT_KEY_PLUS R"(F2. Remove all bookmarks with )" COMMAND_SHIFT_KEYS_PLUS R"(F2.</p>
 <hr>
 <a name="Editing"></a>
 <h2>Editing</h2>
@@ -107,6 +114,7 @@ R"(<html>
 <p>Left-click on a note (of the selected channel) to select the note. Hold )" COMMAND_KEY R"( while clicking to add (or remove) the note to (or from) the current selection. Hold )" SHIFT_KEY R"( while clicking to select all notes between the left-most selected note and the right-most selected note. Left-click and drag to select multiple notes at once. )" COMMAND_KEY R"( and )" SHIFT_KEY R"( can also be used while dragging.</p>
 <p>The Enter key can also be used to select the note at the playhead. Hold )" ALT_KEY R"( while pressing Enter to select the note to the left of the playhead. )" COMMAND_KEY R"( and )" SHIFT_KEY R"( work the same in combination with the Enter key.</p>
 <p>"Select All" is useful for quickly changing the entire channel, such as moving the entire channel up or down.</p>
+<p>The Home and End keys will scroll to the first and last selected note, respectively. )" COMMAND_KEY_PLUS R"(Home and )" COMMAND_KEY_PLUS R"(End will scroll to the start and end of the song.</p>
 <a name="EditingNotes"></a>
 <h3>Editing Notes</h3>
 <p>The menu options under Edit&nbsp;→&nbsp;Selection… can be used to manipulate the selected notes. Each menu option is only available if the operation would succeed for all selected notes. If the operation would fail for any of the selected notes, such as "Octave Up" on a note which is already in the highest octave, then the menu option is disabled.</p>
