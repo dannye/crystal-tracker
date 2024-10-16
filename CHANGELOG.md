@@ -1,6 +1,12 @@
 Changelog
 =========
 
+### Crystal Tracker v0.8.2 (2024-10-16)
+
+ * Add Bookmarks.
+ * Home/End now scroll to first/last selected note.
+ * Improve drawing on scaled displays.
+
 ### Crystal Tracker v0.8.1 (2024-09-08)
 
  * Minor bug fixes.
