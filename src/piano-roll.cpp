@@ -1944,11 +1944,13 @@ bool Piano_Roll::toggle_bookmark() {
 	if (_song_length == -1) return false;
 	if (_tick == -1) return false;
 
-	if (_piano_timeline._bookmarks.count(_tick)) {
-		_piano_timeline._bookmarks.erase(_tick);
+	int32_t tick = quantize_tick(_tick);
+
+	if (_piano_timeline._bookmarks.count(tick)) {
+		_piano_timeline._bookmarks.erase(tick);
 	}
 	else {
-		_piano_timeline._bookmarks.insert(_tick);
+		_piano_timeline._bookmarks.insert(tick);
 	}
 
 	return true;
