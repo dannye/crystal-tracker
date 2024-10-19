@@ -417,6 +417,7 @@ private:
 	int32_t _channel_4_end_tick = -1;
 
 	int32_t _song_length = -1;
+	bool    _song_length_clamped = false;
 
 	std::vector<Fl_Widget *> _correlates;
 public:
@@ -471,6 +472,7 @@ public:
 	inline int32_t channel_3_end_tick() const { return _channel_3_end_tick; }
 	inline int32_t channel_4_end_tick() const { return _channel_4_end_tick; }
 	inline int32_t song_length(void) const { return _song_length; }
+	inline bool    song_length_clamped(void) const { return _song_length_clamped; }
 
 	int handle(int event) override;
 	bool set_tick_from_x_pos(int X);
@@ -511,7 +513,7 @@ public:
 	Note_View verify_channel_3_loop_view(Song &song) { return verify_loop_view(song, 3, _channel_3_notes, _channel_3_loop_tick, _channel_3_end_tick); }
 	Note_View verify_channel_4_loop_view(Song &song) { return verify_loop_view(song, 4, _channel_4_notes, _channel_4_loop_tick, _channel_4_end_tick); }
 
-	int32_t get_song_length() const;
+	int32_t get_song_length();
 	int32_t get_loop_tick() const;
 	int32_t get_last_note_x() const;
 	int32_t get_current_tempo();

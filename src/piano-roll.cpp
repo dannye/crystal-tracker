@@ -2519,7 +2519,7 @@ void Piano_Roll::build_note_view(
 	resize_wrappers(calls);
 }
 
-int32_t Piano_Roll::get_song_length() const {
+int32_t Piano_Roll::get_song_length() {
 	const int32_t loop_tick = get_loop_tick();
 	const int32_t max_length = std::max({ _channel_1_end_tick, _channel_2_end_tick, _channel_3_end_tick, _channel_4_end_tick });
 
@@ -2550,10 +2550,18 @@ int32_t Piano_Roll::get_song_length() const {
 			(channel_4_body_length == 0 || (song_length - _channel_4_loop_tick) % channel_4_body_length == channel_4_offset);
 	};
 
+	int num_extensions = 0;
 	while (song_length < max_length || !channels_aligned()) {
 		song_length += body_length;
+
+		num_extensions += 1;
+		if (num_extensions > 1000) {
+			_song_length_clamped = true;
+			return max_length;
+		}
 	}
 
+	_song_length_clamped = false;
 	return song_length;
 }
 
@@ -2610,7 +2618,6 @@ void Piano_Roll::update_channel_detail(int channel_number) {
 	_piano_timeline.set_channel_2_detail(channel_number == 2 ? 2 : channel_number == 0 ? 1 : 0);
 	_piano_timeline.set_channel_3_detail(channel_number == 3 ? 2 : channel_number == 0 ? 1 : 0);
 	_piano_timeline.set_channel_4_detail(channel_number == 4 ? 2 : channel_number == 0 ? 1 : 0);
-	refresh_note_properties();
 }
 
 void Piano_Roll::align_cursor() {
@@ -2642,6 +2649,7 @@ void Piano_Roll::clear() {
 	_channel_3_end_tick = -1;
 	_channel_4_end_tick = -1;
 	_song_length = -1;
+	_song_length_clamped = false;
 }
 
 void Piano_Roll::start_following() {

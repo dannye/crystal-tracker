@@ -253,6 +253,7 @@ public:
 	inline bool ruler(void) const { return _ruler_mi && !!_ruler_mi->value(); }
 	inline bool bpm(void) const { return _bpm_mi && !!_bpm_mi->value(); }
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
+	inline void loop(bool l) { _loop_tb->value(l); loop_tb_cb(nullptr, this); }
 	inline void continuous_scroll(bool c) { _continuous_tb->value(c); continuous_tb_cb(nullptr, this); }
 	inline void pencil_mode(bool p) { _pencil_mode_tb->value(p); pencil_mode_tb_cb(nullptr, this); }
 	inline void format_painter(bool f) { _format_painter_tb->value(f); format_painter_tb_cb(nullptr, this); }

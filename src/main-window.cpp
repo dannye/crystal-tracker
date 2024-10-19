@@ -1223,18 +1223,22 @@ void Main_Window::update_active_controls() {
 		if (!stopped) {
 			_stop_mi->activate();
 			_stop_tb->activate();
-			_loop_mi->deactivate();
-			_loop_tb->deactivate();
 			_stereo_mi->deactivate();
 			_stereo_label->disable();
 		}
 		else {
 			_stop_mi->deactivate();
 			_stop_tb->deactivate();
-			_loop_mi->activate();
-			_loop_tb->activate();
 			_stereo_mi->activate();
 			_stereo_label->enable();
+		}
+		if (!stopped || _piano_roll->song_length_clamped()) {
+			_loop_mi->deactivate();
+			_loop_tb->deactivate();
+		}
+		else {
+			_loop_mi->activate();
+			_loop_tb->activate();
 		}
 		if (playing) {
 			_step_backward_mi->deactivate();
@@ -1553,6 +1557,7 @@ void Main_Window::update_active_controls() {
 
 void Main_Window::update_channel_detail() {
 	_piano_roll->update_channel_detail(selected_channel());
+	_piano_roll->refresh_note_properties();
 	_piano_roll->align_cursor();
 }
 
@@ -1788,6 +1793,16 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 		_song.modified(true);
 		_song.new_song(options);
 		_piano_roll->set_timeline(_song);
+	}
+	if (_piano_roll->song_length_clamped()) {
+		std::string msg = basename;
+		msg = msg + " desyncs badly!\n\n"
+			"No channels will be extended beyond the end of the longest channel.\n"
+			"This may be fixed with Edit -> Resize song...";
+		_warning_dialog->message(msg);
+		_warning_dialog->show(this);
+
+		loop(false);
 	}
 	regenerate_it_module();
 
@@ -2391,6 +2406,9 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_it_module = nullptr;
 	}
 	mw->_showed_it_warning = false;
+	if (!mw->_loop_tb->active()) {
+		mw->loop(true);
+	}
 	mw->init_sizes();
 	mw->update_song_status();
 	mw->_directory.clear();
@@ -3459,6 +3477,27 @@ void Main_Window::resize_song_cb(Fl_Widget *, Main_Window *mw) {
 	}
 
 	if (mw->_piano_roll->resize_song(mw->_song, new_options)) {
+		if (mw->_piano_roll->song_length_clamped()) {
+			const char *basename;
+			if (mw->_asm_file.size()) {
+				basename = fl_filename_name(mw->_asm_file.c_str());
+			}
+			else {
+				basename = NEW_SONG_NAME;
+			}
+			std::string msg = basename;
+			msg = msg + " desyncs badly!\n\n"
+				"No channels will be extended beyond the end of the longest channel.\n"
+				"This may be fixed with Edit -> Resize song...";
+			mw->_warning_dialog->message(msg);
+			mw->_warning_dialog->show(mw);
+
+			mw->loop(false);
+		}
+		else if (!mw->_loop_tb->active()) {
+			mw->loop(true);
+		}
+
 		mw->_status_message = "Resized song";
 		mw->_status_label->label(mw->_status_message.c_str());
 
