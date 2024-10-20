@@ -3064,6 +3064,112 @@ void Song::octave_down(const int selected_channel, const std::set<int32_t> &sele
 	_modified = true;
 }
 
+void Song::move_loop_left(const int selected_channel, const std::set<int32_t> &selected_boxes, Note_View start_view, Note_View end_view) {
+	remember(selected_channel, selected_boxes, Song_State::Action::MOVE_LEFT);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	auto command_itr = commands.rbegin() + (commands.size() - 1 - start_view.index);
+	assert(commands[start_view.index].labels.size() == 1);
+
+	const auto find_preceding_rest = [&](decltype(command_itr) itr) {
+		++itr;
+		while (itr != commands.rend()) {
+			if (itr->type == Command_Type::REST) {
+				return itr_index(commands, itr.base() - 1);
+			}
+			++itr;
+		}
+		assert(false);
+		return itr_index(commands, commands.end());
+	};
+
+	int32_t rest_index = find_preceding_rest(command_itr);
+	Note_View rest_view = get_note_view(commands, rest_index);
+
+	if (end_view.speed != rest_view.speed) {
+		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+		command.note_type.speed = end_view.speed;
+		command.note_type.volume = end_view.volume;
+		command.note_type.fade = end_view.fade;
+		commands.insert(commands.begin() + end_view.index + 1, command);
+	}
+
+	Command command = Command(Command_Type::REST);
+	command.rest.length = 1;
+	commands.insert(commands.begin() + end_view.index + 1, command);
+
+	if (end_view.speed != rest_view.speed) {
+		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+		command.note_type.speed = rest_view.speed;
+		command.note_type.volume = end_view.volume;
+		command.note_type.fade = end_view.fade;
+		commands.insert(commands.begin() + end_view.index + 1, command);
+	}
+
+	if (commands[rest_index].rest.length == 1) {
+		commands[rest_index + 1].labels.insert(commands[rest_index + 1].labels.begin(), RANGE(commands[rest_index].labels));
+		commands.erase(commands.begin() + rest_index);
+	}
+	else {
+		commands[rest_index].rest.length -= 1;
+	}
+
+	_modified = true;
+}
+
+void Song::move_call_left(const int selected_channel, const std::set<int32_t> &selected_boxes, Note_View start_view, Note_View end_view) {
+	remember(selected_channel, selected_boxes, Song_State::Action::MOVE_LEFT);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	auto command_itr = commands.rbegin() + (commands.size() - 1 - start_view.index);
+	assert(commands[start_view.index].labels.size() == 0);
+
+	const auto find_preceding_rest = [&](decltype(command_itr) itr) {
+		++itr;
+		while (itr != commands.rend()) {
+			if (itr->type == Command_Type::REST) {
+				return itr_index(commands, itr.base() - 1);
+			}
+			++itr;
+		}
+		assert(false);
+		return itr_index(commands, commands.end());
+	};
+
+	int32_t rest_index = find_preceding_rest(command_itr);
+	Note_View rest_view = get_note_view(commands, rest_index);
+
+	if (end_view.speed != rest_view.speed) {
+		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+		command.note_type.speed = end_view.speed;
+		command.note_type.volume = end_view.volume;
+		command.note_type.fade = end_view.fade;
+		commands.insert(commands.begin() + start_view.index + 1, command);
+	}
+
+	Command command = Command(Command_Type::REST);
+	command.rest.length = 1;
+	commands.insert(commands.begin() + start_view.index + 1, command);
+
+	if (end_view.speed != rest_view.speed) {
+		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+		command.note_type.speed = rest_view.speed;
+		command.note_type.volume = end_view.volume;
+		command.note_type.fade = end_view.fade;
+		commands.insert(commands.begin() + start_view.index + 1, command);
+	}
+
+	if (commands[rest_index].rest.length == 1) {
+		commands[rest_index + 1].labels.insert(commands[rest_index + 1].labels.begin(), RANGE(commands[rest_index].labels));
+		commands.erase(commands.begin() + rest_index);
+	}
+	else {
+		commands[rest_index].rest.length -= 1;
+	}
+
+	_modified = true;
+}
+
 void Song::move_left(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view) {
 	remember(selected_channel, selected_boxes, Song_State::Action::MOVE_LEFT);
 	std::vector<Command> &commands = channel_commands(selected_channel);
@@ -3121,6 +3227,115 @@ void Song::move_left(const int selected_channel, const std::set<int32_t> &select
 
 		if (note_view.speed != rest_view.speed) offset += 2;
 	}
+
+	_modified = true;
+}
+
+void Song::move_loop_right(const int selected_channel, const std::set<int32_t> &selected_boxes, Note_View start_view, Note_View end_view) {
+	remember(selected_channel, selected_boxes, Song_State::Action::MOVE_RIGHT);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	auto command_itr = commands.begin() + end_view.index;
+
+	const auto find_following_rest = [&](decltype(command_itr) itr) {
+		++itr;
+		while (itr != commands.end()) {
+			if (itr->type == Command_Type::REST) {
+				return itr_index(commands, itr);
+			}
+			++itr;
+		}
+		assert(false);
+		return itr_index(commands, commands.end());
+	};
+
+	int32_t rest_index = find_following_rest(command_itr);
+	Note_View rest_view = get_note_view(commands, rest_index);
+
+	assert(commands[rest_index].labels.size() == 0);
+	if (commands[rest_index].rest.length == 1) {
+		commands.erase(commands.begin() + rest_index);
+	}
+	else {
+		commands[rest_index].rest.length -= 1;
+	}
+
+	if (start_view.speed != rest_view.speed) {
+		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+		command.note_type.speed = start_view.speed;
+		command.note_type.volume = start_view.volume;
+		command.note_type.fade = start_view.fade;
+		commands.insert(commands.begin() + start_view.index, command);
+	}
+
+	Command command = Command(Command_Type::REST);
+	command.rest.length = 1;
+	commands.insert(commands.begin() + start_view.index, command);
+
+	if (start_view.speed != rest_view.speed) {
+		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+		command.note_type.speed = rest_view.speed;
+		command.note_type.volume = start_view.volume;
+		command.note_type.fade = start_view.fade;
+		commands.insert(commands.begin() + start_view.index, command);
+	}
+
+	_modified = true;
+}
+
+void Song::move_call_right(const int selected_channel, const std::set<int32_t> &selected_boxes, Note_View start_view, Note_View end_view) {
+	remember(selected_channel, selected_boxes, Song_State::Action::MOVE_RIGHT);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	auto command_itr = commands.begin() + start_view.index;
+
+	const auto find_following_rest = [&](decltype(command_itr) itr) {
+		++itr;
+		while (itr != commands.end()) {
+			if (itr->type == Command_Type::REST) {
+				return itr_index(commands, itr);
+			}
+			++itr;
+		}
+		assert(false);
+		return itr_index(commands, commands.end());
+	};
+
+	int32_t rest_index = find_following_rest(command_itr);
+	Note_View rest_view = get_note_view(commands, rest_index);
+
+	assert(commands[rest_index].labels.size() == 0);
+	if (commands[rest_index].rest.length == 1) {
+		commands.erase(commands.begin() + rest_index);
+	}
+	else {
+		commands[rest_index].rest.length -= 1;
+	}
+
+	std::vector<std::string> labels = std::move(commands[start_view.index].labels);
+	commands[start_view.index].labels.clear();
+
+	if (start_view.speed != rest_view.speed) {
+		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+		command.note_type.speed = start_view.speed;
+		command.note_type.volume = start_view.volume;
+		command.note_type.fade = start_view.fade;
+		commands.insert(commands.begin() + start_view.index, command);
+	}
+
+	Command command = Command(Command_Type::REST);
+	command.rest.length = 1;
+	commands.insert(commands.begin() + start_view.index, command);
+
+	if (start_view.speed != rest_view.speed) {
+		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
+		command.note_type.speed = rest_view.speed;
+		command.note_type.volume = start_view.volume;
+		command.note_type.fade = start_view.fade;
+		commands.insert(commands.begin() + start_view.index, command);
+	}
+
+	commands[start_view.index].labels = std::move(labels);
 
 	_modified = true;
 }

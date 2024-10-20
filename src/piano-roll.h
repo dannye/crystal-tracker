@@ -565,7 +565,11 @@ public:
 	bool pitch_down(Song &song, bool dry_run = false);
 	bool octave_up(Song &song, bool dry_run = false);
 	bool octave_down(Song &song, bool dry_run = false);
+	bool move_loop_left(Song &song, bool dry_run = false);
+	bool move_call_left(Song &song, bool dry_run = false);
 	bool move_left(Song &song, bool dry_run = false);
+	bool move_loop_right(Song &song, bool dry_run = false);
+	bool move_call_right(Song &song, bool dry_run = false);
 	bool move_right(Song &song, bool dry_run = false);
 	bool shorten(Song &song, bool dry_run = false);
 	bool lengthen(Song &song, bool dry_run = false);

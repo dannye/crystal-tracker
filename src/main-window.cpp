@@ -1798,7 +1798,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 		std::string msg = basename;
 		msg = msg + " desyncs badly!\n\n"
 			"No channels will be extended beyond the end of the longest channel.\n"
-			"This may be fixed with Edit -> Resize song...";
+			"This may be fixed with Edit -> Resize Song...";
 		_warning_dialog->message(msg);
 		_warning_dialog->show(this);
 
@@ -3488,7 +3488,7 @@ void Main_Window::resize_song_cb(Fl_Widget *, Main_Window *mw) {
 			std::string msg = basename;
 			msg = msg + " desyncs badly!\n\n"
 				"No channels will be extended beyond the end of the longest channel.\n"
-				"This may be fixed with Edit -> Resize song...";
+				"This may be fixed with Edit -> Resize Song...";
 			mw->_warning_dialog->message(msg);
 			mw->_warning_dialog->show(mw);
 
