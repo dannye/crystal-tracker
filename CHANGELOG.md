@@ -1,6 +1,11 @@
 Changelog
 =========
 
+### Crystal Tracker v0.8.3 (2024-10-20)
+
+ * Add Move Left/Right for loop and call boxes.
+ * Add warning for songs that desync badly.
+
 ### Crystal Tracker v0.8.2 (2024-10-16)
 
  * Add Bookmarks.
