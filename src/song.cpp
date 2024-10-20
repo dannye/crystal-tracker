@@ -3064,7 +3064,7 @@ void Song::octave_down(const int selected_channel, const std::set<int32_t> &sele
 	_modified = true;
 }
 
-void Song::move_loop_left(const int selected_channel, const std::set<int32_t> &selected_boxes, Note_View start_view, Note_View end_view) {
+void Song::move_loop_left(const int selected_channel, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, Note_View start_view, Note_View end_view) {
 	remember(selected_channel, selected_boxes, Song_State::Action::MOVE_LEFT);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
@@ -3084,7 +3084,7 @@ void Song::move_loop_left(const int selected_channel, const std::set<int32_t> &s
 	};
 
 	int32_t rest_index = find_preceding_rest(command_itr);
-	Note_View rest_view = get_note_view(commands, rest_index);
+	Note_View rest_view = find_note_view(view, rest_index);
 
 	if (end_view.speed != rest_view.speed) {
 		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
@@ -3117,7 +3117,7 @@ void Song::move_loop_left(const int selected_channel, const std::set<int32_t> &s
 	_modified = true;
 }
 
-void Song::move_call_left(const int selected_channel, const std::set<int32_t> &selected_boxes, Note_View start_view, Note_View end_view) {
+void Song::move_call_left(const int selected_channel, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, Note_View start_view, Note_View end_view) {
 	remember(selected_channel, selected_boxes, Song_State::Action::MOVE_LEFT);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
@@ -3137,7 +3137,7 @@ void Song::move_call_left(const int selected_channel, const std::set<int32_t> &s
 	};
 
 	int32_t rest_index = find_preceding_rest(command_itr);
-	Note_View rest_view = get_note_view(commands, rest_index);
+	Note_View rest_view = find_note_view(view, rest_index);
 
 	if (end_view.speed != rest_view.speed) {
 		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
@@ -3231,7 +3231,7 @@ void Song::move_left(const int selected_channel, const std::set<int32_t> &select
 	_modified = true;
 }
 
-void Song::move_loop_right(const int selected_channel, const std::set<int32_t> &selected_boxes, Note_View start_view, Note_View end_view) {
+void Song::move_loop_right(const int selected_channel, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, Note_View start_view, Note_View end_view) {
 	remember(selected_channel, selected_boxes, Song_State::Action::MOVE_RIGHT);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
@@ -3250,7 +3250,7 @@ void Song::move_loop_right(const int selected_channel, const std::set<int32_t> &
 	};
 
 	int32_t rest_index = find_following_rest(command_itr);
-	Note_View rest_view = get_note_view(commands, rest_index);
+	Note_View rest_view = find_note_view(view, rest_index);
 
 	assert(commands[rest_index].labels.size() == 0);
 	if (commands[rest_index].rest.length == 1) {
@@ -3283,7 +3283,7 @@ void Song::move_loop_right(const int selected_channel, const std::set<int32_t> &
 	_modified = true;
 }
 
-void Song::move_call_right(const int selected_channel, const std::set<int32_t> &selected_boxes, Note_View start_view, Note_View end_view) {
+void Song::move_call_right(const int selected_channel, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, Note_View start_view, Note_View end_view) {
 	remember(selected_channel, selected_boxes, Song_State::Action::MOVE_RIGHT);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
@@ -3302,7 +3302,7 @@ void Song::move_call_right(const int selected_channel, const std::set<int32_t> &
 	};
 
 	int32_t rest_index = find_following_rest(command_itr);
-	Note_View rest_view = get_note_view(commands, rest_index);
+	Note_View rest_view = find_note_view(view, rest_index);
 
 	assert(commands[rest_index].labels.size() == 0);
 	if (commands[rest_index].rest.length == 1) {

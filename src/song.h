@@ -209,11 +209,11 @@ public:
 	void pitch_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void octave_up(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void octave_down(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
-	void move_loop_left(const int selected_channel, const std::set<int32_t> &selected_boxes, Note_View start_view, Note_View end_view);
-	void move_call_left(const int selected_channel, const std::set<int32_t> &selected_boxes, Note_View start_view, Note_View end_view);
+	void move_loop_left(const int selected_channel, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, Note_View start_view, Note_View end_view);
+	void move_call_left(const int selected_channel, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, Note_View start_view, Note_View end_view);
 	void move_left(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
-	void move_loop_right(const int selected_channel, const std::set<int32_t> &selected_boxes, Note_View start_view, Note_View end_view);
-	void move_call_right(const int selected_channel, const std::set<int32_t> &selected_boxes, Note_View start_view, Note_View end_view);
+	void move_loop_right(const int selected_channel, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, Note_View start_view, Note_View end_view);
+	void move_call_right(const int selected_channel, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, Note_View start_view, Note_View end_view);
 	void move_right(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view);
 	void shorten(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, int32_t tick);
 	void lengthen(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t tick);
