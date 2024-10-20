@@ -13,9 +13,14 @@ R"(<html>
 <h2>Contents</h2>
 <ul>
 <li><a href="#Files">Files</a></li>
+<ul>
+<li><a href="#OpeningASongFile">Opening a Song File</a></li>
+<li><a href="#CreatingANewSong">Creating a New Song</a></li>
+</ul>
 <li><a href="#TheTimeline">The Timeline</a></li>
 <li><a href="#Playback">Playback</a></li>
 <ul>
+<li><a href="#MovingThePlayhead">Moving the Playhead</a></li>
 <li><a href="#Bookmarks">Bookmarks</a></li>
 </ul>
 <li><a href="#Editing">Editing</a></li>
@@ -31,6 +36,8 @@ R"(<html>
 <hr>
 <a name="Files"></a>
 <h2>Files</h2>
+<a name="OpeningASongFile"></a>
+<h3>Opening a Song File</h3>
 <p>To open a song, select the pokecrystal-based *.asm song file from within your project directory. The editor will first locate your project's Makefile by checking the directory of the selected *.asm file and checking every parent directory until the Makefile is found. This is treated as the root of your project for the sake of loading your project's custom channel 3 waveforms and channel 4 drumkits.</p>
 <p>The locations checked, in order of priority, for the waveforms are:</p>
 <ul>
@@ -45,6 +52,12 @@ R"(<html>
 <li>.)" DIR_SEP R"(audio)" DIR_SEP R"(drumkits_0f.asm (for pokepinball)</li>
 <li>.)" DIR_SEP R"(drumkits.asm</li>
 </ul>
+<p><b>Note:</b> When loading a file, if some pattern of notes is called by multiple channels then this pattern will be duplicated in-memory so that each channel is entirely independent. This has the side effect of creating duplicate labels in the file when re-saved. These duplicated labels will have to be fixed afterward in a text editor. This only has to be done once for a particular song that is affected by this.</p>
+<p><b>Note:</b> When saving a file, the song data is serialized and no comments or formatting details from the original file are preserved.</p>
+<p>An Impulse Tracker mod file for the current song can be exported by pressing )" COMMAND_KEY_PLUS R"(F3. This file is designed for playback only and is not suitable for direct editing. This export function is provided only for convenience. It will be saved in the same directory as the current song, with the same name but with the .it file extension.</p>
+<p>To quickly create and test custom channel 3 waveforms, check out <a href="https://github.com/dannye/waveform-gb">waveform-gb</a>.</p>
+<a name="CreatingANewSong"></a>
+<h3>Creating a New Song</h3>
 <p>Creating a new song will immediately prompt to choose a project directory (unless a song is already open) so that channel 3 waveforms and channel 4 drumkits can be loaded.</p>
 <p>Next is the Song Options dialog window. This dialog window specifies:</p>
 <ul>
@@ -58,10 +71,6 @@ R"(<html>
 <p>The default unit of measurement for loop point and end point is a "beat". This is rather intuitive but may not be precise enough for song lengths more granular than a beat.</p>
 <p>The alternate unit of measurement is a "tick" — the smallest time step in the audio engine. This is good for having the greatest level of control but, admittedly, is a bit annoying to work with.</p>
 <p>One beat is equal to 48 ticks. The number of beats can be converted to number of ticks by multiplying the number of beats by 4 sixteenth notes per beat multiplied by the default speed of 12 (ie, 12 ticks per sixteenth note). So for example, the default end point is: 64 beats × 4 sixteenth notes per beat × 12 ticks per sixteenth note = 3072 ticks — which is exactly 16 measures at a 4/4 time signature.</p>
-<p><b>Note:</b> When loading a file, if some pattern of notes is called by multiple channels then this pattern will be duplicated in-memory so that each channel is entirely independent. This has the side effect of creating duplicate labels in the file when re-saved. These duplicated labels will have to be fixed afterward in a text editor. This only has to be done once for a particular song that is affected by this.</p>
-<p><b>Note:</b> When saving a file, the song data is serialized and no comments or formatting details from the original file are preserved.</p>
-<p>To quickly create and test custom channel 3 waveforms, check out <a href="https://github.com/dannye/waveform-gb">waveform-gb</a>.</p>
-<p>An Impulse Tracker mod file for the current song can be exported by pressing )" COMMAND_KEY_PLUS R"(F3. This file is designed for playback only and is not suitable for direct editing. This export function is provided only for convenience. It will be saved in the same directory as the current song, with the same name but with the .it file extension.</p>
 <hr>
 <a name="TheTimeline"></a>
 <h2>The Timeline</h2>
@@ -72,10 +81,6 @@ R"(<html>
 <li><font color="#00a500"><b>Green: Channel 3</b></font></li>
 <li><font color="#7c3c19"><b>Brown: Channel 4</b></font></li>
 </ul>
-<p>Inner loops and calls are shown with color-coded boxes that wrap the notes. Light boxes are loops and dark boxes are calls. When no channel is selected, all wrapper boxes for all channels are shown at once. When a channel is selected, only the selected channel's wrapper boxes are shown; wrapper boxes for all other channels are hidden and their notes become colored outlines.</p>
-<p>If all channels' end points are the same, this point is shown with a white or black line (depending on theme). If at least one channel's end point is different than the others, each individual channel's end point is shown with a color-coded line. The same applies to the loop points, if the song loops. Unreferenced labels are shown with a gray line.</p>
-<p>All tempo changes are marked with a dark yellow or dark purple line (depending on theme).</p>
-<p>If the song loops and the loop points or end points are not exactly the same for all channels, then the shorter channels continue to repeat their main loop until such a point that all channels arrive at the beginning of their loop at the same time (ie, until the song truly repeats). These repeated notes have a thick gray border and cannot be selected or edited. This repeating may continue for an exceptionally long time if the lengths of the channels' main loops have a large least common multiple.</p>
 <p>If a channel is selected, some of the notes for that channel may have color-coded "flags" attached to the note which indicate that the note is played with some different settings than the previous note. The flags are color-coded as follows:</p>
 <ul>
 <li><font color="#00ecec"><b>Cyan: Speed</b></font></li>
@@ -84,6 +89,11 @@ R"(<html>
 <li><font color="#ff8000"><b>Orange: Duty cycle, wave, or drumkit</b></font></li>
 <li><font color="#808080"><b>Gray: Other ("Advanced")</b></font></li>
 </ul>
+<p>Inner loops and calls are shown with color-coded boxes that wrap the notes. Light boxes are loops and dark boxes are calls. When no channel is selected, all wrapper boxes for all channels are shown at once. When a channel is selected, only the selected channel's wrapper boxes are shown; wrapper boxes for all other channels are hidden and their notes become colored outlines.</p>
+<p>If all channels' end points are the same, this point is shown with a white or black line (depending on theme). If at least one channel's end point is different than the others, each individual channel's end point is shown with a color-coded line. The same applies to the loop points, if the song loops. Unreferenced labels are shown with a gray line.</p>
+<p>All tempo changes are marked with a dark yellow or dark purple line (depending on theme).</p>
+<p>If the song loops and the loop points or end points are not exactly the same for all channels, then the shorter channels continue to repeat their main loop until such a point that all channels arrive at the beginning of their loop at the same time (ie, until the song truly repeats). These repeated notes have a thick gray border and cannot be selected or edited. This repeating may continue for an exceptionally long time if the lengths of the channels' main loops have a large least common multiple.</p>
+<p>If this repeating extends for more than 1000 iterations, the process will be aborted and the timeline will not be extended past the first iteration at all. Looping playback will be disabled until this is fixed.</p>
 <hr>
 <a name="Playback"></a>
 <h2>Playback</h2>
@@ -92,12 +102,14 @@ R"(<html>
 <p><b>Note:</b> When editing note properties (which is explained in more detail below), Spacebar will not play the song while a property text box is selected. The text box can be deselected by pressing Escape.</p>
 <p>If the song loops, a warning will be shown if any of the channels have different settings at the start of the second iteration of the main loop than it had on the first iteration. To ensure the second iteration uses the same settings as the first, explicitly set the properties at the start of the loop. This can be done by using the Format Painter (explained in more detail below) to apply the properties of the first note or rest onto itself. If the different settings on the second iteration are intentional, the warning can be toggled off with the Play&nbsp;→&nbsp;Loop&nbsp;Verification checkbox.</p>
 <p><b>Note:</b> Playback is reasonably accurate but does not sound exactly how it sounds on the Game Boy. Things like volume fade, vibrato, etc, are only approximations.</p>
-<p>The playhead (yellow or magenta line, depending on theme) can be moved with the mouse. Middle-click or hold )" COMMAND_KEY R"( and right-click to move the playhead. This is useful for starting playback at a specific point rather than playing from the very beginning.</p>
 <p>While the song is playing, left-click anywhere on the timeline to toggle continuous scroll mode.</p>
 <p>Left-click on the piano keys on the left to hear any note on-demand. These interactive notes currently always play a 50% square wave at full volume.</p>
 <p>Stereo output can be toggled in the Play menu. It can also be toggled using the button in the status bar.</p>
 <p>Each channel can be individually muted in order to focus on only specific channels. The mute statuses for each channel are also shown in the status bar at the bottom, which also act as buttons to toggle the mute status.</p>
-<p>If a channel is selected (explained below), "Step Backward/Forward" moves the playhead by the selected channel's <i>speed</i> at that point. "Skip Backward/Forward" moves the playhead to the start/end of the note or rest (of the selected channel) at the playhead's current position.</p>
+<a name="MovingThePlayhead"></a>
+<h3>Moving the Playhead</h3>
+<p>The playhead (yellow or magenta line, depending on theme) can be moved with the mouse. Middle-click or hold )" COMMAND_KEY R"( and right-click to move the playhead. This is useful for starting playback at a specific point rather than playing from the very beginning.</p>
+<p>If a channel is selected, "Step Backward/Forward" moves the playhead by the selected channel's <i>speed</i> at that point. "Skip Backward/Forward" moves the playhead to the start/end of the note or rest (of the selected channel) at the playhead's current position.</p>
 <p>If no channel is selected, "Step Backward/Forward" moves the playhead by the current grid spacing while "Skip Backward/Forward" moves by four times that distance.</p>
 <p>"Skip Backward/Forward" can be used while the song is playing and acts like rewind/fast-forward.</p>
 <p>Press )" COMMAND_KEY_PLUS R"(\ to center the playhead, which is useful both during playback and while editing.</p>
@@ -160,6 +172,7 @@ R"(<html>
 <p>The number of times that a loop loops can be reduced with )" ALT_KEY_PLUS R"(- or extended with )" ALT_KEY_PLUS R"(=, as long as there is room for one more loop. Unroll Loop ()" COMMAND_SHIFT_KEYS_PLUS R"(X), will reduce the loop but leave the notes, so that they may be edited independently from the original loop. If strictly using the keyboard shortcuts, and not the right-click menu, these actions will be performed on the loop at the playhead's position.</p>
 <p>Similarly, calls can be created by selecting a span of notes and pressing )" COMMAND_KEY_PLUS R"(C. Once a call is created, it is selected and ready to be inserted at other positions by moving the playhead to the desired location and pressing )" COMMAND_KEY_PLUS R"(V. Any other existing call can be selected by pressing )" COMMAND_KEY_PLUS R"(C while the playhead is inside the call, as long as no notes are selected. Calls can be deleted with )" ALT_KEY_PLUS BACKSPACE_SYMBOL R"( and unpacked with )" COMMAND_KEY_PLUS R"(X.</p>
 <p>Loops can be created inside of a call, and calls can be created/inserted inside of a loop. But loops cannot be nested inside other loops, and calls cannot be nested inside other calls.</p>
+<p>Loops and calls can be moved left and right with the same commands for moving notes, by selecting the note(s) against the left and/or right edge of the loop or call box. Only one loop or call can be moved at a time and all selected notes must be contained within the box.</p>
 <hr>
 <a name="View"></a>
 <h2>View</h2>
