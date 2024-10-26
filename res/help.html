@@ -27,6 +27,7 @@ R"(<html>
 <ul>
 <li><a href="#SelectingNotes">Selecting Notes</a></li>
 <li><a href="#EditingNotes">Editing Notes</a></li>
+<li><a href="#EditingNoteProperties">Editing Note Properties</a></li>
 <li><a href="#PlacingNotes">Placing Notes</a></li>
 <li><a href="#PencilModeAndFormatPainter">Pencil Mode and Format Painter</a></li>
 <li><a href="#LoopsAndCalls">Loops and Calls</a></li>
@@ -134,11 +135,13 @@ R"(<html>
 <p>"Insert Rest" is useful for widening inner loops and calls, as well as generally adding more space, by inserting a rest at the playhead's position and moving the rest of the channel to the right. Like "Snip Selection", this operation always preserves the position of the loop point and end point.</p>
 <p>"Duplicate Note" duplicates the previous note at the playhead's current position. This operation matches the previous note's pitch and octave, and tries to match the speed and length if it fits.</p>
 <p>"Split Note" is useful for changing note properties, such as volume envelope or vibrato, part way through a note. It places the split at the playhead's position.</p>
+<p><b>Note:</b> The "Resize Song" dialog works just like the "New" dialog, but is used to adjust the length of each channel of the current song. The loop points can also be adjusted, if the song loops. If every length is a whole multiple of a beat then "Beats" will be preselected, otherwise "Ticks" will be selected. If all channels are already synchronized then the "Synchronize Channels" checkbox will be checked, otherwise it will be unchecked. When the OK button is clicked, every channel will be resized as necessary. If a channel is shortened and an inner loop or call no longer fits, it will be removed. The first iteration of an inner loop will be preserved as much as possible.</p>
+<a name="EditingNoteProperties"></a>
+<h3>Editing Note Properties</h3>
 <p>With one or more notes selected, the Note Properties Panel opens. From here, the most common settings can be edited: Speed, Volume Envelope, Vibrato, and Duty Cycle/Wave/Drumkit. Use the "Advanced" button to edit the uncommon settings: Tempo, Transpose, Pitch Slide, and Stereo Panning. The remaining commands, such as Pitch Sweep and Pitch Offset, are currently not supported by the editor, although those commands will be preserved if already part of an existing song file.</p>
 <p>If more than one note is selected, an asterisk (*) will appear next to any property which has multiple distinct values among the selected notes. In such a case, the displayed value is that of the left-most selected note.</p>
 <p>The up and down arrow buttons next to a property are applied immediately if clicked. If typing into a property text box, apply the change with the Enter key or cancel the change with the Escape key. The change will not be applied if the selected channel or selected notes are changed without pressing Enter.</p>
 <p>When creating tempo changes on the first channel, the notes and rests at that point on all other channels need to be split at the new tempo change. Notes need to be split manually, but rests are split automatically; either automatically after any edit to that channel, or on-demand by selecting "Postprocess Channel" from the Edit menu for each channel that needs to have its rests split. If the speed setting of the rest makes it unaligned from the point where the tempo change occurs, the rest will not be split automatically.</p>
-<p>The "Resize Song" dialog works just like the "New" dialog, but is used to adjust the length of each channel of the current song. The loop points can also be adjusted, if the song loops. If every length is a whole multiple of a beat then "Beats" will be preselected, otherwise "Ticks" will be selected. If all channels are already synchronized then the "Synchronize Channels" checkbox will be checked, otherwise it will be unchecked. When the OK button is clicked, every channel will be resized as necessary. If a channel is shortened and an inner loop or call no longer fits, it will be removed. The first iteration of an inner loop will be preserved as much as possible.</p>
 <a name="PlacingNotes"></a>
 <h3>Placing Notes</h3>
 <p>The computer keyboard can also be used as a piano keyboard for placing notes. The key mapping is as follows:</p>
