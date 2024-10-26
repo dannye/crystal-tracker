@@ -3954,8 +3954,7 @@ bool Piano_Roll::move_loop_right(Song &song, bool dry_run) {
 	};
 
 	if (
-		commands[selected_loop->start_note_view().index].labels.size() != 1 ||
-		count_label_references(commands, commands[selected_loop->start_note_view().index].labels[0]) > 1 ||
+		count_label_references(commands, commands[selected_loop->end_note_view().index].target) > 1 ||
 		!is_followed_by_rest(command_itr)
 	) {
 		return false;

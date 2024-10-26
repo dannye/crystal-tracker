@@ -3260,6 +3260,18 @@ void Song::move_loop_right(const int selected_channel, const std::set<int32_t> &
 		commands[rest_index].rest.length -= 1;
 	}
 
+	std::string label = commands[end_view.index].target;
+
+	std::vector<std::string> labels = std::move(commands[start_view.index].labels);
+	commands[start_view.index].labels.clear();
+
+	for (size_t i = labels.size() - 1; i < labels.size(); --i) {
+		if (labels[i] == label) {
+			labels.erase(labels.begin() + i);
+		}
+	}
+	commands[start_view.index].labels.push_back(label);
+
 	if (start_view.speed != rest_view.speed) {
 		Command command = Command(selected_channel == 4 ? Command_Type::DRUM_SPEED : Command_Type::NOTE_TYPE);
 		command.note_type.speed = start_view.speed;
@@ -3279,6 +3291,8 @@ void Song::move_loop_right(const int selected_channel, const std::set<int32_t> &
 		command.note_type.fade = start_view.fade;
 		commands.insert(commands.begin() + start_view.index, command);
 	}
+
+	commands[start_view.index].labels = std::move(labels);
 
 	_modified = true;
 }
