@@ -442,6 +442,8 @@ public:
 	inline int steps_per_beat(void) const;
 	inline int pickup_offset(void) const;
 
+	inline const std::set<int32_t> &bookmarks(void) const { return _piano_timeline._bookmarks; }
+
 	void tick(int32_t t) { _tick = t; }
 
 	void channel_1_muted(bool m) { _channel_1_muted = m; }

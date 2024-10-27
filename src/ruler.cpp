@@ -69,4 +69,11 @@ void Ruler::draw() {
 		}
 	}
 	fl_pop_clip();
+
+	fl_color(BOOKMARK_COLOR);
+	const std::set<int32_t> &bookmarks = mw->bookmarks();
+	for (int32_t bookmark : bookmarks) {
+		int x_pos = X + bookmark * TICK_WIDTHS[mw->zoom()+1] + WHITE_KEY_WIDTH - mx - 1;
+		fl_polygon(x_pos - 6, Y + H - 8, x_pos + 6, Y + H - 8, x_pos, Y + H - 2);
+	}
 }

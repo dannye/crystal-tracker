@@ -264,6 +264,8 @@ public:
 	inline int song_scroll_x(void) const { return _piano_roll->xposition(); }
 	inline int song_ticks_per_step(void) const { return _piano_roll->ticks_per_step(); }
 
+	inline const std::set<int32_t> &bookmarks(void) const { return _piano_roll->bookmarks(); }
+
 	bool unsaved(void) const;
 	const char *modified_filename(void);
 	int handle(int event) override;
