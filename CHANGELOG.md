@@ -1,6 +1,10 @@
 Changelog
 =========
 
+### Crystal Tracker v0.8.4 (2024-10-29)
+
+ * Minor improvements.
+
 ### Crystal Tracker v0.8.3 (2024-10-20)
 
  * Add Move Left/Right for loop and call boxes.
