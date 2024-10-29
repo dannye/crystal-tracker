@@ -866,58 +866,6 @@ void Main_Window::draw() {
 	Fl_Double_Window::draw();
 }
 
-bool Main_Window::maximized() const {
-#ifdef _WIN32
-	WINDOWPLACEMENT wp;
-	wp.length = sizeof(wp);
-	if (!GetWindowPlacement(fl_xid(this), &wp)) { return false; }
-	return wp.showCmd == SW_MAXIMIZE;
-#elif defined(__APPLE__)
-	return cocoa_is_maximized(this);
-#elif defined(__X11__)
-	Atom wmState = XInternAtom(fl_display, "_NET_WM_STATE", True);
-	Atom actual;
-	int format;
-	unsigned long numItems, bytesAfter;
-	unsigned char *properties = NULL;
-	int result = XGetWindowProperty(fl_display, fl_xid(this), wmState, 0, 1024, False, AnyPropertyType, &actual, &format,
-		&numItems, &bytesAfter, &properties);
-	int numMax = 0;
-	if (result == Success && format == 32 && properties) {
-		Atom maxVert = XInternAtom(fl_display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-		Atom maxHorz = XInternAtom(fl_display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-		for (unsigned long i = 0; i < numItems; i++) {
-			Atom property = ((Atom *)properties)[i];
-			if (property == maxVert || property == maxHorz) {
-				numMax++;
-			}
-		}
-		XFree(properties);
-	}
-	return numMax == 2;
-#endif
-}
-
-void Main_Window::maximize() {
-#ifdef _WIN32
-	ShowWindow(fl_xid(this), SW_MAXIMIZE);
-#elif defined(__APPLE__)
-	cocoa_maximize(this);
-#elif defined(__X11__)
-	XEvent event;
-	memset(&event, 0, sizeof(event));
-	event.xclient.type = ClientMessage;
-	event.xclient.window = fl_xid(this);
-	event.xclient.message_type = XInternAtom(fl_display, "_NET_WM_STATE", False);
-	event.xclient.format = 32;
-	event.xclient.data.l[0] = 1;
-	event.xclient.data.l[1] = XInternAtom(fl_display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-	event.xclient.data.l[2] = XInternAtom(fl_display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-	event.xclient.data.l[3] = 1;
-	XSendEvent(fl_display, DefaultRootWindow(fl_display), False, SubstructureNotifyMask | SubstructureNotifyMask, &event);
-#endif
-}
-
 bool Main_Window::unsaved() const {
 	return _song.loaded() && _song.modified();
 }
@@ -2508,7 +2456,7 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 		Preferences::set("h", mw->_wh);
 		Preferences::set("fullscreen", 1);
 	}
-	else if (mw->maximized()) {
+	else if (mw->maximize_active()) {
 #ifdef _WIN32
 		HWND hwnd = fl_xid(mw);
 		WINDOWPLACEMENT wp;
@@ -2551,7 +2499,7 @@ void Main_Window::exit_cb(Fl_Widget *, Main_Window *mw) {
 		Preferences::set("h", mw->h());
 		Preferences::set("fullscreen", 0);
 	}
-	Preferences::set("maximized", mw->maximized());
+	Preferences::set("maximized", mw->maximize_active());
 	Preferences::set("zoom", mw->zoom());
 	Preferences::set("key_labels", mw->key_labels());
 	Preferences::set("note_labels", mw->note_labels());
@@ -3944,14 +3892,14 @@ void Main_Window::bpm_cb(Fl_Widget *w, Main_Window *mw) {
 
 void Main_Window::full_screen_cb(Fl_Widget *, Main_Window *mw) {
 	if (mw->full_screen()) {
-		if (!mw->maximized()) {
+		if (!mw->maximize_active()) {
 			mw->_wx = mw->x(); mw->_wy = mw->y();
 			mw->_ww = mw->w(); mw->_wh = mw->h();
 		}
 		mw->fullscreen();
 	}
 	else {
-		mw->fullscreen_off(mw->_wx, mw->_wy, mw->_ww, mw->_wh);
+		mw->fullscreen_off();
 	}
 }
 

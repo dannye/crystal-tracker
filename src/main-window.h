@@ -235,8 +235,6 @@ public:
 	void show(void) override;
 	void resize(int X, int Y, int W, int H) override;
 	void draw() override;
-	bool maximized(void) const;
-	void maximize(void);
 	inline bool loop_verification(void) const { return _loop_verification_mi && !!_loop_verification_mi->value(); }
 	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
 	inline bool continuous_scroll(void) const { return _continuous_mi && !!_continuous_mi->value(); }
