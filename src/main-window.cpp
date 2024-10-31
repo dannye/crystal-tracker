@@ -855,6 +855,13 @@ void Main_Window::resize(int X, int Y, int W, int H) {
 	_status_bar->resize(0, H - STATUS_BAR_HEIGHT, W, STATUS_BAR_HEIGHT);
 	_status_label->size(std::max(W - _status_label->x() + 2, 20), _status_label->h());
 	_context_menu->resize(_piano_roll->x() + WHITE_KEY_WIDTH, _piano_roll->y(), _piano_roll->w() - WHITE_KEY_WIDTH - Fl::scrollbar_size(), _piano_roll->h() - Fl::scrollbar_size());
+
+#ifdef __APPLE__
+	if (full_screen() != !!fullscreen_active()) {
+		_full_screen_mi->value(fullscreen_active());
+		_menu_bar->update();
+	}
+#endif
 }
 
 void Main_Window::draw() {
