@@ -1539,6 +1539,28 @@ void Piano_Timeline::draw() {
 			}
 		}
 
+		const auto draw_body_dividers = [&](int32_t channel_loop_tick, int32_t channel_end_tick, Fl_Color color) {
+			fl_color(color);
+			int32_t body_length = channel_end_tick - channel_loop_tick;
+			for (int32_t tick = channel_end_tick + body_length; tick <= end_tick; tick += body_length) {
+				x_pos = x() + tick * tick_width + WHITE_KEY_WIDTH;
+				yxline(x_pos - 1, y(), y() + h(), px, pw);
+				yxline(x_pos, y(), y() + h(), px, pw);
+			}
+		};
+		if (channel_1_loop_tick != -1 && active_channel == 1) {
+			draw_body_dividers(channel_1_loop_tick, channel_1_end_tick, NOTE_RED);
+		}
+		if (channel_2_loop_tick != -1 && active_channel == 2) {
+			draw_body_dividers(channel_2_loop_tick, channel_2_end_tick, NOTE_BLUE);
+		}
+		if (channel_3_loop_tick != -1 && active_channel == 3) {
+			draw_body_dividers(channel_3_loop_tick, channel_3_end_tick, NOTE_GREEN);
+		}
+		if (channel_4_loop_tick != -1 && active_channel == 4) {
+			draw_body_dividers(channel_4_loop_tick, channel_4_end_tick, NOTE_BROWN);
+		}
+
 		fl_color(BOOKMARK_COLOR);
 		for (int32_t tick : _bookmarks) {
 			x_pos = x() + tick * tick_width + WHITE_KEY_WIDTH;
