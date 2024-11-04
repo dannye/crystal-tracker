@@ -3910,15 +3910,6 @@ void Main_Window::bpm_cb(Fl_Widget *w, Main_Window *mw) {
 }
 
 void Main_Window::full_screen_cb(Fl_Widget *, Main_Window *mw) {
-#ifdef __APPLE__
-	if (Fl::first_window() != mw) {
-		if (mw->full_screen() != !!mw->fullscreen_active()) {
-			mw->_full_screen_mi->value(mw->fullscreen_active());
-			mw->_menu_bar->update();
-		}
-		return;
-	}
-#endif
 	if (mw->full_screen()) {
 		if (!mw->maximize_active()) {
 			mw->_wx = mw->x(); mw->_wy = mw->y();
