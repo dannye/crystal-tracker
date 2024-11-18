@@ -1,6 +1,10 @@
 Changelog
 =========
 
+### Crystal Tracker v0.8.6 (2024-11-17)
+
+ * Fix a few more fullscreen bugs and other minor improvements.
+
 ### Crystal Tracker v0.8.5 (2024-11-08)
 
  * Fix a few fullscreen bugs and other minor improvements.
