@@ -26,47 +26,6 @@
 
 static Main_Window *window = nullptr;
 
-static void use_theme(OS::Theme theme) {
-	OS::use_native_fonts();
-	switch (theme) {
-	case OS::Theme::CLASSIC:
-		OS::use_classic_theme();
-		return;
-	case OS::Theme::AERO:
-		OS::use_aero_theme();
-		return;
-	case OS::Theme::METRO:
-		OS::use_metro_theme();
-		return;
-	case OS::Theme::AQUA:
-		OS::use_aqua_theme();
-		return;
-	case OS::Theme::GREYBIRD:
-		OS::use_greybird_theme();
-		return;
-	case OS::Theme::OCEAN:
-		OS::use_ocean_theme();
-		return;
-	case OS::Theme::BLUE:
-		OS::use_blue_theme();
-		return;
-	case OS::Theme::OLIVE:
-		OS::use_olive_theme();
-		return;
-	case OS::Theme::ROSE_GOLD:
-		OS::use_rose_gold_theme();
-		return;
-	case OS::Theme::DARK:
-		OS::use_dark_theme();
-		return;
-	case OS::Theme::BRUSHED_METAL:
-		OS::use_brushed_metal_theme();
-		return;
-	case OS::Theme::HIGH_CONTRAST:
-		OS::use_high_contrast_theme();
-	}
-}
-
 int main(int argc, char **argv) {
 	Preferences::initialize(argv[0]);
 	std::ios::sync_with_stdio(false);
@@ -93,7 +52,8 @@ int main(int argc, char **argv) {
 #else
 	OS::Theme theme = (OS::Theme)Preferences::get("theme", (int)OS::Theme::GREYBIRD);
 #endif
-	use_theme(theme);
+	OS::use_native_fonts();
+	OS::use_theme(theme);
 
 #ifdef _WIN32
 	int x = Preferences::get("x", 48), y = Preferences::get("y", 48 + GetSystemMetrics(SM_CYCAPTION));

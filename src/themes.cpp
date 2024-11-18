@@ -3245,3 +3245,43 @@ void OS::use_native_settings() {
 	Fl_Tooltip::size(OS_FONT_SIZE);
 	Fl_Tooltip::delay(0.5f);
 }
+
+void OS::use_theme(Theme theme) {
+	switch (theme) {
+	case Theme::CLASSIC:
+		use_classic_theme();
+		return;
+	case Theme::AERO:
+		use_aero_theme();
+		return;
+	case Theme::METRO:
+		use_metro_theme();
+		return;
+	case Theme::AQUA:
+		use_aqua_theme();
+		return;
+	case Theme::GREYBIRD:
+		use_greybird_theme();
+		return;
+	case Theme::OCEAN:
+		use_ocean_theme();
+		return;
+	case Theme::BLUE:
+		use_blue_theme();
+		return;
+	case Theme::OLIVE:
+		use_olive_theme();
+		return;
+	case Theme::ROSE_GOLD:
+		use_rose_gold_theme();
+		return;
+	case Theme::DARK:
+		use_dark_theme();
+		return;
+	case Theme::BRUSHED_METAL:
+		use_brushed_metal_theme();
+		return;
+	case Theme::HIGH_CONTRAST:
+		use_high_contrast_theme();
+	}
+}

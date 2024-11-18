@@ -70,6 +70,7 @@ public:
 	inline static bool is_consolas(void) { return _is_consolas; }
 	static void use_native_fonts(void);
 	static void use_native_settings(void);
+	static void use_theme(Theme theme);
 	static void use_classic_theme(void);
 	static void use_aero_theme(void);
 	static void use_metro_theme(void);
