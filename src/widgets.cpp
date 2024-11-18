@@ -60,6 +60,7 @@ int Label_Button::handle(int event) {
 		return 1;
 	}
 	if (event == FL_PUSH && !_enabled) return 0;
+	if (event == FL_RELEASE) window()->redraw();
 	return Fl_Button::handle(event);
 }
 
