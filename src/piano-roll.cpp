@@ -1402,9 +1402,14 @@ void Piano_Timeline::draw() {
 
 	const auto yxline2 = [](int x, int y, int y1, int px, int pw) {
 		if (x >= px && x <= px + pw) {
+#ifdef __APPLE__
+			fl_yxline(x-1, y, y1);
+			fl_yxline(x, y, y1);
+#else
 			fl_line_style(FL_SOLID, 2);
 			fl_yxline(x, y, y1);
 			fl_line_style(FL_SOLID);
+#endif
 		}
 	};
 
