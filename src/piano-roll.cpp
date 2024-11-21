@@ -1392,12 +1392,20 @@ void Piano_Timeline::draw() {
 	const int pickup_offset = p->pickup_offset();
 	const bool ruler = p->parent()->ruler();
 	const int px = p->x();
+	const int py = p->y();
 	const int pw = p->w();
+	const int ph = p->h();
 
 	int active_channel = selected_channel();
 
-	const auto yxline = [](int x, int y, int y1, int px, int pw) {
-		if (x >= px && x < px + pw) fl_yxline(x, y, y1);
+	const auto yxline = [](int x, int y, int y1, int px, int pw, float s) {
+		if (x >= px && x < px + pw) {
+			fl_yxline(
+				(int)((x+1) * s + (x  < 0 ? -0.001f : 0.001f)) - 1,
+				(int)(y     * s + (y  < 0 ? -0.001f : 0.001f)),
+				(int)(y1    * s + (y1 < 0 ? -0.001f : 0.001f))
+			);
+		}
 	};
 
 	const auto yxline2 = [](int x, int y, int y1, int px, int pw) {
@@ -1441,6 +1449,16 @@ void Piano_Timeline::draw() {
 		int x_pos = x() + WHITE_KEY_WIDTH;
 		int time_step_width = tick_width * ticks_per_step;
 		const size_t num_dividers = (w() - WHITE_KEY_WIDTH) / time_step_width + 1;
+		float scale = 1.0f;
+#ifndef __APPLE__
+		scale = fl_override_scale();
+		fl_push_clip(
+			(int)(px * scale + 0.001f),
+			(int)(py * scale + 0.001f),
+			(int)((pw - Fl::scrollbar_size()) * scale + 0.001f),
+			(int)((ph - Fl::scrollbar_size()) * scale + 0.001f)
+		);
+#endif
 		for (size_t i = 0; i < num_dividers; ++i) {
 			if ((ruler && i % steps_per_beat == pickup_offset % steps_per_beat) || (!ruler && hc)) {
 				fl_color(beat_divider);
@@ -1448,9 +1466,13 @@ void Piano_Timeline::draw() {
 			else {
 				fl_color(col_divider);
 			}
-			yxline(x_pos - 1, y(), y() + h(), px, pw);
+			yxline(x_pos - 1, y(), y() + h(), px, pw, scale);
 			x_pos += time_step_width;
 		}
+#ifndef __APPLE__
+		fl_pop_clip();
+		fl_restore_scale(scale);
+#endif
 
 		std::set<int32_t> *unused_targets = active_channel_unused_targets();
 		if (unused_targets) {
