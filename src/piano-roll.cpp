@@ -1425,9 +1425,14 @@ void Piano_Timeline::draw() {
 				}
 				if (_x == 0 || _x == 7) {
 					fl_color(row_divider);
+#ifdef __APPLE__
+					fl_xyline(px, y_pos-1, px + pw);
+					fl_xyline(px, y_pos, px + pw);
+#else
 					fl_line_style(FL_SOLID, 2);
 					fl_xyline(px, y_pos, px + pw);
 					fl_line_style(FL_SOLID);
+#endif
 				}
 				y_pos += note_row_height;
 			}
