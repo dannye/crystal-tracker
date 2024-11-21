@@ -1450,7 +1450,7 @@ void Piano_Timeline::draw() {
 		int time_step_width = tick_width * ticks_per_step;
 		const size_t num_dividers = (w() - WHITE_KEY_WIDTH) / time_step_width + 1;
 		float scale = 1.0f; (void)py; (void)ph;
-#ifndef __APPLE__
+#ifdef _WIN32
 		scale = fl_override_scale();
 		fl_push_clip(
 			(int)(px * scale + 0.001f),
@@ -1469,7 +1469,7 @@ void Piano_Timeline::draw() {
 			yxline(x_pos - 1, y(), y() + h(), px, pw, scale);
 			x_pos += time_step_width;
 		}
-#ifndef __APPLE__
+#ifdef _WIN32
 		fl_pop_clip();
 		fl_restore_scale(scale);
 #endif
