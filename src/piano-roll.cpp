@@ -22,10 +22,12 @@ static const char *pitch_label(const Note_View &note) {
 
 static void rect_band(int x, int y, int w, int h, int t, Fl_Color c) {
 	fl_color(c);
+	fl_push_clip(x, y, w, h);
 	fl_rectf(x, y, w, t);
 	fl_rectf(x, y+h-t, w, t);
 	fl_rectf(x, y, t, h);
 	fl_rectf(x+w-t, y, t, h);
+	fl_pop_clip();
 }
 
 Note_Box::Note_Box(const Note_View &n, int32_t t, int X, int Y, int W, int H, const char *l) : Fl_Box(X, Y, W, H, l), _note_view(n), _tick(t) {
