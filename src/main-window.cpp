@@ -3573,6 +3573,7 @@ void Main_Window::channel_1_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 	}
 	else {
 		mw->_channel_1_mi->setonly();
+		mw->_channel_1_tb->setonly();
 		mw->selected_channel(1);
 	}
 	mw->update_channel_detail();
@@ -3588,6 +3589,7 @@ void Main_Window::channel_2_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 	}
 	else {
 		mw->_channel_2_mi->setonly();
+		mw->_channel_2_tb->setonly();
 		mw->selected_channel(2);
 	}
 	mw->update_channel_detail();
@@ -3603,6 +3605,7 @@ void Main_Window::channel_3_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 	}
 	else {
 		mw->_channel_3_mi->setonly();
+		mw->_channel_3_tb->setonly();
 		mw->selected_channel(3);
 	}
 	mw->update_channel_detail();
@@ -3618,6 +3621,7 @@ void Main_Window::channel_4_tb_cb(Toolbar_Radio_Button *, Main_Window *mw) {
 	}
 	else {
 		mw->_channel_4_mi->setonly();
+		mw->_channel_4_tb->setonly();
 		mw->selected_channel(4);
 	}
 	mw->update_channel_detail();
