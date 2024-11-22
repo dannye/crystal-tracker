@@ -20,6 +20,14 @@ static const char *pitch_label(const Note_View &note) {
 	return NOTE_KEYS[PITCH_TO_KEY_INDEX[((size_t)note.pitch - 1 + note.transpose_pitches) % NUM_NOTES_PER_OCTAVE]].label;
 }
 
+static void rect_band(int x, int y, int w, int h, int t, Fl_Color c) {
+	fl_color(c);
+	fl_rectf(x, y, w, t);
+	fl_rectf(x, y+h-t, w, t);
+	fl_rectf(x, y, t, h);
+	fl_rectf(x+w-t, y, t, h);
+}
+
 Note_Box::Note_Box(const Note_View &n, int32_t t, int X, int Y, int W, int H, const char *l) : Fl_Box(X, Y, W, H, l), _note_view(n), _tick(t) {
 	labelfont(OS_FONT);
 	align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
@@ -28,62 +36,27 @@ Note_Box::Note_Box(const Note_View &n, int32_t t, int X, int Y, int W, int H, co
 void Note_Box::draw() {
 	if (box() != FL_BORDER_FRAME) draw_box();
 	if (ghost()) {
-		if (box() == FL_BORDER_FRAME) {
-			fl_color(NOTE_GHOST);
-			fl_line_style(FL_SOLID, 2);
-			fl_rect(x()+1, y()+1, w()-1, h()-1);
-			fl_line_style(FL_SOLID);
-		}
-		else {
-			fl_color(NOTE_GHOST);
-			fl_line_style(FL_SOLID, 2);
-			fl_rect(x()+1, y()+1, w()-1, h()-1);
-			fl_rect(x()+2, y()+2, w()-3, h()-3);
-			fl_line_style(FL_SOLID);
-		}
-		draw_box(FL_BORDER_FRAME, NOTE_GHOST);
+		rect_band(x(), y(), w(), h(), box() == FL_BORDER_FRAME ? 2 : 3, NOTE_GHOST);
 	}
 	else if (selected()) {
-		if (box() == FL_BORDER_FRAME) {
-			fl_color(FL_FOREGROUND_COLOR);
-			fl_line_style(FL_SOLID, 2);
-			fl_rect(x()+1, y()+1, w()-1, h()-1);
-			fl_line_style(FL_SOLID);
-		}
-		else {
-			fl_color(FL_WHITE);
-			fl_line_style(FL_SOLID, 2);
-			fl_rect(x()+1, y()+1, w()-1, h()-1);
-			fl_rect(x()+2, y()+2, w()-3, h()-3);
-			fl_line_style(FL_SOLID);
-		}
-		draw_box(FL_BORDER_FRAME, FL_FOREGROUND_COLOR);
+		rect_band(x(), y(), w(), h(), box() == FL_BORDER_FRAME ? 2 : 3, box() == FL_BORDER_FRAME ? FL_FOREGROUND_COLOR : FL_WHITE);
+		if (box() != FL_BORDER_FRAME) draw_box(FL_BORDER_FRAME, FL_FOREGROUND_COLOR);
 	}
 	else if (box() == FL_BORDER_FRAME) {
-		fl_color(color());
-		fl_line_style(FL_SOLID, 2);
-		fl_rect(x()+1, y()+1, w()-1, h()-1);
-		fl_line_style(FL_SOLID);
-		draw_box(FL_BORDER_FRAME, color());
+		rect_band(x(), y(), w(), h(), 2, color());
 	}
 	draw_label();
 }
 
 void Loop_Box::draw() {
 	if (box() == FL_NO_BOX) return;
-	fl_color(color());
-	fl_line_style(FL_SOLID, 2);
-	fl_rect(x(), y(), w() + 1, h() + 1);
-	fl_line_style(FL_SOLID);
+	rect_band(x()-1, y()-1, w()+2, h()+2, 2, color());
 	draw_label();
 }
 
 void Call_Box::draw() {
 	if (box() == FL_NO_BOX) return;
-	fl_color(selected() ? FL_CYAN : color());
-	fl_line_style(FL_SOLID, 2);
-	fl_rect(x(), y(), w() + 1, h() + 1);
-	fl_line_style(FL_SOLID);
+	rect_band(x()-1, y()-1, w()+2, h()+2, 2, selected() ? FL_CYAN : color());
 	draw_label();
 }
 
@@ -1401,24 +1374,15 @@ void Piano_Timeline::draw() {
 	const auto yxline = [](int x, int y, int y1, int px, int pw, float s) {
 		if (x >= px && x < px + pw) {
 			fl_yxline(
-				(int)((x+1) * s + (x  < 0 ? -0.001f : 0.001f)) - 1,
-				(int)(y     * s + (y  < 0 ? -0.001f : 0.001f)),
-				(int)(y1    * s + (y1 < 0 ? -0.001f : 0.001f))
+				(int)((x+1)  * s + (x  < 0 ? -0.001f : 0.001f)) - 1,
+				(int)(y      * s + (y  < 0 ? -0.001f : 0.001f)),
+				(int)((y1+1) * s + (y1 < 0 ? -0.001f : 0.001f)) - 1
 			);
 		}
 	};
 
-	const auto yxline2 = [](int x, int y, int y1, int px, int pw) {
-		if (x >= px && x <= px + pw) {
-#ifdef __APPLE__
-			fl_yxline(x-1, y, y1);
-			fl_yxline(x, y, y1);
-#else
-			fl_line_style(FL_SOLID, 2);
-			fl_yxline(x, y, y1);
-			fl_line_style(FL_SOLID);
-#endif
-		}
+	const auto yxline2 = [](int x, int y, int h, int px, int pw) {
+		if (x >= px && x <= px + pw) fl_rectf(x-1, y, 2, h);
 	};
 
 	if (damage() & ~FL_DAMAGE_CHILD) {
@@ -1432,15 +1396,7 @@ void Piano_Timeline::draw() {
 					fl_rectf(px, y_pos, pw, note_row_height, dark_row);
 				}
 				if (_x == 0 || _x == 7) {
-					fl_color(row_divider);
-#ifdef __APPLE__
-					fl_xyline(px, y_pos-1, px + pw);
-					fl_xyline(px, y_pos, px + pw);
-#else
-					fl_line_style(FL_SOLID, 2);
-					fl_xyline(px, y_pos, px + pw);
-					fl_line_style(FL_SOLID);
-#endif
+					fl_rectf(px, y_pos-1, pw, 2, row_divider);
 				}
 				y_pos += note_row_height;
 			}
@@ -1455,8 +1411,8 @@ void Piano_Timeline::draw() {
 		fl_push_clip(
 			(int)(px * scale + 0.001f),
 			(int)(py * scale + 0.001f),
-			(int)((pw - Fl::scrollbar_size()) * scale + 0.001f),
-			(int)((ph - Fl::scrollbar_size()) * scale + 0.001f)
+			(int)((pw - Fl::scrollbar_size() + 1) * scale + 0.001f) - 1,
+			(int)((ph - Fl::scrollbar_size() + 1) * scale + 0.001f) - 1
 		);
 #endif
 		for (size_t i = 0; i < num_dividers; ++i) {
@@ -1479,7 +1435,7 @@ void Piano_Timeline::draw() {
 			fl_color(label_marker);
 			for (int32_t tick : *unused_targets) {
 				x_pos = x() + tick * tick_width + WHITE_KEY_WIDTH;
-				yxline2(x_pos, y(), y() + h(), px, pw);
+				yxline2(x_pos, y(), h(), px, pw);
 			}
 		}
 
@@ -1490,7 +1446,7 @@ void Piano_Timeline::draw() {
 			fl_color(tempo_marker);
 			for (int32_t tick : *tempo_changes) {
 				x_pos = x() + tick * tick_width + WHITE_KEY_WIDTH;
-				yxline2(x_pos, y(), y() + h(), px, pw);
+				yxline2(x_pos, y(), h(), px, pw);
 			}
 		}
 
@@ -1508,28 +1464,28 @@ void Piano_Timeline::draw() {
 		) {
 			x_pos = x() + loop_tick * tick_width + WHITE_KEY_WIDTH;
 			fl_color(FL_FOREGROUND_COLOR);
-			yxline2(x_pos, y(), y() + h(), px, pw);
+			yxline2(x_pos, y(), h(), px, pw);
 		}
 		else {
 			if (channel_1_loop_tick != -1 && (active_channel == 0 || active_channel == 1)) {
 				x_pos = x() + channel_1_loop_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_RED);
-				yxline2(x_pos, y(), y() + h(), px, pw);
+				yxline2(x_pos, y(), h(), px, pw);
 			}
 			if (channel_2_loop_tick != -1 && (active_channel == 0 || active_channel == 2)) {
 				x_pos = x() + channel_2_loop_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_BLUE);
-				yxline2(x_pos, y(), y() + h(), px, pw);
+				yxline2(x_pos, y(), h(), px, pw);
 			}
 			if (channel_3_loop_tick != -1 && (active_channel == 0 || active_channel == 3)) {
 				x_pos = x() + channel_3_loop_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_GREEN);
-				yxline2(x_pos, y(), y() + h(), px, pw);
+				yxline2(x_pos, y(), h(), px, pw);
 			}
 			if (channel_4_loop_tick != -1 && (active_channel == 0 || active_channel == 4)) {
 				x_pos = x() + channel_4_loop_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_BROWN);
-				yxline2(x_pos, y(), y() + h(), px, pw);
+				yxline2(x_pos, y(), h(), px, pw);
 			}
 		}
 
@@ -1547,28 +1503,28 @@ void Piano_Timeline::draw() {
 		) {
 			x_pos = x() + end_tick * tick_width + WHITE_KEY_WIDTH;
 			fl_color(FL_FOREGROUND_COLOR);
-			yxline2(x_pos, y(), y() + h(), px, pw);
+			yxline2(x_pos, y(), h(), px, pw);
 		}
 		else {
 			if (channel_1_end_tick != -1 && (active_channel == 0 || active_channel == 1)) {
 				x_pos = x() + channel_1_end_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_RED);
-				yxline2(x_pos, y(), y() + h(), px, pw);
+				yxline2(x_pos, y(), h(), px, pw);
 			}
 			if (channel_2_end_tick != -1 && (active_channel == 0 || active_channel == 2)) {
 				x_pos = x() + channel_2_end_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_BLUE);
-				yxline2(x_pos, y(), y() + h(), px, pw);
+				yxline2(x_pos, y(), h(), px, pw);
 			}
 			if (channel_3_end_tick != -1 && (active_channel == 0 || active_channel == 3)) {
 				x_pos = x() + channel_3_end_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_GREEN);
-				yxline2(x_pos, y(), y() + h(), px, pw);
+				yxline2(x_pos, y(), h(), px, pw);
 			}
 			if (channel_4_end_tick != -1 && (active_channel == 0 || active_channel == 4)) {
 				x_pos = x() + channel_4_end_tick * tick_width + WHITE_KEY_WIDTH;
 				fl_color(NOTE_BROWN);
-				yxline2(x_pos, y(), y() + h(), px, pw);
+				yxline2(x_pos, y(), h(), px, pw);
 			}
 		}
 
@@ -1577,7 +1533,7 @@ void Piano_Timeline::draw() {
 			int32_t body_length = channel_end_tick - channel_loop_tick;
 			for (int32_t tick = channel_end_tick + body_length; tick <= end_tick; tick += body_length) {
 				x_pos = x() + tick * tick_width + WHITE_KEY_WIDTH;
-				yxline2(x_pos, y(), y() + h(), px, pw);
+				yxline2(x_pos, y(), h(), px, pw);
 			}
 		};
 		if (channel_1_loop_tick != -1 && active_channel == 1) {
@@ -1596,7 +1552,7 @@ void Piano_Timeline::draw() {
 		fl_color(BOOKMARK_COLOR);
 		for (int32_t tick : _bookmarks) {
 			x_pos = x() + tick * tick_width + WHITE_KEY_WIDTH;
-			yxline2(x_pos, y(), y() + h(), px, pw);
+			yxline2(x_pos, y(), h(), px, pw);
 		}
 
 		_cursor_tick = p->tick();
@@ -1605,12 +1561,12 @@ void Piano_Timeline::draw() {
 		}
 		x_pos = x() + _cursor_tick * tick_width + WHITE_KEY_WIDTH;
 		fl_color(cursor_color);
-		yxline2(x_pos, y(), y() + h(), px, pw);
+		yxline2(x_pos, y(), h(), px, pw);
 
 		if (_format_tick != -1) {
 			x_pos = x() + _format_tick * tick_width + WHITE_KEY_WIDTH;
 			fl_color(FL_CYAN);
-			yxline2(x_pos, y(), y() + h(), px, pw);
+			yxline2(x_pos, y(), h(), px, pw);
 		}
 	}
 	draw_children();
