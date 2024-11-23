@@ -1413,8 +1413,8 @@ void Piano_Timeline::draw() {
 		fl_push_clip(
 			(int)(px * scale + 0.001f),
 			(int)(py * scale + 0.001f),
-			(int)((pw - Fl::scrollbar_size() + 1) * scale + 0.001f) - 1,
-			(int)((ph - Fl::scrollbar_size() + 1) * scale + 0.001f) - 1
+			(int)((pw - Fl::scrollbar_size()) * scale + 0.001f),
+			(int)((ph - Fl::scrollbar_size()) * scale + 0.001f)
 		);
 #endif
 		for (size_t i = 0; i < num_dividers; ++i) {

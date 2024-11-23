@@ -60,7 +60,7 @@ struct Scalable_Pixmap {
 	~Scalable_Pixmap() { if (image) delete image; }
 
 	Fl_Image *get(float scale) {
-#ifdef __APPLE__
+#if defined(_WIN32) || defined(__APPLE__)
 		return &pixmap;
 #else
 		if (scale == 1.0f) return &pixmap;

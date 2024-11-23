@@ -622,16 +622,31 @@ void Toolbar_Button::draw() {
 	draw_box(value() ? OS::current_theme() == OS::Theme::OLIVE ? OS_MINI_BUTTON_UP_BOX :
 		down_box() ? down_box() : fl_down(box()) : box(), col);
 	draw_backdrop();
-	if (labeltype() == FL_NORMAL_LABEL && value()) {
-		Fl_Color c = labelcolor();
-		labelcolor(fl_contrast(c, col));
+#ifndef _WIN32
+	draw_label();
+#else
+	Fl_Image *img = active_r() ? image() : deimage();
+	float scale = fl_override_scale();
+	int SX = (int)(x() * scale + (x() < 0 ? -0.001f : 0.001f));
+	int SY = (int)(y() * scale + (y() < 0 ? -0.001f : 0.001f));
+	int SW = (int)(w() * scale + (w() < 0 ? -0.001f : 0.001f));
+	int SH = (int)(h() * scale + (h() < 0 ? -0.001f : 0.001f));
+	int IW = img->w();
+	int IH = img->h();
+	if (SW < IW || SH < IH) {
+		fl_restore_scale(scale);
 		draw_label();
-		labelcolor(c);
+		return;
 	}
-	else {
-		draw_label();
-	}
-	if (Fl::focus() == this) { draw_focus(); }
+	int W = IW * (SW / IW);
+	int H = IH * (SH / IH);
+	int X = (int)(SX + SW/2.0f - W/2.0f + 0.5f);
+	int Y = (int)(SY + SH/2.0f - H/2.0f + 0.5f);
+	img->scale(W, H, 0, 1);
+	img->draw(X, Y, W, H, 0, 0);
+	img->scale(IW, IH, 0, 1);
+	fl_restore_scale(scale);
+#endif
 }
 
 int Toolbar_Button::handle(int event) {

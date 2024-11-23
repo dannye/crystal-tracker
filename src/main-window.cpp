@@ -2037,7 +2037,7 @@ void Main_Window::stop_interactive_thread() {
 }
 
 void Main_Window::update_icon_resolution() {
-#ifndef __APPLE__
+#if !(defined(_WIN32) || defined(__APPLE__))
 	_new_tb->image(NEW_ICON.get(_scale));
 	_open_tb->image(OPEN_ICON.get(_scale));
 	_save_tb->image(SAVE_ICON.get(_scale));
