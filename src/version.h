@@ -7,11 +7,11 @@
 
 #define CURRENT_YEAR "2024"
 
-#define PROGRAM_VERSION 0,8,6
+#define PROGRAM_VERSION 0,8,7
 #ifdef _DEBUG
-#define PROGRAM_VERSION_STRING "0.8.6 [DEBUG]"
+#define PROGRAM_VERSION_STRING "0.8.7 [DEBUG]"
 #else
-#define PROGRAM_VERSION_STRING "0.8.6"
+#define PROGRAM_VERSION_STRING "0.8.7"
 #endif
 
 #define PROGRAM_EXE_NAME "crystaltracker"
