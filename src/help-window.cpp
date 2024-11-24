@@ -11,6 +11,19 @@
 #include "widgets.h"
 #include "help-window.h"
 
+void _Help_Window::resize(int X, int Y, int W, int H) {
+	static bool fixing_scale = false;
+	if (is_a_rescale() && maximize_active() && !fixing_scale) {
+		fixing_scale = true;
+		un_maximize();
+		maximize();
+		fixing_scale = false;
+		return;
+	}
+
+	Fl_Double_Window::resize(X, Y, W, H);
+}
+
 Help_Window::Help_Window(int x, int y, int w, int h, const char *t) : _dx(x), _dy(y), _width(w), _height(h), _title(t),
 	_content(NULL), _window(NULL), _body(NULL), _ok_button(NULL), _spacer(NULL) {}
 
@@ -26,7 +39,7 @@ void Help_Window::initialize() {
 	Fl_Group *prev_current = Fl_Group::current();
 	Fl_Group::current(NULL);
 	// Populate window
-	_window = new Fl_Double_Window(_dx, _dy, _width, _height, _title);
+	_window = new _Help_Window(_dx, _dy, _width, _height, _title);
 	_body = new HTML_View(10, 10, _width-20, _height-52);
 	_ok_button = new Default_Button(_width-90, _height-32, 80, 22, "OK");
 	_spacer = new Fl_Box(10, 10, _width-110, _height-52);

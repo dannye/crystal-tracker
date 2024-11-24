@@ -10,11 +10,17 @@
 
 #include "widgets.h"
 
+class _Help_Window : public Fl_Double_Window {
+public:
+	using Fl_Double_Window::Fl_Double_Window;
+	void resize(int X, int Y, int W, int H) override;
+};
+
 class Help_Window {
 private:
 	int _dx, _dy, _width, _height;
 	const char *_title, *_content;
-	Fl_Double_Window *_window;
+	_Help_Window *_window;
 	HTML_View *_body;
 	Default_Button *_ok_button;
 	Fl_Box *_spacer;
