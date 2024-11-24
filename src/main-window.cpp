@@ -840,6 +840,15 @@ void Main_Window::show() {
 }
 
 void Main_Window::resize(int X, int Y, int W, int H) {
+	static bool fixing_scale = false;
+	if (is_a_rescale() && maximize_active() && !fixing_scale) {
+		fixing_scale = true;
+		un_maximize();
+		maximize();
+		fixing_scale = false;
+		return;
+	}
+
 	Fl_Double_Window::resize(X, Y, W, H);
 
 	int piano_roll_height = H - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT;
