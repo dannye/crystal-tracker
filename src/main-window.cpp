@@ -2249,6 +2249,8 @@ void Main_Window::update_channel_status() {
 void Main_Window::new_cb(Fl_Widget *, Main_Window *mw) {
 	if (Fl::modal()) return;
 
+	mw->_new_tb->simulate_key_action();
+
 	if (mw->unsaved()) {
 		std::string msg = mw->modified_filename();
 		msg = msg + " has unsaved changes!\n\n"
@@ -2284,6 +2286,8 @@ void Main_Window::new_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::open_cb(Fl_Widget *, Main_Window *mw) {
 	if (Fl::modal()) return;
+
+	mw->_open_tb->simulate_key_action();
 
 	if (mw->unsaved()) {
 		std::string msg = mw->modified_filename();
@@ -2411,6 +2415,8 @@ void Main_Window::save_cb(Fl_Widget *w, Main_Window *mw) {
 
 	if (!mw->_song.loaded()) { return; }
 
+	mw->_save_tb->simulate_key_action();
+
 	if (mw->_asm_file.empty()) {
 		save_as_cb(w, mw);
 	}
@@ -2423,6 +2429,8 @@ void Main_Window::save_as_cb(Fl_Widget *, Main_Window *mw) {
 	if (Fl::modal()) return;
 
 	if (!mw->_song.loaded()) { return; }
+
+	mw->_save_as_tb->simulate_key_action();
 
 	int status = mw->_asm_save_chooser->show();
 	if (status == 1) { return; }
@@ -3075,6 +3083,8 @@ void Main_Window::set_stereo_panning(bool left, bool right) {
 void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 
+	mw->_undo_tb->simulate_key_action();
+
 	mw->_status_message = "Undo: ";
 	mw->_status_message += mw->_song.undo_action_message();
 	mw->_status_label->label(mw->_status_message.c_str());
@@ -3137,6 +3147,8 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
 	if (!mw->_redo_mi->active()) { return; }
+
+	mw->_redo_tb->simulate_key_action();
 
 	mw->_status_message = "Redo: ";
 	mw->_status_message += mw->_song.redo_action_message();
@@ -3247,6 +3259,7 @@ void Main_Window::select_invert_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::pitch_up_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+	mw->_pitch_up_tb->simulate_key_action();
 	if (mw->_piano_roll->pitch_up(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -3258,6 +3271,7 @@ void Main_Window::pitch_up_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::pitch_down_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+	mw->_pitch_down_tb->simulate_key_action();
 	if (mw->_piano_roll->pitch_down(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -3269,6 +3283,7 @@ void Main_Window::pitch_down_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::octave_up_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+	mw->_octave_up_tb->simulate_key_action();
 	if (mw->_piano_roll->octave_up(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -3280,6 +3295,7 @@ void Main_Window::octave_up_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::octave_down_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+	mw->_octave_down_tb->simulate_key_action();
 	if (mw->_piano_roll->octave_down(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -3291,6 +3307,7 @@ void Main_Window::octave_down_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::move_left_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+	mw->_move_left_tb->simulate_key_action();
 	if (mw->_piano_roll->move_left(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -3302,6 +3319,7 @@ void Main_Window::move_left_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::move_right_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+	mw->_move_right_tb->simulate_key_action();
 	if (mw->_piano_roll->move_right(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -3313,6 +3331,7 @@ void Main_Window::move_right_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::shorten_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+	mw->_shorten_tb->simulate_key_action();
 	if (mw->_piano_roll->shorten(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -3324,6 +3343,7 @@ void Main_Window::shorten_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::lengthen_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+	mw->_lengthen_tb->simulate_key_action();
 	if (mw->_piano_roll->lengthen(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -3335,6 +3355,7 @@ void Main_Window::lengthen_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::delete_selection_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+	mw->_delete_selection_tb->simulate_key_action();
 	if (mw->_piano_roll->delete_selection(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -3346,6 +3367,7 @@ void Main_Window::delete_selection_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::snip_selection_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+	mw->_snip_selection_tb->simulate_key_action();
 	if (mw->_piano_roll->snip_selection(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -3382,6 +3404,7 @@ void Main_Window::duplicate_note_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::split_note_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+	mw->_split_note_tb->simulate_key_action();
 	if (mw->_piano_roll->split_note(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -3393,6 +3416,7 @@ void Main_Window::split_note_cb(Fl_Widget *, Main_Window *mw) {
 
 void Main_Window::glue_note_cb(Fl_Widget *, Main_Window *mw) {
 	if (!mw->_song.loaded()) { return; }
+	mw->_glue_note_tb->simulate_key_action();
 	if (mw->_piano_roll->glue_note(mw->_song)) {
 		mw->_status_message = mw->_song.undo_action_message();
 		mw->_status_label->label(mw->_status_message.c_str());
@@ -3853,6 +3877,7 @@ void Main_Window::high_contrast_theme_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::zoom_out_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_zoom_out_tb->simulate_key_action();
 	if (mw->zoom() > -1) {
 		mw->zoom(mw->zoom() - 1);
 	}
@@ -3861,6 +3886,7 @@ void Main_Window::zoom_out_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::zoom_in_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_zoom_in_tb->simulate_key_action();
 	if (mw->zoom() < 1) {
 		mw->zoom(mw->zoom() + 1);
 	}
@@ -3889,6 +3915,7 @@ void Main_Window::configure_ruler_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::decrease_spacing_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_decrease_spacing_tb->simulate_key_action();
 	mw->_piano_roll->ticks_per_step(mw->_piano_roll->ticks_per_step() - 1);
 	if (mw->_piano_roll->ticks_per_step() == 4) {
 		mw->_decrease_spacing_mi->deactivate();
@@ -3904,6 +3931,7 @@ void Main_Window::decrease_spacing_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::increase_spacing_cb(Fl_Widget *, Main_Window *mw) {
+	mw->_increase_spacing_tb->simulate_key_action();
 	mw->_piano_roll->ticks_per_step(mw->_piano_roll->ticks_per_step() + 1);
 	if (mw->_piano_roll->ticks_per_step() == 48) {
 		mw->_increase_spacing_mi->deactivate();

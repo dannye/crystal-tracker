@@ -217,6 +217,7 @@ public:
 class Toolbar_Button : public Fl_Button {
 public:
 	Toolbar_Button(int x, int y, int w, int h, const char *l = NULL);
+	void simulate_key_action() { Fl_Button::simulate_key_action(); }
 protected:
 	void draw(void);
 	int handle(int event);
