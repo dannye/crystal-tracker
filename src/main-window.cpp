@@ -679,7 +679,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_zoom_in_tb->callback((Fl_Callback *)zoom_in_cb, this);
 	_zoom_in_tb->image(ZOOM_IN_ICON.get(_scale));
 #ifndef __APPLE__
-	_zoom_in_tb->shortcut(FL_COMMAND + '=');
+	_zoom_in_tb->shortcut(FL_COMMAND + '+');
 #endif
 
 	_key_labels_tb->tooltip("Key Labels (" COMMAND_KEY_PLUS "K)");
@@ -859,6 +859,7 @@ void Main_Window::resize(int X, int Y, int W, int H) {
 #endif
 
 	Fl_Double_Window::resize(X, Y, W, H);
+	W = w(); H = h();
 
 	int piano_roll_height = H - MENU_BAR_HEIGHT - TOOLBAR_HEIGHT - (ruler() ? Fl::scrollbar_size() : 0) - STATUS_BAR_HEIGHT;
 	int max_piano_roll_height = (int)NUM_OCTAVES * _piano_roll->octave_height() + Fl::scrollbar_size();

@@ -1409,13 +1409,18 @@ void Piano_Timeline::draw() {
 		const size_t num_dividers = (w() - WHITE_KEY_WIDTH) / time_step_width + 1;
 		float scale = 1.0f; (void)py; (void)ph;
 #ifdef _WIN32
-		scale = fl_override_scale();
-		fl_push_clip(
-			(int)(px * scale + 0.001f),
-			(int)(py * scale + 0.001f),
-			(int)((pw - Fl::scrollbar_size()) * scale + 0.001f),
-			(int)((ph - Fl::scrollbar_size()) * scale + 0.001f)
-		);
+		bool overriding_scale = false;
+		float screen_scale = Fl::screen_scale(window()->screen_num());
+		if (screen_scale > 1.0f && screen_scale < 2.0f) {
+			overriding_scale = true;
+			scale = fl_override_scale();
+			fl_push_clip(
+				(int)(px * scale + 0.001f),
+				(int)(py * scale + 0.001f),
+				(int)((pw - Fl::scrollbar_size()) * scale + 0.001f),
+				(int)((ph - Fl::scrollbar_size()) * scale + 0.001f)
+			);
+		}
 #endif
 		for (size_t i = 0; i < num_dividers; ++i) {
 			if ((ruler && i % steps_per_beat == pickup_offset % steps_per_beat) || (!ruler && hc)) {
@@ -1428,8 +1433,10 @@ void Piano_Timeline::draw() {
 			x_pos += time_step_width;
 		}
 #ifdef _WIN32
-		fl_pop_clip();
-		fl_restore_scale(scale);
+		if (overriding_scale) {
+			fl_pop_clip();
+			fl_restore_scale(scale);
+		}
 #endif
 
 		std::set<int32_t> *unused_targets = active_channel_unused_targets();
