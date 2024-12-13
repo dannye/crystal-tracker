@@ -1,6 +1,10 @@
 Changelog
 =========
 
+### Crystal Tracker v0.8.9 (2024-12-12)
+
+ * Minor bug fixes.
+
 ### Crystal Tracker v0.8.8 (2024-11-27)
 
  * Improve drawing on scaled displays and other minor improvements.
