@@ -1367,9 +1367,7 @@ void Piano_Timeline::draw() {
 	const int pickup_offset = p->pickup_offset();
 	const bool ruler = p->parent()->ruler();
 	const int px = p->x();
-	const int py = p->y();
 	const int pw = p->w();
-	const int ph = p->h();
 
 	int active_channel = selected_channel();
 
@@ -1407,19 +1405,13 @@ void Piano_Timeline::draw() {
 		int x_pos = x() + WHITE_KEY_WIDTH;
 		int time_step_width = tick_width * ticks_per_step;
 		const size_t num_dividers = (w() - WHITE_KEY_WIDTH) / time_step_width + 1;
-		float scale = 1.0f; (void)py; (void)ph;
+		float scale = 1.0f;
 #ifdef _WIN32
 		bool overriding_scale = false;
 		float screen_scale = Fl::screen_scale(window()->screen_num());
 		if (screen_scale > 1.0f && screen_scale < 2.0f) {
 			overriding_scale = true;
 			scale = fl_override_scale();
-			fl_push_clip(
-				(int)(px * scale + 0.001f),
-				(int)(py * scale + 0.001f),
-				(int)((pw - Fl::scrollbar_size()) * scale + 0.001f),
-				(int)((ph - Fl::scrollbar_size()) * scale + 0.001f)
-			);
 		}
 #endif
 		for (size_t i = 0; i < num_dividers; ++i) {
@@ -1434,7 +1426,6 @@ void Piano_Timeline::draw() {
 		}
 #ifdef _WIN32
 		if (overriding_scale) {
-			fl_pop_clip();
 			fl_restore_scale(scale);
 		}
 #endif

@@ -840,24 +840,6 @@ void Main_Window::show() {
 }
 
 void Main_Window::resize(int X, int Y, int W, int H) {
-#ifdef _WIN32
-	static bool fixing_scale = false;
-	if (is_a_rescale() && fullscreen_active() && !fixing_scale) {
-		fixing_scale = true;
-		fullscreen_off();
-		fullscreen();
-		fixing_scale = false;
-		return;
-	}
-	else if (is_a_rescale() && maximize_active() && !fixing_scale) {
-		fixing_scale = true;
-		un_maximize();
-		maximize();
-		fixing_scale = false;
-		return;
-	}
-#endif
-
 	Fl_Double_Window::resize(X, Y, W, H);
 	W = w(); H = h();
 

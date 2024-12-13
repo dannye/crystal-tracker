@@ -60,7 +60,6 @@ int Label_Button::handle(int event) {
 		return 1;
 	}
 	if (event == FL_PUSH && !_enabled) return 0;
-	if (event == FL_RELEASE) window()->redraw();
 	return Fl_Button::handle(event);
 }
 
@@ -626,6 +625,7 @@ void Toolbar_Button::draw() {
 	draw_label();
 #else
 	Fl_Image *img = active_r() ? image() : deimage();
+	fl_push_no_clip();
 	float scale = fl_override_scale();
 	int SX = (int)(x() * scale + (x() < 0 ? -0.001f : 0.001f));
 	int SY = (int)(y() * scale + (y() < 0 ? -0.001f : 0.001f));
@@ -635,6 +635,7 @@ void Toolbar_Button::draw() {
 	int IH = img->h();
 	if (SW < IW || SH < IH) {
 		fl_restore_scale(scale);
+		fl_pop_clip();
 		draw_label();
 		return;
 	}
@@ -646,6 +647,7 @@ void Toolbar_Button::draw() {
 	img->draw(X, Y, W, H, 0, 0);
 	img->scale(IW, IH, 0, 1);
 	fl_restore_scale(scale);
+	fl_pop_clip();
 #endif
 }
 
