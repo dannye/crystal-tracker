@@ -441,13 +441,13 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index, int
 			tick += note.length * note.speed;
 			note.index = itr_index(commands, command_itr);
 
-			note.slide_duration = 0;
-			note.slide_octave = 0;
-			note.slide_pitch = Pitch::REST;
-
 			if (note.index == index && tick >= min_tick) {
 				return note;
 			}
+
+			note.slide_duration = 0;
+			note.slide_octave = 0;
+			note.slide_pitch = Pitch::REST;
 		}
 		else if (command_itr->type == Command_Type::DRUM_NOTE) {
 			note.length = command_itr->drum_note.length;
