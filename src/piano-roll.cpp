@@ -4742,6 +4742,8 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 	int32_t start_index = start_view.index;
 	int32_t end_index = end_view.index;
 
+	const Call_Box *outer_call = nullptr;
+
 	auto calls = _piano_timeline.active_channel_calls();
 	for (const Call_Box *call : *calls) {
 		if (call->start_tick() == t_left && call->end_tick() <= t_right) {
@@ -4751,6 +4753,21 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 		if (call->end_tick() == t_right && call->start_tick() >= t_left) {
 			end_index = call->start_note_view().index;
 			end_view = call->end_note_view();
+		}
+		if (call->start_tick() <= t_left && call->end_tick() > t_right) {
+			outer_call = call;
+		}
+	}
+
+	if (outer_call) {
+		for (const Call_Box *call : *calls) {
+			if (call != outer_call && call->end_note_view().index == outer_call->end_note_view().index) {
+				for (const Loop_Box *loop : *loops) {
+					if (!(loop->end_tick() <= call->start_tick() || loop->start_tick() >= call->end_tick())) {
+						return false;
+					}
+				}
+			}
 		}
 	}
 
