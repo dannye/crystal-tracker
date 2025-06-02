@@ -4763,7 +4763,7 @@ bool Piano_Roll::create_loop(Song &song, bool dry_run) {
 		for (const Call_Box *call : *calls) {
 			if (call != outer_call && call->end_note_view().index == outer_call->end_note_view().index) {
 				for (const Loop_Box *loop : *loops) {
-					if (!(loop->end_tick() <= call->start_tick() || loop->start_tick() >= call->end_tick())) {
+					if (loop->start_tick() <= call->start_tick() && loop->end_tick() >= call->end_tick()) {
 						return false;
 					}
 				}
