@@ -168,7 +168,3 @@ zlib may be installed in a different directory, such as `/usr/local/opt/zlib` in
 If errors about unused variables are encountered when building PortAudio, apply [this fix](https://github.com/PortAudio/portaudio/commit/bc3ad0214a358be3cc01f6b2cc2eaaf284c6de34) and try again.
 
 When relocating the PortAudio headers, there will be no pa_linux_alsa.h, so that step will just be: `mv include/portaudio.h include/portaudiocpp/`
-
-### libopenmpt
-
-When building libopenmpt from source use `CXX="clang++"` instead of `CXX="g++-8"`.
