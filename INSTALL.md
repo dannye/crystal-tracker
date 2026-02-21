@@ -66,7 +66,7 @@ After building the x64 libs for fltk, portaudio, portaudiocpp, and openmpt, copy
 ### Install dependencies
 
 You need at least g++ 7 for C++17 support.
-g++ 8 is needed if building libopenmpt from source.
+g++ 8 or later is needed if building libopenmpt from source.
 
 CMake (version 3.15 or later) is required for building FLTK 1.4.
 
@@ -76,7 +76,7 @@ Run the following commands:
 
 ```bash
 sudo apt install make g++ git autoconf
-sudo apt install zlib1g-dev libpng-dev libxpm-dev libx11-dev libxft-dev libxinerama-dev libfontconfig1-dev x11proto-xext-dev libxrender-dev libxfixes-dev
+sudo apt install zlib1g-dev libpng-dev libxpm-dev libx11-dev libxft-dev libxinerama-dev libfontconfig1-dev x11proto-xext-dev libxrender-dev libxfixes-dev libasound2-dev libpulse-dev
 ```
 
 ### Install and build Crystal Tracker
@@ -91,7 +91,7 @@ cd crystal-tracker
 # Build FLTK 1.4.1
 git clone -b release-1.4.1 https://github.com/fltk/fltk.git lib/fltk
 pushd lib/fltk
-cmake -D CMAKE_INSTALL_PREFIX="$(realpath "$PWD/../..")" -D CMAKE_BUILD_TYPE=Release -D FLTK_GRAPHICS_CAIRO=1 -D FLTK_BACKEND_WAYLAND=0
+cmake -D CMAKE_INSTALL_PREFIX="$(realpath "$PWD/../..")" -D CMAKE_BUILD_TYPE=Release -D FLTK_GRAPHICS_CAIRO=1 -D FLTK_BACKEND_WAYLAND=0 -D FLTK_BUILD_GL=0 -D FLTK_BUILD_TEST=0
 make
 make install
 popd
@@ -120,7 +120,7 @@ cd libopenmpt
 	--without-vorbisfile \
 	--without-sndfile \
 	--without-flac \
-	CXX="g++-8" CXXFLAGS="-O2" CFLAGS="-O2" \
+	CXXFLAGS="-O2" CFLAGS="-O2" \
 	PKG_CONFIG_PATH="$(realpath "$PWD/../../lib/pkgconfig")"
 make
 make install

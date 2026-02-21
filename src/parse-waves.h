@@ -1,6 +1,7 @@
 #ifndef PARSE_WAVES_H
 #define PARSE_WAVES_H
 
+#include <cstdint>
 #include <string>
 #include <array>
 #include <vector>
