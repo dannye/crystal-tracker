@@ -555,7 +555,6 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 						pattern_data.push_back(FADE_PITCH_SLIDE);
 					}
 					else if (
-						channel_1_prev_note.vibrato_rate &&
 						channel_1_prev_note.vibrato_extent &&
 						channel_1_note_duration > convert_vibrato_delay(global_tempo, channel_1_prev_note.speed, channel_1_prev_note.vibrato_delay)
 					) {
@@ -579,7 +578,6 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					pattern_data.push_back(channel_1_prev_note.slide_duration * 6);
 				}
 				else if (
-					channel_1_prev_note.vibrato_rate &&
 					channel_1_prev_note.vibrato_extent &&
 					channel_1_note_duration >= convert_vibrato_delay(global_tempo, channel_1_prev_note.speed, channel_1_prev_note.vibrato_delay)
 				) {
@@ -657,7 +655,6 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 						pattern_data.push_back(FADE_PITCH_SLIDE);
 					}
 					else if (
-						channel_2_prev_note.vibrato_rate &&
 						channel_2_prev_note.vibrato_extent &&
 						channel_2_note_duration > convert_vibrato_delay(global_tempo, channel_2_prev_note.speed, channel_2_prev_note.vibrato_delay)
 					) {
@@ -681,7 +678,6 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					pattern_data.push_back(channel_2_prev_note.slide_duration * 6);
 				}
 				else if (
-					channel_2_prev_note.vibrato_rate &&
 					channel_2_prev_note.vibrato_extent &&
 					channel_2_note_duration >= convert_vibrato_delay(global_tempo, channel_2_prev_note.speed, channel_2_prev_note.vibrato_delay)
 				) {
@@ -762,7 +758,6 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 					pattern_data.push_back(channel_3_prev_note.slide_duration * 6);
 				}
 				else if (
-					channel_3_prev_note.vibrato_rate &&
 					channel_3_prev_note.vibrato_extent &&
 					channel_3_note_duration >= convert_vibrato_delay(global_tempo, channel_3_prev_note.speed, channel_3_prev_note.vibrato_delay)
 				) {
