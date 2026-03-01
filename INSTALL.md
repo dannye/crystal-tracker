@@ -43,7 +43,7 @@ You will need [Microsoft Visual Studio](https://visualstudio.microsoft.com/vs/);
 
 #### Setting up libopenmpt
 
-25. Clone [libopenmpt-0.6.3](https://github.com/OpenMPT/openmpt/tree/libopenmpt-0.6.3) into lib\\**openmpt**. (ie, `git clone -b libopenmpt-0.6.3 https://github.com/OpenMPT/openmpt.git lib/openmpt`)
+25. Clone [libopenmpt-0.8.4](https://github.com/OpenMPT/openmpt/tree/libopenmpt-0.8.4) into lib\\**openmpt**. (ie, `git clone -b libopenmpt-0.8.4 https://github.com/OpenMPT/openmpt.git lib/openmpt`)
 26. Open lib\openmpt\build\vs2022win10\\**libopenmpt-small.sln** in Visual Studio 2022.
 27. Retarget the 4 projects to your installed version of the Windows 10 SDK if necessary.
 28. For each of the 4 projects, go to **Configuration Properties → C/C++ → Code Generation** and change **Spectre Mitigation** to "Disabled". Do this for the Release configuration, and also the Debug configuration if desired.
@@ -66,7 +66,6 @@ After building the x64 libs for fltk, portaudio, portaudiocpp, and openmpt, copy
 ### Install dependencies
 
 You need at least g++ 7 for C++17 support.
-g++ 8 or later is needed if building libopenmpt from source.
 
 CMake (version 3.15 or later) is required for building FLTK 1.4.
 
@@ -108,20 +107,19 @@ make
 make install
 popd
 
-# Build libopenmpt-0.6.3
+# Build libopenmpt-0.8.4
 pushd lib
-wget https://lib.openmpt.org/files/libopenmpt/src/libopenmpt-0.6.3+release.autotools.tar.gz
-mkdir libopenmpt && tar xf libopenmpt-0.6.3+release.autotools.tar.gz -C libopenmpt --strip-components=1
+wget https://lib.openmpt.org/files/libopenmpt/src/libopenmpt-0.8.4+release.autotools.tar.gz
+mkdir libopenmpt && tar xf libopenmpt-0.8.4+release.autotools.tar.gz -C libopenmpt --strip-components=1
 cd libopenmpt
-./configure --prefix="$(realpath "$PWD/../..")" \
+./configure --prefix="$(realpath "$PWD/../..")" CXXFLAGS="-O2" CFLAGS="-O2" \
+	PKG_CONFIG_PATH="$(realpath "$PWD/../../lib/pkgconfig")" \
+	--without-flac \
 	--without-mpg123 \
 	--without-ogg \
-	--without-vorbis \
-	--without-vorbisfile \
 	--without-sndfile \
-	--without-flac \
-	CXXFLAGS="-O2" CFLAGS="-O2" \
-	PKG_CONFIG_PATH="$(realpath "$PWD/../../lib/pkgconfig")"
+	--without-vorbis \
+	--without-vorbisfile
 make
 make install
 popd
