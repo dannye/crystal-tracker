@@ -98,7 +98,7 @@ popd
 # Build PortAudio v19.7.0
 git clone -b v19.7.0 https://github.com/PortAudio/portaudio.git lib/portaudio
 pushd lib/portaudio
-./configure --prefix="$(realpath "$PWD/../..")" CXXFLAGS="-O2" CFLAGS="-O2"
+./configure --prefix="$(realpath "$PWD/../..")" --includedir="$(realpath "$PWD/../../include/portaudiocpp")" CXXFLAGS="-O2" CFLAGS="-O2" --without-jack
 make
 make install
 cd bindings/cpp
@@ -123,8 +123,6 @@ cd libopenmpt
 make
 make install
 popd
-
-mv include/pa_linux_alsa.h include/portaudio.h include/portaudiocpp/
 
 # Build Crystal Tracker
 make
@@ -164,5 +162,3 @@ zlib may be installed in a different directory, such as `/usr/local/opt/zlib` in
 ### PortAudio
 
 If errors about unused variables are encountered when building PortAudio, apply [this fix](https://github.com/PortAudio/portaudio/commit/bc3ad0214a358be3cc01f6b2cc2eaaf284c6de34) and try again.
-
-When relocating the PortAudio headers, there will be no pa_linux_alsa.h, so that step will just be: `mv include/portaudio.h include/portaudiocpp/`
