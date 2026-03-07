@@ -4657,6 +4657,8 @@ bool Piano_Roll::unroll_loop(Song &song, bool dry_run) {
 	if (loop_index == -1) return false;
 
 	std::vector<Command> snippet = copy_snippet(commands, start_view.index, end_view.index);
+	assert(snippet.back().type == Command_Type::SOUND_LOOP);
+	snippet.pop_back();
 	for (Command &command : snippet) {
 		command.labels.clear();
 	}
@@ -4859,7 +4861,8 @@ bool Piano_Roll::delete_call(Song &song, bool dry_run) {
 	std::string target_label = commands[call_index].target;
 
 	int32_t start_index = itr_index(commands, find_note_with_label(commands, target_label));
-	std::vector<Command> snippet = copy_snippet(commands, start_index, end_view.index + 1, true);
+	std::vector<Command> snippet = copy_snippet(commands, start_index, end_view.index, true);
+	assert(snippet.back().type == Command_Type::SOUND_RET);
 
 	const auto snippet_contains_label = [](const std::vector<Command> &snippet, const std::string &label) {
 		for (const Command &command : snippet) {
@@ -4944,7 +4947,7 @@ bool Piano_Roll::unpack_call(Song &song, bool dry_run) {
 	std::string target_label = commands[call_index].target;
 
 	int32_t start_index = itr_index(commands, find_note_with_label(commands, target_label));
-	std::vector<Command> snippet = copy_snippet(commands, start_index, end_view.index + 1, true);
+	std::vector<Command> snippet = copy_snippet(commands, start_index, end_view.index, true);
 
 	const auto snippet_contains_label = [](const std::vector<Command> &snippet, const std::string &label) {
 		for (const Command &command : snippet) {
@@ -5144,7 +5147,7 @@ bool Piano_Roll::create_call(Song &song, bool dry_run) {
 
 	const std::vector<Command> &commands = song.channel_commands(selected_channel());
 
-	std::vector<Command> snippet = copy_snippet(commands, start_index, end_index + 1, true);
+	std::vector<Command> snippet = copy_snippet(commands, start_index, end_index, true);
 
 	for (const Command &command : snippet) {
 		if (

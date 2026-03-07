@@ -155,8 +155,8 @@ std::vector<Command> copy_snippet(const std::vector<Command> &commands, int32_t 
 	auto command_itr = commands.begin() + start_index;
 	auto end_itr = commands.begin() + end_index;
 
-	while (command_itr != commands.end() && command_itr != end_itr) {
-		assert(command_itr->type != Command_Type::SOUND_RET || command_itr + 1 == end_itr);
+	while (command_itr != commands.end()) {
+		assert(command_itr->type != Command_Type::SOUND_RET || command_itr == end_itr);
 		if (
 			command_itr->type == Command_Type::SOUND_JUMP ||
 			(command_itr->type == Command_Type::SOUND_LOOP && command_itr->sound_loop.loop_count == 0)
@@ -168,6 +168,7 @@ std::vector<Command> copy_snippet(const std::vector<Command> &commands, int32_t 
 			continue;
 		}
 		snippet.push_back(*command_itr);
+		if (command_itr == end_itr) break;
 		++command_itr;
 	}
 
