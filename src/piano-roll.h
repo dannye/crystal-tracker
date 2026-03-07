@@ -137,7 +137,7 @@ private:
 	int32_t _max_octave = 1;
 public:
 	Wrapper_Box(const Note_View &n, int32_t t, int X, int Y, int W, int H, const char *l = nullptr)
-		: Fl_Box(X, Y, W, H, l), _start_note_view(n), _start_tick(t) {}
+		: Fl_Box(X, Y, W, H, l), _start_note_view(n), _start_tick(t), _end_tick(t) {}
 
 	inline const Note_View &start_note_view(void) const { return _start_note_view; }
 	inline const Note_View &end_note_view(void) const { return _end_note_view; }

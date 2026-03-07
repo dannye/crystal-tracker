@@ -52,13 +52,13 @@ void Note_Box::draw() {
 
 void Loop_Box::draw() {
 	if (box() == FL_NO_BOX) return;
-	rect_band(x()-1, y()-1, w()+2, h()+2, 2, color());
+	rect_band(x(), y(), w(), h(), 2, color());
 	draw_label();
 }
 
 void Call_Box::draw() {
 	if (box() == FL_NO_BOX) return;
-	rect_band(x()-1, y()-1, w()+2, h()+2, 2, selected() ? FL_CYAN : color());
+	rect_band(x(), y(), w(), h(), 2, selected() ? FL_CYAN : color());
 	draw_label();
 }
 
@@ -502,10 +502,10 @@ void Piano_Timeline::calc_sizes() {
 
 	const auto resize_wrappers = [&](auto &wrappers) {
 		for (Wrapper_Box *wrapper : wrappers) {
-			int x_left   = tick_to_x_pos(wrapper->start_tick());
-			int x_right  = tick_to_x_pos(wrapper->end_tick());
-			int y_top    = pitch_to_y_pos(wrapper->max_pitch(), wrapper->max_octave());
-			int y_bottom = pitch_to_y_pos(wrapper->min_pitch(), wrapper->min_octave());
+			int x_left   = tick_to_x_pos(wrapper->start_tick()) - 1;
+			int x_right  = tick_to_x_pos(wrapper->end_tick()) + 1;
+			int y_top    = pitch_to_y_pos(wrapper->max_pitch(), wrapper->max_octave()) - 1;
+			int y_bottom = pitch_to_y_pos(wrapper->min_pitch(), wrapper->min_octave()) + 1;
 			wrapper->resize(
 				x_left,
 				y_top,
@@ -2509,10 +2509,10 @@ void Piano_Roll::build_note_view(
 				wrapper->set_min_pitch(Pitch::C_NAT, 1);
 				wrapper->set_max_pitch(Pitch::B_NAT, 8);
 			}
-			int x_left   = tick_to_x_pos(wrapper->start_tick());
-			int x_right  = tick_to_x_pos(wrapper->end_tick());
-			int y_top    = pitch_to_y_pos(wrapper->max_pitch(), wrapper->max_octave());
-			int y_bottom = pitch_to_y_pos(wrapper->min_pitch(), wrapper->min_octave());
+			int x_left   = tick_to_x_pos(wrapper->start_tick()) - 1;
+			int x_right  = tick_to_x_pos(wrapper->end_tick()) + 1;
+			int y_top    = pitch_to_y_pos(wrapper->max_pitch(), wrapper->max_octave()) - 1;
+			int y_bottom = pitch_to_y_pos(wrapper->min_pitch(), wrapper->min_octave()) + 1;
 			wrapper->resize(
 				x_left,
 				y_top,
@@ -4509,7 +4509,7 @@ bool Piano_Roll::is_point_in_loop(int X, int Y) {
 	if (!loops) return false;
 
 	for (const Loop_Box *loop : *loops) {
-		if (X >= loop->x() && X < loop->x() + loop->w() && Y >= loop->y() && Y < loop->y() + loop->h()) {
+		if (X >= loop->x()+1 && X < loop->x()+1 + loop->w()-2 && Y >= loop->y()+1 && Y < loop->y()+1 + loop->h()-2) {
 			return true;
 		}
 	}
@@ -4522,7 +4522,7 @@ bool Piano_Roll::is_point_in_call(int X, int Y) {
 	if (!calls) return false;
 
 	for (const Call_Box *call : *calls) {
-		if (X >= call->x() && X < call->x() + call->w() && Y >= call->y() && Y < call->y() + call->h()) {
+		if (X >= call->x()+1 && X < call->x()+1 + call->w()-2 && Y >= call->y()+1 && Y < call->y()+1 + call->h()-2) {
 			return true;
 		}
 	}
