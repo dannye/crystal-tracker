@@ -4344,6 +4344,22 @@ bool Piano_Roll::insert_rest(Song &song, bool dry_run) {
 		return true;
 	}
 
+	auto loops = _piano_timeline.active_channel_loops();
+	for (const Loop_Box *loop : *loops) {
+		if (loop->start_tick() == _tick && loop->end_tick() == _tick) {
+			note_view = &loop->end_note_view();
+			break;
+		}
+	}
+
+	auto calls = _piano_timeline.active_channel_calls();
+	for (const Call_Box *call : *calls) {
+		if (call->start_tick() == _tick && call->end_tick() == _tick) {
+			note_view = &call->end_note_view();
+			break;
+		}
+	}
+
 	int32_t index = note_view->index;
 	int32_t speed = note_view->speed;
 

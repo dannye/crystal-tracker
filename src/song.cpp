@@ -3474,7 +3474,9 @@ void Song::insert_rest(const int selected_channel, const std::set<int32_t> &sele
 	assert(
 		commands[index].type == Command_Type::REST ||
 		commands[index].type == Command_Type::NOTE ||
-		commands[index].type == Command_Type::DRUM_NOTE
+		commands[index].type == Command_Type::DRUM_NOTE ||
+		commands[index].type == Command_Type::SOUND_LOOP ||
+		commands[index].type == Command_Type::SOUND_RET
 	);
 
 	if (tick_offset != 0) {
