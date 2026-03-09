@@ -62,6 +62,7 @@ public:
 		enum class Action {
 			PUT_NOTE,
 			FORMAT_PAINTER,
+			FORMAT_PAINTER_ADVANCED,
 			SET_SPEED,
 			SET_VOLUME,
 			SET_FADE,

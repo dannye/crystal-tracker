@@ -2511,7 +2511,7 @@ int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &sele
 }
 
 void Song::apply_format_painter(const int selected_channel, const std::set<int32_t> &selected_boxes, const Note_View &from_view, const Note_View &to_view, int32_t tick, bool full, bool ambiguous) {
-	remember(selected_channel, selected_boxes, Song_State::Action::FORMAT_PAINTER, tick);
+	remember(selected_channel, selected_boxes, full ? Song_State::Action::FORMAT_PAINTER_ADVANCED : Song_State::Action::FORMAT_PAINTER, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	int32_t index = to_view.index;
@@ -4149,6 +4149,8 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Put note";
 	case Song_State::Action::FORMAT_PAINTER:
 		return "Format painter";
+	case Song_State::Action::FORMAT_PAINTER_ADVANCED:
+		return "Format painter (Advanced)";
 	case Song_State::Action::SET_SPEED:
 		return "Set speed";
 	case Song_State::Action::SET_VOLUME:

@@ -3098,6 +3098,7 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 	}
 	else if (
 		action == Song::Song_State::Action::FORMAT_PAINTER ||
+		action == Song::Song_State::Action::FORMAT_PAINTER_ADVANCED ||
 		action == Song::Song_State::Action::SHORTEN ||
 		action == Song::Song_State::Action::LENGTHEN ||
 		action == Song::Song_State::Action::REDUCE_LOOP ||
@@ -3175,6 +3176,7 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 	}
 	else if (
 		action == Song::Song_State::Action::FORMAT_PAINTER ||
+		action == Song::Song_State::Action::FORMAT_PAINTER_ADVANCED ||
 		action == Song::Song_State::Action::SHORTEN ||
 		action == Song::Song_State::Action::LENGTHEN ||
 		action == Song::Song_State::Action::UNROLL_LOOP ||
