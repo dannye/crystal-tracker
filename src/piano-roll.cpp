@@ -2890,7 +2890,7 @@ bool Piano_Roll::put_note(Song &song, Pitch pitch, int32_t octave, int32_t tick,
 		}
 	}
 
-	int32_t final_length = song.put_note(selected_channel(), selected_boxes, pitch, octave, old_octave, speed, prev_length, prev_speed, index, tick, tick_offset / speed, set_drumkit);
+	int32_t final_length = song.put_note(selected_channel(), selected_boxes, pitch, octave, old_octave, speed, prev_length, prev_speed, index, tick, tick_offset / speed, set_drumkit, duplicate_previous);
 	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	_piano_timeline.select_note_at_tick(*channel, tick);

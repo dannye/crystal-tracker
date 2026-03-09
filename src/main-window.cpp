@@ -3088,6 +3088,7 @@ void Main_Window::undo_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->align_cursor();
 	if (
 		action == Song::Song_State::Action::PUT_NOTE ||
+		action == Song::Song_State::Action::DUPLICATE_NOTE ||
 		action == Song::Song_State::Action::SPLIT_NOTE ||
 		action == Song::Song_State::Action::GLUE_NOTE
 	) {
@@ -3152,7 +3153,10 @@ void Main_Window::redo_cb(Fl_Widget *, Main_Window *mw) {
 		mw->_piano_roll->set_active_channel_timeline(mw->_song);
 	}
 	mw->_piano_roll->align_cursor();
-	if (action == Song::Song_State::Action::PUT_NOTE) {
+	if (
+		action == Song::Song_State::Action::PUT_NOTE ||
+		action == Song::Song_State::Action::DUPLICATE_NOTE
+	) {
 		mw->_piano_roll->tick(tick);
 		mw->_piano_roll->select_note_at_tick();
 		mw->_piano_roll->skip_forward();

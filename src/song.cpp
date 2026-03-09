@@ -2383,8 +2383,8 @@ void resize_channel(int32_t selected_channel, std::vector<Command> &commands, co
 	}
 }
 
-int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t octave, int32_t old_octave, int32_t old_speed, int32_t prev_length, int32_t prev_speed, int32_t index, int32_t tick, int32_t tick_offset, bool set_drumkit) {
-	remember(selected_channel, selected_boxes, Song_State::Action::PUT_NOTE, tick);
+int32_t Song::put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t octave, int32_t old_octave, int32_t old_speed, int32_t prev_length, int32_t prev_speed, int32_t index, int32_t tick, int32_t tick_offset, bool set_drumkit, bool duplicate) {
+	remember(selected_channel, selected_boxes, duplicate ? Song_State::Action::DUPLICATE_NOTE : Song_State::Action::PUT_NOTE, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
 
 	Command_Type new_type =
@@ -4147,6 +4147,8 @@ const char *Song::get_action_message(Song_State::Action action) const {
 	switch (action) {
 	case Song_State::Action::PUT_NOTE:
 		return "Put note";
+	case Song_State::Action::DUPLICATE_NOTE:
+		return "Duplicate note";
 	case Song_State::Action::FORMAT_PAINTER:
 		return "Format painter";
 	case Song_State::Action::FORMAT_PAINTER_ADVANCED:

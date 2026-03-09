@@ -61,6 +61,7 @@ public:
 	struct Song_State {
 		enum class Action {
 			PUT_NOTE,
+			DUPLICATE_NOTE,
 			FORMAT_PAINTER,
 			FORMAT_PAINTER_ADVANCED,
 			SET_SPEED,
@@ -186,7 +187,7 @@ public:
 	const std::vector<Wave> &waves() const { return _waves; }
 	const std::vector<std::string> &mixed_labels() const { return _mixed_labels; }
 
-	int32_t put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t octave, int32_t old_octave, int32_t old_speed, int32_t prev_length, int32_t prev_speed, int32_t index, int32_t tick, int32_t tick_offset, bool set_drumkit);
+	int32_t put_note(const int selected_channel, const std::set<int32_t> &selected_boxes, Pitch pitch, int32_t octave, int32_t old_octave, int32_t old_speed, int32_t prev_length, int32_t prev_speed, int32_t index, int32_t tick, int32_t tick_offset, bool set_drumkit, bool duplicate);
 	void apply_format_painter(const int selected_channel, const std::set<int32_t> &selected_boxes, const Note_View &from_view, const Note_View &to_view, int32_t tick, bool full, bool ambiguous);
 	void set_speed(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t speed);
 	void set_volume(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t volume);
