@@ -470,18 +470,18 @@ inline int Piano_Timeline::selected_channel() const {
 	return parent()->selected_channel();
 }
 
+int Piano_Timeline::tick_to_x_pos(int32_t tick) const {
+	return x() + WHITE_KEY_WIDTH + tick * parent()->tick_width();
+}
+
+int Piano_Timeline::pitch_to_y_pos(Pitch pitch, int32_t octave) const {
+	return y() + ((int)NUM_OCTAVES - octave) * parent()->octave_height() + ((int)NUM_NOTES_PER_OCTAVE - (int)(pitch)) * parent()->note_row_height();
+}
+
 void Piano_Timeline::calc_sizes() {
-	const int octave_height = parent()->octave_height();
 	const int note_row_height = parent()->note_row_height();
 	const int tick_width = parent()->tick_width();
 	const int note_labelsize = parent()->note_labelsize();
-
-	const auto tick_to_x_pos = [&](int32_t tick) {
-		return x() + WHITE_KEY_WIDTH + tick * tick_width;
-	};
-	const auto pitch_to_y_pos = [&](Pitch pitch, int32_t octave) {
-		return y() + ((int)NUM_OCTAVES - octave) * octave_height + ((int)NUM_NOTES_PER_OCTAVE - (int)(pitch)) * note_row_height;
-	};
 
 	const auto resize_notes = [&](std::vector<Note_Box *> &notes) {
 		for (Note_Box *note : notes) {
@@ -1134,18 +1134,10 @@ void Piano_Timeline::select_call_at_tick(std::vector<Call_Box *> &calls, int32_t
 }
 
 void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<Flag_Box *> &flags, int channel_number, const std::vector<Note_View> &notes, Fl_Color color) {
-	const int octave_height = parent()->octave_height();
 	const int note_row_height = parent()->note_row_height();
 	const int tick_width = parent()->tick_width();
 	const int note_labelsize = parent()->note_labelsize();
 	const bool note_labels = parent()->note_labels();
-
-	const auto tick_to_x_pos = [&](int32_t tick) {
-		return x() + WHITE_KEY_WIDTH + tick * tick_width;
-	};
-	const auto pitch_to_y_pos = [&](Pitch pitch, int32_t octave) {
-		return y() + ((int)NUM_OCTAVES - octave) * octave_height + ((int)NUM_NOTES_PER_OCTAVE - (int)(pitch)) * note_row_height;
-	};
 
 	Note_View prev_note;
 
@@ -2494,12 +2486,6 @@ void Piano_Roll::build_note_view(
 		++command_itr;
 	}
 
-	const auto tick_to_x_pos = [&](int32_t tick) {
-		return _piano_timeline.x() + WHITE_KEY_WIDTH + tick * tick_width();
-	};
-	const auto pitch_to_y_pos = [&](Pitch pitch, int32_t octave) {
-		return _piano_timeline.y() + ((int)NUM_OCTAVES - octave) * octave_height() + ((int)NUM_NOTES_PER_OCTAVE - (int)(pitch)) * note_row_height();
-	};
 	const auto resize_wrappers = [&](auto &wrappers) {
 		for (Wrapper_Box *wrapper : wrappers) {
 			if (
@@ -2509,10 +2495,10 @@ void Piano_Roll::build_note_view(
 				wrapper->set_min_pitch(Pitch::C_NAT, 1);
 				wrapper->set_max_pitch(Pitch::B_NAT, 8);
 			}
-			int x_left   = tick_to_x_pos(wrapper->start_tick()) - 1;
-			int x_right  = tick_to_x_pos(wrapper->end_tick()) + 1;
-			int y_top    = pitch_to_y_pos(wrapper->max_pitch(), wrapper->max_octave()) - 1;
-			int y_bottom = pitch_to_y_pos(wrapper->min_pitch(), wrapper->min_octave()) + 1;
+			int x_left   = _piano_timeline.tick_to_x_pos(wrapper->start_tick()) - 1;
+			int x_right  = _piano_timeline.tick_to_x_pos(wrapper->end_tick()) + 1;
+			int y_top    = _piano_timeline.pitch_to_y_pos(wrapper->max_pitch(), wrapper->max_octave()) - 1;
+			int y_bottom = _piano_timeline.pitch_to_y_pos(wrapper->min_pitch(), wrapper->min_octave()) + 1;
 			wrapper->resize(
 				x_left,
 				y_top,
@@ -4518,6 +4504,32 @@ bool Piano_Roll::resize_song(Song &song, const Song_Options_Dialog::Song_Options
 	update_channel_detail(selected_channel());
 
 	return true;
+}
+
+bool Piano_Roll::is_point_in_loop(int X) {
+	auto loops = _piano_timeline.active_channel_loops();
+	if (!loops) return false;
+
+	for (const Loop_Box *loop : *loops) {
+		if (X >= loop->x()+1 && X < loop->x()+1 + loop->w()-2) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Piano_Roll::is_point_in_call(int X) {
+	auto calls = _piano_timeline.active_channel_calls();
+	if (!calls) return false;
+
+	for (const Call_Box *call : *calls) {
+		if (X >= call->x()+1 && X < call->x()+1 + call->w()-2) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool Piano_Roll::is_point_in_loop(int X, int Y) {

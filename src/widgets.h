@@ -236,12 +236,17 @@ public:
 class Context_Menu : public Fl_Menu_ {
 private:
 	int _shortcut;
+	int _popup_x, _popup_y;
 public:
 	Context_Menu(int x, int y, int w, int h, const char *l = NULL);
 	int shortcut() const { return _shortcut; }
 	void shortcut(int s) { _shortcut = s; }
+	int popup_x() const { return _popup_x; }
+	void popup_x(int x) { _popup_x = x; }
+	int popup_y() const { return _popup_y; }
+	void popup_y(int y) { _popup_y = y; }
 	int handle(int event);
-	virtual bool prepare(int X, int Y);
+	virtual bool prepare(int event, int X = 0, int Y = 0);
 protected:
 	void draw(void);
 };

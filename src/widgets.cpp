@@ -700,31 +700,24 @@ int Context_Menu::handle(int event) {
 	switch (event) {
 	case FL_PUSH:
 		if (Fl::event_button() != type()) return 0;
-		if (!prepare(Fl::event_x(), Fl::event_y())) return 0;
-		picked(menu()->popup(Fl::event_x(), Fl::event_y(), nullptr, nullptr, this));
+		if (!prepare(event, Fl::event_x(), Fl::event_y())) return 0;
+		picked(menu()->popup(popup_x(), popup_y(), nullptr, nullptr, this));
 		return 1;
 	case FL_SHORTCUT:
-		int X, Y;
-		Fl::get_mouse(X, Y);
-		for (Fl_Window *w = window(); w; w = w->window()) {
-			X -= w->x();
-			Y -= w->y();
+		if (Fl::test_shortcut(shortcut())) {
+			if (!prepare(event)) return 0;
+			picked(menu()->popup(popup_x(), popup_y(), nullptr, nullptr, this));
+			return 1;
 		}
-		if (X >= x() && X < x() + w() && Y >= y() && Y < y() + h()) {
-			if (Fl::test_shortcut(shortcut())) {
-				if (!prepare(X, Y)) return 0;
-				picked(menu()->popup(X, Y, nullptr, nullptr, this));
-				return 1;
-			}
-			return test_shortcut() != 0;
-		}
-		return 0;
+		return test_shortcut() != 0;
 	default:
 		return 0;
 	}
 }
 
-bool Context_Menu::prepare(int X, int Y) {
+bool Context_Menu::prepare(int event, int X, int Y) {
+	popup_x(X);
+	popup_y(Y);
 	return menu() && menu()->text;
 }
 

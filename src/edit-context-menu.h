@@ -7,7 +7,7 @@ class Edit_Context_Menu : public Context_Menu {
 public:
 	using Context_Menu::Context_Menu;
 
-	bool prepare(int X, int Y) override;
+	bool prepare(int event, int X = 0, int Y = 0) override;
 };
 
 #endif

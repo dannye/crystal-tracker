@@ -294,7 +294,7 @@ public:
 
 	void set_tick_from_x_pos(int X);
 
-	void set_context_menu(int X, int Y);
+	bool set_context_menu(int event, int &X, int &Y);
 
 	void delete_selection() { delete_selection_cb(nullptr, this); }
 	bool test_put_note(int32_t tick, int32_t length, int32_t *out_speed, int32_t *out_length);

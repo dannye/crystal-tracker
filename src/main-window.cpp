@@ -1072,13 +1072,27 @@ void Main_Window::set_tick_from_x_pos(int X) {
 	_piano_roll->set_tick_from_x_pos(X);
 }
 
-void Main_Window::set_context_menu(int X, int Y) {
-	_piano_roll->set_tick_from_x_pos(X);
+bool Main_Window::set_context_menu(int event, int &X, int &Y) {
+	bool in_loop, in_call;
+
+	if (event == FL_SHORTCUT) {
+		if (_piano_roll->tick() == -1) return false;
+		_piano_roll->focus_cursor(true);
+		_piano_roll->redraw();
+		X = _piano_roll->tick_to_x_pos(_piano_roll->tick());
+		Y = _piano_roll->y() + _piano_roll->h() / 2;
+
+		in_loop = _piano_roll->is_point_in_loop(X);
+		in_call = _piano_roll->is_point_in_call(X);
+	}
+	else {
+		_piano_roll->set_tick_from_x_pos(X);
+
+		in_loop = _piano_roll->is_point_in_loop(X, Y);
+		in_call = _piano_roll->is_point_in_call(X, Y);
+	}
 
 	bool stopped = this->stopped();
-
-	bool in_loop = _piano_roll->is_point_in_loop(X, Y);
-	bool in_call = _piano_roll->is_point_in_call(X, Y);
 
 	if (stopped && in_loop && _piano_roll->reduce_loop(_song, true)) {
 		_reduce_loop_mi->activate();
@@ -1135,6 +1149,8 @@ void Main_Window::set_context_menu(int X, int Y) {
 	else {
 		_insert_call_mi->deactivate();
 	}
+
+	return true;
 }
 
 void Main_Window::selected_channel(int i) {

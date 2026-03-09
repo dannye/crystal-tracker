@@ -327,6 +327,9 @@ public:
 	Piano_Roll *parent() const { return (Piano_Roll *)Fl_Group::parent(); }
 	inline int selected_channel() const;
 
+	int tick_to_x_pos(int32_t tick) const;
+	int pitch_to_y_pos(Pitch pitch, int32_t octave) const;
+
 	void calc_sizes();
 	void note_labels(bool show);
 
@@ -450,6 +453,9 @@ public:
 	void channel_2_muted(bool m) { _channel_2_muted = m; }
 	void channel_3_muted(bool m) { _channel_3_muted = m; }
 	void channel_4_muted(bool m) { _channel_4_muted = m; }
+
+	int tick_to_x_pos(int32_t tick) const { return _piano_timeline.tick_to_x_pos(tick); }
+	int pitch_to_y_pos(Pitch pitch, int32_t octave) const { return _piano_timeline.pitch_to_y_pos(pitch, octave); }
 
 	int white_key_height() const;
 	int black_key_height() const;
@@ -584,6 +590,9 @@ public:
 
 	bool postprocess_channel(Song &song);
 	bool resize_song(Song &song, const Song_Options_Dialog::Song_Options &options);
+
+	bool is_point_in_loop(int X);
+	bool is_point_in_call(int X);
 
 	bool is_point_in_loop(int X, int Y);
 	bool is_point_in_call(int X, int Y);
