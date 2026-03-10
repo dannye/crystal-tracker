@@ -91,9 +91,9 @@ public:
 			LENGTHEN,
 			DELETE_SELECTION,
 			SNIP_SELECTION,
-			INSERT_REST,
 			SPLIT_NOTE,
 			GLUE_NOTE,
+			INSERT_REST,
 			POSTPROCESS_CHANNEL,
 			REDUCE_LOOP,
 			EXTEND_LOOP,
@@ -221,9 +221,9 @@ public:
 	void lengthen(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes, const std::vector<Note_View> &view, int32_t tick);
 	void delete_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
 	void snip_selection(const int selected_channel, const std::set<int32_t> &selected_notes, const std::set<int32_t> &selected_boxes);
-	void insert_rest(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick, int32_t tick_offset);
 	void split_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick, int32_t tick_offset);
 	void glue_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick);
+	void insert_rest(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick, int32_t tick_offset);
 
 	void postprocess_channel(const int selected_channel, const std::set<int32_t> &selected_boxes);
 	void resize_song(const Song_Options_Dialog::Song_Options &options);

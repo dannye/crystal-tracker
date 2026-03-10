@@ -47,8 +47,8 @@
 #define DELETE_SYMBOL COMMAND_KEY_PLUS BACKSPACE_SYMBOL
 
 #define DELETE_KEY FL_COMMAND + FL_BackSpace
-#define INSERT_REST_KEY FL_CONTROL + FL_SHIFT + 'i'
 #define GLUE_KEY '?'
+#define INSERT_REST_KEY FL_CONTROL + FL_SHIFT + 'i'
 #define FULLSCREEN_KEY FL_COMMAND + FL_SHIFT + 'f'
 #else
 #define CONTROL_KEY "Ctrl"
@@ -71,8 +71,8 @@
 #define DELETE_SYMBOL "Delete"
 
 #define DELETE_KEY FL_Delete
-#define INSERT_REST_KEY FL_SHIFT + FL_Insert
 #define GLUE_KEY FL_SHIFT + '/'
+#define INSERT_REST_KEY FL_SHIFT + FL_Insert
 #define FULLSCREEN_KEY FL_F + 11
 #endif
 

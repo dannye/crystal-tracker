@@ -3467,38 +3467,6 @@ void Song::snip_selection(const int selected_channel, const std::set<int32_t> &s
 	_modified = true;
 }
 
-void Song::insert_rest(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick, int32_t tick_offset) {
-	remember(selected_channel, selected_boxes, Song_State::Action::INSERT_REST, tick);
-	std::vector<Command> &commands = channel_commands(selected_channel);
-
-	assert(
-		commands[index].type == Command_Type::REST ||
-		commands[index].type == Command_Type::NOTE ||
-		commands[index].type == Command_Type::DRUM_NOTE ||
-		commands[index].type == Command_Type::SOUND_LOOP ||
-		commands[index].type == Command_Type::SOUND_RET
-	);
-
-	if (tick_offset != 0) {
-		assert(commands[index].type == Command_Type::REST);
-		Command command = Command(Command_Type::REST);
-		command.rest.length = commands[index].rest.length - tick_offset;
-		commands[index].rest.length = tick_offset;
-		commands.insert(commands.begin() + index + 1, command);
-		index += 1;
-	}
-
-	Command command = Command(Command_Type::REST);
-	command.rest.length = 1;
-	command.labels = std::move(commands[index].labels);
-	commands[index].labels.clear();
-	commands.insert(commands.begin() + index, command);
-
-	resize_channel(selected_channel, commands, channel_label(selected_channel), channel_loop_tick(selected_channel), channel_end_tick(selected_channel));
-
-	_modified = true;
-}
-
 void Song::split_note(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick, int32_t tick_offset) {
 	remember(selected_channel, selected_boxes, Song_State::Action::SPLIT_NOTE, tick);
 	std::vector<Command> &commands = channel_commands(selected_channel);
@@ -3536,6 +3504,38 @@ void Song::glue_note(const int selected_channel, const std::set<int32_t> &select
 
 	commands[index - 1].note.length += commands[index].note.length;
 	commands.erase(commands.begin() + index);
+
+	_modified = true;
+}
+
+void Song::insert_rest(const int selected_channel, const std::set<int32_t> &selected_boxes, int32_t index, int32_t tick, int32_t tick_offset) {
+	remember(selected_channel, selected_boxes, Song_State::Action::INSERT_REST, tick);
+	std::vector<Command> &commands = channel_commands(selected_channel);
+
+	assert(
+		commands[index].type == Command_Type::REST ||
+		commands[index].type == Command_Type::NOTE ||
+		commands[index].type == Command_Type::DRUM_NOTE ||
+		commands[index].type == Command_Type::SOUND_LOOP ||
+		commands[index].type == Command_Type::SOUND_RET
+	);
+
+	if (tick_offset != 0) {
+		assert(commands[index].type == Command_Type::REST);
+		Command command = Command(Command_Type::REST);
+		command.rest.length = commands[index].rest.length - tick_offset;
+		commands[index].rest.length = tick_offset;
+		commands.insert(commands.begin() + index + 1, command);
+		index += 1;
+	}
+
+	Command command = Command(Command_Type::REST);
+	command.rest.length = 1;
+	command.labels = std::move(commands[index].labels);
+	commands[index].labels.clear();
+	commands.insert(commands.begin() + index, command);
+
+	resize_channel(selected_channel, commands, channel_label(selected_channel), channel_loop_tick(selected_channel), channel_end_tick(selected_channel));
 
 	_modified = true;
 }
@@ -4207,12 +4207,12 @@ const char *Song::get_action_message(Song_State::Action action) const {
 		return "Delete selection";
 	case Song_State::Action::SNIP_SELECTION:
 		return "Snip selection";
-	case Song_State::Action::INSERT_REST:
-		return "Insert rest";
 	case Song_State::Action::SPLIT_NOTE:
 		return "Split note";
 	case Song_State::Action::GLUE_NOTE:
 		return "Glue note";
+	case Song_State::Action::INSERT_REST:
+		return "Insert rest";
 	case Song_State::Action::POSTPROCESS_CHANNEL:
 		return "Postprocess Channel";
 	case Song_State::Action::REDUCE_LOOP:

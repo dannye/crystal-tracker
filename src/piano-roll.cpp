@@ -4306,72 +4306,6 @@ bool Piano_Roll::snip_selection(Song &song, bool dry_run) {
 	return true;
 }
 
-bool Piano_Roll::insert_rest(Song &song, bool dry_run) {
-	auto channel = _piano_timeline.active_channel_boxes();
-	if (!channel) return false;
-
-	auto view = active_channel_view();
-
-	if (_tick == -1) return false;
-
-	int32_t tick_offset = 0;
-
-	const Note_View *note_view = find_note_view_at_tick(*view, _tick, &tick_offset);
-
-	if (
-		!note_view ||
-		note_view->ghost ||
-		(note_view->pitch != Pitch::REST &&
-		tick_offset != 0)
-	) {
-		return false;
-	}
-	if (dry_run) {
-		return true;
-	}
-
-	auto loops = _piano_timeline.active_channel_loops();
-	for (const Loop_Box *loop : *loops) {
-		if (loop->start_tick() == _tick && loop->end_tick() == _tick) {
-			note_view = &loop->end_note_view();
-			break;
-		}
-	}
-
-	auto calls = _piano_timeline.active_channel_calls();
-	for (const Call_Box *call : *calls) {
-		if (call->start_tick() == _tick && call->end_tick() == _tick) {
-			note_view = &call->end_note_view();
-			break;
-		}
-	}
-
-	int32_t index = note_view->index;
-	int32_t speed = note_view->speed;
-
-	std::set<int32_t> selected_boxes;
-
-	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
-		Note_Box *note = *note_itr;
-		if (note->selected()) {
-			selected_boxes.insert(itr_index(*channel, note_itr));
-		}
-	}
-
-	song.insert_rest(selected_channel(), selected_boxes, index, _tick, tick_offset / speed);
-	postprocess_channel(song, selected_channel());
-	set_active_channel_timeline(song);
-	refresh_note_properties();
-
-	focus_cursor(true);
-
-	return true;
-}
-
-bool Piano_Roll::duplicate_note(Song &song, bool dry_run) {
-	return put_note(song, Pitch::REST, 0, _tick, 0, true, dry_run);
-}
-
 bool Piano_Roll::split_note(Song &song, bool dry_run) {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (!channel) return false;
@@ -4466,6 +4400,72 @@ bool Piano_Roll::glue_note(Song &song, bool dry_run) {
 	postprocess_channel(song, selected_channel());
 	set_active_channel_timeline(song);
 	_piano_timeline.select_note_at_tick(*channel, _tick);
+
+	focus_cursor(true);
+
+	return true;
+}
+
+bool Piano_Roll::duplicate_note(Song &song, bool dry_run) {
+	return put_note(song, Pitch::REST, 0, _tick, 0, true, dry_run);
+}
+
+bool Piano_Roll::insert_rest(Song &song, bool dry_run) {
+	auto channel = _piano_timeline.active_channel_boxes();
+	if (!channel) return false;
+
+	auto view = active_channel_view();
+
+	if (_tick == -1) return false;
+
+	int32_t tick_offset = 0;
+
+	const Note_View *note_view = find_note_view_at_tick(*view, _tick, &tick_offset);
+
+	if (
+		!note_view ||
+		note_view->ghost ||
+		(note_view->pitch != Pitch::REST &&
+		tick_offset != 0)
+	) {
+		return false;
+	}
+	if (dry_run) {
+		return true;
+	}
+
+	auto loops = _piano_timeline.active_channel_loops();
+	for (const Loop_Box *loop : *loops) {
+		if (loop->start_tick() == _tick && loop->end_tick() == _tick) {
+			note_view = &loop->end_note_view();
+			break;
+		}
+	}
+
+	auto calls = _piano_timeline.active_channel_calls();
+	for (const Call_Box *call : *calls) {
+		if (call->start_tick() == _tick && call->end_tick() == _tick) {
+			note_view = &call->end_note_view();
+			break;
+		}
+	}
+
+	int32_t index = note_view->index;
+	int32_t speed = note_view->speed;
+
+	std::set<int32_t> selected_boxes;
+
+	for (auto note_itr = channel->begin(); note_itr != channel->end(); ++note_itr) {
+		Note_Box *note = *note_itr;
+		if (note->selected()) {
+			selected_boxes.insert(itr_index(*channel, note_itr));
+		}
+	}
+
+	song.insert_rest(selected_channel(), selected_boxes, index, _tick, tick_offset / speed);
+	postprocess_channel(song, selected_channel());
+	set_active_channel_timeline(song);
+	refresh_note_properties();
 
 	focus_cursor(true);
 

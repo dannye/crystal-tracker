@@ -171,10 +171,10 @@ private:
 		*_unpack_call_mi = NULL,
 		*_create_call_mi = NULL,
 		*_insert_call_mi = NULL,
-		*_insert_rest_mi = NULL,
-		*_duplicate_note_mi = NULL,
 		*_split_note_mi = NULL,
 		*_glue_note_mi = NULL,
+		*_duplicate_note_mi = NULL,
+		*_insert_rest_mi = NULL,
 		*_postprocess_channel_mi = NULL,
 		*_resize_song_mi = NULL,
 		*_pencil_mode_mi = NULL,
@@ -389,10 +389,10 @@ private:
 	static void lengthen_cb(Fl_Widget *w, Main_Window *mw);
 	static void delete_selection_cb(Fl_Widget *w, Main_Window *mw);
 	static void snip_selection_cb(Fl_Widget *w, Main_Window *mw);
-	static void insert_rest_cb(Fl_Widget *w, Main_Window *mw);
-	static void duplicate_note_cb(Fl_Widget *w, Main_Window *mw);
 	static void split_note_cb(Fl_Widget *w, Main_Window *mw);
 	static void glue_note_cb(Fl_Widget *w, Main_Window *mw);
+	static void duplicate_note_cb(Fl_Widget *w, Main_Window *mw);
+	static void insert_rest_cb(Fl_Widget *w, Main_Window *mw);
 	static void postprocess_channel_cb(Fl_Widget *w, Main_Window *mw);
 	static void resize_song_cb(Fl_Widget *w, Main_Window *mw);
 	static void pencil_mode_cb(Fl_Menu_ *m, Main_Window *mw);
