@@ -1695,6 +1695,12 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 		_error_dialog->show(this);
 		return;
 	}
+	if (parsed_drumkits.num_parsed_drumkits() > 256) {
+		std::string msg = "Drumkits file contains too many drumkits: " + std::to_string(parsed_drumkits.num_parsed_drumkits()) + "\n\n"
+			"Only the first 256 drumkits can be used.";
+		_warning_dialog->message(msg);
+		_warning_dialog->show(this);
+	}
 	_drumkits = parsed_drumkits.drumkits();
 	_drums = parsed_drumkits.drums();
 	_drum_samples = generate_noise_samples(_drums);
@@ -1731,13 +1737,11 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 		}
 		int32_t max_drumkit_id = _song.max_drumkit_id();
 		if (max_drumkit_id >= parsed_drumkits.num_parsed_drumkits()) {
-			_song.clear();
 			std::string msg = basename;
 			msg = msg + " uses undefined drumkit: " + std::to_string(max_drumkit_id) + "\n\n"
 				"Valid drumkit IDs are: 0-" + std::to_string(parsed_drumkits.num_parsed_drumkits() - 1);
-			_error_dialog->message(msg);
-			_error_dialog->show(this);
-			return;
+			_warning_dialog->message(msg);
+			_warning_dialog->show(this);
 		}
 		if (_song.waves().size() > 15) {
 			std::string msg = basename;

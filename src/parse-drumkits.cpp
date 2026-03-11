@@ -123,7 +123,6 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 	_drumkits.clear();
 	_drums.clear();
 	_num_parsed_drumkits = 0;
-	_num_parsed_drums = 0;
 	_result = Result::DRUMKITS_NULL;
 
 	std::ifstream ifs;
@@ -305,11 +304,6 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 	_num_parsed_drumkits = (int32_t)_drumkits.size();
 	if (_drumkits.size() > 256) {
 		_drumkits.resize(256);
-	}
-
-	_num_parsed_drums = (int32_t)_drums.size();
-	if (_drums.size() > 64) {
-		_drums.resize(64);
 	}
 
 	if (step != Step::DONE) {

@@ -37,7 +37,6 @@ private:
 	std::vector<Drumkit> _drumkits;
 	std::vector<Drum> _drums;
 	int32_t _num_parsed_drumkits = 0;
-	int32_t _num_parsed_drums = 0;
 	Result _result = Result::DRUMKITS_NULL;
 public:
 	Parsed_Drumkits(const char *d);
@@ -46,7 +45,6 @@ public:
 	inline std::vector<Drumkit> &&drumkits(void) { return std::move(_drumkits); }
 	inline std::vector<Drum> &&drums(void) { return std::move(_drums); }
 	inline int32_t num_parsed_drumkits(void) const { return _num_parsed_drumkits; }
-	inline int32_t num_parsed_drums(void) const { return _num_parsed_drums; }
 	inline Result result(void) const { return _result; }
 private:
 	Result parse_drumkits(const char *d);
