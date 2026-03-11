@@ -59,8 +59,8 @@ private:
 		*_brushed_metal_theme_mi = NULL,
 		*_high_contrast_theme_mi = NULL;
 	Fl_Menu_Item
-		*_loop_verification_mi = NULL,
 		*_continuous_mi = NULL,
+		*_loop_verification_mi = NULL,
 		*_channel_1_mute_mi = NULL,
 		*_channel_2_mute_mi = NULL,
 		*_channel_3_mute_mi = NULL,
@@ -79,9 +79,9 @@ private:
 		*_play_pause_tb = NULL,
 		*_stop_tb = NULL;
 	Toolbar_Toggle_Button
-		*_loop_verification_tb = NULL,
+		*_continuous_tb = NULL,
 		*_loop_tb = NULL,
-		*_continuous_tb = NULL;
+		*_loop_verification_tb = NULL;
 	Toolbar_Button
 		*_undo_tb = NULL,
 		*_redo_tb = NULL,
@@ -235,9 +235,9 @@ public:
 	void show(void) override;
 	void resize(int X, int Y, int W, int H) override;
 	void draw() override;
-	inline bool loop_verification(void) const { return _loop_verification_mi && !!_loop_verification_mi->value(); }
-	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
 	inline bool continuous_scroll(void) const { return _continuous_mi && !!_continuous_mi->value(); }
+	inline bool loop(void) const { return _loop_mi && !!_loop_mi->value(); }
+	inline bool loop_verification(void) const { return _loop_verification_mi && !!_loop_verification_mi->value(); }
 	inline bool stereo(void) const { return _stereo_mi && !!_stereo_mi->value(); }
 	inline bool channel_1_muted(void) const { return _channel_1_mute_mi && !!_channel_1_mute_mi->value(); }
 	inline bool channel_2_muted(void) const { return _channel_2_mute_mi && !!_channel_2_mute_mi->value(); }
@@ -251,8 +251,8 @@ public:
 	inline bool ruler(void) const { return _ruler_mi && !!_ruler_mi->value(); }
 	inline bool bpm(void) const { return _bpm_mi && !!_bpm_mi->value(); }
 	inline bool full_screen(void) const { return _full_screen_mi && !!_full_screen_mi->value(); }
-	inline void loop(bool l) { _loop_tb->value(l); loop_tb_cb(nullptr, this); }
 	inline void continuous_scroll(bool c) { _continuous_tb->value(c); continuous_tb_cb(nullptr, this); }
+	inline void loop(bool l) { _loop_tb->value(l); loop_tb_cb(nullptr, this); }
 	inline void pencil_mode(bool p) { _pencil_mode_tb->value(p); pencil_mode_tb_cb(nullptr, this); }
 	inline void format_painter(bool f) { _format_painter_tb->value(f); format_painter_tb_cb(nullptr, this); }
 
@@ -356,9 +356,9 @@ private:
 	// Play menu
 	static void play_pause_cb(Fl_Widget *w, Main_Window *mw);
 	static void stop_cb(Fl_Widget *w, Main_Window *mw);
-	static void loop_verification_cb(Fl_Menu_ *m, Main_Window *mw);
-	static void loop_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void continuous_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void loop_cb(Fl_Menu_ *m, Main_Window *mw);
+	static void loop_verification_cb(Fl_Menu_ *m, Main_Window *mw);
 	static void stereo_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_1_mute_cb(Fl_Widget *w, Main_Window *mw);
 	static void channel_2_mute_cb(Fl_Widget *w, Main_Window *mw);
@@ -437,9 +437,9 @@ private:
 	static void bpm_cb(Fl_Widget *w, Main_Window *mw);
 	static void full_screen_cb(Fl_Widget *w, Main_Window *mw);
 	// Toolbar buttons
-	static void loop_verification_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
-	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void continuous_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
+	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
+	static void loop_verification_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void pencil_mode_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void format_painter_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void channel_1_tb_cb(Toolbar_Radio_Button *tb, Main_Window *mw);

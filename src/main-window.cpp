@@ -83,10 +83,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_play_pause_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	_stop_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
-	_loop_verification_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
-	SEPARATE_TOOLBAR_BUTTONS;
-	_loop_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	_continuous_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_loop_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_loop_verification_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
 	_undo_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	_redo_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
@@ -251,9 +250,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		OS_SUBMENU("&Play"),
 		SYS_MENU_ITEM("&Play/Pause", ' ', (Fl_Callback *)play_pause_cb, this, 0),
 		SYS_MENU_ITEM("&Stop", FL_Escape, (Fl_Callback *)stop_cb, this, FL_MENU_DIVIDER),
-		SYS_MENU_ITEM("Loop &Verification", FL_COMMAND + 'L', (Fl_Callback *)loop_verification_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("&Continuous Scroll", '\\', (Fl_Callback *)continuous_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE),
 		SYS_MENU_ITEM("&Loop", FL_COMMAND + 'l', (Fl_Callback *)loop_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE),
-		SYS_MENU_ITEM("&Continuous Scroll", '\\', (Fl_Callback *)continuous_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("Loop &Verification", FL_COMMAND + 'L', (Fl_Callback *)loop_verification_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("S&tereo", FL_COMMAND + 't', (Fl_Callback *)stereo_cb, this, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER),
 		SYS_MENU_ITEM("Mute Channel &1", FL_F + 5, (Fl_Callback *)channel_1_mute_cb, this, FL_MENU_TOGGLE),
 		SYS_MENU_ITEM("Mute Channel &2", FL_F + 6, (Fl_Callback *)channel_2_mute_cb, this, FL_MENU_TOGGLE),
@@ -400,8 +399,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_dark_theme_mi = CT_FIND_MENU_ITEM_CB(dark_theme_cb);
 	_brushed_metal_theme_mi = CT_FIND_MENU_ITEM_CB(brushed_metal_theme_cb);
 	_high_contrast_theme_mi = CT_FIND_MENU_ITEM_CB(high_contrast_theme_cb);
-	_loop_verification_mi = CT_FIND_MENU_ITEM_CB(loop_verification_cb);
 	_continuous_mi = CT_FIND_MENU_ITEM_CB(continuous_cb);
+	_loop_verification_mi = CT_FIND_MENU_ITEM_CB(loop_verification_cb);
 	_channel_1_mute_mi = CT_FIND_MENU_ITEM_CB(channel_1_mute_cb);
 	_channel_2_mute_mi = CT_FIND_MENU_ITEM_CB(channel_2_mute_cb);
 	_channel_3_mute_mi = CT_FIND_MENU_ITEM_CB(channel_3_mute_cb);
@@ -524,20 +523,20 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_stop_tb->callback((Fl_Callback *)stop_cb, this);
 	_stop_tb->image(STOP_ICON.get(_scale));
 
-	_loop_verification_tb->tooltip("Loop Verification (" COMMAND_SHIFT_KEYS_PLUS "L)");
-	_loop_verification_tb->callback((Fl_Callback *)loop_verification_tb_cb, this);
-	_loop_verification_tb->image(VERIFY_ICON.get(_scale));
-	_loop_verification_tb->value(loop_verification());
+	_continuous_tb->tooltip("Continuous Scroll (\\)");
+	_continuous_tb->callback((Fl_Callback *)continuous_tb_cb, this);
+	_continuous_tb->image(SCROLL_LIGHT_ICON.get(_scale));
+	_continuous_tb->value(continuous_scroll());
 
 	_loop_tb->tooltip("Loop (" COMMAND_KEY_PLUS "L)");
 	_loop_tb->callback((Fl_Callback *)loop_tb_cb, this);
 	_loop_tb->image(LOOP_ICON.get(_scale));
 	_loop_tb->value(loop());
 
-	_continuous_tb->tooltip("Continuous Scroll (\\)");
-	_continuous_tb->callback((Fl_Callback *)continuous_tb_cb, this);
-	_continuous_tb->image(SCROLL_LIGHT_ICON.get(_scale));
-	_continuous_tb->value(continuous_scroll());
+	_loop_verification_tb->tooltip("Loop Verification (" COMMAND_SHIFT_KEYS_PLUS "L)");
+	_loop_verification_tb->callback((Fl_Callback *)loop_verification_tb_cb, this);
+	_loop_verification_tb->image(VERIFY_ICON.get(_scale));
+	_loop_verification_tb->value(loop_verification());
 
 	_undo_tb->tooltip("Undo (" COMMAND_KEY_PLUS "Z)");
 	_undo_tb->callback((Fl_Callback *)undo_cb, this);
@@ -2061,9 +2060,9 @@ void Main_Window::update_icon_resolution() {
 	_save_as_tb->image(SAVE_AS_ICON.get(_scale));
 	_play_pause_tb->image(PLAY_ICON.get(_scale));
 	_stop_tb->image(STOP_ICON.get(_scale));
-	_loop_verification_tb->image(VERIFY_ICON.get(_scale));
-	_loop_tb->image(LOOP_ICON.get(_scale));
 	_continuous_tb->image(SCROLL_LIGHT_ICON.get(_scale));
+	_loop_tb->image(LOOP_ICON.get(_scale));
+	_loop_verification_tb->image(VERIFY_ICON.get(_scale));
 	_undo_tb->image(UNDO_ICON.get(_scale));
 	_redo_tb->image(REDO_ICON.get(_scale));
 	_pitch_up_tb->image(UP_ICON.get(_scale));
@@ -2109,9 +2108,9 @@ void Main_Window::update_icons() {
 	make_deimage(_save_as_tb);
 	make_deimage(_play_pause_tb, PLAY_ICON.get(_scale));
 	make_deimage(_stop_tb);
-	make_deimage(_loop_verification_tb);
-	make_deimage(_loop_tb);
 	make_deimage(_continuous_tb);
+	make_deimage(_loop_tb);
+	make_deimage(_loop_verification_tb);
 	make_deimage(_undo_tb);
 	make_deimage(_redo_tb);
 	make_deimage(_pitch_up_tb);
@@ -2593,8 +2592,9 @@ void Main_Window::stop_cb(Fl_Widget *, Main_Window *mw) {
 
 #define SYNC_TB_WITH_M(tb, m) tb->value(m->mvalue()->value())
 
-void Main_Window::loop_verification_cb(Fl_Menu_ *m, Main_Window *mw) {
-	SYNC_TB_WITH_M(mw->_loop_verification_tb, m);
+void Main_Window::continuous_cb(Fl_Menu_ *m, Main_Window *mw) {
+	SYNC_TB_WITH_M(mw->_continuous_tb, m);
+	mw->_piano_roll->set_continuous_scroll(mw->continuous_scroll());
 	mw->redraw();
 }
 
@@ -2603,9 +2603,8 @@ void Main_Window::loop_cb(Fl_Menu_ *m, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::continuous_cb(Fl_Menu_ *m, Main_Window *mw) {
-	SYNC_TB_WITH_M(mw->_continuous_tb, m);
-	mw->_piano_roll->set_continuous_scroll(mw->continuous_scroll());
+void Main_Window::loop_verification_cb(Fl_Menu_ *m, Main_Window *mw) {
+	SYNC_TB_WITH_M(mw->_loop_verification_tb, m);
 	mw->redraw();
 }
 
@@ -2651,8 +2650,9 @@ void Main_Window::ruler_cb(Fl_Menu_ *m, Main_Window *mw) {
 
 #define SYNC_MI_WITH_TB(tb, mi) if (tb->value()) mi->set(); else mi->clear()
 
-void Main_Window::loop_verification_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
-	SYNC_MI_WITH_TB(mw->_loop_verification_tb, mw->_loop_verification_mi);
+void Main_Window::continuous_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
+	SYNC_MI_WITH_TB(mw->_continuous_tb, mw->_continuous_mi);
+	mw->_piano_roll->set_continuous_scroll(mw->continuous_scroll());
 	mw->_menu_bar->update();
 	mw->redraw();
 }
@@ -2663,9 +2663,8 @@ void Main_Window::loop_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
 	mw->redraw();
 }
 
-void Main_Window::continuous_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
-	SYNC_MI_WITH_TB(mw->_continuous_tb, mw->_continuous_mi);
-	mw->_piano_roll->set_continuous_scroll(mw->continuous_scroll());
+void Main_Window::loop_verification_tb_cb(Toolbar_Toggle_Button *, Main_Window *mw) {
+	SYNC_MI_WITH_TB(mw->_loop_verification_tb, mw->_loop_verification_mi);
 	mw->_menu_bar->update();
 	mw->redraw();
 }
