@@ -26,6 +26,7 @@ private:
 	std::vector<uint8_t> _data;
 	int32_t _tempo_change_wrong_channel = -1;
 	int32_t _tempo_change_mid_note = -1;
+	bool _too_many_drums = false;
 
 	openmpt::module_ext *_mod = nullptr;
 
@@ -60,6 +61,7 @@ public:
 	std::string get_warnings() { return _mod->get_metadata("warnings"); }
 	int32_t tempo_change_wrong_channel() const { return _tempo_change_wrong_channel; }
 	int32_t tempo_change_mid_note() const { return _tempo_change_mid_note; }
+	bool too_many_drums() const { return _too_many_drums; }
 
 	bool ready() const { return _stream.isOpen(); }
 	bool playing() { return Pa_IsStreamActive(_stream.paStream()) == 1; }
@@ -85,7 +87,7 @@ public:
 private:
 	bool try_open();
 	std::vector<std::vector<uint8_t>> get_instruments();
-	std::vector<std::vector<uint8_t>> get_samples(const std::vector<Wave> &waves, const std::vector<std::vector<uint8_t>> &drums);
+	std::vector<std::vector<uint8_t>> get_samples(const std::vector<Wave> &waves, const std::vector<const std::vector<uint8_t> *> &drums);
 	std::vector<std::vector<uint8_t>> get_patterns(
 		const std::vector<Note_View> &channel_1_notes,
 		const std::vector<Note_View> &channel_2_notes,

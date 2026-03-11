@@ -1695,12 +1695,6 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 		_error_dialog->show(this);
 		return;
 	}
-	if (parsed_drumkits.num_parsed_drums() > 64) {
-		std::string msg = "Drumkits file contains too many drums: " + std::to_string(parsed_drumkits.num_parsed_drums()) + "\n\n"
-			"Immediate playback only supports up to 64 drums. Some notes may not play correctly in the editor.";
-		_warning_dialog->message(msg);
-		_warning_dialog->show(this);
-	}
 	_drumkits = parsed_drumkits.drumkits();
 	_drums = parsed_drumkits.drums();
 	_drum_samples = generate_noise_samples(_drums);
@@ -1970,6 +1964,12 @@ void Main_Window::toggle_playback() {
 			std::string warning = "Detected tempo change in the middle of a note or rest on channel " + std::to_string(_it_module->tempo_change_mid_note()) + ".\n\n"
 				"Tempo changes should only be used when all active channels are simultaneously triggering a note or a rest. A desync in-game may occur.\n\n"
 				"This can be fixed automatically for most kinds of rests by selecting Postprocess Channel from the Edit menu while channel " + std::to_string(_it_module->tempo_change_mid_note()) + " is active or by making any edit to that channel.";
+			_warning_dialog->message(warning);
+			_warning_dialog->show(this);
+		}
+		if (_it_module->too_many_drums()) {
+			std::string warning = "Channel 4 uses too many drums.\n\n"
+				"Immediate playback only supports up to 64 drums. Some notes may not play correctly in the editor.";
 			_warning_dialog->message(warning);
 			_warning_dialog->show(this);
 		}
