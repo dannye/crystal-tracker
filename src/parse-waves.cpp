@@ -12,26 +12,50 @@ Parsed_Waves::Parsed_Waves(const char *d) {
 	parse_waves(d);
 }
 
+std::string Parsed_Waves::get_error_message() const {
+	switch (_result) {
+	case Result::WAVES_OK:
+		return "OK.";
+	case Result::WAVES_BAD_FILE:
+		return "Cannot open wave samples file.";
+	case Result::WAVES_NO_WAVES:
+		return "No waves defined.";
+	case Result::WAVES_TOO_FEW_SAMPLES:
+		return "Line " + std::to_string(_line_number) +
+			": Too few samples.";
+	case Result::WAVES_TOO_MANY_SAMPLES:
+		return "Line " + std::to_string(_line_number) +
+			": Too many samples.";
+	case Result::WAVES_INVALID_VALUE:
+		return "Line " + std::to_string(_line_number) +
+			": Invalid value.";
+	case Result::WAVES_NULL:
+		return "No *.asm file chosen.";
+	default:
+		return "Unspecified error.";
+	}
+}
+
 Parsed_Waves::Result Parsed_Waves::parse_wave(std::istringstream &lss, Wave &wave, bool nybbles) {
 	size_t i = 0;
 	for (std::string token; std::getline(lss, token, ',');) {
 		if (i >= NUM_WAVE_SAMPLES) {
-			return Result::WAVES_BAD_FILE;
+			return Result::WAVES_TOO_MANY_SAMPLES;
 		}
 
 		int32_t v;
 		if (!parse_value(token, v)) {
-			return Result::WAVES_BAD_FILE;
+			return Result::WAVES_INVALID_VALUE;
 		}
 		if (nybbles) {
 			if (v < 0 || v > 15) {
-				return Result::WAVES_BAD_FILE;
+				return Result::WAVES_INVALID_VALUE;
 			}
 			wave[i++] = v;
 		}
 		else {
 			if (v < 0 || v > 255) {
-				return Result::WAVES_BAD_FILE;
+				return Result::WAVES_INVALID_VALUE;
 			}
 			int32_t hi = v >> 4;
 			int32_t lo = v & 0x0F;
@@ -40,7 +64,7 @@ Parsed_Waves::Result Parsed_Waves::parse_wave(std::istringstream &lss, Wave &wav
 		}
 	}
 	if (i != NUM_WAVE_SAMPLES) {
-		return Result::WAVES_BAD_FILE;
+		return Result::WAVES_TOO_FEW_SAMPLES;
 	}
 	return Result::WAVES_OK;
 }
@@ -51,19 +75,19 @@ Parsed_Waves::Result Parsed_Waves::parse_waves(const char *d) {
 	// first, try crysaudio/wave_samples.asm
 	strcpy(waves_file, d);
 	strcat(waves_file, DIR_SEP "crysaudio" DIR_SEP "wave_samples.asm");
-	if (try_parse_waves(waves_file) == Parsed_Waves::Result::WAVES_OK) {
+	if (try_parse_waves(waves_file) != Parsed_Waves::Result::WAVES_BAD_FILE) {
 		return _result;
 	}
 	// second, try audio/wave_samples.asm
 	strcpy(waves_file, d);
 	strcat(waves_file, DIR_SEP "audio" DIR_SEP "wave_samples.asm");
-	if (try_parse_waves(waves_file) == Parsed_Waves::Result::WAVES_OK) {
+	if (try_parse_waves(waves_file) != Parsed_Waves::Result::WAVES_BAD_FILE) {
 		return _result;
 	}
 	// third, try wave_samples.asm
 	strcpy(waves_file, d);
 	strcat(waves_file, DIR_SEP "wave_samples.asm");
-	if (try_parse_waves(waves_file) == Parsed_Waves::Result::WAVES_OK) {
+	if (try_parse_waves(waves_file) != Parsed_Waves::Result::WAVES_BAD_FILE) {
 		return _result;
 	}
 
@@ -75,6 +99,7 @@ Parsed_Waves::Result Parsed_Waves::try_parse_waves(const char *f) {
 	_waves.clear();
 	_num_parsed_waves = 0;
 	_result = Result::WAVES_NULL;
+	_line_number = 0;
 
 	std::ifstream ifs;
 	open_ifstream(ifs, f);
@@ -85,6 +110,7 @@ Parsed_Waves::Result Parsed_Waves::try_parse_waves(const char *f) {
 	while (ifs.good()) {
 		std::string line;
 		std::getline(ifs, line);
+		_line_number += 1;
 		remove_comment(line);
 		rtrim(line);
 		if (line.size() == 0) { continue; }
@@ -107,7 +133,7 @@ Parsed_Waves::Result Parsed_Waves::try_parse_waves(const char *f) {
 	_waves.resize(16);
 
 	if (_num_parsed_waves == 0) {
-		return (_result = Result::WAVES_BAD_FILE);
+		return (_result = Result::WAVES_NO_WAVES);
 	}
 	return (_result = Result::WAVES_OK);
 }

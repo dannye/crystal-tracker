@@ -1673,7 +1673,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	Parsed_Waves parsed_waves(directory);
 	if (parsed_waves.result() != Parsed_Waves::Result::WAVES_OK) {
 		_directory.clear();
-		std::string msg = "Error reading wave definitions!";
+		std::string msg = "Error reading wave definitions!\n\n" + parsed_waves.get_error_message();
 		_error_dialog->message(msg);
 		_error_dialog->show(this);
 		return;
