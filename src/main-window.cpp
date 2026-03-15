@@ -1690,7 +1690,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 	Parsed_Drumkits parsed_drumkits(directory);
 	if (parsed_drumkits.result() != Parsed_Drumkits::Result::DRUMKITS_OK) {
 		_directory.clear();
-		std::string msg = "Error reading drumkit definitions!";
+		std::string msg = "Error reading drumkit definitions!\n\n" + parsed_drumkits.get_error_message();
 		_error_dialog->message(msg);
 		_error_dialog->show(this);
 		return;

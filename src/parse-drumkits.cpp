@@ -12,31 +12,67 @@ Parsed_Drumkits::Parsed_Drumkits(const char *d) {
 	parse_drumkits(d);
 }
 
+std::string Parsed_Drumkits::get_error_message() const {
+	switch (_result) {
+	case Result::DRUMKITS_OK:
+		return "OK.";
+	case Result::DRUMKITS_BAD_FILE:
+		return "Cannot open drumkits file.";
+	case Result::DRUMKITS_INVALID_DRUMKITS_TABLE:
+		return "Invalid drumkits table.";
+	case Result::DRUMKITS_INVALID_DRUMKIT:
+		return "Drumkit " + _label +
+			": Invalid drumkit.";
+	case Result::DRUMKITS_DRUMKIT_ENDED_PREMATURELY:
+		return "Drumkit " + _label +
+			": Drumkit ended prematurely.";
+	case Result::DRUMKITS_UNRECOGNIZED_DRUMKIT:
+		return "Unrecognized drumkit: " + _label;
+	case Result::DRUMKITS_DRUM_ENDED_PREMATURELY:
+		return "Drum " + _label +
+			": Drum ended prematurely.";
+	case Result::DRUMKITS_UNRECOGNIZED_DRUM:
+		return "Unrecognized drum: " + _label;
+	case Result::DRUMKITS_UNRECOGNIZED_MACRO:
+		return "Line " + std::to_string(_line_number) +
+			": Drum " + _label +
+			": Unrecognized macro.";
+	case Result::DRUMKITS_INVALID_MACRO_ARGUMENT:
+		return "Line " + std::to_string(_line_number) +
+			": Drum " + _label +
+			": Invalid macro argument.";
+	case Result::DRUMKITS_NULL:
+		return "No *.asm file chosen.";
+	default:
+		return "Unspecified error.";
+	}
+}
+
 Parsed_Drumkits::Result Parsed_Drumkits::parse_drumkits(const char *d) {
 	char drumkits_file[FL_PATH_MAX] = {};
 
 	// first, try crysaudio/drumkits.asm
 	strcpy(drumkits_file, d);
 	strcat(drumkits_file, DIR_SEP "crysaudio" DIR_SEP "drumkits.asm");
-	if (try_parse_drumkits(drumkits_file) == Parsed_Drumkits::Result::DRUMKITS_OK) {
+	if (try_parse_drumkits(drumkits_file) != Parsed_Drumkits::Result::DRUMKITS_BAD_FILE) {
 		return _result;
 	}
 	// second, try audio/drumkits.asm
 	strcpy(drumkits_file, d);
 	strcat(drumkits_file, DIR_SEP "audio" DIR_SEP "drumkits.asm");
-	if (try_parse_drumkits(drumkits_file) == Parsed_Drumkits::Result::DRUMKITS_OK) {
+	if (try_parse_drumkits(drumkits_file) != Parsed_Drumkits::Result::DRUMKITS_BAD_FILE) {
 		return _result;
 	}
 	// third, try audio/drumkits_0f.asm (for pinball)
 	strcpy(drumkits_file, d);
 	strcat(drumkits_file, DIR_SEP "audio" DIR_SEP "drumkits_0f.asm");
-	if (try_parse_drumkits(drumkits_file) == Parsed_Drumkits::Result::DRUMKITS_OK) {
+	if (try_parse_drumkits(drumkits_file) != Parsed_Drumkits::Result::DRUMKITS_BAD_FILE) {
 		return _result;
 	}
 	// fourth, try drumkits.asm
 	strcpy(drumkits_file, d);
 	strcat(drumkits_file, DIR_SEP "drumkits.asm");
-	if (try_parse_drumkits(drumkits_file) == Parsed_Drumkits::Result::DRUMKITS_OK) {
+	if (try_parse_drumkits(drumkits_file) != Parsed_Drumkits::Result::DRUMKITS_BAD_FILE) {
 		return _result;
 	}
 
@@ -124,6 +160,7 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 	_drums.clear();
 	_num_parsed_drumkits = 0;
 	_result = Result::DRUMKITS_NULL;
+	_line_number = 0;
 
 	std::ifstream ifs;
 	open_ifstream(ifs, f);
@@ -149,6 +186,7 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 	while (ifs.good()) {
 		std::string line;
 		std::getline(ifs, line);
+		_line_number += 1;
 		remove_comment(line);
 		rtrim(line);
 		if (line.size() == 0) { continue; }
@@ -157,11 +195,11 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 
 		if (step == Step::LOOKING_FOR_DRUMKITS) {
 			if (indented) {
-				return (_result = Result::DRUMKITS_BAD_FILE);
+				return (_result = Result::DRUMKITS_INVALID_DRUMKITS_TABLE);
 			}
 			std::string dummy;
 			if (!get_label(lss, dummy)) {
-				return (_result = Result::DRUMKITS_BAD_FILE);
+				return (_result = Result::DRUMKITS_INVALID_DRUMKITS_TABLE);
 			}
 			step = Step::READING_DRUMKITS;
 		}
@@ -169,20 +207,22 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 		else if (step == Step::READING_DRUMKITS) {
 			if (!indented) {
 				if (_drumkits.size() == 0) {
-					return (_result = Result::DRUMKITS_BAD_FILE);
+					return (_result = Result::DRUMKITS_INVALID_DRUMKITS_TABLE);
 				}
 				drumkit_itr = _drumkits.begin();
 				drumkit_index = 0;
 				ifs.seekg(0);
+				_line_number = 0;
+				_label = drumkit_itr->label;
 				step = Step::LOOKING_FOR_DRUMKIT;
 				continue;
 			}
 			if (!leading_pointer(lss)) {
-				return (_result = Result::DRUMKITS_BAD_FILE);
+				return (_result = Result::DRUMKITS_INVALID_DRUMKITS_TABLE);
 			}
 			Drumkit drumkit;
 			if (!get_label(lss, drumkit.label)) {
-				return (_result = Result::DRUMKITS_BAD_FILE);
+				return (_result = Result::DRUMKITS_INVALID_DRUMKITS_TABLE);
 			}
 			_drumkits.push_back(drumkit);
 		}
@@ -201,11 +241,11 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 		else if (step == Step::READING_DRUMKIT) {
 			if (!indented) { continue; }
 			if (!leading_pointer(lss)) {
-				return (_result = Result::DRUMKITS_BAD_FILE);
+				return (_result = Result::DRUMKITS_INVALID_DRUMKIT);
 			}
 			std::string label;
 			if (!get_label(lss, label)) {
-				return (_result = Result::DRUMKITS_BAD_FILE);
+				return (_result = Result::DRUMKITS_INVALID_DRUMKIT);
 			}
 			int32_t drum_index = find_drum(_drums, label);
 			if (drum_index == -1) {
@@ -223,11 +263,15 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 				if (drumkit_itr == _drumkits.end()) {
 					drum_itr = _drums.begin();
 					ifs.seekg(0);
+					_line_number = 0;
+					_label = drum_itr->label;
 					step = Step::LOOKING_FOR_DRUM;
 				}
 				else {
 					drumkit_index = 0;
 					ifs.seekg(0);
+					_line_number = 0;
+					_label = drumkit_itr->label;
 					step = Step::LOOKING_FOR_DRUMKIT;
 				}
 			}
@@ -248,25 +292,25 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 			if (!indented) { continue; }
 			std::string macro;
 			if (!leading_macro(lss, macro)) {
-				return (_result = Result::DRUMKITS_BAD_FILE);
+				return (_result = Result::DRUMKITS_UNRECOGNIZED_MACRO);
 			}
 			if (macro == "noise_note") {
 				int32_t length, volume, fade, frequency;
 				if (!get_number_and_number_and_number_and_number(lss, length, volume, fade, frequency)) {
-					return (_result = Result::DRUMKITS_BAD_FILE);
+					return (_result = Result::DRUMKITS_INVALID_MACRO_ARGUMENT);
 				}
 				if (length < 0 || length > 255) {
-					return (_result = Result::DRUMKITS_BAD_FILE);
+					return (_result = Result::DRUMKITS_INVALID_MACRO_ARGUMENT);
 				}
 				if (volume < 0 || volume > 15) {
-					return (_result = Result::DRUMKITS_BAD_FILE);
+					return (_result = Result::DRUMKITS_INVALID_MACRO_ARGUMENT);
 				}
 				if (fade == 8) fade = 0; // 8 is used in place of 0
 				if (fade < -7 || fade > 7) {
-					return (_result = Result::DRUMKITS_BAD_FILE);
+					return (_result = Result::DRUMKITS_INVALID_MACRO_ARGUMENT);
 				}
 				if (frequency < 0 || frequency > 255) {
-					return (_result = Result::DRUMKITS_BAD_FILE);
+					return (_result = Result::DRUMKITS_INVALID_MACRO_ARGUMENT);
 				}
 				Noise_Note noise_note;
 				noise_note.length = length;
@@ -292,11 +336,13 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 				}
 				else {
 					ifs.seekg(0);
+					_line_number = 0;
+					_label = drum_itr->label;
 					step = Step::LOOKING_FOR_DRUM;
 				}
 			}
 			else {
-				return (_result = Result::DRUMKITS_BAD_FILE);
+				return (_result = Result::DRUMKITS_UNRECOGNIZED_MACRO);
 			}
 		}
 	}
@@ -306,8 +352,24 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 		_drumkits.resize(256);
 	}
 
-	if (step != Step::DONE) {
-		return (_result = Result::DRUMKITS_BAD_FILE);
+	if (step == Step::LOOKING_FOR_DRUMKITS) {
+		return (_result = Result::DRUMKITS_INVALID_DRUMKITS_TABLE);
 	}
+	else if (step == Step::READING_DRUMKITS) {
+		return (_result = Result::DRUMKITS_INVALID_DRUMKITS_TABLE);
+	}
+	else if (step == Step::LOOKING_FOR_DRUMKIT) {
+		return (_result = Result::DRUMKITS_UNRECOGNIZED_DRUMKIT);
+	}
+	else if (step == Step::READING_DRUMKIT) {
+		return (_result = Result::DRUMKITS_DRUMKIT_ENDED_PREMATURELY);
+	}
+	else if (step == Step::LOOKING_FOR_DRUM) {
+		return (_result = Result::DRUMKITS_UNRECOGNIZED_DRUM);
+	}
+	else if (step == Step::READING_DRUM) {
+		return (_result = Result::DRUMKITS_DRUM_ENDED_PREMATURELY);
+	}
+
 	return (_result = Result::DRUMKITS_OK);
 }
