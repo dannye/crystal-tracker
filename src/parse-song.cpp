@@ -14,6 +14,74 @@ Parsed_Song::Parsed_Song(const char *f) {
 	parse_song(f);
 }
 
+std::string Parsed_Song::get_error_message() const {
+	switch (_result) {
+	case Result::SONG_OK:
+		return "OK.";
+	case Result::SONG_BAD_FILE:
+		return "Cannot open song file.";
+	case Result::SONG_INVALID_HEADER:
+		return "Invalid song header.";
+	case Result::SONG_EMPTY_LOOP:
+		return "Channel " + std::to_string(_channel_number) +
+			": Empty infinite loop.";
+	case Result::SONG_NESTED_LOOP:
+		return "Channel " + std::to_string(_channel_number) +
+			": Nested loops not allowed.";
+	case Result::SONG_NESTED_CALL:
+		return "Channel " + std::to_string(_channel_number) +
+			": Nested calls not allowed.";
+	case Result::SONG_UNFINISHED_LOOP:
+		return "Channel " + std::to_string(_channel_number) +
+			": Unfinished loop.";
+	case Result::SONG_UNFINISHED_CALL:
+		return "Channel " + std::to_string(_channel_number) +
+			": Unfinished call.";
+	case Result::SONG_NO_DRUMKIT_SELECTED:
+		return "Channel " + std::to_string(_channel_number) +
+			": drum_note: no drumkit selected.";
+	case Result::SONG_TOGGLE_NOISE_ALREADY_DISABLED:
+		return "Channel " + std::to_string(_channel_number) +
+			": toggle_noise: noise already disabled.";
+	case Result::SONG_TOGGLE_NOISE_ALREADY_ENABLED:
+		return "Channel " + std::to_string(_channel_number) +
+			": toggle_noise: noise already enabled.";
+	case Result::SONG_ENDED_PREMATURELY:
+		return "Channel " + std::to_string(_channel_number) +
+			": File ended prematurely.";
+	case Result::SONG_UNRECOGNIZED_LABEL:
+		return "Channel " + std::to_string(_channel_number) +
+			": Unrecognized label: " + _label;
+	case Result::SONG_DUPLICATE_LABEL:
+		return "Line " + std::to_string(_line_number) +
+			": Channel " + std::to_string(_channel_number) +
+			": Duplicate label: " + _label;
+	case Result::SONG_LOCAL_CHANNEL_LABEL_UNSUPPORTED:
+		return "Line " + std::to_string(_line_number) +
+			": Local channel labels not supported.";
+	case Result::SONG_UNSUPPORTED_KEYWORD:
+		return "Line " + std::to_string(_line_number) +
+			": Channel " + std::to_string(_channel_number) +
+			": Unsupported keyword.";
+	case Result::SONG_ILLEGAL_MACRO:
+		return "Line " + std::to_string(_line_number) +
+			": Channel " + std::to_string(_channel_number) +
+			": Illegal macro for channel.";
+	case Result::SONG_UNRECOGNIZED_MACRO:
+		return "Line " + std::to_string(_line_number) +
+			": Channel " + std::to_string(_channel_number) +
+			": Unrecognized macro.";
+	case Result::SONG_INVALID_MACRO_ARGUMENT:
+		return "Line " + std::to_string(_line_number) +
+			": Channel " + std::to_string(_channel_number) +
+			": Invalid macro argument.";
+	case Result::SONG_NULL:
+		return "No *.asm file chosen.";
+	default:
+		return "Unspecified error.";
+	}
+}
+
 static bool get_label(std::istringstream &iss, std::string &l, const std::string &scope = "") {
 	iss >> l;
 	rtrim(l, ":");

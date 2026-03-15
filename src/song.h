@@ -246,7 +246,6 @@ public:
 	int32_t max_drumkit_id() const;
 private:
 	std::string commands_str(const std::vector<Command> &commands, int32_t channel_number) const;
-	std::string get_error_message(const Parsed_Song &parsed_song) const;
 	const char *get_action_message(Song_State::Action action) const;
 };
 

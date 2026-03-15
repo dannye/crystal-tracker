@@ -1022,7 +1022,7 @@ void Song::redo() {
 Parsed_Song::Result Song::read_song(const char *f) {
 	Parsed_Song data(f);
 	if (data.result() != Parsed_Song::Result::SONG_OK) {
-		_error_message = get_error_message(data);
+		_error_message = data.get_error_message();
 		return (_result = data.result());
 	}
 
@@ -4073,74 +4073,6 @@ std::string Song::commands_str(const std::vector<Command> &commands, int32_t cha
 	rtrim(str);
 	str += "\n";
 	return str;
-}
-
-std::string Song::get_error_message(const Parsed_Song &parsed_song) const {
-	switch (parsed_song.result()) {
-	case Parsed_Song::Result::SONG_OK:
-		return "OK.";
-	case Parsed_Song::Result::SONG_BAD_FILE:
-		return "Cannot open song file.";
-	case Parsed_Song::Result::SONG_INVALID_HEADER:
-		return "Invalid song header.";
-	case Parsed_Song::Result::SONG_EMPTY_LOOP:
-		return "Channel " + std::to_string(parsed_song.channel_number()) +
-			": Empty infinite loop.";
-	case Parsed_Song::Result::SONG_NESTED_LOOP:
-		return "Channel " + std::to_string(parsed_song.channel_number()) +
-			": Nested loops not allowed.";
-	case Parsed_Song::Result::SONG_NESTED_CALL:
-		return "Channel " + std::to_string(parsed_song.channel_number()) +
-			": Nested calls not allowed.";
-	case Parsed_Song::Result::SONG_UNFINISHED_LOOP:
-		return "Channel " + std::to_string(parsed_song.channel_number()) +
-			": Unfinished loop.";
-	case Parsed_Song::Result::SONG_UNFINISHED_CALL:
-		return "Channel " + std::to_string(parsed_song.channel_number()) +
-			": Unfinished call.";
-	case Parsed_Song::Result::SONG_NO_DRUMKIT_SELECTED:
-		return "Channel " + std::to_string(parsed_song.channel_number()) +
-			": drum_note: no drumkit selected.";
-	case Parsed_Song::Result::SONG_TOGGLE_NOISE_ALREADY_DISABLED:
-		return "Channel " + std::to_string(parsed_song.channel_number()) +
-			": toggle_noise: noise already disabled.";
-	case Parsed_Song::Result::SONG_TOGGLE_NOISE_ALREADY_ENABLED:
-		return "Channel " + std::to_string(parsed_song.channel_number()) +
-			": toggle_noise: noise already enabled.";
-	case Parsed_Song::Result::SONG_ENDED_PREMATURELY:
-		return "Channel " + std::to_string(parsed_song.channel_number()) +
-			": File ended prematurely.";
-	case Parsed_Song::Result::SONG_UNRECOGNIZED_LABEL:
-		return "Channel " + std::to_string(parsed_song.channel_number()) +
-			": Unrecognized label: " + parsed_song.label();
-	case Parsed_Song::Result::SONG_DUPLICATE_LABEL:
-		return "Line " + std::to_string(parsed_song.line_number()) +
-			": Channel " + std::to_string(parsed_song.channel_number()) +
-			": Duplicate label: " + parsed_song.label();
-	case Parsed_Song::Result::SONG_LOCAL_CHANNEL_LABEL_UNSUPPORTED:
-		return "Line " + std::to_string(parsed_song.line_number()) +
-			": Local channel labels not supported.";
-	case Parsed_Song::Result::SONG_UNSUPPORTED_KEYWORD:
-		return "Line " + std::to_string(parsed_song.line_number()) +
-			": Channel " + std::to_string(parsed_song.channel_number()) +
-			": Unsupported keyword.";
-	case Parsed_Song::Result::SONG_ILLEGAL_MACRO:
-		return "Line " + std::to_string(parsed_song.line_number()) +
-			": Channel " + std::to_string(parsed_song.channel_number()) +
-			": Illegal macro for channel.";
-	case Parsed_Song::Result::SONG_UNRECOGNIZED_MACRO:
-		return "Line " + std::to_string(parsed_song.line_number()) +
-			": Channel " + std::to_string(parsed_song.channel_number()) +
-			": Unrecognized macro.";
-	case Parsed_Song::Result::SONG_INVALID_MACRO_ARGUMENT:
-		return "Line " + std::to_string(parsed_song.line_number()) +
-			": Channel " + std::to_string(parsed_song.channel_number()) +
-			": Invalid macro argument.";
-	case Parsed_Song::Result::SONG_NULL:
-		return "No *.asm file chosen.";
-	default:
-		return "Unspecified error.";
-	}
 }
 
 const char *Song::get_action_message(Song_State::Action action) const {

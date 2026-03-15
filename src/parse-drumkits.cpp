@@ -54,25 +54,25 @@ Parsed_Drumkits::Result Parsed_Drumkits::parse_drumkits(const char *d) {
 	// first, try crysaudio/drumkits.asm
 	strcpy(drumkits_file, d);
 	strcat(drumkits_file, DIR_SEP "crysaudio" DIR_SEP "drumkits.asm");
-	if (try_parse_drumkits(drumkits_file) != Parsed_Drumkits::Result::DRUMKITS_BAD_FILE) {
+	if (try_parse_drumkits(drumkits_file) != Result::DRUMKITS_BAD_FILE) {
 		return _result;
 	}
 	// second, try audio/drumkits.asm
 	strcpy(drumkits_file, d);
 	strcat(drumkits_file, DIR_SEP "audio" DIR_SEP "drumkits.asm");
-	if (try_parse_drumkits(drumkits_file) != Parsed_Drumkits::Result::DRUMKITS_BAD_FILE) {
+	if (try_parse_drumkits(drumkits_file) != Result::DRUMKITS_BAD_FILE) {
 		return _result;
 	}
 	// third, try audio/drumkits_0f.asm (for pinball)
 	strcpy(drumkits_file, d);
 	strcat(drumkits_file, DIR_SEP "audio" DIR_SEP "drumkits_0f.asm");
-	if (try_parse_drumkits(drumkits_file) != Parsed_Drumkits::Result::DRUMKITS_BAD_FILE) {
+	if (try_parse_drumkits(drumkits_file) != Result::DRUMKITS_BAD_FILE) {
 		return _result;
 	}
 	// fourth, try drumkits.asm
 	strcpy(drumkits_file, d);
 	strcat(drumkits_file, DIR_SEP "drumkits.asm");
-	if (try_parse_drumkits(drumkits_file) != Parsed_Drumkits::Result::DRUMKITS_BAD_FILE) {
+	if (try_parse_drumkits(drumkits_file) != Result::DRUMKITS_BAD_FILE) {
 		return _result;
 	}
 

@@ -75,19 +75,19 @@ Parsed_Waves::Result Parsed_Waves::parse_waves(const char *d) {
 	// first, try crysaudio/wave_samples.asm
 	strcpy(waves_file, d);
 	strcat(waves_file, DIR_SEP "crysaudio" DIR_SEP "wave_samples.asm");
-	if (try_parse_waves(waves_file) != Parsed_Waves::Result::WAVES_BAD_FILE) {
+	if (try_parse_waves(waves_file) != Result::WAVES_BAD_FILE) {
 		return _result;
 	}
 	// second, try audio/wave_samples.asm
 	strcpy(waves_file, d);
 	strcat(waves_file, DIR_SEP "audio" DIR_SEP "wave_samples.asm");
-	if (try_parse_waves(waves_file) != Parsed_Waves::Result::WAVES_BAD_FILE) {
+	if (try_parse_waves(waves_file) != Result::WAVES_BAD_FILE) {
 		return _result;
 	}
 	// third, try wave_samples.asm
 	strcpy(waves_file, d);
 	strcat(waves_file, DIR_SEP "wave_samples.asm");
-	if (try_parse_waves(waves_file) != Parsed_Waves::Result::WAVES_BAD_FILE) {
+	if (try_parse_waves(waves_file) != Result::WAVES_BAD_FILE) {
 		return _result;
 	}
 

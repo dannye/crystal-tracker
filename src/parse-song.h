@@ -49,16 +49,14 @@ private:
 	int32_t _channel_2_end_tick = -1;
 	int32_t _channel_3_end_tick = -1;
 	int32_t _channel_4_end_tick = -1;
-
 	std::vector<Wave> _waves;
-
+	std::vector<std::string> _mixed_labels;
 	Result _result = Result::SONG_NULL;
 
 	// for error reporting
 	int32_t _line_number = 0;
 	int32_t _channel_number = 0;
 	std::string _label;
-	std::vector<std::string> _mixed_labels;
 public:
 	Parsed_Song(const char *f);
 	inline ~Parsed_Song() {}
@@ -81,11 +79,10 @@ public:
 	inline int32_t channel_3_end_tick(void) const { return _channel_3_end_tick; }
 	inline int32_t channel_4_end_tick(void) const { return _channel_4_end_tick; }
 	inline std::vector<Wave> &&waves(void) { return std::move(_waves); }
-	inline Result result(void) const { return _result; }
-	inline int32_t line_number(void) const { return _line_number; }
-	inline int32_t channel_number(void) const { return _channel_number; }
-	inline const std::string &label(void) const { return _label; }
 	inline std::vector<std::string> &&mixed_labels(void) { return std::move(_mixed_labels); }
+	inline Result result(void) const { return _result; }
+
+	std::string get_error_message() const;
 private:
 	Result parse_song(const char *f);
 };
