@@ -199,7 +199,6 @@ Music_CrystalTracked_Ch1:
 	octave 3
 	tempo 500
 	note C#, 2
-	pitch_slide 1, 3, G#
 	octave 8
 	sound_loop 0, .mainLoop
 

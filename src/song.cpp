@@ -1371,6 +1371,19 @@ void postprocess(std::vector<Command> &commands) {
 		Command_Indexes indexes;
 		deleted = false;
 		for (uint32_t i = 0; i < commands.size(); ++i) {
+			if (is_control_command(commands[i].type) && indexes.slide_index != -1) {
+				// automatically delete trailing pitch slide commands
+				deleted = true;
+				commands[indexes.slide_index + 1].labels.insert(commands[indexes.slide_index + 1].labels.begin(), RANGE(commands[indexes.slide_index].labels));
+				commands.erase(commands.begin() + indexes.slide_index);
+				i -= 1;
+				shift_indexes(indexes, indexes.slide_index);
+
+				view.slide_duration = 0;
+				view.slide_octave = 0;
+				view.slide_pitch = Pitch::REST;
+				indexes.slide_index = -1;
+			}
 			if (
 				commands[i].labels.size() > 0 ||
 				is_control_command(commands[i].type)
