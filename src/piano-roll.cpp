@@ -2305,6 +2305,10 @@ void Piano_Roll::build_note_view(
 			note.ghost = restarted;
 			notes.push_back(note);
 
+			note.slide_duration = 0;
+			note.slide_octave = 0;
+			note.slide_pitch = Pitch::REST;
+
 			if (loop) {
 				loop->set_end_tick(tick);
 			}

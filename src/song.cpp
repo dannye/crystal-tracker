@@ -469,6 +469,10 @@ Note_View get_note_view(const std::vector<Command> &commands, int32_t index, int
 			if (note.index == index && tick >= min_tick) {
 				return note;
 			}
+
+			note.slide_duration = 0;
+			note.slide_octave = 0;
+			note.slide_pitch = Pitch::REST;
 		}
 		else if (command_itr->type == Command_Type::OCTAVE) {
 			note.octave = command_itr->octave.octave;
@@ -1371,7 +1375,7 @@ void postprocess(std::vector<Command> &commands) {
 		Command_Indexes indexes;
 		deleted = false;
 		for (uint32_t i = 0; i < commands.size(); ++i) {
-			if (is_control_command(commands[i].type) && indexes.slide_index != -1) {
+			if ((is_control_command(commands[i].type) || commands[i].type == Command_Type::REST) && indexes.slide_index != -1) {
 				// automatically delete trailing pitch slide commands
 				deleted = true;
 				commands[indexes.slide_index + 1].labels.insert(commands[indexes.slide_index + 1].labels.begin(), RANGE(commands[indexes.slide_index].labels));
