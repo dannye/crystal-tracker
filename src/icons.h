@@ -20,6 +20,8 @@
 #include "left.xpm"
 #include "loop.xpm"
 #include "minus.xpm"
+#include "more-dark.xpm"
+#include "more-light.xpm"
 #include "new.xpm"
 #include "notes.xpm"
 #include "one.xpm"
@@ -94,6 +96,8 @@ static Scalable_Pixmap KEYS_ICON(KEYS_XPM);
 static Scalable_Pixmap LEFT_ICON(LEFT_XPM);
 static Scalable_Pixmap LOOP_ICON(LOOP_XPM);
 static Scalable_Pixmap MINUS_ICON(MINUS_XPM);
+static Scalable_Pixmap MORE_DARK_ICON(MORE_DARK_XPM);
+static Scalable_Pixmap MORE_LIGHT_ICON(MORE_LIGHT_XPM);
 static Scalable_Pixmap NEW_ICON(NEW_XPM);
 static Scalable_Pixmap NOTES_ICON(NOTES_XPM);
 static Scalable_Pixmap ONE_ICON(ONE_XPM);

@@ -266,6 +266,8 @@
     <None Include="..\res\left.xpm" />
     <None Include="..\res\loop.xpm" />
     <None Include="..\res\minus.xpm" />
+    <None Include="..\res\more-dark.xpm" />
+    <None Include="..\res\more-light.xpm" />
     <None Include="..\res\new.xpm" />
     <None Include="..\res\notes.xpm" />
     <None Include="..\res\one.xpm" />

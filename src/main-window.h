@@ -113,6 +113,7 @@ private:
 		*_note_labels_tb = NULL,
 		*_ruler_tb = NULL;
 	Toolbar_Button
+		*_configure_ruler_tb = NULL,
 		*_decrease_spacing_tb = NULL,
 		*_increase_spacing_tb = NULL;
 	// GUI outputs

@@ -29,6 +29,7 @@
 	constexpr int TOOLBAR_HEIGHT = 26;
 #endif
 constexpr int TOOLBAR_BUTTON_HEIGHT = 24;
+constexpr int THIN_TOOLBAR_BUTTON_WIDTH = 14;
 constexpr int STATUS_BAR_HEIGHT = 23;
 
 constexpr int NOTE_PROP_HEIGHT = 42;
@@ -125,6 +126,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_note_labels_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	SEPARATE_TOOLBAR_BUTTONS;
 	_ruler_tb = new Toolbar_Toggle_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_configure_ruler_tb = new Toolbar_Button(tx, ty, THIN_TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT); tx += THIN_TOOLBAR_BUTTON_WIDTH;
 	SEPARATE_TOOLBAR_BUTTONS;
 	_decrease_spacing_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	_increase_spacing_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
@@ -695,6 +697,10 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_ruler_tb->callback((Fl_Callback *)ruler_tb_cb, this);
 	_ruler_tb->image(RULER_ICON.get(_scale));
 	_ruler_tb->value(ruler());
+
+	_configure_ruler_tb->tooltip("Configure Ruler... (" COMMAND_SHIFT_KEYS_PLUS "R)");
+	_configure_ruler_tb->callback((Fl_Callback *)configure_ruler_cb, this);
+	_configure_ruler_tb->image(MORE_LIGHT_ICON.get(_scale));
 
 	_decrease_spacing_tb->tooltip("Decrease Spacing (" SHIFT_KEY_PLUS "-)");
 	_decrease_spacing_tb->callback((Fl_Callback *)decrease_spacing_cb, this);
@@ -2092,6 +2098,7 @@ void Main_Window::update_icon_resolution() {
 	_key_labels_tb->image(KEYS_ICON.get(_scale));
 	_note_labels_tb->image(NOTES_ICON.get(_scale));
 	_ruler_tb->image(RULER_ICON.get(_scale));
+	_configure_ruler_tb->image(MORE_LIGHT_ICON.get(_scale));
 	_decrease_spacing_tb->image(DECREASE_SPACING_ICON.get(_scale));
 	_increase_spacing_tb->image(INCREASE_SPACING_ICON.get(_scale));
 	update_icons();
@@ -2104,6 +2111,7 @@ void Main_Window::update_icons() {
 	_continuous_tb->image(dark ? SCROLL_DARK_ICON.get(_scale) : SCROLL_LIGHT_ICON.get(_scale));
 	_split_note_tb->image(dark ? SPLIT_DARK_ICON.get(_scale) : SPLIT_LIGHT_ICON.get(_scale));
 	_glue_note_tb->image(dark ? GLUE_DARK_ICON.get(_scale) : GLUE_LIGHT_ICON.get(_scale));
+	_configure_ruler_tb->image(dark ? MORE_DARK_ICON.get(_scale) : MORE_LIGHT_ICON.get(_scale));
 	selected_channel(selected_channel());
 	_format_painter_tb->image(format_painter() ? BRUSH_CMY_ICON.get(_scale) : BRUSH_ICON.get(_scale));
 	make_deimage(_new_tb);
@@ -2140,6 +2148,7 @@ void Main_Window::update_icons() {
 	make_deimage(_key_labels_tb);
 	make_deimage(_note_labels_tb);
 	make_deimage(_ruler_tb);
+	make_deimage(_configure_ruler_tb);
 	make_deimage(_decrease_spacing_tb);
 	make_deimage(_increase_spacing_tb);
 }

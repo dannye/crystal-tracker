@@ -224,6 +224,12 @@
     <None Include="..\res\minus.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\more-dark.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\more-light.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\new.xpm">
       <Filter>Resource Files</Filter>
     </None>
