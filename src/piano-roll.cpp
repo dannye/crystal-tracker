@@ -2604,6 +2604,21 @@ int32_t Piano_Roll::get_current_tempo() {
 	return tempo;
 }
 
+bool Piano_Roll::get_current_note_view(Note_View &note_view) {
+	auto view = active_channel_view();
+	if (!view) return false;
+
+	int32_t tick = _tick == _song_length ? _tick - 1 : _tick;
+
+	const Note_View *v = find_note_view_at_tick(*view, tick != -1 ? tick : 0);
+	if (v) {
+		note_view = *v;
+		return true;
+	}
+
+	return false;
+}
+
 int Piano_Roll::first_channel_number() const {
 	if (_channel_1_end_tick != -1) return 1;
 	if (_channel_2_end_tick != -1) return 2;

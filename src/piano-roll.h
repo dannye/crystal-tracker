@@ -526,6 +526,7 @@ public:
 	int32_t get_loop_tick() const;
 	int32_t get_last_note_x() const;
 	int32_t get_current_tempo();
+	bool get_current_note_view(Note_View &view);
 	int first_channel_number() const;
 
 	void update_channel_detail(int channel_number);

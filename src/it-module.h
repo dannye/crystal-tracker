@@ -39,7 +39,12 @@ private:
 
 	bool _paused = false;
 public:
-	IT_Module();
+	IT_Module(
+		const std::vector<Wave> &waves,
+		const std::vector<Drumkit> &drumkits,
+		const std::vector<std::vector<uint8_t>> &drums,
+		int32_t drumkit
+	);
 	IT_Module(
 		const std::vector<Note_View> &channel_1_notes,
 		const std::vector<Note_View> &channel_2_notes,
@@ -76,8 +81,8 @@ public:
 
 	void mute_channel(int32_t channel, bool mute);
 
-	int32_t play_note(Pitch pitch, int32_t octave);
-	void stop_note(int32_t channel);
+	int32_t play_note(Pitch pitch, int32_t octave, int channel, int32_t duty_wave);
+	void stop_note(int32_t mod_channel);
 
 	int32_t current_tick() const { return _current_pattern * ROWS_PER_PATTERN + _current_row; }
 	void set_tick(int32_t tick);
@@ -106,6 +111,7 @@ private:
 		const std::vector<Wave> &waves = {},
 		const std::vector<Drumkit> &drumkits = {},
 		const std::vector<std::vector<uint8_t>> &drums = {},
+		int32_t preserve_drumkit = -1,
 		int32_t loop_tick = -1,
 		bool stereo = true
 	);

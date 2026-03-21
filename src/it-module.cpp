@@ -4,8 +4,13 @@
 
 #include "utils.h"
 
-IT_Module::IT_Module() {
-	generate_it_module();
+IT_Module::IT_Module(
+		const std::vector<Wave> &waves,
+		const std::vector<Drumkit> &drumkits,
+		const std::vector<std::vector<uint8_t>> &drums,
+		int32_t drumkit
+) {
+	generate_it_module({}, {}, {}, {}, waves, drumkits, drums, drumkit);
 
 	_mod = new openmpt::module_ext(_data);
 	_mod->set_repeat_count(-1);
@@ -28,7 +33,7 @@ IT_Module::IT_Module(
 	int32_t loop_tick,
 	bool stereo
 ) {
-	generate_it_module(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, waves, drumkits, drums, loop_tick, stereo);
+	generate_it_module(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, waves, drumkits, drums, -1, loop_tick, stereo);
 
 	_mod = new openmpt::module_ext(_data);
 	if (loop_tick != -1) {
@@ -94,14 +99,28 @@ void IT_Module::mute_channel(int32_t channel, bool mute) {
 	}
 }
 
-int32_t IT_Module::play_note(Pitch pitch, int32_t octave) {
+int32_t IT_Module::play_note(Pitch pitch, int32_t octave, int channel, int32_t duty_wave) {
+	int32_t instrument = 2; // 50% square
+	if (channel == 1) {
+		instrument = duty_wave;
+	}
+	else if (channel == 2) {
+		instrument = duty_wave;
+	}
+	else if (channel == 3) {
+		instrument = 4 + duty_wave;
+	}
+	else if (channel == 4) {
+		instrument = 4 + 16 + (int32_t)pitch;
+	}
+	int32_t note = channel != 4 ? octave * NUM_PITCHES + (int32_t)pitch - 1 : 60;
 	openmpt::ext::interactive *interactive = static_cast<openmpt::ext::interactive *>(_mod->get_interface(openmpt::ext::interactive_id));
-	return interactive->play_note(2, octave * NUM_PITCHES + (int32_t)pitch - 1, 1.0, 0.0);
+	return interactive->play_note(instrument, note, 1.0, 0.0);
 }
 
-void IT_Module::stop_note(int32_t channel) {
+void IT_Module::stop_note(int32_t mod_channel) {
 	openmpt::ext::interactive *interactive = static_cast<openmpt::ext::interactive *>(_mod->get_interface(openmpt::ext::interactive_id));
-	interactive->stop_note(channel);
+	interactive->stop_note(mod_channel);
 }
 
 void IT_Module::set_tick(int32_t tick) {
@@ -324,10 +343,15 @@ std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave>
 	for (const std::vector<uint8_t> *drum : drums) {
 		std::vector<uint8_t> sample;
 
-		sample_header(sample, (uint32_t)drum->size(), true);
+		if (drum) {
+			sample_header(sample, (uint32_t)drum->size(), true);
 
-		for (uint32_t i = 0; i < drum->size(); ++i) {
-			sample.push_back(drum->at(i));
+			for (uint32_t i = 0; i < drum->size(); ++i) {
+				sample.push_back(drum->at(i));
+			}
+		}
+		else {
+			sample_header(sample, 0, true);
 		}
 
 		samples.push_back(std::move(sample));
@@ -877,6 +901,7 @@ void IT_Module::generate_it_module(
 	const std::vector<Wave> &waves,
 	const std::vector<Drumkit> &drumkits,
 	const std::vector<std::vector<uint8_t>> &drums,
+	int32_t preserve_drumkit,
 	int32_t loop_tick,
 	bool stereo
 ) {
@@ -908,27 +933,38 @@ void IT_Module::generate_it_module(
 		}
 	}
 	std::vector<const std::vector<uint8_t> *> optimized_drums;
-	for (const Note_View &note : channel_4_notes) {
-		if (
-			note.pitch != Pitch::REST &&
-			note.drumkit != -1 &&
-			note.drumkit < optimized_drumkits.size() &&
-			optimized_drumkits[note.drumkit].drums[(int32_t)note.pitch] == -1
-		) {
-			if (optimized_drums.size() >= 64) {
-				_too_many_drums = true;
-				break;
-			}
-			int32_t drum_index = drumkits[note.drumkit].drums[(int32_t)note.pitch];
-			for (uint32_t j = 0; j < drumkits.size(); ++j) {
-				for (uint32_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
-					if (drumkits[j].drums[i] == drum_index) {
-						optimized_drumkits[j].drums[i] = optimized_drums.size();
+	if (preserve_drumkit == -1) {
+		for (const Note_View &note : channel_4_notes) {
+			if (
+				note.pitch != Pitch::REST &&
+				note.drumkit != -1 &&
+				note.drumkit < optimized_drumkits.size() &&
+				optimized_drumkits[note.drumkit].drums[(int32_t)note.pitch] == -1
+			) {
+				if (optimized_drums.size() >= 64) {
+					_too_many_drums = true;
+					break;
+				}
+				int32_t drum_index = drumkits[note.drumkit].drums[(int32_t)note.pitch];
+				for (uint32_t j = 0; j < drumkits.size(); ++j) {
+					for (uint32_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
+						if (drumkits[j].drums[i] == drum_index) {
+							optimized_drumkits[j].drums[i] = optimized_drums.size();
+						}
 					}
 				}
+				optimized_drums.push_back(&drums[drum_index]);
 			}
-			optimized_drums.push_back(&drums[drum_index]);
 		}
+	}
+	else {
+		if (preserve_drumkit < drumkits.size()) {
+			for (uint32_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
+				int32_t drum_index = drumkits[preserve_drumkit].drums[i];
+				optimized_drums.push_back(&drums[drum_index]);
+			}
+		}
+		optimized_drums.resize(NUM_DRUMS_PER_DRUMKIT);
 	}
 
 	std::vector<std::vector<uint8_t>> instruments = get_instruments();
