@@ -377,7 +377,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	Fl_Mac_App_Menu::about = "About " PROGRAM_NAME;
 	Fl_Mac_App_Menu::hide = "Hide " PROGRAM_NAME;
 	Fl_Mac_App_Menu::quit = "Quit " PROGRAM_NAME;
-	fl_mac_set_about((Fl_Callback *)about_cb, this);
+	Fl_Sys_Menu_Bar::about((Fl_Callback *)about_cb, this);
 	Fl_Sys_Menu_Bar::create_window_menu();
 	fl_open_display();
 	_menu_bar->update();
