@@ -1183,9 +1183,9 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 				(note.tempo != prev_note.tempo ||
 				note.transpose_octaves != prev_note.transpose_octaves ||
 				note.transpose_pitches != prev_note.transpose_pitches ||
-				note.slide_duration != prev_note.slide_duration ||
-				note.slide_octave != prev_note.slide_octave ||
-				note.slide_pitch != prev_note.slide_pitch ||
+				note.slide_duration != 0 ||
+				note.slide_octave != 0 ||
+				note.slide_pitch != Pitch::REST ||
 				note.panning_left != prev_note.panning_left ||
 				note.panning_right != prev_note.panning_right)
 			) {
