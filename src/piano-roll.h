@@ -486,6 +486,7 @@ public:
 	bool set_tick_from_x_pos(int X);
 	bool handle_mouse_click_song_position(int event);
 	bool handle_mouse_click_continuous_scroll(int event);
+	bool toggle_bookmark_from_x_pos(int X);
 
 	void refresh_note_properties();
 
@@ -498,7 +499,7 @@ public:
 	bool center_playhead();
 	bool next_bookmark();
 	bool previous_bookmark();
-	bool toggle_bookmark();
+	bool toggle_bookmark(int32_t tick);
 	bool clear_bookmarks();
 	void zoom(int z);
 	void ticks_per_step(int t) { _ticks_per_step = t; }

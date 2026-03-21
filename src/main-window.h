@@ -294,6 +294,7 @@ public:
 	void set_ruler_config(const Ruler_Config_Dialog::Ruler_Options &o);
 
 	void set_tick_from_x_pos(int X);
+	void toggle_bookmark_from_x_pos(int X);
 
 	bool set_context_menu(int event, int &X, int &Y);
 

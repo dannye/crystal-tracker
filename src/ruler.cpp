@@ -12,7 +12,11 @@ Ruler::Ruler(int x, int y, int w, int h, const char *l) : Fl_Box(x, y, w, h, l) 
 
 int Ruler::handle(int event) {
 	Main_Window *mw = (Main_Window *)user_data();
-	if (event == FL_PUSH || (event == FL_DRAG && !mw->playing())) {
+	if (event == FL_PUSH && Fl::event_button() == FL_RIGHT_MOUSE) {
+		mw->toggle_bookmark_from_x_pos(Fl::event_x());
+		return 1;
+	}
+	if ((event == FL_PUSH || (event == FL_DRAG && !mw->playing())) && Fl::event_button() != FL_RIGHT_MOUSE) {
 		mw->set_tick_from_x_pos(Fl::event_x());
 		return 1;
 	}

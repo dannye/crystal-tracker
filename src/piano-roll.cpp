@@ -1,5 +1,4 @@
 #include <cassert>
-#include <map>
 #include <stack>
 
 #pragma warning(push, 0)
@@ -1801,6 +1800,11 @@ bool Piano_Roll::handle_mouse_click_continuous_scroll(int event) {
 	return false;
 }
 
+bool Piano_Roll::toggle_bookmark_from_x_pos(int X) {
+	int32_t t = (X - _piano_timeline.x() - WHITE_KEY_WIDTH) / tick_width();
+	return toggle_bookmark(t);
+}
+
 void Piano_Roll::refresh_note_properties() {
 	auto channel = _piano_timeline.active_channel_boxes();
 	if (channel && !_following && !_paused) {
@@ -1939,11 +1943,11 @@ bool Piano_Roll::previous_bookmark() {
 	return true;
 }
 
-bool Piano_Roll::toggle_bookmark() {
+bool Piano_Roll::toggle_bookmark(int32_t tick) {
 	if (_song_length == -1) return false;
-	if (_tick == -1) return false;
+	if (tick < 0 || tick >= _song_length) return false;
 
-	int32_t tick = quantize_tick(_tick);
+	tick = quantize_tick(tick);
 
 	if (_piano_timeline._bookmarks.count(tick)) {
 		_piano_timeline._bookmarks.erase(tick);
@@ -2499,10 +2503,10 @@ void Piano_Roll::build_note_view(
 				wrapper->set_min_pitch(Pitch::C_NAT, 1);
 				wrapper->set_max_pitch(Pitch::B_NAT, 8);
 			}
-			int x_left   = _piano_timeline.tick_to_x_pos(wrapper->start_tick()) - 1;
-			int x_right  = _piano_timeline.tick_to_x_pos(wrapper->end_tick()) + 1;
-			int y_top    = _piano_timeline.pitch_to_y_pos(wrapper->max_pitch(), wrapper->max_octave()) - 1;
-			int y_bottom = _piano_timeline.pitch_to_y_pos(wrapper->min_pitch(), wrapper->min_octave()) + 1;
+			int x_left   = tick_to_x_pos(wrapper->start_tick()) - 1;
+			int x_right  = tick_to_x_pos(wrapper->end_tick()) + 1;
+			int y_top    = pitch_to_y_pos(wrapper->max_pitch(), wrapper->max_octave()) - 1;
+			int y_bottom = pitch_to_y_pos(wrapper->min_pitch(), wrapper->min_octave()) + 1;
 			wrapper->resize(
 				x_left,
 				y_top,

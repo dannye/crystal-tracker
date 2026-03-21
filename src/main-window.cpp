@@ -893,7 +893,25 @@ int Main_Window::handle(int event) {
 	case FL_FOCUS:
 	case FL_UNFOCUS:
 		return 1;
+	case FL_PUSH:
+		if (Fl::event_button() == FL_BACK_MOUSE) {
+			previous_bookmark_cb(nullptr, this);
+			return 1;
+		}
+		if (Fl::event_button() == FL_FORWARD_MOUSE) {
+			next_bookmark_cb(nullptr, this);
+			return 1;
+		}
+		break;
 	case FL_KEYBOARD:
+		if (Fl::event_alt() && Fl::event_key() == FL_Left) {
+			previous_bookmark_cb(nullptr, this);
+			return 1;
+		}
+		if (Fl::event_alt() && Fl::event_key() == FL_Right) {
+			next_bookmark_cb(nullptr, this);
+			return 1;
+		}
 		if (!Fl::event_state(FL_SHIFT | FL_COMMAND | FL_ALT) && stopped()) {
 			switch (Fl::event_key()) {
 			case 'r':
@@ -1075,6 +1093,12 @@ void Main_Window::set_ruler_config(const Ruler_Config_Dialog::Ruler_Options &o) 
 
 void Main_Window::set_tick_from_x_pos(int X) {
 	_piano_roll->set_tick_from_x_pos(X);
+}
+
+void Main_Window::toggle_bookmark_from_x_pos(int X) {
+	if (_piano_roll->toggle_bookmark_from_x_pos(X)) {
+		redraw();
+	}
 }
 
 bool Main_Window::set_context_menu(int event, int &X, int &Y) {
@@ -2859,7 +2883,7 @@ void Main_Window::previous_bookmark_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::toggle_bookmark_cb(Fl_Widget *, Main_Window *mw) {
-	if (mw->_piano_roll->toggle_bookmark()) {
+	if (mw->_piano_roll->toggle_bookmark(mw->_piano_roll->tick())) {
 		mw->redraw();
 	}
 }
