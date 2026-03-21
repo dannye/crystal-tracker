@@ -425,8 +425,8 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 
 	auto note = [](const Note_View &view) {
 		return (uint8_t)(
-			((view.octave - view.transpose_octaves + view.transpose_pitches / 12) * 12 +
-			((uint32_t)view.pitch - 1 + (uint32_t)view.transpose_pitches % 12)) % (9 * 12)
+			((std::max(view.octave - view.transpose_octaves, 1) + view.transpose_pitches / 12) * 12 +
+			((int32_t)view.pitch - 1 + view.transpose_pitches % 12)) % (10 * 12)
 		);
 	};
 
