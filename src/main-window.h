@@ -268,6 +268,8 @@ public:
 
 	inline const std::set<int32_t> &bookmarks(void) const { return _piano_roll->bookmarks(); }
 
+	const char *get_drum_name(int32_t drumkit, Pitch drum) const;
+
 	bool unsaved(void) const;
 	const char *modified_filename(void);
 	int handle(int event) override;

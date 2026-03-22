@@ -370,6 +370,8 @@ public:
 	void set_channel_3_detail(int detail) { set_channel_detail(_channel_3_notes, _channel_3_loops, _channel_3_calls, _channel_3_flags, detail); }
 	void set_channel_4_detail(int detail) { set_channel_detail(_channel_4_notes, _channel_4_loops, _channel_4_calls, _channel_4_flags, detail); }
 
+	void set_channel_4_note_tooltips();
+
 	void reset_note_colors();
 private:
 	void highlight_tick(std::vector<Note_Box *> &notes, int channel_number, int32_t tick, bool muted, Fl_Color color);

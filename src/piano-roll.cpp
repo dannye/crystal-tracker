@@ -1073,6 +1073,12 @@ void Piano_Timeline::format_painter_cancel() {
 	parent()->parent()->format_painter(false);
 }
 
+void Piano_Timeline::set_channel_4_note_tooltips() {
+	for (Note_Box *note : _channel_4_notes) {
+		note->tooltip(parent()->parent()->get_drum_name(note->note_view().drumkit, note->note_view().pitch));
+	}
+}
+
 void Piano_Timeline::reset_note_colors() {
 	for (Note_Box *note : _channel_1_notes) {
 		note->color(NOTE_RED);
@@ -2036,6 +2042,8 @@ void Piano_Roll::set_timeline(const Song &song) {
 	_piano_timeline.set_channel_3(_channel_3_notes);
 	_piano_timeline.set_channel_4(_channel_4_notes);
 
+	_piano_timeline.set_channel_4_note_tooltips();
+
 	set_timeline_width();
 }
 
@@ -2093,6 +2101,7 @@ void Piano_Roll::set_active_channel_timeline(const Song &song) {
 			_piano_timeline._channel_4_flags,
 			2
 		);
+		_piano_timeline.set_channel_4_note_tooltips();
 	}
 	_piano_timeline.end();
 

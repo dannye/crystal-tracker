@@ -880,6 +880,13 @@ void Main_Window::draw() {
 	Fl_Double_Window::draw();
 }
 
+const char *Main_Window::get_drum_name(int32_t drumkit, Pitch drum) const {
+	if (drumkit != -1 && drumkit < _drumkits.size()) {
+		return _drums[_drumkits[drumkit].drums[(int32_t)drum]].label.c_str();
+	}
+	return nullptr;
+}
+
 bool Main_Window::unsaved() const {
 	return _song.loaded() && _song.modified();
 }
