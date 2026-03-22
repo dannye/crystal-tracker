@@ -836,6 +836,9 @@ Main_Window::~Main_Window() {
 	if (_it_module) {
 		delete _it_module;
 	}
+	if (_interactive_module) {
+		delete _interactive_module;
+	}
 }
 
 void Main_Window::show() {
@@ -1002,6 +1005,7 @@ bool Main_Window::play_note(Pitch pitch, int32_t octave) {
 	if (!_interactive_thread.joinable()) {
 		_playing_pitch = pitch;
 		_playing_octave = octave;
+		regenerate_interactive_module();
 		start_interactive_thread();
 		return true;
 	}
@@ -1018,6 +1022,10 @@ bool Main_Window::play_note(Pitch pitch, int32_t octave) {
 bool Main_Window::stop_note() {
 	if (_playing_pitch != Pitch::REST) {
 		stop_interactive_thread();
+		if (_interactive_module) {
+			delete _interactive_module;
+			_interactive_module = nullptr;
+		}
 		_playing_pitch = Pitch::REST;
 		_playing_octave = 0;
 		return true;
@@ -1902,6 +1910,37 @@ void Main_Window::regenerate_it_module() {
 		_drum_samples,
 		loop() ? _piano_roll->get_loop_tick() : -1,
 		stereo()
+	);
+}
+
+void Main_Window::regenerate_interactive_module() {
+	_playing_channel = selected_channel();
+	_playing_instrument = 0;
+	Note_View view;
+	if (_piano_roll->get_current_note_view(view)) {
+		if (_playing_channel == 1) {
+			_playing_instrument = view.duty;
+		}
+		else if (_playing_channel == 2) {
+			_playing_instrument = view.duty;
+		}
+		else if (_playing_channel == 3) {
+			_playing_instrument = view.wave > 15 ? 0 : view.wave;
+		}
+		else if (_playing_channel == 4) {
+			_playing_instrument = view.drumkit;
+		}
+	}
+	std::vector<Wave> waves = _waves;
+	waves.resize(16);
+	if (_interactive_module) {
+		delete _interactive_module;
+	}
+	_interactive_module = new IT_Module(
+		waves,
+		_drumkits,
+		_drum_samples,
+		_playing_channel == 4 ? _playing_instrument : -1
 	);
 }
 
@@ -4078,8 +4117,6 @@ void Main_Window::sync_cb(Main_Window *mw) {
 }
 
 void Main_Window::interactive_thread(Main_Window *mw, std::future<void> kill_signal) {
-	IT_Module *mod = nullptr;
-
 	int channel = 0;
 	int instrument = 0;
 	Pitch pitch = Pitch::REST;
@@ -4087,56 +4124,35 @@ void Main_Window::interactive_thread(Main_Window *mw, std::future<void> kill_sig
 	int32_t mod_channel = -1;
 
 	if (mw->_interactive_mutex.try_lock()) {
-		channel = mw->selected_channel();
-		Note_View view;
-		if (mw->_piano_roll->get_current_note_view(view)) {
-			if (channel == 1) {
-				instrument = view.duty;
-			}
-			else if (channel == 2) {
-				instrument = view.duty;
-			}
-			else if (channel == 3) {
-				instrument = view.wave;
-			}
-			else if (channel == 4) {
-				instrument = view.drumkit;
-			}
+		channel = mw->_playing_channel;
+		instrument = mw->_playing_instrument;
+		IT_Module *mod = mw->_interactive_module;
+		if (!mod || !mod->ready() || !mod->start()) {
+			mw->_interactive_mutex.unlock();
+			return;
 		}
-		std::vector<Wave> waves = mw->_waves;
-		waves.resize(16);
-		mod = new IT_Module(
-			waves,
-			mw->_drumkits,
-			mw->_drum_samples,
-			channel == 4 ? instrument : -1
-		);
 		mw->_interactive_mutex.unlock();
 	}
 	else {
 		return;
 	}
 
-	if (!(mod->ready() && mod->start())) {
-		delete mod;
-		return;
-	}
-
 	while (kill_signal.wait_for(std::chrono::milliseconds(8)) == std::future_status::timeout) {
 		if (mw->_interactive_mutex.try_lock()) {
-			if (pitch != mw->_playing_pitch || octave != mw->_playing_octave) {
-				if (mod_channel != -1) {
-					mod->stop_note(mod_channel);
-					mod_channel = -1;
+			IT_Module *mod = mw->_interactive_module;
+			if (mod && mod->playing()) {
+				if (pitch != mw->_playing_pitch || octave != mw->_playing_octave) {
+					if (mod_channel != -1) {
+						mod->stop_note(mod_channel);
+						mod_channel = -1;
+					}
+					pitch = mw->_playing_pitch;
+					octave = mw->_playing_octave;
+					if (pitch != Pitch::REST) {
+						mod_channel = mod->play_note(pitch, octave, channel, channel == 4 ? 0 : instrument);
+					}
 				}
-				pitch = mw->_playing_pitch;
-				octave = mw->_playing_octave;
-				if (pitch != Pitch::REST) {
-					mod_channel = mod->play_note(pitch, octave, channel, channel == 4 ? 0 : instrument);
-				}
-			}
 
-			if (mod->playing()) {
 				bool success = mod->play();
 				if (!success) mod->stop();
 				mw->_interactive_mutex.unlock();
@@ -4147,9 +4163,4 @@ void Main_Window::interactive_thread(Main_Window *mw, std::future<void> kill_sig
 			}
 		}
 	}
-	if (mod_channel != -1) {
-		mod->stop_note(mod_channel);
-	}
-	delete mod;
-	return;
 }

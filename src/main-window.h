@@ -209,6 +209,7 @@ private:
 	std::vector<Drum> _drums;
 	std::vector<std::vector<uint8_t>> _drum_samples;
 	IT_Module *_it_module = nullptr;
+	IT_Module *_interactive_module = nullptr;
 	int32_t _tick = -1;
 	bool _showed_it_warning = false;
 	// Work properties
@@ -216,6 +217,8 @@ private:
 	bool _sync_requested = false;
 	Pitch _playing_pitch = Pitch::REST;
 	int32_t _playing_octave = 0;
+	int _playing_channel = 0;
+	int _playing_instrument = 0;
 	// Threads
 	std::thread _audio_thread;
 	std::mutex _audio_mutex;
@@ -330,6 +333,7 @@ private:
 	void open_recent(int n);
 	bool save_song(bool force);
 	void regenerate_it_module();
+	void regenerate_interactive_module();
 	void toggle_playback();
 	void stop_playback();
 	void start_audio_thread();
