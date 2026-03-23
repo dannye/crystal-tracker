@@ -526,8 +526,50 @@ void Dropdown::draw() {
 }
 
 int Dropdown::handle(int event) {
-	if (event == FL_SHORTCUT && !Fl::event_state(FL_ALT)) return 0;
-	return Fl_Choice::handle(event);
+	// Based on Fl_Choice::handle()
+	if (!menu() || !menu()->text) return 0;
+	const Fl_Menu_Item *v;
+	Fl_Widget_Tracker wp(this);
+	switch (event) {
+	case FL_ENTER:
+	case FL_LEAVE:
+		return 1;
+
+	case FL_KEYBOARD:
+		if (Fl::event_key() != ' ' || (Fl::event_state() & (FL_SHIFT | FL_CTRL | FL_ALT | FL_META))) return 0;
+	case FL_PUSH:
+		if (Fl::visible_focus()) Fl::focus(this);
+	J1:
+		if (Fl::scheme() || fl_contrast(textcolor(), FL_BACKGROUND2_COLOR) != textcolor()) {
+			v = menu()->pulldown(x(), y(), w(), h(), nullptr, this);
+			if (wp.deleted()) return 1;
+		} else {
+			Fl_Color c = color();
+			color(FL_BACKGROUND2_COLOR);
+			v = menu()->pulldown(x(), y(), w(), h(), nullptr, this);
+			if (wp.deleted()) return 1;
+			color(c);
+		}
+		if (!v || v->submenu()) return 1;
+		if (v != mvalue()) redraw();
+		picked(v);
+		return 1;
+	case FL_SHORTCUT:
+		if (Fl::event_state(FL_ALT) && Fl_Widget::test_shortcut()) goto J1;
+		v = menu()->test_shortcut();
+		if (!v) return 0;
+		if (v != mvalue()) redraw();
+		picked(v);
+		return 1;
+	case FL_FOCUS:
+	case FL_UNFOCUS:
+		if (Fl::visible_focus()) {
+			redraw();
+			return 1;
+		} else return 0;
+	default:
+		return 0;
+	}
 }
 
 OS_Scroll::OS_Scroll(int x, int y, int w, int h, const char *l) : Fl_Scroll(x, y, w, h, l) {

@@ -10,7 +10,7 @@
 
 class Note_Properties : public Fl_Group {
 private:
-	OS_Spinner *_speed_input = nullptr;
+	Dropdown *_speed_input = nullptr;
 	OS_Spinner *_volume_input = nullptr;
 	OS_Spinner *_fade_input = nullptr;
 	OS_Spinner *_vibrato_delay_input = nullptr;
@@ -37,7 +37,7 @@ public:
 	void set_note_properties(const std::vector<const Note_View *> &notes, int channel_number, int num_waves, int num_drumkits, bool first_channel);
 	int handle(int event);
 private:
-	static void speed_input_cb(OS_Spinner *s, Note_Properties *np);
+	static void speed_input_cb(Dropdown *d, Note_Properties *np);
 	static void volume_input_cb(OS_Spinner *s, Note_Properties *np);
 	static void fade_input_cb(OS_Spinner *s, Note_Properties *np);
 	static void vibrato_delay_input_cb(OS_Spinner *s, Note_Properties *np);

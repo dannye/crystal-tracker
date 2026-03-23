@@ -11,8 +11,9 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 	int wgt_w = text_width("99", 12), wgt_w2 = text_width("999", 12), wgt_h = 22, wgt_m = 10;
 	int dx = wgt_m;
 
-	_speed_input = new OS_Spinner(x() + dx + text_width("Speed:", 2), y() + wgt_m, wgt_w, wgt_h, "&Speed:");
-	dx += wgt_w + wgt_m + text_width("Speed:", 2) + wgt_m + wgt_m + wgt_m;
+	_speed_input = new Dropdown(x() + dx + text_width("Speed:", 2), y() + wgt_m, wgt_w2, wgt_h, "&Speed:");
+	dx += wgt_w2 + wgt_m + text_width("Speed:", 2) + wgt_m + wgt_m + wgt_m;
+	_speed_input->add("1|2|3|4|5|6|7|8|9|10|11|12|13|14|15");
 
 	_volume_input = new OS_Spinner(x() + dx + text_width("Volume:", 2), y() + wgt_m, wgt_w, wgt_h, "Volu&me:");
 	dx += wgt_w + wgt_m + text_width("Volume:", 2);
@@ -143,7 +144,7 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	assert(notes.size() > 0);
 	_note = *notes.front();
 	_channel_number = channel_number;
-	_speed_input->value(_note.speed);
+	_speed_input->value(_note.speed - 1);
 	_volume_input->value(_note.volume);
 	if (channel_number == 1 || channel_number == 2) {
 		_fade_input->value(_note.fade);
@@ -199,7 +200,7 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	_panning_right_input->label("&R");
 
 	for (const Note_View *note : notes) {
-		if (note->speed != (int32_t)_speed_input->value()) {
+		if (note->speed - 1 != _speed_input->value()) {
 			_speed_input->label("*&Speed:");
 		}
 		if (note->volume != (int32_t)_volume_input->value()) {
@@ -266,7 +267,6 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 		}
 	}
 
-	_speed_input->range(1, 15);
 	if (channel_number == 3) {
 		_volume_input->range(0, 3);
 	}
@@ -346,10 +346,10 @@ int Note_Properties::handle(int event) {
 	return Fl_Group::handle(event);
 }
 
-void Note_Properties::speed_input_cb(OS_Spinner *s, Note_Properties *np) {
-	if (!s->active()) return;
+void Note_Properties::speed_input_cb(Dropdown *d, Note_Properties *np) {
+	if (!d->active()) return;
 
-	int32_t val = (int32_t)s->value();
+	int32_t val = d->value() + 1;
 	if (val != np->_note.speed) {
 		Main_Window *mw = (Main_Window *)np->user_data();
 		mw->set_speed(val);
@@ -546,10 +546,10 @@ void Note_Properties::slide_octave_input_cb(OS_Spinner *s, Note_Properties *np) 
 	Fl::focus(nullptr);
 }
 
-void Note_Properties::slide_pitch_input_cb(Dropdown *s, Note_Properties *np) {
-	if (!s->active()) return;
+void Note_Properties::slide_pitch_input_cb(Dropdown *d, Note_Properties *np) {
+	if (!d->active()) return;
 
-	Pitch val = (Pitch)s->value();
+	Pitch val = (Pitch)d->value();
 	if (val != np->_note.slide_pitch) {
 		if (val != Pitch::REST && (np->_slide_duration_input->value() == 0 || np->_slide_octave_input->value() == 0)) {
 			if (np->_slide_duration_input->value() == 0) np->_slide_duration_input->value(1);
