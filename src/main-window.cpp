@@ -359,6 +359,10 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 		SYS_MENU_ITEM("Full &Screen", FULLSCREEN_KEY, (Fl_Callback *)full_screen_cb, this,
 			FL_MENU_TOGGLE | (fullscreen ? FL_MENU_VALUE : 0)),
 		{},
+		OS_SUBMENU("&Tools"),
+		SYS_MENU_ITEM("Reload Wa&ves", FL_CONTROL + FL_SHIFT + '3', (Fl_Callback *)reload_waves_cb, this, FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("Reload Drum&kits", FL_CONTROL + FL_SHIFT + '4', (Fl_Callback *)reload_drumkits_cb, this, 0),
+		{},
 		OS_SUBMENU("&Help"),
 #ifdef __APPLE__
 		SYS_MENU_ITEM("&Help", FL_F + 1, (Fl_Callback *)help_cb, this, 0),
@@ -463,6 +467,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_zoom_in_mi = CT_FIND_MENU_ITEM_CB(zoom_in_cb);
 	_decrease_spacing_mi = CT_FIND_MENU_ITEM_CB(decrease_spacing_cb);
 	_increase_spacing_mi = CT_FIND_MENU_ITEM_CB(increase_spacing_cb);
+	_reload_waves_mi = CT_FIND_MENU_ITEM_CB(reload_waves_cb);
+	_reload_drumkits_mi = CT_FIND_MENU_ITEM_CB(reload_drumkits_cb);
 #undef CT_FIND_MENU_ITEM_CB
 
 #ifndef __APPLE__
@@ -1494,6 +1500,14 @@ void Main_Window::update_active_controls() {
 		}
 		_next_channel_mi->activate();
 		_previous_channel_mi->activate();
+		if (stopped) {
+			_reload_waves_mi->activate();
+			_reload_drumkits_mi->activate();
+		}
+		else {
+			_reload_waves_mi->deactivate();
+			_reload_drumkits_mi->deactivate();
+		}
 	}
 	else {
 		_close_mi->deactivate();
@@ -1569,6 +1583,8 @@ void Main_Window::update_active_controls() {
 		_channel_4_tb->deactivate();
 		_next_channel_mi->deactivate();
 		_previous_channel_mi->deactivate();
+		_reload_waves_mi->deactivate();
+		_reload_drumkits_mi->deactivate();
 	}
 
 	_menu_bar->update();
@@ -1718,40 +1734,15 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 		_asm_save_chooser->directory(directory);
 	}
 
-	Parsed_Waves parsed_waves(directory);
-	if (parsed_waves.result() != Parsed_Waves::Result::WAVES_OK) {
+	if (!load_waves()) {
 		_directory.clear();
-		std::string msg = "Error reading wave definitions!\n\n" + parsed_waves.get_error_message();
-		_error_dialog->message(msg);
-		_error_dialog->show(this);
 		return;
 	}
-	if (parsed_waves.num_parsed_waves() > 16) {
-		std::string msg = "Wave samples file contains too many waves: " + std::to_string(parsed_waves.num_parsed_waves()) + "\n\n"
-			"Only the first 16 waves can be used.";
-		_warning_dialog->message(msg);
-		_warning_dialog->show(this);
-	}
-	_waves = parsed_waves.waves();
-	_num_waves = std::min(parsed_waves.num_parsed_waves(), 16);
 
-	Parsed_Drumkits parsed_drumkits(directory);
-	if (parsed_drumkits.result() != Parsed_Drumkits::Result::DRUMKITS_OK) {
+	if (!load_drumkits()) {
 		_directory.clear();
-		std::string msg = "Error reading drumkit definitions!\n\n" + parsed_drumkits.get_error_message();
-		_error_dialog->message(msg);
-		_error_dialog->show(this);
 		return;
 	}
-	if (parsed_drumkits.num_parsed_drumkits() > 256) {
-		std::string msg = "Drumkits file contains too many drumkits: " + std::to_string(parsed_drumkits.num_parsed_drumkits()) + "\n\n"
-			"Only the first 256 drumkits can be used.";
-		_warning_dialog->message(msg);
-		_warning_dialog->show(this);
-	}
-	_drumkits = parsed_drumkits.drumkits();
-	_drums = parsed_drumkits.drums();
-	_drum_samples = generate_noise_samples(_drums);
 
 	const char *basename;
 
@@ -1776,18 +1767,18 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 			_warning_dialog->show(this);
 		}
 		int32_t max_wave_id = _song.max_wave_id();
-		if (max_wave_id >= parsed_waves.num_parsed_waves()) {
+		if (max_wave_id >= _num_waves) {
 			std::string msg = basename;
 			msg = msg + " uses undefined wave sample: " + std::to_string(max_wave_id) + "\n\n"
-				"Valid wave IDs are: 0-" + std::to_string(parsed_waves.num_parsed_waves() - 1);
+				"Valid wave IDs are: 0-" + std::to_string(_num_waves - 1);
 			_warning_dialog->message(msg);
 			_warning_dialog->show(this);
 		}
 		int32_t max_drumkit_id = _song.max_drumkit_id();
-		if (max_drumkit_id >= parsed_drumkits.num_parsed_drumkits()) {
+		if (max_drumkit_id >= (int32_t)_drumkits.size()) {
 			std::string msg = basename;
 			msg = msg + " uses undefined drumkit: " + std::to_string(max_drumkit_id) + "\n\n"
-				"Valid drumkit IDs are: 0-" + std::to_string(parsed_drumkits.num_parsed_drumkits() - 1);
+				"Valid drumkit IDs are: 0-" + std::to_string(_drumkits.size() - 1);
 			_warning_dialog->message(msg);
 			_warning_dialog->show(this);
 		}
@@ -1900,6 +1891,45 @@ bool Main_Window::save_song(bool force) {
 	_status_message += basename;
 	_status_label->label(_status_message.c_str());
 
+	return true;
+}
+
+bool Main_Window::load_waves() {
+	Parsed_Waves parsed_waves(_directory.c_str());
+	if (parsed_waves.result() != Parsed_Waves::Result::WAVES_OK) {
+		std::string msg = "Error reading wave definitions!\n\n" + parsed_waves.get_error_message();
+		_error_dialog->message(msg);
+		_error_dialog->show(this);
+		return false;
+	}
+	if (parsed_waves.num_parsed_waves() > 16) {
+		std::string msg = "Wave samples file contains too many waves: " + std::to_string(parsed_waves.num_parsed_waves()) + "\n\n"
+			"Only the first 16 waves can be used.";
+		_warning_dialog->message(msg);
+		_warning_dialog->show(this);
+	}
+	_waves = parsed_waves.waves();
+	_num_waves = std::min(parsed_waves.num_parsed_waves(), 16);
+	return true;
+}
+
+bool Main_Window::load_drumkits() {
+	Parsed_Drumkits parsed_drumkits(_directory.c_str());
+	if (parsed_drumkits.result() != Parsed_Drumkits::Result::DRUMKITS_OK) {
+		std::string msg = "Error reading drumkit definitions!\n\n" + parsed_drumkits.get_error_message();
+		_error_dialog->message(msg);
+		_error_dialog->show(this);
+		return false;
+	}
+	if (parsed_drumkits.num_parsed_drumkits() > 256) {
+		std::string msg = "Drumkits file contains too many drumkits: " + std::to_string(parsed_drumkits.num_parsed_drumkits()) + "\n\n"
+			"Only the first 256 drumkits can be used.";
+		_warning_dialog->message(msg);
+		_warning_dialog->show(this);
+	}
+	_drumkits = parsed_drumkits.drumkits();
+	_drums = parsed_drumkits.drums();
+	_drum_samples = generate_noise_samples(_drums);
 	return true;
 }
 
@@ -4060,6 +4090,33 @@ void Main_Window::full_screen_cb(Fl_Widget *, Main_Window *mw) {
 	else {
 		mw->fullscreen_off();
 	}
+}
+
+void Main_Window::reload_waves_cb(Fl_Widget *, Main_Window *mw) {
+	if (Fl::modal()) return;
+
+	if (!mw->load_waves()) {
+		return;
+	}
+
+	if (mw->_song.waves().size() > 15) {
+		mw->_waves.insert(mw->_waves.end(), mw->_song.waves().begin(), mw->_song.waves().begin() + 15);
+	}
+	else {
+		mw->_waves.insert(mw->_waves.end(), RANGE(mw->_song.waves()));
+	}
+
+	mw->refresh_note_properties();
+}
+
+void Main_Window::reload_drumkits_cb(Fl_Widget *, Main_Window *mw) {
+	if (Fl::modal()) return;
+
+	if (!mw->load_drumkits()) {
+		return;
+	}
+
+	mw->refresh_note_properties();
 }
 
 void Main_Window::help_cb(Fl_Widget *, Main_Window *mw) {

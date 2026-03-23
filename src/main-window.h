@@ -189,7 +189,9 @@ private:
 		*_zoom_out_mi = NULL,
 		*_zoom_in_mi = NULL,
 		*_decrease_spacing_mi = NULL,
-		*_increase_spacing_mi = NULL;
+		*_increase_spacing_mi = NULL,
+		*_reload_waves_mi = NULL,
+		*_reload_drumkits_mi = NULL;
 	// Dialogs
 	Directory_Chooser *_new_dir_chooser;
 	Fl_Native_File_Chooser *_asm_open_chooser, *_asm_save_chooser;
@@ -334,6 +336,8 @@ private:
 	void open_song(const char *directory, const char *filename);
 	void open_recent(int n);
 	bool save_song(bool force);
+	bool load_waves();
+	bool load_drumkits();
 	void regenerate_it_module();
 	void regenerate_interactive_module();
 	void toggle_playback();
@@ -444,6 +448,9 @@ private:
 	static void increase_spacing_cb(Fl_Widget *w, Main_Window *mw);
 	static void bpm_cb(Fl_Widget *w, Main_Window *mw);
 	static void full_screen_cb(Fl_Widget *w, Main_Window *mw);
+	// Tools menu
+	static void reload_waves_cb(Fl_Widget *w, Main_Window *mw);
+	static void reload_drumkits_cb(Fl_Widget *w, Main_Window *mw);
 	// Toolbar buttons
 	static void continuous_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);
 	static void loop_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);

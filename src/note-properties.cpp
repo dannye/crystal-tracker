@@ -14,7 +14,7 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 	_speed_input = new OS_Spinner(x() + dx + text_width("Speed:", 2), y() + wgt_m, wgt_w, wgt_h, "&Speed:");
 	dx += wgt_w + wgt_m + text_width("Speed:", 2) + wgt_m + wgt_m + wgt_m;
 
-	_volume_input = new OS_Spinner(x() + dx + text_width("Volume:", 2), y() + wgt_m, wgt_w, wgt_h, "V&olume:");
+	_volume_input = new OS_Spinner(x() + dx + text_width("Volume:", 2), y() + wgt_m, wgt_w, wgt_h, "Volu&me:");
 	dx += wgt_w + wgt_m + text_width("Volume:", 2);
 
 	_fade_input = new OS_Spinner(x() + dx + text_width("Fade:", 2), y() + wgt_m, wgt_w, wgt_h, "Fa&de:");
@@ -23,7 +23,7 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 	_vibrato_delay_input = new OS_Spinner(x() + dx + text_width("Vibrato delay:", 2), y() + wgt_m, wgt_w2, wgt_h, "Vibrato dela&y:");
 	dx += wgt_w2 + wgt_m + text_width("Vibrato delay:", 2);
 
-	_vibrato_depth_input = new OS_Spinner(x() + dx + text_width("Vibrato depth:", 2), y() + wgt_m, wgt_w, wgt_h, "Vibrato dep&th:");
+	_vibrato_depth_input = new OS_Spinner(x() + dx + text_width("Vibrato depth:", 2), y() + wgt_m, wgt_w, wgt_h, "Vibrat&o depth:");
 	dx += wgt_w + wgt_m + text_width("Vibrato depth:", 2);
 
 	_vibrato_rate_input = new OS_Spinner(x() + dx + text_width("Vibrato rate:", 2), y() + wgt_m, wgt_w, wgt_h, "Vibrato &rate:");
@@ -36,7 +36,7 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 
 	dx = wgt_m;
 
-	_tempo_input = new OS_Spinner(x() + dx + text_width("Tempo:", 2), y() + wgt_m, wgt_w2, wgt_h, "&Tempo:");
+	_tempo_input = new OS_Spinner(x() + dx + text_width("Tempo:", 2), y() + wgt_m, wgt_w2, wgt_h, "Te&mpo:");
 	dx += wgt_w2 + wgt_m + text_width("Tempo:", 2);
 
 	_transpose_octaves_input = new OS_Spinner(x() + dx + text_width("Transpose octaves:", 2), y() + wgt_m, wgt_w, wgt_h, "Tra&nspose octaves:");
@@ -174,10 +174,10 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 	_panning_right_input->value(_note.panning_right);
 
 	_speed_input->label("&Speed:");
-	_volume_input->label("V&olume:");
+	_volume_input->label("Volu&me:");
 	_fade_input->label("Fa&de:");
 	_vibrato_delay_input->label("Vibrato dela&y:");
-	_vibrato_depth_input->label("Vibrato dep&th:");
+	_vibrato_depth_input->label("Vibrat&o depth:");
 	_vibrato_rate_input->label("Vibrato &rate:");
 	if (channel_number == 3) {
 		_duty_wave_drumkit_input->label("&Wave:");
@@ -189,7 +189,7 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 		_duty_wave_drumkit_input->label("D&uty:");
 	}
 
-	_tempo_input->label("&Tempo:");
+	_tempo_input->label("Te&mpo:");
 	_transpose_octaves_input->label("Tra&nspose octaves:");
 	_transpose_pitches_input->label("Transpo&se pitches:");
 	_slide_duration_input->label("Slide &duration:");
@@ -203,7 +203,7 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 			_speed_input->label("*&Speed:");
 		}
 		if (note->volume != (int32_t)_volume_input->value()) {
-			_volume_input->label("*V&olume:");
+			_volume_input->label("*Volu&me:");
 		}
 		if (
 			(channel_number == 1 || channel_number == 2) &&
@@ -215,7 +215,7 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 			_vibrato_delay_input->label("*Vibrato dela&y:");
 		}
 		if (note->vibrato_extent != (int32_t)_vibrato_depth_input->value()) {
-			_vibrato_depth_input->label("*Vibrato dep&th:");
+			_vibrato_depth_input->label("*Vibrat&o depth:");
 		}
 		if (note->vibrato_rate != (int32_t)_vibrato_rate_input->value()) {
 			_vibrato_rate_input->label("*Vibrato &rate:");
@@ -241,7 +241,7 @@ void Note_Properties::set_note_properties(const std::vector<const Note_View *> &
 		}
 
 		if (note->tempo != (int32_t)_tempo_input->value()) {
-			_tempo_input->label("*&Tempo:");
+			_tempo_input->label("*Te&mpo:");
 		}
 		if (note->transpose_octaves != (int32_t)_transpose_octaves_input->value()) {
 			_transpose_octaves_input->label("*Tra&nspose octaves:");
