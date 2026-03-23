@@ -191,6 +191,8 @@ public:
 
 	inline int32_t note_index(void) const { return _note_index; }
 	inline int32_t row_offset(void) const { return _row_offset; }
+protected:
+	void draw() override;
 };
 
 class Piano_Keys;

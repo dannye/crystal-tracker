@@ -61,6 +61,12 @@ void Call_Box::draw() {
 	draw_label();
 }
 
+void Flag_Box::draw() {
+	draw_box();
+	draw_box(FL_BORDER_FRAME, fl_color_average(color(), FL_BLACK, 0.5f));
+	draw_label();
+}
+
 int Key_Box::handle(int event) {
 	Main_Window *mw = parent()->parent()->parent()->parent();
 	Key_Box *key_below_mouse = nullptr;
