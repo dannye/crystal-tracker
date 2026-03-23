@@ -4116,6 +4116,8 @@ void Main_Window::reload_drumkits_cb(Fl_Widget *, Main_Window *mw) {
 		return;
 	}
 
+	mw->_piano_roll->set_channel_4_note_tooltips();
+
 	mw->refresh_note_properties();
 }
 

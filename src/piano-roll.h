@@ -622,6 +622,8 @@ public:
 	void format_painter_start() { _piano_timeline.format_painter_start(); }
 	void format_painter_end() { _piano_timeline.format_painter_end(); }
 
+	void set_channel_4_note_tooltips() { _piano_timeline.set_channel_4_note_tooltips(); }
+
 	int32_t quantize_tick(int32_t tick, bool round = false);
 private:
 	Note_View verify_loop_view(Song &song, int channel_number, const std::vector<Note_View> &channel_notes, int32_t loop_tick, int32_t end_tick);
