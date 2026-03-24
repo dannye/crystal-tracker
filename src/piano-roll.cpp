@@ -62,8 +62,35 @@ void Call_Box::draw() {
 }
 
 void Flag_Box::draw() {
-	draw_box();
-	draw_box(FL_BORDER_FRAME, fl_color_average(color(), FL_BLACK, 0.5f));
+	if (_flipped) {
+		draw_box(box(), x(), y(), w(), h()-1, color());
+		Fl_Color c = fl_color_average(color(), FL_BLACK, 0.5f);
+		fl_color(c);
+		fl_push_clip(x(), y()-1, w(), h()+1);
+		fl_rectf(x()+1, y()+h()-2, w()-2, 2);
+		fl_rectf(x(), y(), 2, h()-1);
+		fl_rectf(x()+w()-2, y(), 2, h()-1);
+		if (_row_offset != 0) {
+			fl_rectf(x(), y()-1, 1, 1);
+			fl_rectf(x()+w()-1, y()-1, 1, 1);
+		}
+		fl_pop_clip();
+	}
+	else {
+		draw_box(box(), x(), y()+1, w(), h()-1, color());
+		Fl_Color c = fl_color_average(color(), FL_BLACK, 0.5f);
+		fl_color(c);
+		fl_push_clip(x(), y(), w(), h()+1);
+		fl_rectf(x()+1, y(), w()-2, 2);
+		fl_rectf(x(), y()+1, 2, h()-1);
+		fl_rectf(x()+w()-2, y()+1, 2, h()-1);
+		if (_row_offset != 0) {
+			fl_rectf(x(), y()+h(), 1, 1);
+			fl_rectf(x()+w()-1, y()+h(), 1, 1);
+		}
+		fl_pop_clip();
+	}
+
 	draw_label();
 }
 
@@ -531,15 +558,17 @@ void Piano_Timeline::calc_sizes() {
 	resize_wrappers(_channel_4_calls);
 
 	const auto resize_flags = [&](std::vector<Flag_Box *> &flags, const std::vector<Note_Box *> &notes) {
+		int flag_width = tick_width * 4;
+		int flag_height = tick_width * 4 - 2;
 		for (Flag_Box *flag : flags) {
 			const Note_Box *note = notes[flag->note_index()];
 			flag->resize(
 				note->x(),
-				note->note_view().octave == 8 ?
-					note->y() + note->h() + tick_width * 4 * flag->row_offset() :
-					note->y() - tick_width * 4 - tick_width * 4 * flag->row_offset(),
-				tick_width * 4,
-				tick_width * 4
+				flag->flipped() ?
+					note->y() + note->h() + flag_height * flag->row_offset() :
+					note->y() - flag_height * (flag->row_offset() + 1),
+				flag_width,
+				flag_height
 			);
 		}
 	};
@@ -1172,17 +1201,21 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 
 			int32_t row_offset = 0;
 			const auto add_flag = [&](Fl_Color c) {
+				int flag_width = tick_width * 4;
+				int flag_height = tick_width * 4 - 2;
+				bool flipped = note.octave == 8;
 				Flag_Box *flag = new Flag_Box(
 					(int32_t)channel.size() - 1,
 					row_offset,
+					flipped,
 					box->x(),
-					note.octave == 8 ?
-						box->y() + box->h() + tick_width * 4 * row_offset :
-						box->y() - tick_width * 4 - tick_width * 4 * row_offset,
-					tick_width * 4,
-					tick_width * 4
+					flipped ?
+						box->y() + box->h() + flag_height * row_offset :
+						box->y() - flag_height * (row_offset + 1),
+					flag_width,
+					flag_height
 				);
-				flag->box(FL_BORDER_BOX);
+				flag->box(FL_FLAT_BOX);
 				flag->color(c);
 				flag->hide();
 				flags.push_back(flag);

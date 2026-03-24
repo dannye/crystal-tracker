@@ -185,12 +185,14 @@ class Flag_Box : public Fl_Box {
 private:
 	int32_t _note_index = 0;
 	int32_t _row_offset = 0;
+	bool _flipped = false;
 public:
-	Flag_Box(int32_t i, int32_t o, int X, int Y, int W, int H, const char *l = nullptr)
-		: Fl_Box(X, Y, W, H, l), _note_index(i), _row_offset(o) {}
+	Flag_Box(int32_t i, int32_t o, bool f, int X, int Y, int W, int H, const char *l = nullptr)
+		: Fl_Box(X, Y, W, H, l), _note_index(i), _row_offset(o), _flipped(f) {}
 
 	inline int32_t note_index(void) const { return _note_index; }
 	inline int32_t row_offset(void) const { return _row_offset; }
+	inline bool flipped(void) const { return _flipped; }
 protected:
 	void draw() override;
 };
