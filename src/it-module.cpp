@@ -827,7 +827,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_patterns(
 				if (
 					channel_4_itr->pitch != Pitch::REST &&
 					channel_4_itr->drumkit != -1 &&
-					channel_4_itr->drumkit < drumkits.size() &&
+					channel_4_itr->drumkit < (int32_t)drumkits.size() &&
 					drumkits[channel_4_itr->drumkit].drums[(int32_t)channel_4_itr->pitch] != -1 &&
 					drumkits[channel_4_itr->drumkit].drums[(int32_t)channel_4_itr->pitch] < 64
 				) {
@@ -938,7 +938,7 @@ void IT_Module::generate_it_module(
 			if (
 				note.pitch != Pitch::REST &&
 				note.drumkit != -1 &&
-				note.drumkit < optimized_drumkits.size() &&
+				note.drumkit < (int32_t)optimized_drumkits.size() &&
 				optimized_drumkits[note.drumkit].drums[(int32_t)note.pitch] == -1
 			) {
 				if (optimized_drums.size() >= 64) {
@@ -949,7 +949,7 @@ void IT_Module::generate_it_module(
 				for (uint32_t j = 0; j < drumkits.size(); ++j) {
 					for (uint32_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
 						if (drumkits[j].drums[i] == drum_index) {
-							optimized_drumkits[j].drums[i] = optimized_drums.size();
+							optimized_drumkits[j].drums[i] = (int32_t)optimized_drums.size();
 						}
 					}
 				}
@@ -958,7 +958,7 @@ void IT_Module::generate_it_module(
 		}
 	}
 	else {
-		if (preserve_drumkit < drumkits.size()) {
+		if (preserve_drumkit < (int32_t)drumkits.size()) {
 			for (uint32_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
 				int32_t drum_index = drumkits[preserve_drumkit].drums[i];
 				optimized_drums.push_back(&drums[drum_index]);

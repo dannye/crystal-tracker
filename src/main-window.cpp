@@ -360,8 +360,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 			FL_MENU_TOGGLE | (fullscreen ? FL_MENU_VALUE : 0)),
 		{},
 		OS_SUBMENU("&Tools"),
-		SYS_MENU_ITEM("Reload Wa&ves", FL_CONTROL + FL_SHIFT + '3', (Fl_Callback *)reload_waves_cb, this, FL_MENU_DIVIDER),
-		SYS_MENU_ITEM("Reload Drum&kits", FL_CONTROL + FL_SHIFT + '4', (Fl_Callback *)reload_drumkits_cb, this, 0),
+		SYS_MENU_ITEM("Reload Wa&ves", FL_CTRL + FL_SHIFT + '3', (Fl_Callback *)reload_waves_cb, this, FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("Reload Drum&kits", FL_CTRL + FL_SHIFT + '4', (Fl_Callback *)reload_drumkits_cb, this, 0),
 		{},
 		OS_SUBMENU("&Help"),
 #ifdef __APPLE__
@@ -887,7 +887,7 @@ void Main_Window::draw() {
 }
 
 const char *Main_Window::get_drum_name(int32_t drumkit, Pitch drum) const {
-	if (drumkit != -1 && drumkit < _drumkits.size()) {
+	if (drumkit != -1 && drumkit < (int32_t)_drumkits.size()) {
 		return _drums[_drumkits[drumkit].drums[(int32_t)drum]].label.c_str();
 	}
 	return nullptr;
