@@ -16,8 +16,10 @@ private:
 	const char *_title, *_content;
 	Fl_Double_Window *_window;
 	HTML_View *_body;
+	OS_Input *_find_input;
 	Default_Button *_ok_button;
 	Fl_Box *_spacer;
+	int _find_pos;
 public:
 	Help_Window(int x, int y, int w, int h, const char *t = NULL);
 	~Help_Window();
@@ -30,6 +32,7 @@ public:
 	void show(const Fl_Widget *p);
 	void redraw(void);
 private:
+	static void find_cb(Fl_Widget *w, Help_Window *hw);
 	static void close_cb(Fl_Widget *w, Help_Window *hw);
 };
 
