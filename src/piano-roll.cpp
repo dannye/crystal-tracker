@@ -1200,6 +1200,7 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 			channel.push_back(box);
 
 			int32_t row_offset = 0;
+			char tooltip_buffer[256] = { 0 };
 			const auto add_flag = [&](Fl_Color c) {
 				int flag_width = tick_width * 4;
 				int flag_height = tick_width * 4 - 2;
@@ -1218,6 +1219,10 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 				flag->box(FL_FLAT_BOX);
 				flag->color(c);
 				flag->hide();
+				if (tooltip_buffer[0]) {
+					flag->copy_tooltip(tooltip_buffer);
+					tooltip_buffer[0] = '\0';
+				}
 				flags.push_back(flag);
 				row_offset += 1;
 			};
@@ -1233,6 +1238,31 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 				note.panning_left != prev_note.panning_left ||
 				note.panning_right != prev_note.panning_right)
 			) {
+				char *buf = tooltip_buffer;
+				if (note.tempo != prev_note.tempo) {
+					buf += snprintf(buf, 32, "Tempo: %d\n", note.tempo);
+				}
+				if (note.transpose_octaves != prev_note.transpose_octaves) {
+					buf += snprintf(buf, 32, "Transpose octaves: %d\n", note.transpose_octaves);
+				}
+				if (note.transpose_pitches != prev_note.transpose_pitches) {
+					buf += snprintf(buf, 32, "Transpose pitches: %d\n", note.transpose_pitches);
+				}
+				if (note.slide_duration != 0) {
+					buf += snprintf(buf, 32, "Slide duration: %d\n", note.slide_duration);
+				}
+				if (note.slide_octave != 0) {
+					buf += snprintf(buf, 32, "Slide octave: %d\n", note.slide_octave);
+				}
+				if (note.slide_pitch != Pitch::REST) {
+					buf += snprintf(buf, 32, "Slide pitch: %s\n", PITCH_NAMES[(int)note.slide_pitch]);
+				}
+				if (note.panning_left != prev_note.panning_left) {
+					buf += snprintf(buf, 32, "Panning left: %s\n", note.panning_left ? "On" : "Off");
+				}
+				if (note.panning_right != prev_note.panning_right) {
+					buf += snprintf(buf, 32, "Panning right: %s\n", note.panning_right ? "On" : "Off");
+				}
 				add_flag(FLAG_OTHER);
 			}
 			if (
@@ -1241,6 +1271,15 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 				(channel_number == 3 && note.wave != prev_note.wave && (note.wave < 15 || prev_note.wave < 15)) ||
 				(channel_number == 4 && note.drumkit != prev_note.drumkit))
 			) {
+				if (channel_number == 1 || channel_number == 2) {
+					snprintf(tooltip_buffer, 32, "Duty: %d\n", note.duty);
+				}
+				else if (channel_number == 3) {
+					snprintf(tooltip_buffer, 32, "Wave: %d\n", note.wave > 15 ? 15 : note.wave);
+				}
+				else if (channel_number == 4) {
+					snprintf(tooltip_buffer, 32, "Drumkit: %d\n", note.drumkit);
+				}
 				add_flag(FLAG_DUTY_WAVE_DRUMKIT);
 			}
 			if (
@@ -1249,6 +1288,16 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 				note.vibrato_extent != prev_note.vibrato_extent ||
 				note.vibrato_rate != prev_note.vibrato_rate)
 			) {
+				char *buf = tooltip_buffer;
+				if (note.vibrato_delay != prev_note.vibrato_delay) {
+					buf += snprintf(buf, 32, "Vibrato delay: %d\n", note.vibrato_delay);
+				}
+				if (note.vibrato_extent != prev_note.vibrato_extent) {
+					buf += snprintf(buf, 32, "Vibrato depth: %d\n", note.vibrato_extent);
+				}
+				if (note.vibrato_rate != prev_note.vibrato_rate) {
+					buf += snprintf(buf, 32, "Vibrato rate: %d\n", note.vibrato_rate);
+				}
 				add_flag(FLAG_VIBRATO);
 			}
 			if (
@@ -1256,12 +1305,20 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 				(note.volume != prev_note.volume ||
 				((channel_number == 1 || channel_number == 2) && note.fade != prev_note.fade))
 			) {
+				char *buf = tooltip_buffer;
+				if (note.volume != prev_note.volume) {
+					buf += snprintf(buf, 32, "Volume: %d\n", note.volume);
+				}
+				if ((channel_number == 1 || channel_number == 2) && note.fade != prev_note.fade) {
+					buf += snprintf(buf, 32, "Fade: %d\n", note.fade);
+				}
 				add_flag(FLAG_VOLUME);
 			}
 			if (
 				!note.ghost &&
 				note.speed != prev_note.speed
 			) {
+				snprintf(tooltip_buffer, 32, "Speed: %d\n", note.speed);
 				add_flag(FLAG_SPEED);
 			}
 			prev_note = note;
