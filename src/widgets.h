@@ -214,6 +214,20 @@ public:
 	Toolbar(int x, int y, int w, int h, const char *l = NULL);
 };
 
+class Scrollable_Toolbar : public OS_Scroll {
+private:
+	Fl_Box _bg;
+	bool _show_scrollbar;
+public:
+	Scrollable_Toolbar(bool s, int x, int y, int w, int h, const char *l = NULL);
+	int scroll_x_max();
+	void resize(int X, int Y, int W, int H);
+protected:
+	int handle(int event);
+private:
+	static void hscrollbar_cb(Fl_Scrollbar *sb, void *);
+};
+
 class Toolbar_Button : public Fl_Button {
 public:
 	Toolbar_Button(int x, int y, int w, int h, const char *l = NULL);

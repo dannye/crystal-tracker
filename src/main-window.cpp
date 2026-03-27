@@ -24,9 +24,11 @@
 #ifdef __APPLE__
 	constexpr int MENU_BAR_HEIGHT = 0;
 	constexpr int TOOLBAR_HEIGHT = 38;
+	constexpr bool TOOLBAR_SCROLLBAR = true;
 #else
 	constexpr int MENU_BAR_HEIGHT = 21;
 	constexpr int TOOLBAR_HEIGHT = 26;
+	constexpr bool TOOLBAR_SCROLLBAR = false;
 #endif
 constexpr int TOOLBAR_BUTTON_HEIGHT = 24;
 constexpr int THIN_TOOLBAR_BUTTON_WIDTH = 14;
@@ -66,11 +68,11 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	wh -= _menu_bar->h();
 
 	// Toolbar
-	_toolbar = new Toolbar(wx, wy, ww, TOOLBAR_HEIGHT);
+	_toolbar = new Scrollable_Toolbar(TOOLBAR_SCROLLBAR, wx, wy, ww, TOOLBAR_HEIGHT);
 	int tx = wx + 1, ty = wy + (TOOLBAR_HEIGHT - TOOLBAR_BUTTON_HEIGHT) / 2;
 #ifdef __APPLE__
 #define SEPARATE_TOOLBAR_BUTTONS tx += 12
-	tx += 6;
+	new Fl_Box(tx, ty, 6, TOOLBAR_BUTTON_HEIGHT); tx += 6;
 #else
 #define SEPARATE_TOOLBAR_BUTTONS tx += 2; new Spacer(tx, ty, 2, TOOLBAR_BUTTON_HEIGHT); tx += 2; tx += 2
 #endif
@@ -130,6 +132,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	SEPARATE_TOOLBAR_BUTTONS;
 	_decrease_spacing_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	_increase_spacing_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+#ifdef __APPLE__
+	new Fl_Box(tx, ty, 6, TOOLBAR_BUTTON_HEIGHT); tx += 6;
+#endif
 	_toolbar->end();
 	begin();
 

@@ -40,7 +40,7 @@ class Main_Window : public Fl_Double_Window {
 private:
 	// GUI containers
 	Fl_Sys_Menu_Bar *_menu_bar;
-	Toolbar *_toolbar;
+	Scrollable_Toolbar *_toolbar;
 	Toolbar *_status_bar;
 	Edit_Context_Menu *_context_menu;
 	// GUI inputs

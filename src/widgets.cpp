@@ -647,6 +647,66 @@ Toolbar::Toolbar(int x, int y, int w, int h, const char *l) : Fl_Group(x, y, w, 
 	begin();
 }
 
+Scrollable_Toolbar::Scrollable_Toolbar(bool s, int x, int y, int w, int h, const char *l) : OS_Scroll(x, y, w, h, l), _bg(x+1, y+1, w-2, h-2), _show_scrollbar(s) {
+	labeltype(FL_NO_LABEL);
+	box(OS_TOOLBAR_FRAME);
+	resizable(nullptr);
+	clip_children(1);
+	if (_show_scrollbar) {
+		type(HORIZONTAL);
+		scrollbar_size(6);
+	}
+	else {
+		type(VERTICAL);
+		scrollbar_size(-1);
+	}
+	hscrollbar.callback((Fl_Callback *)hscrollbar_cb);
+	_bg.box(OS_BG_BOX);
+	begin();
+}
+
+int Scrollable_Toolbar::scroll_x_max() {
+	int max = 0;
+	for (int i = 1; i < children() - 2; ++i) { // ignore bg and scrollbars
+		int cx = child(i)->x() + xposition() + child(i)->w() - w();
+		if (cx > max) max = cx;
+	}
+	return max;
+}
+
+void Scrollable_Toolbar::resize(int X, int Y, int W, int H) {
+	OS_Scroll::resize(X, Y, W, H);
+	_bg.resize(x()+1, y()+1, w()-2, h()-2);
+
+	int x_max = scroll_x_max();
+	if (xposition() > x_max) {
+		scroll_to(x_max, yposition());
+		_bg.resize(x()+1, y()+1, w()-2, h()-2);
+	}
+}
+
+int Scrollable_Toolbar::handle(int event) {
+	if (!_show_scrollbar) {
+		type(HORIZONTAL);
+		hscrollbar.set_visible();
+	}
+	if (event == FL_MOUSEWHEEL && !Fl::e_dx) {
+		std::swap(Fl::e_dx, Fl::e_dy);
+	}
+	int ret = OS_Scroll::handle(event);
+	if (!_show_scrollbar) {
+		type(VERTICAL);
+	}
+	return ret;
+}
+
+void Scrollable_Toolbar::hscrollbar_cb(Fl_Scrollbar *sb, void *) {
+	Scrollable_Toolbar *scroll = (Scrollable_Toolbar *)(sb->parent());
+	scroll->scroll_to(std::min(sb->value(), scroll->scroll_x_max()), scroll->yposition());
+	scroll->_bg.resize(scroll->x()+1, scroll->y()+1, scroll->w()-2, scroll->h()-2);
+	scroll->redraw();
+}
+
 Toolbar_Button::Toolbar_Button(int x, int y, int w, int h, const char *l) : Fl_Button(x, y, w, h, l) {
 	box(OS_BG_BOX);
 	color(FL_BACKGROUND_COLOR);
@@ -704,9 +764,11 @@ int Toolbar_Button::handle(int event) {
 		}
 		return 0;
 	case FL_LEAVE:
-		color(FL_BACKGROUND_COLOR);
-		box(OS_BG_BOX);
-		redraw();
+		if (color() != FL_BACKGROUND_COLOR || box() != OS_BG_BOX) {
+			color(FL_BACKGROUND_COLOR);
+			box(OS_BG_BOX);
+			redraw();
+		}
 		return 1;
 	case FL_KEYBOARD:
 		// ignore spacebar
