@@ -660,6 +660,8 @@ Scrollable_Toolbar::Scrollable_Toolbar(bool s, int x, int y, int w, int h, const
 		type(VERTICAL);
 		scrollbar_size(-1);
 	}
+	scrollbar.set_output();
+	hscrollbar.set_output();
 	hscrollbar.callback((Fl_Callback *)hscrollbar_cb);
 	_bg.box(OS_BG_BOX);
 	begin();
@@ -686,16 +688,28 @@ void Scrollable_Toolbar::resize(int X, int Y, int W, int H) {
 }
 
 int Scrollable_Toolbar::handle(int event) {
-	if (!_show_scrollbar) {
-		type(HORIZONTAL);
-		hscrollbar.set_visible();
-	}
-	if (event == FL_MOUSEWHEEL && !Fl::e_dx) {
-		std::swap(Fl::e_dx, Fl::e_dy);
+	bool swapped = false;
+	if (event == FL_MOUSEWHEEL || (_show_scrollbar && (event == FL_PUSH || event == FL_RELEASE || event == FL_DRAG))) {
+		if (event == FL_MOUSEWHEEL && !Fl::e_dx) {
+			std::swap(Fl::e_dx, Fl::e_dy);
+			swapped = true;
+		}
+		if (!_show_scrollbar) {
+			type(HORIZONTAL);
+			hscrollbar.set_visible();
+		}
+		hscrollbar.clear_output();
 	}
 	int ret = OS_Scroll::handle(event);
-	if (!_show_scrollbar) {
-		type(VERTICAL);
+	if (event == FL_MOUSEWHEEL || (_show_scrollbar && (event == FL_PUSH || event == FL_RELEASE || event == FL_DRAG))) {
+		if (swapped) {
+			std::swap(Fl::e_dx, Fl::e_dy);
+		}
+		if (!_show_scrollbar) {
+			type(VERTICAL);
+			hscrollbar.clear_visible();
+		}
+		hscrollbar.set_output();
 	}
 	return ret;
 }
