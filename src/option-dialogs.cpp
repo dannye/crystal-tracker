@@ -8,10 +8,6 @@ Option_Dialog::Option_Dialog(int w, const char *t) : _width(w), _title(t), _has_
 
 Option_Dialog::~Option_Dialog() {
 	delete _dialog;
-	delete _content;
-	delete _ok_button;
-	delete _cancel_button;
-	delete _reset_button;
 }
 
 void Option_Dialog::initialize() {

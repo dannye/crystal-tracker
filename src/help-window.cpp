@@ -16,10 +16,6 @@ Help_Window::Help_Window(int x, int y, int w, int h, const char *t) : _dx(x), _d
 
 Help_Window::~Help_Window() {
 	delete _window;
-	delete _body;
-	delete _find_input;
-	delete _ok_button;
-	delete _spacer;
 }
 
 void Help_Window::initialize() {

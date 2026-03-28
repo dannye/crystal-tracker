@@ -163,8 +163,6 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 
 	// Note Properties panel
 	_note_properties = new Note_Properties(wx, wy, ww, NOTE_PROP_HEIGHT);
-	_note_properties->end();
-	begin();
 
 	// Ruler
 	int rs = Fl::scrollbar_size();
@@ -832,6 +830,7 @@ Main_Window::~Main_Window() {
 	delete _status_bar; // includes status bar fields
 	delete _note_properties;
 	delete _ruler;
+	delete _context_menu;
 	delete _piano_roll;
 	delete _new_dir_chooser;
 	delete _asm_open_chooser;

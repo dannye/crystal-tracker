@@ -117,6 +117,8 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 	_basic_button->callback((Fl_Callback *)basic_button_cb, this);
 
 	basic_button_cb(nullptr, this);
+
+	end();
 }
 
 Note_Properties::~Note_Properties() {
