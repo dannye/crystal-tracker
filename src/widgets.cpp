@@ -298,10 +298,16 @@ OS_Spinner::OS_Spinner(int x, int y, int w, int h, const char *l) : Fl_Spinner(x
 int OS_Spinner::handle(int event) {
 	switch (event) {
 	case FL_FOCUS:
-		if (input_.take_focus()) return 1;
+		if (input_.take_focus()) {
+			if (_focus_cb) _focus_cb(this, user_data());
+			return 1;
+		}
 		else return 0;
 	case FL_SHORTCUT:
-		if (Fl::event_state(FL_ALT) && input_.test_shortcut() && input_.take_focus()) return 1;
+		if (Fl::event_state(FL_ALT) && input_.test_shortcut() && input_.take_focus()) {
+			if (_focus_cb) _focus_cb(this, user_data());
+			return 1;
+		}
 		else return 0;
 	}
 	return Fl_Group::handle(event);

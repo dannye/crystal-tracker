@@ -113,11 +113,15 @@ protected:
 };
 
 class OS_Spinner : public Fl_Spinner {
+private:
+	Fl_Callback *_focus_cb = nullptr;
 public:
 	OS_Spinner(int x, int y, int w, int h, const char *l = NULL);
 	void label(const char *text) { input_.label(text); }
 	void labelfont(Fl_Font f) { input_.labelfont(f); }
 	void labelsize(Fl_Fontsize pix) { input_.labelsize(pix); }
+	Fl_Callback *focus_cb() const { return _focus_cb; }
+	void focus_cb(Fl_Callback *c) { _focus_cb = c; }
 protected:
 	int handle(int event);
 };

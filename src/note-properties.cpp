@@ -73,46 +73,57 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Sc
 	dx += wgt_m;
 
 	_speed_input->callback((Fl_Callback *)speed_input_cb, this);
-	_speed_input->before_open_cb((Fl_Callback *)dropdown_open_cb);
+	_speed_input->before_open_cb((Fl_Callback *)scroll_into_view);
 	_speed_input->clear_visible_focus();
 
 	_volume_input->callback((Fl_Callback *)volume_input_cb, this);
+	_volume_input->focus_cb((Fl_Callback *)scroll_into_view);
 	_volume_input->clear_visible_focus();
 
 	_fade_input->callback((Fl_Callback *)fade_input_cb, this);
+	_fade_input->focus_cb((Fl_Callback *)scroll_into_view);
 	_fade_input->clear_visible_focus();
 
 	_vibrato_delay_input->callback((Fl_Callback *)vibrato_delay_input_cb, this);
+	_vibrato_delay_input->focus_cb((Fl_Callback *)scroll_into_view);
 	_vibrato_delay_input->clear_visible_focus();
 
 	_vibrato_depth_input->callback((Fl_Callback *)vibrato_depth_input_cb, this);
+	_vibrato_depth_input->focus_cb((Fl_Callback *)scroll_into_view);
 	_vibrato_depth_input->clear_visible_focus();
 
 	_vibrato_rate_input->callback((Fl_Callback *)vibrato_rate_input_cb, this);
+	_vibrato_rate_input->focus_cb((Fl_Callback *)scroll_into_view);
 	_vibrato_rate_input->clear_visible_focus();
 
 	_duty_wave_drumkit_input->callback((Fl_Callback *)duty_wave_drumkit_input_cb, this);
+	_duty_wave_drumkit_input->focus_cb((Fl_Callback *)scroll_into_view);
 	_duty_wave_drumkit_input->clear_visible_focus();
 
 	_advanced_button->callback((Fl_Callback *)advanced_button_cb, this);
 
 	_tempo_input->callback((Fl_Callback *)tempo_input_cb, this);
+	_tempo_input->focus_cb((Fl_Callback *)scroll_into_view);
 	_tempo_input->clear_visible_focus();
 
 	_transpose_octaves_input->callback((Fl_Callback *)transpose_octaves_input_cb, this);
+	_transpose_octaves_input->focus_cb((Fl_Callback *)scroll_into_view);
 	_transpose_octaves_input->clear_visible_focus();
 
 	_transpose_pitches_input->callback((Fl_Callback *)transpose_pitches_input_cb, this);
+	_transpose_pitches_input->focus_cb((Fl_Callback *)scroll_into_view);
 	_transpose_pitches_input->clear_visible_focus();
 
 	_slide_duration_input->callback((Fl_Callback *)slide_duration_input_cb, this);
+	_slide_duration_input->focus_cb((Fl_Callback *)scroll_into_view);
 	_slide_duration_input->clear_visible_focus();
 
 	_slide_octave_input->callback((Fl_Callback *)slide_octave_input_cb, this);
+	_slide_octave_input->focus_cb((Fl_Callback *)scroll_into_view);
 	_slide_octave_input->clear_visible_focus();
 
 	_slide_pitch_input->callback((Fl_Callback *)slide_pitch_input_cb, this);
-	_slide_pitch_input->before_open_cb((Fl_Callback *)dropdown_open_cb);
+	_slide_pitch_input->before_open_cb((Fl_Callback *)scroll_into_view);
 	_slide_pitch_input->clear_visible_focus();
 
 	_panning_left_input->callback((Fl_Callback *)panning_left_input_cb, this);
@@ -631,12 +642,8 @@ void Note_Properties::basic_button_cb(OS_Button *, Note_Properties *np) {
 	np->_basic_button->hide();
 }
 
-void Note_Properties::dropdown_open_cb(Dropdown *d, Note_Properties *np) {
-	if (!d->active()) return;
-	scroll_into_view(d, np);
-}
-
 void Note_Properties::scroll_into_view(Fl_Widget *w, Note_Properties *np) {
+	if (!w->active()) return;
 	int left = np->x();
 	int right = left + np->w();
 	int wgt_left = w->x();

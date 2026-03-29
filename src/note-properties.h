@@ -52,8 +52,6 @@ private:
 	static void panning_right_input_cb(OS_Check_Button *c, Note_Properties *np);
 	static void basic_button_cb(OS_Button *b, Note_Properties *np);
 
-	static void dropdown_open_cb(Dropdown *d, Note_Properties *np);
-
 	static void scroll_into_view(Fl_Widget *w, Note_Properties *np);
 };
 
