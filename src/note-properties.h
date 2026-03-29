@@ -1,14 +1,10 @@
 #ifndef NOTE_PROPERTIES_H
 #define NOTE_PROPERTIES_H
 
-#pragma warning(push, 0)
-#include <FL/Fl_Group.H>
-#pragma warning(pop)
-
 #include "command.h"
 #include "widgets.h"
 
-class Note_Properties : public Fl_Group {
+class Note_Properties : public Scrollable_Toolbar {
 private:
 	Dropdown *_speed_input = nullptr;
 	OS_Spinner *_volume_input = nullptr;

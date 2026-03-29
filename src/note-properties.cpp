@@ -3,13 +3,14 @@
 #include "note-properties.h"
 
 #include "main-window.h"
-#include "themes.h"
 #include "utils.h"
 
-Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl_Group(X, Y, W, H, l) {
-	box(OS_TOOLBAR_FRAME);
+Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Scrollable_Toolbar(true, X, Y, W, H, l) {
 	int wgt_w = text_width("99", 12), wgt_w2 = text_width("999", 12), wgt_h = 22, wgt_m = 10;
-	int dx = wgt_m;
+	int dx = 1;
+
+	new Fl_Box(x() + dx, y() + wgt_m, wgt_m, wgt_h);
+	dx += wgt_m;
 
 	_speed_input = new Dropdown(x() + dx + text_width("Speed:", 2), y() + wgt_m, wgt_w2, wgt_h, "&Speed:");
 	dx += wgt_w2 + wgt_m + text_width("Speed:", 2) + wgt_m + wgt_m + wgt_m;
@@ -66,6 +67,10 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Fl
 
 	_basic_button = new OS_Button(x() + dx + wgt_m, y() + wgt_m, text_width("Advanced", 8), wgt_h, "&Basic");
 	_advanced_button->position(_basic_button->x(), _basic_button->y());
+	dx += wgt_m + text_width("Advanced", 8);
+
+	new Fl_Box(x() + dx, y() + wgt_m, wgt_m, wgt_h);
+	dx += wgt_m;
 
 	_speed_input->callback((Fl_Callback *)speed_input_cb, this);
 	_speed_input->clear_visible_focus();
@@ -345,7 +350,7 @@ int Note_Properties::handle(int event) {
 			return 1;
 		}
 	}
-	return Fl_Group::handle(event);
+	return Scrollable_Toolbar::handle(event);
 }
 
 void Note_Properties::speed_input_cb(Dropdown *d, Note_Properties *np) {
