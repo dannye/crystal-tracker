@@ -583,6 +583,8 @@ void Note_Properties::slide_pitch_input_cb(Dropdown *d, Note_Properties *np) {
 void Note_Properties::panning_left_input_cb(OS_Check_Button *c, Note_Properties *np) {
 	if (!c->active()) return;
 
+	scroll_into_view(c, np);
+
 	if (!c->value() && !np->_panning_right_input->value()) {
 		c->set();
 		return;
@@ -595,6 +597,8 @@ void Note_Properties::panning_left_input_cb(OS_Check_Button *c, Note_Properties 
 
 void Note_Properties::panning_right_input_cb(OS_Check_Button *c, Note_Properties *np) {
 	if (!c->active()) return;
+
+	scroll_into_view(c, np);
 
 	if (!c->value() && !np->_panning_left_input->value()) {
 		c->set();
