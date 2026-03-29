@@ -36,7 +36,7 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Sc
 
 	_advanced_button = new OS_Button(x() + dx + wgt_m, y() + wgt_m, text_width("Advanced", 8), wgt_h, "&Advanced");
 
-	dx = wgt_m;
+	dx = 1 + wgt_m;
 
 	_tempo_input = new OS_Spinner(x() + dx + text_width("Tempo:", 2), y() + wgt_m, wgt_w2, wgt_h, "Te&mpo:");
 	dx += wgt_w2 + wgt_m + text_width("Tempo:", 2);
