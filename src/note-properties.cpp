@@ -73,6 +73,7 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Sc
 	dx += wgt_m;
 
 	_speed_input->callback((Fl_Callback *)speed_input_cb, this);
+	_speed_input->before_open_cb((Fl_Callback *)dropdown_open_cb);
 	_speed_input->clear_visible_focus();
 
 	_volume_input->callback((Fl_Callback *)volume_input_cb, this);
@@ -111,6 +112,7 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Sc
 	_slide_octave_input->clear_visible_focus();
 
 	_slide_pitch_input->callback((Fl_Callback *)slide_pitch_input_cb, this);
+	_slide_pitch_input->before_open_cb((Fl_Callback *)dropdown_open_cb);
 	_slide_pitch_input->clear_visible_focus();
 
 	_panning_left_input->callback((Fl_Callback *)panning_left_input_cb, this);
@@ -623,4 +625,26 @@ void Note_Properties::basic_button_cb(OS_Button *, Note_Properties *np) {
 	np->_panning_left_input->hide();
 	np->_panning_right_input->hide();
 	np->_basic_button->hide();
+}
+
+void Note_Properties::dropdown_open_cb(Dropdown *d, Note_Properties *np) {
+	if (!d->active()) return;
+	scroll_into_view(d, np);
+}
+
+void Note_Properties::scroll_into_view(Fl_Widget *w, Note_Properties *np) {
+	int left = np->x();
+	int right = left + np->w();
+	int wgt_left = w->x();
+	int wgt_right = wgt_left + w->w();
+	if (wgt_left < left) {
+		int scroll_pos = np->xposition() - (left - wgt_left + 10);
+		np->scroll_to(std::min(std::max(scroll_pos, 0), np->scroll_x_max()), np->yposition());
+		np->redraw();
+	}
+	else if (wgt_right > right) {
+		int scroll_pos = np->xposition() + (wgt_right - right + 10);
+		np->scroll_to(std::min(std::max(scroll_pos, 0), np->scroll_x_max()), np->yposition());
+		np->redraw();
+	}
 }

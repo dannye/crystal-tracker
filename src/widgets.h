@@ -176,8 +176,12 @@ public:
 };
 
 class Dropdown : public Fl_Choice {
+private:
+	Fl_Callback *_before_open_cb = nullptr;
 public:
 	Dropdown(int x, int y, int w, int h, const char *l = NULL);
+	Fl_Callback *before_open_cb() const { return _before_open_cb; }
+	void before_open_cb(Fl_Callback *c) { _before_open_cb = c; }
 	void draw(void);
 protected:
 	int handle(int event);
@@ -222,8 +226,8 @@ public:
 	Scrollable_Toolbar(bool s, int x, int y, int w, int h, const char *l = NULL);
 	int scroll_x_max();
 	void resize(int X, int Y, int W, int H);
-protected:
 	int handle(int event);
+	void scroll_to(int X, int Y);
 private:
 	static void hscrollbar_cb(Fl_Scrollbar *sb, void *);
 };

@@ -540,6 +540,7 @@ int Dropdown::handle(int event) {
 	case FL_PUSH:
 		if (Fl::visible_focus()) Fl::focus(this);
 	J1:
+		if (_before_open_cb) _before_open_cb(this, user_data());
 		if (Fl::scheme() || fl_contrast(textcolor(), FL_BACKGROUND2_COLOR) != textcolor()) {
 			v = menu()->pulldown(x(), y(), w(), h(), nullptr, this);
 			if (wp.deleted()) return 1;
@@ -683,7 +684,6 @@ void Scrollable_Toolbar::resize(int X, int Y, int W, int H) {
 	int x_max = scroll_x_max();
 	if (xposition() > x_max) {
 		scroll_to(x_max, yposition());
-		_bg.resize(x()+1, y()+1, w()-2, h()-2);
 	}
 }
 
@@ -714,10 +714,14 @@ int Scrollable_Toolbar::handle(int event) {
 	return ret;
 }
 
+void Scrollable_Toolbar::scroll_to(int X, int Y) {
+	OS_Scroll::scroll_to(X, Y);
+	_bg.resize(x()+1, y()+1, w()-2, h()-2);
+}
+
 void Scrollable_Toolbar::hscrollbar_cb(Fl_Scrollbar *sb, void *) {
 	Scrollable_Toolbar *scroll = (Scrollable_Toolbar *)(sb->parent());
 	scroll->scroll_to(std::min(sb->value(), scroll->scroll_x_max()), scroll->yposition());
-	scroll->_bg.resize(scroll->x()+1, scroll->y()+1, scroll->w()-2, scroll->h()-2);
 	scroll->redraw();
 }
 
