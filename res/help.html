@@ -82,6 +82,7 @@ R"(<html>
 <li><font color="#00a500"><b>Green: Channel 3</b></font></li>
 <li><font color="#7c3c19"><b>Brown: Channel 4</b></font></li>
 </ul>
+<p>Hover the mouse over a channel 4 note to see the name of the drum used by that note.</p>
 <p>If a channel is selected, some of the notes for that channel may have color-coded "flags" attached to the note which indicate that the note is played with some different settings than the previous note. The flags are color-coded as follows:</p>
 <ul>
 <li><font color="#00ecec"><b>Cyan: Speed</b></font></li>
@@ -90,6 +91,7 @@ R"(<html>
 <li><font color="#ff8000"><b>Orange: Duty cycle, wave, or drumkit</b></font></li>
 <li><font color="#808080"><b>Gray: Other ("Advanced")</b></font></li>
 </ul>
+<p>Hover the mouse over a flag to see the new settings.</p>
 <p>Inner loops and calls are shown with color-coded boxes that wrap the notes. Light boxes are loops and dark boxes are calls. When no channel is selected, all wrapper boxes for all channels are shown at once. When a channel is selected, only the selected channel's wrapper boxes are shown; wrapper boxes for all other channels are hidden and their notes become colored outlines.</p>
 <p>If all channels' end points are the same, this point is shown with a white or black line (depending on theme). If at least one channel's end point is different than the others, each individual channel's end point is shown with a color-coded line. The same applies to the loop points, if the song loops. Unreferenced labels are shown with a gray line.</p>
 <p>All tempo changes are marked with a dark yellow or dark purple line (depending on theme).</p>
@@ -104,20 +106,22 @@ R"(<html>
 <p>If the song loops, a warning will be shown if any of the channels have different settings at the start of the second iteration of the main loop than it had on the first iteration. To ensure the second iteration uses the same settings as the first, explicitly set the properties at the start of the loop. This can be done by using the Format Painter (explained in more detail below) to apply the properties of the first note or rest onto itself. If the different settings on the second iteration are intentional, the warning can be toggled off with the Play&nbsp;→&nbsp;Loop&nbsp;Verification checkbox.</p>
 <p><b>Note:</b> Playback is reasonably accurate but does not sound exactly how it sounds on the Game Boy. Things like volume fade, vibrato, etc, are only approximations.</p>
 <p>While the song is playing, left-click anywhere on the timeline to toggle continuous scroll mode.</p>
-<p>Left-click on the piano keys on the left to hear any note on-demand. These interactive notes currently always play a 50% square wave at full volume.</p>
+<p>Left-click on the piano keys on the left to hear any note on-demand. These interactive notes are played with the same duty cycle, wave, or drumkit of the selected channel at the playhead's current position, if a channel is selected. Otherwise, a 50% square wave is played.</p>
 <p>Stereo output can be toggled in the Play menu. It can also be toggled using the button in the status bar.</p>
 <p>Each channel can be individually muted in order to focus on only specific channels. The mute statuses for each channel are also shown in the status bar at the bottom, which also act as buttons to toggle the mute status.</p>
 <a name="MovingThePlayhead"></a>
 <h3>Moving the Playhead</h3>
-<p>The playhead (yellow or magenta line, depending on theme) can be moved with the mouse. Middle-click or hold )" COMMAND_KEY R"( and right-click to move the playhead. This is useful for starting playback at a specific point rather than playing from the very beginning.</p>
+<p>The playhead (yellow or magenta line, depending on theme) can be moved with the mouse. Middle-click or hold )" COMMAND_KEY R"( and right-click on the timeline, or left-click on the ruler, to move the playhead. This is useful for starting playback at a specific point rather than playing from the very beginning.</p>
 <p>If a channel is selected, "Step Backward/Forward" moves the playhead by the selected channel's <i>speed</i> at that point. "Skip Backward/Forward" moves the playhead to the start/end of the note or rest (of the selected channel) at the playhead's current position.</p>
 <p>If no channel is selected, "Step Backward/Forward" moves the playhead by the current grid spacing while "Skip Backward/Forward" moves by four times that distance.</p>
 <p>"Skip Backward/Forward" can be used while the song is playing and acts like rewind/fast-forward.</p>
 <p>Press )" COMMAND_KEY_PLUS R"(\ to center the playhead, which is useful both during playback and while editing.</p>
 <a name="Bookmarks"></a>
 <h3>Bookmarks</h3>
-<p>Bookmarks are a useful way to quickly return to a certain point in the song. To create a bookmark, first place the playhead at the desired location then press )" COMMAND_KEY_PLUS R"(F2. Press it again to remove the bookmark.</p>
-<p>Cycle through all bookmarks with F2 and )" SHIFT_KEY_PLUS R"(F2. Remove all bookmarks with )" COMMAND_SHIFT_KEYS_PLUS R"(F2.</p>
+<p>Bookmarks are a useful way to quickly return to a certain point in the song. To create a bookmark, first place the playhead at the desired location then press )" COMMAND_KEY_PLUS R"(F2. Press it again to remove the bookmark. Alternatively, right-click on the ruler to set or remove a bookmark.</p>
+<p>Cycle through all bookmarks with F2 and )" SHIFT_KEY_PLUS R"(F2, or )" ALT_KEY_PLUS RIGHT_SYMBOL R"( and )" ALT_KEY_PLUS LEFT_SYMBOL R"(.</p>
+<p>Alternatively, bookmarks can also be cycled through with the forward and backward mouse buttons.</p>
+<p>Remove all bookmarks with )" COMMAND_SHIFT_KEYS_PLUS R"(F2.</p>
 <hr>
 <a name="Editing"></a>
 <h2>Editing</h2>
@@ -181,7 +185,7 @@ R"(<html>
 <h2>View</h2>
 <p>Zoom In is useful when working with a sequence of very small notes, and Zoom Out is useful for observing the whole height of the timeline at once.</p>
 <p>The piano key pitch labels can be toggled with )" COMMAND_KEY_PLUS R"(K. Pitch labels for every note can be toggled with )" COMMAND_SHIFT_KEYS_PLUS R"(K.</p>
-<p>The Measure Ruler can be reconfigured to match the speed and time signature of the song. Use )" COMMAND_SHIFT_KEYS_PLUS R"(R to open the Configure Ruler dialog in order to set the beats per measure, steps per beat, ticks per step (ie, grid spacing), as well as the pickup offset. The editor will remember the measure ruler configuration for the Recent files and automatically reapply that configuration when those files are reopened. Clicking into the measure ruler will also set the playhead if a song is opened.</p>
+<p>The Measure Ruler can be reconfigured to match the speed and time signature of the song. Use )" COMMAND_SHIFT_KEYS_PLUS R"(R to open the Configure Ruler dialog in order to set the beats per measure, steps per beat, ticks per step (ie, grid spacing), as well as the pickup offset. The editor will remember the measure ruler configuration for the Recent files and automatically reapply that configuration when those files are reopened.</p>
 <p>By default, the status bar displays the current beats per minute (BPM). This can be toggled to instead display the raw tempo value.</p>
 <p>BPM is determined by the following: <code>BPM = 256 × (262144 ÷ 4389) × 60 ÷ (ticks-per-step * steps-per-beat) ÷ tempo</code></p>
 <p>Or, simplified: <code>BPM ≈ 917414.4 ÷ ticks-per-beat ÷ tempo</code></p>
