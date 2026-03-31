@@ -115,7 +115,9 @@ private:
 	Toolbar_Button
 		*_configure_ruler_tb = NULL,
 		*_decrease_spacing_tb = NULL,
-		*_increase_spacing_tb = NULL;
+		*_increase_spacing_tb = NULL,
+		*_wave_editor_tb = NULL,
+		*_drumkit_editor_tb = NULL;
 	// GUI outputs
 	Note_Properties *_note_properties = NULL;
 	Ruler *_ruler = NULL;
@@ -190,7 +192,9 @@ private:
 		*_zoom_in_mi = NULL,
 		*_decrease_spacing_mi = NULL,
 		*_increase_spacing_mi = NULL,
+		*_wave_editor_mi = NULL,
 		*_reload_waves_mi = NULL,
+		*_drumkit_editor_mi = NULL,
 		*_reload_drumkits_mi = NULL;
 	// Dialogs
 	Directory_Chooser *_new_dir_chooser;
@@ -449,7 +453,9 @@ private:
 	static void bpm_cb(Fl_Widget *w, Main_Window *mw);
 	static void full_screen_cb(Fl_Widget *w, Main_Window *mw);
 	// Tools menu
+	static void wave_editor_cb(Fl_Widget *w, Main_Window *mw);
 	static void reload_waves_cb(Fl_Widget *w, Main_Window *mw);
+	static void drumkit_editor_cb(Fl_Widget *w, Main_Window *mw);
 	static void reload_drumkits_cb(Fl_Widget *w, Main_Window *mw);
 	// Toolbar buttons
 	static void continuous_tb_cb(Toolbar_Toggle_Button *tb, Main_Window *mw);

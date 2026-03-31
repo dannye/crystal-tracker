@@ -132,6 +132,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	SEPARATE_TOOLBAR_BUTTONS;
 	_decrease_spacing_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 	_increase_spacing_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	SEPARATE_TOOLBAR_BUTTONS;
+	_wave_editor_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
+	_drumkit_editor_tb = new Toolbar_Button(tx, ty, TOOLBAR_BUTTON_HEIGHT, TOOLBAR_BUTTON_HEIGHT); tx += TOOLBAR_BUTTON_HEIGHT;
 #ifdef __APPLE__
 	new Fl_Box(tx, ty, 6, TOOLBAR_BUTTON_HEIGHT); tx += 6;
 #endif
@@ -363,7 +366,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 			FL_MENU_TOGGLE | (fullscreen ? FL_MENU_VALUE : 0)),
 		{},
 		OS_SUBMENU("&Tools"),
+		SYS_MENU_ITEM("&Wave Editor...", FL_CTRL + '3', (Fl_Callback *)wave_editor_cb, this, 0),
 		SYS_MENU_ITEM("Reload Wa&ves", FL_CTRL + FL_SHIFT + '3', (Fl_Callback *)reload_waves_cb, this, FL_MENU_DIVIDER),
+		SYS_MENU_ITEM("&Drumkit Editor...", FL_CTRL + '4', (Fl_Callback *)drumkit_editor_cb, this, 0),
 		SYS_MENU_ITEM("Reload Drum&kits", FL_CTRL + FL_SHIFT + '4', (Fl_Callback *)reload_drumkits_cb, this, 0),
 		{},
 		OS_SUBMENU("&Help"),
@@ -470,7 +475,9 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_zoom_in_mi = CT_FIND_MENU_ITEM_CB(zoom_in_cb);
 	_decrease_spacing_mi = CT_FIND_MENU_ITEM_CB(decrease_spacing_cb);
 	_increase_spacing_mi = CT_FIND_MENU_ITEM_CB(increase_spacing_cb);
+	_wave_editor_mi = CT_FIND_MENU_ITEM_CB(wave_editor_cb);
 	_reload_waves_mi = CT_FIND_MENU_ITEM_CB(reload_waves_cb);
+	_drumkit_editor_mi = CT_FIND_MENU_ITEM_CB(drumkit_editor_cb);
 	_reload_drumkits_mi = CT_FIND_MENU_ITEM_CB(reload_drumkits_cb);
 #undef CT_FIND_MENU_ITEM_CB
 
@@ -727,6 +734,20 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_increase_spacing_tb->shortcut(FL_SHIFT + '=');
 #else
 	_increase_spacing_tb->shortcut('+');
+#endif
+
+	_wave_editor_tb->tooltip("Wave Editor... (" CONTROL_KEY_PLUS "3)");
+	_wave_editor_tb->callback((Fl_Callback *)wave_editor_cb, this);
+	_wave_editor_tb->image(WAVE_ICON.get(_scale));
+#ifndef __APPLE__
+	_wave_editor_tb->shortcut(FL_CTRL + '3');
+#endif
+
+	_drumkit_editor_tb->tooltip("Drumkit Editor... (" CONTROL_KEY_PLUS "4)");
+	_drumkit_editor_tb->callback((Fl_Callback *)drumkit_editor_cb, this);
+	_drumkit_editor_tb->image(DRUMKIT_ICON.get(_scale));
+#ifndef __APPLE__
+	_drumkit_editor_tb->shortcut(FL_CTRL + '4');
 #endif
 
 	// Configure status bar
@@ -1505,11 +1526,19 @@ void Main_Window::update_active_controls() {
 		_next_channel_mi->activate();
 		_previous_channel_mi->activate();
 		if (stopped) {
+			_wave_editor_mi->activate();
+			_wave_editor_tb->activate();
 			_reload_waves_mi->activate();
+			_drumkit_editor_mi->activate();
+			_drumkit_editor_tb->activate();
 			_reload_drumkits_mi->activate();
 		}
 		else {
+			_wave_editor_mi->deactivate();
+			_wave_editor_tb->deactivate();
 			_reload_waves_mi->deactivate();
+			_drumkit_editor_mi->deactivate();
+			_drumkit_editor_tb->deactivate();
 			_reload_drumkits_mi->deactivate();
 		}
 	}
@@ -1587,7 +1616,11 @@ void Main_Window::update_active_controls() {
 		_channel_4_tb->deactivate();
 		_next_channel_mi->deactivate();
 		_previous_channel_mi->deactivate();
+		_wave_editor_mi->deactivate();
+		_wave_editor_tb->deactivate();
 		_reload_waves_mi->deactivate();
+		_drumkit_editor_mi->deactivate();
+		_drumkit_editor_tb->deactivate();
 		_reload_drumkits_mi->deactivate();
 	}
 
@@ -2208,6 +2241,8 @@ void Main_Window::update_icon_resolution() {
 	_configure_ruler_tb->image(MORE_LIGHT_ICON.get(_scale));
 	_decrease_spacing_tb->image(DECREASE_SPACING_ICON.get(_scale));
 	_increase_spacing_tb->image(INCREASE_SPACING_ICON.get(_scale));
+	_wave_editor_tb->image(WAVE_ICON.get(_scale));
+	_drumkit_editor_tb->image(DRUMKIT_ICON.get(_scale));
 	update_icons();
 #endif
 }
@@ -2258,6 +2293,8 @@ void Main_Window::update_icons() {
 	make_deimage(_configure_ruler_tb);
 	make_deimage(_decrease_spacing_tb);
 	make_deimage(_increase_spacing_tb);
+	make_deimage(_wave_editor_tb);
+	make_deimage(_drumkit_editor_tb);
 }
 
 void Main_Window::update_ruler() {
@@ -4096,6 +4133,14 @@ void Main_Window::full_screen_cb(Fl_Widget *, Main_Window *mw) {
 	}
 }
 
+void Main_Window::wave_editor_cb(Fl_Widget *, Main_Window *mw) {
+	if (Fl::modal()) return;
+
+	mw->_wave_editor_tb->simulate_key_action();
+
+	// TODO
+}
+
 void Main_Window::reload_waves_cb(Fl_Widget *, Main_Window *mw) {
 	if (Fl::modal()) return;
 
@@ -4111,6 +4156,14 @@ void Main_Window::reload_waves_cb(Fl_Widget *, Main_Window *mw) {
 	}
 
 	mw->refresh_note_properties();
+}
+
+void Main_Window::drumkit_editor_cb(Fl_Widget *, Main_Window *mw) {
+	if (Fl::modal()) return;
+
+	mw->_drumkit_editor_tb->simulate_key_action();
+
+	// TODO
 }
 
 void Main_Window::reload_drumkits_cb(Fl_Widget *, Main_Window *mw) {

@@ -12,6 +12,7 @@
 #include "delete.xpm"
 #include "down.xpm"
 #include "down-down.xpm"
+#include "drumkit.xpm"
 #include "four.xpm"
 #include "glue-dark.xpm"
 #include "glue-light.xpm"
@@ -51,6 +52,7 @@
 #include "up.xpm"
 #include "up-up.xpm"
 #include "verify.xpm"
+#include "wave.xpm"
 #include "zoom-in.xpm"
 #include "zoom-out.xpm"
 
@@ -88,6 +90,7 @@ static Scalable_Pixmap DECREASE_SPACING_ICON(DECREASE_SPACING_XPM);
 static Scalable_Pixmap DELETE_ICON(DELETE_XPM);
 static Scalable_Pixmap DOWN_ICON(DOWN_XPM);
 static Scalable_Pixmap DOWN_DOWN_ICON(DOWN_DOWN_XPM);
+static Scalable_Pixmap DRUMKIT_ICON(DRUMKIT_XPM);
 static Scalable_Pixmap FOUR_ICON(FOUR_XPM);
 static Scalable_Pixmap GLUE_DARK_ICON(GLUE_DARK_XPM);
 static Scalable_Pixmap GLUE_LIGHT_ICON(GLUE_LIGHT_XPM);
@@ -127,6 +130,7 @@ static Scalable_Pixmap UNDO_ICON(UNDO_XPM);
 static Scalable_Pixmap UP_ICON(UP_XPM);
 static Scalable_Pixmap UP_UP_ICON(UP_UP_XPM);
 static Scalable_Pixmap VERIFY_ICON(VERIFY_XPM);
+static Scalable_Pixmap WAVE_ICON(WAVE_XPM);
 static Scalable_Pixmap ZOOM_IN_ICON(ZOOM_IN_XPM);
 static Scalable_Pixmap ZOOM_OUT_ICON(ZOOM_OUT_XPM);
 

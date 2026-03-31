@@ -256,6 +256,7 @@
     <None Include="..\res\delete.xpm" />
     <None Include="..\res\down.xpm" />
     <None Include="..\res\down-down.xpm" />
+    <None Include="..\res\drumkit.xpm" />
     <None Include="..\res\error.xpm" />
     <None Include="..\res\four.xpm" />
     <None Include="..\res\glue-dark.xpm" />
@@ -299,6 +300,7 @@
     <None Include="..\res\up-up.xpm" />
     <None Include="..\res\verify.xpm" />
     <None Include="..\res\warning.xpm" />
+    <None Include="..\res\wave.xpm" />
     <None Include="..\res\zoom-in.xpm" />
     <None Include="..\res\zoom-out.xpm" />
   </ItemGroup>

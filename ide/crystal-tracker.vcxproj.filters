@@ -194,6 +194,9 @@
     <None Include="..\res\down-down.xpm">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\drumkit.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="..\res\error.xpm">
       <Filter>Resource Files</Filter>
     </None>
@@ -321,6 +324,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\warning.xpm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\wave.xpm">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\zoom-in.xpm">
