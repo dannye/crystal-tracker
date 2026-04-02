@@ -21,6 +21,9 @@
     <ClCompile Include="..\src\directory-chooser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\drumkit-window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\edit-context-menu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -75,6 +78,9 @@
     <ClCompile Include="..\src\utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\wave-window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\widgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -87,6 +93,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\directory-chooser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\drumkit-window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\edit-context-menu.h">
@@ -147,6 +156,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\wave-window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\widgets.h">

@@ -22,6 +22,8 @@
 #include "parse-waves.h"
 #include "parse-drumkits.h"
 #include "help-window.h"
+#include "wave-window.h"
+#include "drumkit-window.h"
 #include "directory-chooser.h"
 
 #define NUM_RECENT 10
@@ -203,6 +205,8 @@ private:
 	Song_Options_Dialog *_song_options_dialog;
 	Ruler_Config_Dialog *_ruler_config_dialog;
 	Help_Window *_help_window;
+	Wave_Window *_wave_window;
+	Drumkit_Window *_drumkit_window;
 	// Data
 	std::string _status_message = "Ready";
 	std::string _directory, _asm_file;

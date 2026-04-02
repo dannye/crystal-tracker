@@ -193,6 +193,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\config.cpp" />
     <ClCompile Include="..\src\directory-chooser.cpp" />
+    <ClCompile Include="..\src\drumkit-window.cpp" />
     <ClCompile Include="..\src\edit-context-menu.cpp" />
     <ClCompile Include="..\src\help-window.cpp" />
     <ClCompile Include="..\src\hex-spinner.cpp" />
@@ -211,12 +212,14 @@
     <ClCompile Include="..\src\song.cpp" />
     <ClCompile Include="..\src\themes.cpp" />
     <ClCompile Include="..\src\utils.cpp" />
+    <ClCompile Include="..\src\wave-window.cpp" />
     <ClCompile Include="..\src\widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\command.h" />
     <ClInclude Include="..\src\config.h" />
     <ClInclude Include="..\src\directory-chooser.h" />
+    <ClInclude Include="..\src\drumkit-window.h" />
     <ClInclude Include="..\src\edit-context-menu.h" />
     <ClInclude Include="..\src\help-window.h" />
     <ClInclude Include="..\src\hex-spinner.h" />
@@ -237,6 +240,7 @@
     <ClInclude Include="..\src\themes.h" />
     <ClInclude Include="..\src\utils.h" />
     <ClInclude Include="..\src\version.h" />
+    <ClInclude Include="..\src\wave-window.h" />
     <ClInclude Include="..\src\widgets.h" />
   </ItemGroup>
   <ItemGroup>

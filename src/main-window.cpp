@@ -193,6 +193,8 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 	_song_options_dialog = new Song_Options_Dialog("Song Options");
 	_ruler_config_dialog = new Ruler_Config_Dialog("Configure Ruler");
 	_help_window = new Help_Window(48, 48, 700, 500, PROGRAM_NAME " Help");
+	_wave_window = new Wave_Window(48, 48);
+	_drumkit_window = new Drumkit_Window(48, 48);
 
 	// Configure window
 	box(OS_BG_BOX);
@@ -864,6 +866,8 @@ Main_Window::~Main_Window() {
 	delete _song_options_dialog;
 	delete _ruler_config_dialog;
 	delete _help_window;
+	delete _wave_window;
+	delete _drumkit_window;
 	if (_it_module) {
 		delete _it_module;
 	}
@@ -4138,7 +4142,7 @@ void Main_Window::wave_editor_cb(Fl_Widget *, Main_Window *mw) {
 
 	mw->_wave_editor_tb->simulate_key_action();
 
-	// TODO
+	mw->_wave_window->show(mw);
 }
 
 void Main_Window::reload_waves_cb(Fl_Widget *, Main_Window *mw) {
@@ -4163,7 +4167,7 @@ void Main_Window::drumkit_editor_cb(Fl_Widget *, Main_Window *mw) {
 
 	mw->_drumkit_editor_tb->simulate_key_action();
 
-	// TODO
+	mw->_drumkit_window->show(mw);
 }
 
 void Main_Window::reload_drumkits_cb(Fl_Widget *, Main_Window *mw) {
