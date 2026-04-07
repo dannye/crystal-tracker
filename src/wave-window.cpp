@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "themes.h"
 #include "wave-window.h"
 
@@ -7,7 +9,8 @@ int Wave_Double_Window::handle(int event) {
 	return Fl_Double_Window::handle(event);
 }
 
-Wave_Window::Wave_Window(int x, int y) : _dx(x), _dy(y), _canceled(false), _window(NULL), _ok_button(NULL) {}
+Wave_Window::Wave_Window(int x, int y) : _dx(x), _dy(y), _canceled(false), _window(NULL),
+	_wave_browser(NULL), _ok_button(NULL), _waves(), _num_waves(0) {}
 
 Wave_Window::~Wave_Window() {
 	delete _window;
@@ -19,6 +22,7 @@ void Wave_Window::initialize() {
 	Fl_Group::current(NULL);
 	// Populate window
 	_window = new Wave_Double_Window(_dx, _dy, 500, 300, "Wave Editor");
+	_wave_browser = new OS_Browser(10, 10, 100, 250);
 	_ok_button = new Default_Button(410, 268, 80, 22, "OK");
 	_window->end();
 	// Initialize window
@@ -33,6 +37,23 @@ void Wave_Window::initialize() {
 
 void Wave_Window::refresh() {
 	_canceled = false;
+}
+
+void Wave_Window::waves(const std::vector<Wave> &w, int32_t n) {
+	initialize();
+
+	_waves = w;
+	_num_waves = n;
+
+	assert(_waves.size() == 16);
+	assert(_num_waves >= 1 && _num_waves <= 16);
+
+	_wave_browser->clear();
+	char buffer[16];
+	for (int32_t i = 0; i < _num_waves; ++i) {
+		snprintf(buffer, 16, "Wave %d", i + 1);
+		_wave_browser->add(buffer);
+	}
 }
 
 void Wave_Window::show(const Fl_Widget *p) {

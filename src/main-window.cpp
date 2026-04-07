@@ -4142,6 +4142,7 @@ void Main_Window::wave_editor_cb(Fl_Widget *, Main_Window *mw) {
 
 	mw->_wave_editor_tb->simulate_key_action();
 
+	mw->_wave_window->waves(mw->_waves, mw->_num_waves);
 	mw->_wave_window->show(mw);
 }
 

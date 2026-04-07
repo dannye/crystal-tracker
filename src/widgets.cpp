@@ -579,6 +579,23 @@ int Dropdown::handle(int event) {
 	}
 }
 
+OS_Browser::OS_Browser(int x, int y, int w, int h, const char *l) : Fl_Browser(x, y, w, h, l) {
+	type(FL_HOLD_BROWSER);
+	box(OS_INPUT_THIN_DOWN_BOX);
+	labelfont(OS_FONT);
+	labelsize(OS_FONT_SIZE);
+	textfont(OS_FONT);
+	textsize(OS_FONT_SIZE);
+}
+
+int OS_Browser::handle(int event) {
+	int focus = Fl::visible_focus();
+	Fl::visible_focus(1);
+	int ret = Fl_Browser::handle(event);
+	Fl::visible_focus(focus);
+	return ret;
+}
+
 OS_Scroll::OS_Scroll(int x, int y, int w, int h, const char *l) : Fl_Scroll(x, y, w, h, l) {
 	scrollbar.slider(OS_MINI_BUTTON_UP_BOX);
 	hscrollbar.slider(OS_MINI_BUTTON_UP_BOX);

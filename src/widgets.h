@@ -10,6 +10,7 @@
 #include <FL/Fl_Spinner.H>
 #include <FL/Fl_Hor_Nice_Slider.H>
 #include <FL/Fl_Choice.H>
+#include <FL/Fl_Browser.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Scroll.H>
 #include <FL/Fl_Check_Button.H>
@@ -187,6 +188,13 @@ public:
 	Fl_Callback *before_open_cb() const { return _before_open_cb; }
 	void before_open_cb(Fl_Callback *c) { _before_open_cb = c; }
 	void draw(void);
+protected:
+	int handle(int event);
+};
+
+class OS_Browser : public Fl_Browser {
+public:
+	OS_Browser(int x, int y, int w, int h, const char *l = NULL);
 protected:
 	int handle(int event);
 };
