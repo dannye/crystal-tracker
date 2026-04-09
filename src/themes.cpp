@@ -2538,7 +2538,7 @@ static void dark_swatch_frame(int x, int y, int w, int h, Fl_Color) {
 	fl_color(activated_color(fl_rgb_color(0x25, 0x25, 0x25)));
 	fl_rect(x, y, w, h);
 	// inner border
-	fl_color(activated_color(fl_rgb_color(0xFF, 0xFF, 0xFF)));
+	fl_color(activated_color(fl_rgb_color(0x80, 0x80, 0x80)));
 	fl_rect(x+1, y+1, w-2, h-2);
 }
 

@@ -14,6 +14,7 @@ class Wave_Graph : public Fl_Box {
 public:
 	Wave_Graph(int x, int y, int w, int h, const char *l = NULL);
 	void draw();
+	int handle(int event);
 };
 
 class Wave_Double_Window : public Fl_Double_Window {

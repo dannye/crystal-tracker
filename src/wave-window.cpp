@@ -3,6 +3,8 @@
 #include "themes.h"
 #include "wave-window.h"
 
+const Fl_Color WAVE_COLOR = fl_rgb_color(0, 165, 0);
+
 Wave_Graph::Wave_Graph(int x, int y, int w, int h, const char *l) : Fl_Box(x, y, w, h, l) {}
 
 void Wave_Graph::draw() {
@@ -10,17 +12,65 @@ void Wave_Graph::draw() {
 
 	Wave_Window *ww = (Wave_Window *)user_data();
 	Wave *wave = ww->wave();
-	if (!wave) return;
 
 	int x_step = w() / NUM_WAVE_SAMPLES;
 	int y_step = h() / 16;
 
-	fl_color(FL_SELECTION_COLOR);
-	for (size_t i = 0; i < NUM_WAVE_SAMPLES; ++i) {
-		int x_pos = x() + x_step * i;
-		int y_pos = y() + h() - y_step * (wave->at(i) + 1);
-		fl_rectf(x_pos, y_pos, x_step, y_step);
+	const auto draw_grid_lines = [&](Fl_Color c) {
+		fl_color(c);
+		fl_yxline(x()+2 + x_step *  8, y()+2, y()-2 + h()-1);
+		fl_yxline(x()+2 + x_step * 16, y()+2, y()-2 + h()-1);
+		fl_yxline(x()+2 + x_step * 24, y()+2, y()-2 + h()-1);
+		fl_xyline(x()+2, y()-2 + h() - y_step *  4, x()-2 + w()-1);
+		fl_xyline(x()+2, y()-2 + h() - y_step * 12, x()-2 + w()-1);
+	};
+
+	Fl_Color grid_color = fl_darker(FL_BACKGROUND2_COLOR);
+	draw_grid_lines(grid_color);
+
+	if (wave) for (size_t i = 0; i < NUM_WAVE_SAMPLES; ++i) {
+		int x_pos = x()+2 + x_step * i;
+		int y_pos = y()-2 + h() - y_step * (wave->at(i) + 1);
+		fl_rectf(x_pos, y_pos, x_step, y_step, WAVE_COLOR);
+		if (wave->at(i) < 7 || wave->at(i) > 8) {
+			y_pos = y()-2 + h() - y_step * (wave->at(i) < 7 ? 8 : wave->at(i));
+			int bar_height = y_step * (wave->at(i) < 7 ? (7 - wave->at(i)) : (wave->at(i) - 8));
+			fl_rectf(x_pos, y_pos, x_step, bar_height, fl_color_average(WAVE_COLOR, FL_BACKGROUND2_COLOR, 0.33f));
+			fl_push_clip(x_pos, y_pos, x_step, bar_height);
+			draw_grid_lines(fl_color_average(grid_color, fl_color(), 0.33f));
+			fl_pop_clip();
+		}
 	}
+
+	fl_color(grid_color);
+	fl_xyline(x()+2, y()-2 + h() - y_step * 8, x()-2 + w()-1);
+}
+
+int Wave_Graph::handle(int event) {
+	switch (event) {
+	case FL_ENTER:
+	case FL_LEAVE:
+		return 1;
+	case FL_PUSH:
+	case FL_DRAG: {
+		Wave_Window *ww = (Wave_Window *)user_data();
+		Wave *wave = ww->wave();
+		if (wave) {
+			int x_step = w() / NUM_WAVE_SAMPLES;
+			int y_step = h() / 16;
+			int x_pos = (Fl::event_x() - x() - 2) / x_step;
+			int y_pos = 15 - (Fl::event_y() - y() - 2) / y_step;
+			if (x_pos >= 0 && x_pos < NUM_WAVE_SAMPLES && y_pos >= 0 && y_pos < 16 && wave->at(x_pos) != y_pos) {
+				wave->at(x_pos) = y_pos;
+				redraw();
+			}
+		}
+		return 1;
+	}
+	case FL_RELEASE:
+		return 1;
+	}
+	return 0;
 }
 
 Wave_Double_Window::Wave_Double_Window(int x, int y, int w, int h, const char *l) : Fl_Double_Window(x, y, w, h, l) {}
@@ -41,10 +91,10 @@ void Wave_Window::initialize() {
 	Fl_Group *prev_current = Fl_Group::current();
 	Fl_Group::current(NULL);
 	// Populate window
-	_window = new Wave_Double_Window(_dx, _dy, 514, 308, "Wave Editor");
-	_wave_browser = new OS_Browser(10, 10, 100, 256);
-	_wave_graph = new Wave_Graph(120, 10, 384, 256);
-	_ok_button = new Default_Button(428, 276, 80, 22, "OK");
+	_window = new Wave_Double_Window(_dx, _dy, 518, 312, "Wave Editor");
+	_wave_browser = new OS_Browser(10, 10, 100, 260);
+	_wave_graph = new Wave_Graph(120, 10, 388, 260);
+	_ok_button = new Default_Button(428, 280, 80, 22, "OK");
 	_window->end();
 	// Initialize window
 	_window->box(OS_BG_BOX);
@@ -52,7 +102,8 @@ void Wave_Window::initialize() {
 	_window->set_modal();
 	// Initialize window's children
 	_wave_browser->callback((Fl_Callback *)select_wave_cb, this);
-	_wave_graph->box(FL_BORDER_BOX);
+	_wave_graph->box(OS_SWATCH_BOX);
+	_wave_graph->color(FL_BACKGROUND2_COLOR);
 	_wave_graph->user_data(this);
 	_ok_button->tooltip("OK (Enter)");
 	_ok_button->callback((Fl_Callback *)close_cb, this);
