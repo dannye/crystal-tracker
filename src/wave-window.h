@@ -28,6 +28,10 @@ private:
 	int _dx, _dy;
 	bool _canceled;
 	Wave_Double_Window *_window;
+	OS_Button *_add_button;
+	OS_Button *_remove_button;
+	OS_Button *_up_button;
+	OS_Button *_down_button;
 	OS_Browser *_wave_browser;
 	Wave_Graph *_wave_graph;
 	Default_Button *_ok_button;
@@ -50,6 +54,10 @@ public:
 private:
 	static void close_cb(Fl_Widget *w, Wave_Window *ww);
 	static void cancel_cb(Fl_Widget *w, Wave_Window *ww);
+	static void add_wave_cb(Fl_Widget *w, Wave_Window *ww);
+	static void remove_wave_cb(Fl_Widget *w, Wave_Window *ww);
+	static void move_wave_up_cb(Fl_Widget *w, Wave_Window *ww);
+	static void move_wave_down_cb(Fl_Widget *w, Wave_Window *ww);
 	static void select_wave_cb(Fl_Widget *w, Wave_Window *ww);
 };
 

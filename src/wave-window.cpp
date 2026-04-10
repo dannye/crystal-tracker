@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 
 #include "themes.h"
@@ -80,7 +81,8 @@ int Wave_Double_Window::handle(int event) {
 }
 
 Wave_Window::Wave_Window(int x, int y) : _dx(x), _dy(y), _canceled(false), _window(NULL),
-	_wave_browser(NULL), _wave_graph(NULL), _ok_button(NULL), _waves(), _num_waves(0), _selected_wave(0) {}
+	_add_button(NULL), _remove_button(NULL), _up_button(NULL), _down_button(NULL), _wave_browser(NULL),
+	_wave_graph(NULL), _ok_button(NULL), _waves(), _num_waves(0), _selected_wave(0) {}
 
 Wave_Window::~Wave_Window() {
 	delete _window;
@@ -91,16 +93,28 @@ void Wave_Window::initialize() {
 	Fl_Group *prev_current = Fl_Group::current();
 	Fl_Group::current(NULL);
 	// Populate window
-	_window = new Wave_Double_Window(_dx, _dy, 518, 312, "Wave Editor");
-	_wave_browser = new OS_Browser(10, 10, 100, 260);
-	_wave_graph = new Wave_Graph(120, 10, 388, 260);
-	_ok_button = new Default_Button(428, 280, 80, 22, "OK");
+	_window = new Wave_Double_Window(_dx, _dy, 518, 337, "Wave Editor");
+	_add_button = new OS_Button(10, 10, 21, 21, "@+");
+	_remove_button = new OS_Button(35, 10, 21, 21, "@1+");
+	_up_button = new OS_Button(64, 10, 21, 21, "@2<");
+	_down_button = new OS_Button(89, 10, 21, 21, "@8<");
+	_wave_browser = new OS_Browser(10, 35, 100, 260);
+	_wave_graph = new Wave_Graph(120, 35, 388, 260);
+	_ok_button = new Default_Button(428, 305, 80, 22, "OK");
 	_window->end();
 	// Initialize window
 	_window->box(OS_BG_BOX);
 	_window->callback((Fl_Callback *)cancel_cb, this);
 	_window->set_modal();
 	// Initialize window's children
+	_add_button->tooltip("New wave");
+	_add_button->callback((Fl_Callback *)add_wave_cb, this);
+	_remove_button->tooltip("Delete wave");
+	_remove_button->callback((Fl_Callback *)remove_wave_cb, this);
+	_up_button->tooltip("Move up");
+	_up_button->callback((Fl_Callback *)move_wave_up_cb, this);
+	_down_button->tooltip("Move down");
+	_down_button->callback((Fl_Callback *)move_wave_down_cb, this);
 	_wave_browser->callback((Fl_Callback *)select_wave_cb, this);
 	_wave_graph->box(OS_SWATCH_BOX);
 	_wave_graph->color(FL_BACKGROUND2_COLOR);
@@ -114,6 +128,7 @@ void Wave_Window::refresh() {
 	_canceled = false;
 	_wave_browser->select(1, 1);
 	_selected_wave = 1;
+	select_wave_cb(nullptr, this);
 }
 
 Wave *Wave_Window::wave() {
@@ -135,6 +150,13 @@ void Wave_Window::waves(const std::vector<Wave> &w, int32_t n) {
 	for (int32_t i = 0; i < _num_waves; ++i) {
 		snprintf(buffer, 16, "Wave %d", i + 1);
 		_wave_browser->add(buffer);
+	}
+
+	if (_num_waves == 16) {
+		_add_button->deactivate();
+	}
+	else {
+		_add_button->activate();
 	}
 }
 
@@ -161,7 +183,70 @@ void Wave_Window::cancel_cb(Fl_Widget *w, Wave_Window *ww) {
 	close_cb(w, ww);
 }
 
+void Wave_Window::add_wave_cb(Fl_Widget *, Wave_Window *ww) {
+	if (ww->_num_waves == 16) return;
+
+	std::fill(RANGE(ww->_waves[ww->_num_waves]), 8);
+	char buffer[16];
+	snprintf(buffer, 16, "Wave %d", ww->_num_waves + 1);
+	ww->_wave_browser->add(buffer);
+	ww->_wave_browser->select(ww->_num_waves + 1);
+	ww->_num_waves += 1;
+	if (ww->_num_waves == 16) {
+		ww->_add_button->deactivate();
+	}
+	select_wave_cb(nullptr, ww);
+}
+
+void Wave_Window::remove_wave_cb(Fl_Widget *, Wave_Window *ww) {
+	if (!ww->_selected_wave || ww->_num_waves == 1) return;
+
+	for (int i = ww->_selected_wave; i < ww->_num_waves; ++i) {
+		ww->_waves[i-1] = ww->_waves[i];
+	}
+	ww->_waves[ww->_num_waves - 1] = { 0 };
+	ww->_wave_browser->deselect();
+	ww->_wave_browser->remove(ww->_num_waves);
+	ww->_num_waves -= 1;
+	ww->_add_button->activate();
+	select_wave_cb(nullptr, ww);
+}
+
+void Wave_Window::move_wave_up_cb(Fl_Widget *, Wave_Window *ww) {
+	if (!ww->_selected_wave || ww->_selected_wave == 1) return;
+
+	std::swap(ww->_waves[ww->_selected_wave - 1], ww->_waves[ww->_selected_wave - 2]);
+	ww->_wave_browser->select(ww->_selected_wave - 1, 1);
+	select_wave_cb(nullptr, ww);
+}
+
+void Wave_Window::move_wave_down_cb(Fl_Widget *, Wave_Window *ww) {
+	if (!ww->_selected_wave || ww->_selected_wave == ww->_num_waves) return;
+
+	std::swap(ww->_waves[ww->_selected_wave - 1], ww->_waves[ww->_selected_wave]);
+	ww->_wave_browser->select(ww->_selected_wave + 1, 1);
+	select_wave_cb(nullptr, ww);
+}
+
 void Wave_Window::select_wave_cb(Fl_Widget *, Wave_Window *ww) {
 	ww->_selected_wave = ww->_wave_browser->value();
+	if (!ww->_selected_wave || ww->_num_waves == 1) {
+		ww->_remove_button->deactivate();
+	}
+	else {
+		ww->_remove_button->activate();
+	}
+	if (!ww->_selected_wave || ww->_selected_wave == 1) {
+		ww->_up_button->deactivate();
+	}
+	else {
+		ww->_up_button->activate();
+	}
+	if (!ww->_selected_wave || ww->_selected_wave == ww->_num_waves) {
+		ww->_down_button->deactivate();
+	}
+	else {
+		ww->_down_button->activate();
+	}
 	ww->_wave_graph->redraw();
 }
