@@ -34,11 +34,20 @@ private:
 	OS_Button *_down_button;
 	OS_Browser *_wave_browser;
 	Wave_Graph *_wave_graph;
+	OS_Button *_copy_button;
+	OS_Button *_paste_button;
+	OS_Button *_phase_left_button;
+	OS_Button *_phase_right_button;
+	OS_Button *_shift_up_button;
+	OS_Button *_shift_down_button;
+	OS_Button *_flip_button;
+	OS_Button *_invert_button;
 	Default_Button *_ok_button;
 	friend class Wave_Double_Window;
 	std::vector<Wave> _waves;
 	int32_t _num_waves;
 	int _selected_wave;
+	Wave _clipboard;
 public:
 	Wave_Window(int x, int y);
 	~Wave_Window();
@@ -59,6 +68,14 @@ private:
 	static void move_wave_up_cb(Fl_Widget *w, Wave_Window *ww);
 	static void move_wave_down_cb(Fl_Widget *w, Wave_Window *ww);
 	static void select_wave_cb(Fl_Widget *w, Wave_Window *ww);
+	static void copy_cb(Fl_Widget *w, Wave_Window *ww);
+	static void paste_cb(Fl_Widget *w, Wave_Window *ww);
+	static void phase_left_cb(Fl_Widget *w, Wave_Window *ww);
+	static void phase_right_cb(Fl_Widget *w, Wave_Window *ww);
+	static void shift_up_cb(Fl_Widget *w, Wave_Window *ww);
+	static void shift_down_cb(Fl_Widget *w, Wave_Window *ww);
+	static void flip_cb(Fl_Widget *w, Wave_Window *ww);
+	static void invert_cb(Fl_Widget *w, Wave_Window *ww);
 };
 
 #endif
