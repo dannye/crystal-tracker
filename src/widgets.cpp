@@ -573,6 +573,7 @@ int Dropdown::handle(int event) {
 
 	case FL_KEYBOARD:
 		if (Fl::event_key() != ' ' || (Fl::event_state() & (FL_SHIFT | FL_CTRL | FL_ALT | FL_META))) return 0;
+		[[fallthrough]];
 	case FL_PUSH:
 		if (Fl::visible_focus()) Fl::focus(this);
 	J1:

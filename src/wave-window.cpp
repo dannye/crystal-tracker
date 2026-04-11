@@ -30,7 +30,7 @@ void Wave_Graph::draw() {
 	draw_grid_lines(grid_color);
 
 	if (wave) for (size_t i = 0; i < NUM_WAVE_SAMPLES; ++i) {
-		int x_pos = x()+2 + x_step * i;
+		int x_pos = x()+2 + x_step * (int)i;
 		int y_pos = y()-2 + h() - y_step * (wave->at(i) + 1);
 		fl_rectf(x_pos, y_pos, x_step, y_step, WAVE_COLOR);
 		if (wave->at(i) < 7 || wave->at(i) > 8) {
