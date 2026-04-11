@@ -20,6 +20,12 @@ public:
 	int handle(int event);
 };
 
+class Wave_Display : public Fl_Box {
+public:
+	Wave_Display(int x, int y, int w, int h, const char *l = NULL);
+	void draw();
+};
+
 class Wave_Double_Window : public Fl_Double_Window {
 public:
 	Wave_Double_Window(int x, int y, int w, int h, const char *l = NULL);
@@ -37,6 +43,7 @@ private:
 	OS_Button *_down_button = nullptr;
 	OS_Browser *_wave_browser = nullptr;
 	Wave_Graph *_wave_graph = nullptr;
+	Wave_Display *_wave_display = nullptr;
 	OS_Light_Button *_play_button = nullptr;
 	Dropdown *_pitch_input = nullptr;
 	Dropdown *_octave_input = nullptr;
@@ -78,6 +85,7 @@ public:
 	void waves(const std::vector<Wave> &w, int32_t n);
 	void show(const Fl_Widget *p);
 	void regenerate_mod();
+	void redraw_wave();
 private:
 	static void close_cb(Fl_Widget *w, Wave_Window *ww);
 	static void cancel_cb(Fl_Widget *w, Wave_Window *ww);
