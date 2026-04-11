@@ -5,10 +5,10 @@
 #include "utils.h"
 
 IT_Module::IT_Module(
-		const std::vector<Wave> &waves,
-		const std::vector<Drumkit> &drumkits,
-		const std::vector<std::vector<uint8_t>> &drums,
-		int32_t drumkit
+	const std::vector<Wave> &waves,
+	const std::vector<Drumkit> &drumkits,
+	const std::vector<std::vector<uint8_t>> &drums,
+	int32_t drumkit
 ) {
 	generate_it_module({}, {}, {}, {}, waves, drumkits, drums, drumkit);
 
@@ -52,6 +52,29 @@ IT_Module::~IT_Module() noexcept {
 		delete _mod;
 		_mod = nullptr;
 	}
+}
+
+void IT_Module::regenerate_it_module(
+	const std::vector<Wave> &waves,
+	const std::vector<Drumkit> &drumkits,
+	const std::vector<std::vector<uint8_t>> &drums,
+	int32_t drumkit
+) {
+	if (_mod) {
+		delete _mod;
+		_mod = nullptr;
+	}
+	_data.clear();
+	_tempo_change_wrong_channel = -1;
+	_tempo_change_mid_note = -1;
+	_too_many_drums = false;
+	_current_pattern = 0;
+	_current_row = 0;
+
+	generate_it_module({}, {}, {}, {}, waves, drumkits, drums, drumkit);
+
+	_mod = new openmpt::module_ext(_data);
+	_mod->set_repeat_count(-1);
 }
 
 bool IT_Module::export_file(const char *f) {

@@ -97,6 +97,12 @@ protected:
 	int handle(int event);
 };
 
+class OS_Light_Button : public Fl_Light_Button {
+public:
+	OS_Light_Button(int x, int y, int w, int h, const char *l = NULL);
+	void draw(void);
+};
+
 class OS_Check_Button : public Fl_Check_Button {
 public:
 	OS_Check_Button(int x, int y, int w, int h, const char *l = NULL);

@@ -64,6 +64,7 @@ int Wave_Graph::handle(int event) {
 			if (x_pos >= 0 && x_pos < NUM_WAVE_SAMPLES && y_pos >= 0 && y_pos < 16 && wave->at(x_pos) != y_pos) {
 				wave->at(x_pos) = y_pos;
 				redraw();
+				ww->regenerate_mod();
 			}
 		}
 		return 1;
@@ -80,13 +81,11 @@ int Wave_Double_Window::handle(int event) {
 	return Fl_Double_Window::handle(event);
 }
 
-Wave_Window::Wave_Window(int x, int y) : _dx(x), _dy(y), _canceled(false), _window(NULL),
-	_add_button(NULL), _remove_button(NULL), _up_button(NULL), _down_button(NULL), _wave_browser(NULL), _wave_graph(NULL),
-	_copy_button(NULL), _paste_button(NULL), _phase_left_button(NULL), _phase_right_button(NULL),
-	_shift_up_button(NULL), _shift_down_button(NULL), _flip_button(NULL), _invert_button(NULL),
-	_ok_button(NULL), _waves(), _num_waves(0), _selected_wave(0), _clipboard() {}
+Wave_Window::Wave_Window(int x, int y) : _dx(x), _dy(y) {}
 
 Wave_Window::~Wave_Window() {
+	stop_audio_thread();
+	if (_mod) delete _mod;
 	delete _window;
 }
 
@@ -102,14 +101,15 @@ void Wave_Window::initialize() {
 	_down_button = new OS_Button(89, 10, 21, 21, "@8<");
 	_wave_browser = new OS_Browser(10, 35, 100, 260);
 	_wave_graph = new Wave_Graph(120, 35, 388, 260);
-	_copy_button = new OS_Button(518, 35, 80, 22, "Copy");
-	_paste_button = new OS_Button(603, 35, 80, 22, "Paste");
-	_phase_left_button = new OS_Button(518, 67, 80, 22, "Phase left");
-	_phase_right_button = new OS_Button(603, 68, 80, 22, "Phase right");
-	_shift_up_button = new OS_Button(518, 94, 80, 22, "Shift up");
-	_shift_down_button = new OS_Button(603, 94, 80, 22, "Shift down");
-	_flip_button = new OS_Button(518, 121, 80, 22, "Flip");
-	_invert_button = new OS_Button(603, 121, 80, 22, "Invert");
+	_play_button = new OS_Light_Button(518, 35, 80, 22, "Play");
+	_copy_button = new OS_Button(518, 67, 80, 22, "Copy");
+	_paste_button = new OS_Button(603, 67, 80, 22, "Paste");
+	_phase_left_button = new OS_Button(518, 99, 80, 22, "Phase left");
+	_phase_right_button = new OS_Button(603, 99, 80, 22, "Phase right");
+	_shift_up_button = new OS_Button(518, 126, 80, 22, "Shift up");
+	_shift_down_button = new OS_Button(603, 126, 80, 22, "Shift down");
+	_flip_button = new OS_Button(518, 153, 80, 22, "Flip");
+	_invert_button = new OS_Button(603, 153, 80, 22, "Invert");
 	_ok_button = new Default_Button(603, 305, 80, 22, "OK");
 	_window->end();
 	// Initialize window
@@ -129,6 +129,9 @@ void Wave_Window::initialize() {
 	_wave_graph->box(OS_SWATCH_BOX);
 	_wave_graph->color(FL_BACKGROUND2_COLOR);
 	_wave_graph->user_data(this);
+	_play_button->tooltip("Play (Spacebar)");
+	_play_button->shortcut(' ');
+	_play_button->callback((Fl_Callback *)play_cb, this);
 	_copy_button->callback((Fl_Callback *)copy_cb, this);
 	_paste_button->callback((Fl_Callback *)paste_cb, this);
 	_phase_left_button->callback((Fl_Callback *)phase_left_cb, this);
@@ -144,10 +147,25 @@ void Wave_Window::initialize() {
 
 void Wave_Window::refresh() {
 	_canceled = false;
-	_wave_browser->select(1, 1);
-	_selected_wave = 1;
+	_wave_browser->select(1);
+	_play_button->value(0);
 	std::fill(RANGE(_clipboard), (uint8_t)-1);
 	select_wave_cb(nullptr, this);
+}
+
+void Wave_Window::start_audio_thread() {
+	_audio_kill_signal = std::promise<void>();
+	std::future<void> kill_future = _audio_kill_signal.get_future();
+	_audio_thread = std::thread(&playback_thread, this, std::move(kill_future));
+}
+
+void Wave_Window::stop_audio_thread() {
+	if (_audio_thread.joinable()) {
+		_audio_mutex.lock();
+		_audio_kill_signal.set_value();
+		_audio_thread.join();
+		_audio_mutex.unlock();
+	}
 }
 
 Wave *Wave_Window::wave() {
@@ -193,7 +211,20 @@ void Wave_Window::show(const Fl_Widget *p) {
 	Fl::grab(prev_grab);
 }
 
+void Wave_Window::regenerate_mod() {
+	if (_mod && _audio_thread.joinable()) {
+		_audio_mutex.lock();
+		_mod_channel = -1;
+		_mod->regenerate_it_module(_waves, {}, {}, -1);
+		_mod->start();
+		_audio_mutex.unlock();
+	}
+}
+
 void Wave_Window::close_cb(Fl_Widget *, Wave_Window *ww) {
+	ww->stop_audio_thread();
+	if (ww->_mod) delete ww->_mod;
+	ww->_mod = nullptr;
 	ww->_window->hide();
 }
 
@@ -215,6 +246,8 @@ void Wave_Window::add_wave_cb(Fl_Widget *, Wave_Window *ww) {
 		ww->_add_button->deactivate();
 	}
 	select_wave_cb(nullptr, ww);
+
+	ww->regenerate_mod();
 }
 
 void Wave_Window::remove_wave_cb(Fl_Widget *, Wave_Window *ww) {
@@ -229,22 +262,28 @@ void Wave_Window::remove_wave_cb(Fl_Widget *, Wave_Window *ww) {
 	ww->_num_waves -= 1;
 	ww->_add_button->activate();
 	select_wave_cb(nullptr, ww);
+
+	ww->regenerate_mod();
 }
 
 void Wave_Window::move_wave_up_cb(Fl_Widget *, Wave_Window *ww) {
 	if (!ww->_selected_wave || ww->_selected_wave == 1) return;
 
 	std::swap(ww->_waves[ww->_selected_wave - 1], ww->_waves[ww->_selected_wave - 2]);
-	ww->_wave_browser->select(ww->_selected_wave - 1, 1);
+	ww->_wave_browser->select(ww->_selected_wave - 1);
 	select_wave_cb(nullptr, ww);
+
+	ww->regenerate_mod();
 }
 
 void Wave_Window::move_wave_down_cb(Fl_Widget *, Wave_Window *ww) {
 	if (!ww->_selected_wave || ww->_selected_wave == ww->_num_waves) return;
 
 	std::swap(ww->_waves[ww->_selected_wave - 1], ww->_waves[ww->_selected_wave]);
-	ww->_wave_browser->select(ww->_selected_wave + 1, 1);
+	ww->_wave_browser->select(ww->_selected_wave + 1);
 	select_wave_cb(nullptr, ww);
+
+	ww->regenerate_mod();
 }
 
 void Wave_Window::select_wave_cb(Fl_Widget *, Wave_Window *ww) {
@@ -293,25 +332,51 @@ void Wave_Window::select_wave_cb(Fl_Widget *, Wave_Window *ww) {
 		ww->_invert_button->activate();
 	}
 	ww->_wave_graph->redraw();
+
+	if (ww->_audio_thread.joinable()) {
+		ww->_audio_mutex.lock();
+		ww->_playing_instrument = ww->_selected_wave;
+		ww->_audio_mutex.unlock();
+	}
 }
 
-void Wave_Window::copy_cb(Fl_Widget *w, Wave_Window *ww) {
+void Wave_Window::play_cb(Fl_Widget *, Wave_Window *ww) {
+	ww->stop_audio_thread();
+	if (ww->_mod) delete ww->_mod;
+	ww->_mod = nullptr;
+
+	if (ww->_play_button->value()) {
+		ww->_playing_pitch = Pitch::C_NAT;
+		ww->_playing_octave = 4;
+		ww->_playing_instrument = ww->_selected_wave;
+		ww->_mod_channel = -1;
+
+		ww->_mod = new IT_Module(ww->_waves, {}, {}, -1);
+		ww->_mod->start();
+
+		ww->start_audio_thread();
+	}
+}
+
+void Wave_Window::copy_cb(Fl_Widget *, Wave_Window *ww) {
 	if (!ww->_selected_wave) return;
 	Wave *wave = ww->wave();
 	ww->_clipboard = *wave;
 	ww->_paste_button->activate();
 }
 
-void Wave_Window::paste_cb(Fl_Widget *w, Wave_Window *ww) {
+void Wave_Window::paste_cb(Fl_Widget *, Wave_Window *ww) {
 	if (!ww->_selected_wave || ww->_clipboard[0] == (uint8_t)-1) return;
 	Wave *wave = ww->wave();
 	*wave = ww->_clipboard;
 	std::fill(RANGE(ww->_clipboard), (uint8_t)-1);
 	ww->_paste_button->deactivate();
 	ww->_wave_graph->redraw();
+
+	ww->regenerate_mod();
 }
 
-void Wave_Window::phase_left_cb(Fl_Widget *w, Wave_Window *ww) {
+void Wave_Window::phase_left_cb(Fl_Widget *, Wave_Window *ww) {
 	if (!ww->_selected_wave) return;
 	Wave *wave = ww->wave();
 	uint8_t hold = wave->at(0);
@@ -320,9 +385,11 @@ void Wave_Window::phase_left_cb(Fl_Widget *w, Wave_Window *ww) {
 	}
 	wave->at(NUM_WAVE_SAMPLES - 1) = hold;
 	ww->_wave_graph->redraw();
+
+	ww->regenerate_mod();
 }
 
-void Wave_Window::phase_right_cb(Fl_Widget *w, Wave_Window *ww) {
+void Wave_Window::phase_right_cb(Fl_Widget *, Wave_Window *ww) {
 	if (!ww->_selected_wave) return;
 	Wave *wave = ww->wave();
 	uint8_t hold = wave->at(NUM_WAVE_SAMPLES - 1);
@@ -331,40 +398,87 @@ void Wave_Window::phase_right_cb(Fl_Widget *w, Wave_Window *ww) {
 	}
 	wave->at(0) = hold;
 	ww->_wave_graph->redraw();
+
+	ww->regenerate_mod();
 }
 
-void Wave_Window::shift_up_cb(Fl_Widget *w, Wave_Window *ww) {
+void Wave_Window::shift_up_cb(Fl_Widget *, Wave_Window *ww) {
 	if (!ww->_selected_wave) return;
 	Wave *wave = ww->wave();
 	for (size_t i = 0; i < NUM_WAVE_SAMPLES; ++i) {
 		if (wave->at(i) < 15) wave->at(i) += 1;
 	}
 	ww->_wave_graph->redraw();
+
+	ww->regenerate_mod();
 }
 
-void Wave_Window::shift_down_cb(Fl_Widget *w, Wave_Window *ww) {
+void Wave_Window::shift_down_cb(Fl_Widget *, Wave_Window *ww) {
 	if (!ww->_selected_wave) return;
 	Wave *wave = ww->wave();
 	for (size_t i = 0; i < NUM_WAVE_SAMPLES; ++i) {
 		if (wave->at(i) > 0) wave->at(i) -= 1;
 	}
 	ww->_wave_graph->redraw();
+
+	ww->regenerate_mod();
 }
 
-void Wave_Window::flip_cb(Fl_Widget *w, Wave_Window *ww) {
+void Wave_Window::flip_cb(Fl_Widget *, Wave_Window *ww) {
 	if (!ww->_selected_wave) return;
 	Wave *wave = ww->wave();
 	for (size_t i = 0; i < NUM_WAVE_SAMPLES / 2; ++i) {
 		std::swap(wave->at(i), wave->at(NUM_WAVE_SAMPLES - 1 - i));
 	}
 	ww->_wave_graph->redraw();
+
+	ww->regenerate_mod();
 }
 
-void Wave_Window::invert_cb(Fl_Widget *w, Wave_Window *ww) {
+void Wave_Window::invert_cb(Fl_Widget *, Wave_Window *ww) {
 	if (!ww->_selected_wave) return;
 	Wave *wave = ww->wave();
 	for (size_t i = 0; i < NUM_WAVE_SAMPLES; ++i) {
 		wave->at(i) = 15 - wave->at(i);
 	}
 	ww->_wave_graph->redraw();
+
+	ww->regenerate_mod();
+}
+
+void Wave_Window::playback_thread(Wave_Window *ww, std::future<void> kill_signal) {
+	Pitch pitch = Pitch::REST;
+	int32_t octave = 0;
+	int instrument = 0;
+
+	while (kill_signal.wait_for(std::chrono::milliseconds(8)) == std::future_status::timeout) {
+		if (ww->_audio_mutex.try_lock()) {
+			IT_Module *mod = ww->_mod;
+			if (mod && mod->playing()) {
+				if (
+					pitch != ww->_playing_pitch || octave != ww->_playing_octave || instrument != ww->_playing_instrument ||
+					(ww->_mod_channel == -1 && pitch != Pitch::REST && octave != 0 && instrument != 0)
+				) {
+					if (ww->_mod_channel != -1) {
+						mod->stop_note(ww->_mod_channel);
+						ww->_mod_channel = -1;
+					}
+					pitch = ww->_playing_pitch;
+					octave = ww->_playing_octave;
+					instrument = ww->_playing_instrument;
+					if (pitch != Pitch::REST && octave != 0 && instrument != 0) {
+						ww->_mod_channel = mod->play_note(pitch, octave, 3, instrument - 1);
+					}
+				}
+
+				bool success = mod->play();
+				if (!success) mod->stop();
+				ww->_audio_mutex.unlock();
+			}
+			else {
+				ww->_audio_mutex.unlock();
+				break;
+			}
+		}
+	}
 }

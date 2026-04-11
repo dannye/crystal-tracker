@@ -159,6 +159,36 @@ int Default_Button::handle(int event) {
 	return Fl_Button::handle(event);
 }
 
+OS_Light_Button::OS_Light_Button(int x, int y, int w, int h, const char *l) : Fl_Light_Button(x, y, w, h, l) {
+	labelfont(OS_FONT);
+	labelsize(OS_FONT_SIZE);
+	box(OS_BUTTON_UP_BOX);
+}
+
+void OS_Light_Button::draw() {
+	// Based on Fl_Light_Button::draw()
+	Fl_Boxtype dbox = OS::current_theme() == OS::Theme::AERO || OS::current_theme() == OS::Theme::GREYBIRD || OS::current_theme() == OS::Theme::ROSE_GOLD ?
+		OS_HOVERED_UP_BOX : OS::current_theme() == OS::Theme::AQUA ? OS_DEFAULT_BUTTON_UP_BOX : OS_DEPRESSED_DOWN_BOX;
+	draw_box(this == Fl::pushed() ? dbox : box(), color());
+
+	Fl_Color col = OS::current_theme() == OS::Theme::OLIVE ? FL_SELECTION_COLOR : selection_color();
+	col = value() ? (active_r() ? col : fl_inactive(col)) : fl_color_average(color(), FL_BLACK, 0.95f);
+
+	int W  = labelsize();
+	if (W > 25) W = 25;
+	int bx = Fl::box_dx(box());
+	int dx = bx + 3;
+	int dy = (h() - W) / 2 + 1;
+	int hh = h() - 2 * dy;
+	int ww = W / 2 + 3;
+	int xx = dx;
+	if (w() < ww + 2 * xx) xx = (w() - ww) / 2;
+	draw_box(OS_SPACER_THIN_DOWN_BOX, x()+xx, y()+dy, ww, hh, col);
+	int lx = dx + ww + 3;
+	draw_label(x()+lx, y(), w()-lx-bx, h());
+	if (Fl::focus() == this) draw_focus();
+}
+
 OS_Check_Button::OS_Check_Button(int x, int y, int w, int h, const char *l) : Fl_Check_Button(x, y, w, h, l) {
 	labelfont(OS_FONT);
 	labelsize(OS_FONT_SIZE);

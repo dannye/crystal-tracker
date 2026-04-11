@@ -61,6 +61,13 @@ public:
 	IT_Module(const IT_Module&) = delete;
 	IT_Module& operator=(const IT_Module&) = delete;
 
+	void regenerate_it_module(
+		const std::vector<Wave> &waves,
+		const std::vector<Drumkit> &drumkits,
+		const std::vector<std::vector<uint8_t>> &drums,
+		int32_t drumkit
+	);
+
 	bool export_file(const char *f);
 
 	std::string get_warnings() { return _mod->get_metadata("warnings"); }
