@@ -101,7 +101,9 @@ void Wave_Window::initialize() {
 	_down_button = new OS_Button(89, 10, 21, 21, "@8<");
 	_wave_browser = new OS_Browser(10, 35, 100, 260);
 	_wave_graph = new Wave_Graph(120, 35, 388, 260);
-	_play_button = new OS_Light_Button(518, 35, 80, 22, "Play");
+	_play_button = new OS_Light_Button(518, 35, 65, 22, "Play");
+	_pitch_input = new Dropdown(588, 35, 50, 22);
+	_octave_input = new Dropdown(643, 35, 40, 22);
 	_copy_button = new OS_Button(518, 67, 80, 22, "Copy");
 	_paste_button = new OS_Button(603, 67, 80, 22, "Paste");
 	_phase_left_button = new OS_Button(518, 99, 80, 22, "Phase left");
@@ -132,6 +134,14 @@ void Wave_Window::initialize() {
 	_play_button->tooltip("Play (Spacebar)");
 	_play_button->shortcut(' ');
 	_play_button->callback((Fl_Callback *)play_cb, this);
+	for (int i = 1; i <= NUM_PITCHES; ++i) {
+		_pitch_input->add(PITCH_NAMES[i]);
+	}
+	_pitch_input->tooltip("Pitch");
+	_pitch_input->callback((Fl_Callback *)pitch_cb, this);
+	_octave_input->add("1|2|3|4|5|6|7|8");
+	_octave_input->tooltip("Octave");
+	_octave_input->callback((Fl_Callback *)octave_cb, this);
 	_copy_button->callback((Fl_Callback *)copy_cb, this);
 	_paste_button->callback((Fl_Callback *)paste_cb, this);
 	_phase_left_button->callback((Fl_Callback *)phase_left_cb, this);
@@ -149,6 +159,8 @@ void Wave_Window::refresh() {
 	_canceled = false;
 	_wave_browser->select(1);
 	_play_button->value(0);
+	_pitch_input->value(0);
+	_octave_input->value(3);
 	std::fill(RANGE(_clipboard), (uint8_t)-1);
 	select_wave_cb(nullptr, this);
 }
@@ -179,13 +191,13 @@ void Wave_Window::waves(const std::vector<Wave> &w, int32_t n) {
 	_waves = w;
 	_num_waves = n;
 
-	assert(_waves.size() == 16);
+	_waves.resize(16);
 	assert(_num_waves >= 1 && _num_waves <= 16);
 
 	_wave_browser->clear();
 	char buffer[16];
 	for (int32_t i = 0; i < _num_waves; ++i) {
-		snprintf(buffer, 16, "Wave %d", i + 1);
+		snprintf(buffer, 16, "Wave %d", i);
 		_wave_browser->add(buffer);
 	}
 
@@ -238,7 +250,7 @@ void Wave_Window::add_wave_cb(Fl_Widget *, Wave_Window *ww) {
 
 	std::fill(RANGE(ww->_waves[ww->_num_waves]), 8);
 	char buffer[16];
-	snprintf(buffer, 16, "Wave %d", ww->_num_waves + 1);
+	snprintf(buffer, 16, "Wave %d", ww->_num_waves);
 	ww->_wave_browser->add(buffer);
 	ww->_wave_browser->select(ww->_num_waves + 1);
 	ww->_num_waves += 1;
@@ -346,8 +358,8 @@ void Wave_Window::play_cb(Fl_Widget *, Wave_Window *ww) {
 	ww->_mod = nullptr;
 
 	if (ww->_play_button->value()) {
-		ww->_playing_pitch = Pitch::C_NAT;
-		ww->_playing_octave = 4;
+		ww->_playing_pitch = (Pitch)(ww->_pitch_input->value() + 1);
+		ww->_playing_octave = ww->_octave_input->value() + 1;
 		ww->_playing_instrument = ww->_selected_wave;
 		ww->_mod_channel = -1;
 
@@ -355,6 +367,22 @@ void Wave_Window::play_cb(Fl_Widget *, Wave_Window *ww) {
 		ww->_mod->start();
 
 		ww->start_audio_thread();
+	}
+}
+
+void Wave_Window::pitch_cb(Fl_Widget *, Wave_Window *ww) {
+	if (ww->_audio_thread.joinable()) {
+		ww->_audio_mutex.lock();
+		ww->_playing_pitch = (Pitch)(ww->_pitch_input->value() + 1);
+		ww->_audio_mutex.unlock();
+	}
+}
+
+void Wave_Window::octave_cb(Fl_Widget *, Wave_Window *ww) {
+	if (ww->_audio_thread.joinable()) {
+		ww->_audio_mutex.lock();
+		ww->_playing_octave = ww->_octave_input->value() + 1;
+		ww->_audio_mutex.unlock();
 	}
 }
 

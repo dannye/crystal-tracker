@@ -38,6 +38,8 @@ private:
 	OS_Browser *_wave_browser = nullptr;
 	Wave_Graph *_wave_graph = nullptr;
 	OS_Light_Button *_play_button = nullptr;
+	Dropdown *_pitch_input = nullptr;
+	Dropdown *_octave_input = nullptr;
 	OS_Button *_copy_button = nullptr;
 	OS_Button *_paste_button = nullptr;
 	OS_Button *_phase_left_button = nullptr;
@@ -85,6 +87,8 @@ private:
 	static void move_wave_down_cb(Fl_Widget *w, Wave_Window *ww);
 	static void select_wave_cb(Fl_Widget *w, Wave_Window *ww);
 	static void play_cb(Fl_Widget *w, Wave_Window *ww);
+	static void pitch_cb(Fl_Widget *w, Wave_Window *ww);
+	static void octave_cb(Fl_Widget *w, Wave_Window *ww);
 	static void copy_cb(Fl_Widget *w, Wave_Window *ww);
 	static void paste_cb(Fl_Widget *w, Wave_Window *ww);
 	static void phase_left_cb(Fl_Widget *w, Wave_Window *ww);
