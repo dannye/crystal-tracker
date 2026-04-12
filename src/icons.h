@@ -3,6 +3,7 @@
 
 #pragma warning(push, 0)
 #include <FL/Fl_Pixmap.H>
+#include <FL/fl_draw.H>
 #pragma warning(pop)
 
 #include "blank.xpm"
@@ -151,5 +152,96 @@ bool make_deimage(Fl_Widget *wgt, Fl_Image *image = nullptr) {
 	wgt->deimage(deimg);
 	return true;
 }
+
+#define BP fl_begin_polygon()
+#define EP fl_end_polygon()
+#define BC fl_begin_loop()
+#define EC fl_end_loop()
+#define vv(x,y) fl_vertex(x,y)
+
+static void set_outline_color(Fl_Color c) {
+	fl_color(fl_color_average(c, FL_BLACK, .9f));
+}
+
+static void rectangle(double x, double y, double x2, double y2, Fl_Color col) {
+	fl_color(col);
+	BP; vv(x,y); vv(x2,y); vv(x2,y2); vv(x,y2); EP;
+	set_outline_color(col);
+	BC; vv(x,y); vv(x2,y); vv(x2,y2); vv(x,y2); EC;
+}
+
+static void draw_arrow1(Fl_Color col) {
+	fl_color(col);
+	if (fl_graphics_driver->can_fill_non_convex_polygon()) {
+		// draw the arrow as a 7-vertex filled polygon
+		BP; vv(-0.8,-0.2); vv(-0.8,0.2); vv(0.0,0.2); vv(0.0,0.6); vv(0.6,0.0);
+		vv(0.0,-0.6); vv(0.0,-0.2); EP;
+	} else {
+		// draw the arrow as a rectangle plus a triangle
+		BP; vv(-0.8,-0.2); vv(-0.8,0.2); vv(0.0,0.2); vv(0.0,-0.2); EP;
+		BP; vv(0.0,0.6); vv(0.6,0.0); vv(0.0,-0.6); vv(0.0,-0.2); vv(0.0,0.2); EP;
+	}
+	set_outline_color(col);
+	BC; vv(-0.8,-0.2); vv(-0.8,0.2); vv(0.0,0.2); vv(0.0,0.6); vv(0.6,0.0);
+		vv(0.0,-0.6); vv(0.0,-0.2); EC;
+}
+
+static void draw_arrow2(Fl_Color col) {
+	fl_color(col);
+	BP; vv(-0.3,0.8); vv(0.50,0.0); vv(-0.3,-0.8); EP;
+	set_outline_color(col);
+	BC; vv(-0.3,0.8); vv(0.50,0.0); vv(-0.3,-0.8); EC;
+}
+
+static void draw_arrow3(Fl_Color col) {
+	fl_color(col);
+	BP; vv(0.1,0.8); vv(0.9,0.0); vv(0.1,-0.8); EP;
+	BP; vv(-0.7,0.8); vv(0.1,0.0); vv(-0.7,-0.8); EP;
+	set_outline_color(col);
+	BC; vv(0.1,0.8); vv(0.9,0.0); vv(0.1,-0.8); EC;
+	BC; vv(-0.7,0.8); vv(0.1,0.0); vv(-0.7,-0.8); EC;
+}
+
+static void draw_arrow1bar(Fl_Color col) {
+	draw_arrow1(col);
+	rectangle(.8,-.8,.9,.8,col);
+}
+
+static void draw_doublearrow(Fl_Color col) {
+	fl_color(col);
+	BP; vv(-0.35,-0.2); vv(-0.35,0.2); vv(0.35,0.2); vv(0.35,-0.2); EP;
+	BP; vv(0.25,0.5); vv(0.75,0.0); vv(0.25,-0.5); EP;
+	BP; vv(-0.25,0.5); vv(-0.75,0.0); vv(-0.25,-0.5); EP;
+	set_outline_color(col);
+	BC; vv(-0.25,0.2); vv(0.25,0.2); vv(0.25,0.5); vv(0.75,0.0);
+		vv(0.25,-0.5); vv(0.25,-0.2); vv(-0.25,-0.2); vv(-0.25,-0.5);
+		vv(-0.75,0.0); vv(-0.25,0.5); EC;
+}
+
+static void draw_plus(Fl_Color col) {
+	fl_color(col);
+	BP; vv(-0.9,-0.15); vv(-0.9,0.15); vv(0.9,0.15); vv(0.9,-0.15); EP;
+	BP; vv(-0.15,-0.9); vv(-0.15,0.9); vv(0.15,0.9); vv(0.15,-0.9); EP;
+	set_outline_color(col);
+	BC;
+	vv(-0.9,-0.15); vv(-0.9,0.15); vv(-0.15,0.15); vv(-0.15,0.9);
+	vv(0.15,0.9); vv(0.15,0.15); vv(0.9,0.15); vv(0.9,-0.15);
+	vv(0.15,-0.15); vv(0.15,-0.9); vv(-0.15,-0.9); vv(-0.15,-0.15);
+	EC;
+}
+
+static void override_symbols() {
+	fl_add_symbol(">",   draw_arrow2,      1);
+	fl_add_symbol(">>",  draw_arrow3,      1);
+	fl_add_symbol("->|", draw_arrow1bar,   1);
+	fl_add_symbol("<->", draw_doublearrow, 1);
+	fl_add_symbol("+",   draw_plus,        1);
+}
+
+#undef BP
+#undef EP
+#undef BC
+#undef EC
+#undef vv
 
 #endif

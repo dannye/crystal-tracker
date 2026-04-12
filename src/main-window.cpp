@@ -833,6 +833,7 @@ Main_Window::Main_Window(int x, int y, int w, int h, const char *) : Fl_Double_W
 #include "help.html" // a C++11 raw string literal
 	);
 
+	override_symbols();
 	update_icons();
 	update_recent_songs();
 	update_active_controls();
