@@ -128,12 +128,12 @@ void Wave_Window::initialize() {
 	_octave_input = new Dropdown(468, 10, 40, 22);
 	_copy_button = new OS_Button(518, 35, 80, 22, "Copy");
 	_paste_button = new OS_Button(518, 62, 80, 22, "Paste");
-	_phase_left_button = new OS_Button(518, 94, 80, 22, "Phase @-24>>");
+	_phase_left_button = new OS_Button(518, 94, 80, 22, "Phase @-2<<");
 	_phase_right_button = new OS_Button(518, 121, 80, 22, "Phase @-2>>");
-	_shift_up_button = new OS_Button(518, 148, 80, 22, "Shift @-18->|");
-	_shift_down_button = new OS_Button(518, 175, 80, 22, "Shift @-12->|");
+	_shift_up_button = new OS_Button(518, 148, 80, 22, "Shift @-1^_");
+	_shift_down_button = new OS_Button(518, 175, 80, 22, "Shift @-1v_");
 	_flip_button = new OS_Button(518, 202, 80, 22, "Flip @<->");
-	_invert_button = new OS_Button(518, 229, 80, 22, "Invert @2<->");
+	_invert_button = new OS_Button(518, 229, 80, 22, "Invert @^|v");
 	_ok_button = new Default_Button(518, 330, 80, 22, "OK");
 	_window->end();
 	// Initialize window
