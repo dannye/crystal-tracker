@@ -213,8 +213,7 @@ private:
 	Recent_Cache _recent[NUM_RECENT];
 	int _zoom = 0;
 	Song _song;
-	std::vector<Wave> _waves;
-	int32_t _num_waves = 0;
+	Waves _waves;
 	std::vector<Drumkit> _drumkits;
 	std::vector<Drum> _drums;
 	std::vector<std::vector<uint8_t>> _drum_samples;

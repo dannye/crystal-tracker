@@ -1107,7 +1107,7 @@ void Main_Window::set_note_properties(const std::vector<const Note_View *> &note
 	_note_properties->set_note_properties(
 		notes,
 		selected_channel(),
-		(int)_num_waves,
+		(int)_waves.num_waves,
 		(int)_drumkits.size(),
 		selected_channel() == _piano_roll->first_channel_number()
 	);
@@ -1809,10 +1809,10 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 			_warning_dialog->show(this);
 		}
 		int32_t max_wave_id = _song.max_wave_id();
-		if (max_wave_id >= _num_waves) {
+		if (max_wave_id >= _waves.num_waves) {
 			std::string msg = basename;
 			msg = msg + " uses undefined wave sample: " + std::to_string(max_wave_id) + "\n\n"
-				"Valid wave IDs are: 0-" + std::to_string(_num_waves - 1);
+				"Valid wave IDs are: 0-" + std::to_string(_waves.num_waves - 1);
 			_warning_dialog->message(msg);
 			_warning_dialog->show(this);
 		}
@@ -1831,10 +1831,10 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 			_warning_dialog->message(msg);
 			_warning_dialog->show(this);
 
-			_waves.insert(_waves.end(), _song.waves().begin(), _song.waves().begin() + 15);
+			_waves.waves.insert(_waves.waves.end(), _song.waves().begin(), _song.waves().begin() + 15);
 		}
 		else {
-			_waves.insert(_waves.end(), RANGE(_song.waves()));
+			_waves.waves.insert(_waves.waves.end(), RANGE(_song.waves()));
 		}
 		_piano_roll->set_timeline(_song);
 	}
@@ -1950,8 +1950,11 @@ bool Main_Window::load_waves() {
 		_warning_dialog->message(msg);
 		_warning_dialog->show(this);
 	}
-	_waves = parsed_waves.waves();
-	_num_waves = std::min(parsed_waves.num_parsed_waves(), 16);
+	_waves.waves_file = parsed_waves.waves_file();
+	_waves.waves_label = parsed_waves.waves_label();
+	_waves.waves = parsed_waves.waves();
+	_waves.num_waves = std::min(parsed_waves.num_parsed_waves(), 16);
+	_waves.uses_dn = parsed_waves.uses_dn();
 	return true;
 }
 
@@ -1984,7 +1987,7 @@ void Main_Window::regenerate_it_module() {
 		_piano_roll->channel_2_notes(),
 		_piano_roll->channel_3_notes(),
 		_piano_roll->channel_4_notes(),
-		_waves,
+		_waves.waves,
 		_drumkits,
 		_drum_samples,
 		loop() ? _piano_roll->get_loop_tick() : -1,
@@ -2010,7 +2013,7 @@ void Main_Window::regenerate_interactive_module() {
 			_playing_instrument = view.drumkit;
 		}
 	}
-	std::vector<Wave> waves = _waves;
+	std::vector<Wave> waves = _waves.waves;
 	waves.resize(16);
 	if (_interactive_module) {
 		delete _interactive_module;
@@ -2533,8 +2536,11 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	mw->label(PROGRAM_NAME);
 	mw->_piano_roll->clear();
 	mw->_song.clear();
-	mw->_waves.clear();
-	mw->_num_waves = 0;
+	mw->_waves.waves_file.clear();
+	mw->_waves.waves_label.clear();
+	mw->_waves.waves.clear();
+	mw->_waves.num_waves = 0;
+	mw->_waves.uses_dn = false;
 	mw->_drumkits.clear();
 	mw->_drums.clear();
 	mw->_drum_samples.clear();
@@ -4143,8 +4149,19 @@ void Main_Window::wave_editor_cb(Fl_Widget *, Main_Window *mw) {
 
 	mw->_wave_editor_tb->simulate_key_action();
 
-	mw->_wave_window->waves(mw->_waves, mw->_num_waves);
+	mw->_wave_window->waves(mw->_waves);
 	mw->_wave_window->show(mw);
+
+	mw->_waves = mw->_wave_window->saved_waves();
+
+	if (mw->_song.waves().size() > 15) {
+		mw->_waves.waves.insert(mw->_waves.waves.end(), mw->_song.waves().begin(), mw->_song.waves().begin() + 15);
+	}
+	else {
+		mw->_waves.waves.insert(mw->_waves.waves.end(), RANGE(mw->_song.waves()));
+	}
+
+	mw->refresh_note_properties();
 }
 
 void Main_Window::reload_waves_cb(Fl_Widget *, Main_Window *mw) {
@@ -4155,10 +4172,10 @@ void Main_Window::reload_waves_cb(Fl_Widget *, Main_Window *mw) {
 	}
 
 	if (mw->_song.waves().size() > 15) {
-		mw->_waves.insert(mw->_waves.end(), mw->_song.waves().begin(), mw->_song.waves().begin() + 15);
+		mw->_waves.waves.insert(mw->_waves.waves.end(), mw->_song.waves().begin(), mw->_song.waves().begin() + 15);
 	}
 	else {
-		mw->_waves.insert(mw->_waves.end(), RANGE(mw->_song.waves()));
+		mw->_waves.waves.insert(mw->_waves.waves.end(), RANGE(mw->_song.waves()));
 	}
 
 	mw->refresh_note_properties();

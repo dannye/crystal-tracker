@@ -20,6 +20,9 @@ std::string Parsed_Waves::get_error_message() const {
 		return "Cannot open wave samples file.";
 	case Result::WAVES_NO_WAVES:
 		return "No waves defined.";
+	case Result::WAVES_UNRECOGNIZED_MACRO:
+		return "Line " + std::to_string(_line_number) +
+			": Unrecognized macro.";
 	case Result::WAVES_TOO_FEW_SAMPLES:
 		return "Line " + std::to_string(_line_number) +
 			": Too few samples.";
@@ -94,10 +97,25 @@ Parsed_Waves::Result Parsed_Waves::parse_waves(const char *d) {
 	return _result;
 }
 
+static bool get_label(std::istringstream &iss, std::string &l, const std::string &scope = "") {
+	iss >> l;
+	rtrim(l, ":");
+	trim(l);
+	if (l.size() == 0) {
+		return false;
+	}
+	if (l[0] == '.') {
+		l = scope + l;
+	}
+	return true;
+}
+
 Parsed_Waves::Result Parsed_Waves::try_parse_waves(const char *f) {
 	_waves_file = f;
+	_waves_label = "";
 	_waves.clear();
 	_num_parsed_waves = 0;
+	_uses_dn = false;
 	_result = Result::WAVES_NULL;
 	_line_number = 0;
 
@@ -114,19 +132,32 @@ Parsed_Waves::Result Parsed_Waves::try_parse_waves(const char *f) {
 		remove_comment(line);
 		rtrim(line);
 		if (line.size() == 0) { continue; }
+		bool indented = is_indented(line);
 		std::istringstream lss(line);
 
-		std::string macro;
-		if (!leading_macro(lss, macro)) { continue; }
-		bool nybbles = equals_ignore_case(macro, "dn");
-		if (!nybbles && !equals_ignore_case(macro, "db")) { continue; }
-
-		Wave wave;
-		Result r = parse_wave(lss, wave, nybbles);
-		if (r != Result::WAVES_OK) {
-			return (_result = r);
+		if (!indented) {
+			if (_waves_label.size() == 0 && _waves.size() == 0) {
+				get_label(lss, _waves_label);
+			}
 		}
-		_waves.push_back(wave);
+		else {
+			std::string macro;
+			if (!leading_macro(lss, macro)) {
+				return (_result = Result::WAVES_UNRECOGNIZED_MACRO);
+			}
+			bool nybbles = equals_ignore_case(macro, "dn");
+			if (!nybbles && !equals_ignore_case(macro, "db")) {
+				return (_result = Result::WAVES_UNRECOGNIZED_MACRO);
+			}
+			_uses_dn |= nybbles;
+
+			Wave wave;
+			Result r = parse_wave(lss, wave, nybbles);
+			if (r != Result::WAVES_OK) {
+				return (_result = r);
+			}
+			_waves.push_back(wave);
+		}
 	}
 
 	_num_parsed_waves = (int32_t)_waves.size();

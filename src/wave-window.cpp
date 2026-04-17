@@ -107,6 +107,9 @@ Wave_Window::Wave_Window(int x, int y) : _dx(x), _dy(y) {}
 Wave_Window::~Wave_Window() {
 	stop_audio_thread();
 	if (_mod) delete _mod;
+	delete _confirm_dialog;
+	delete _success_dialog;
+	delete _error_dialog;
 	delete _window;
 }
 
@@ -134,8 +137,13 @@ void Wave_Window::initialize() {
 	_shift_down_button = new OS_Button(518, 180, 80, 22, "Shift @-1v_");
 	_flip_button = new OS_Button(518, 212, 80, 22, "Flip @<->");
 	_invert_button = new OS_Button(518, 239, 80, 22, "Invert @^|v");
-	_ok_button = new Default_Button(518, 330, 80, 22, "OK");
+	_save_button = new Default_Button(10, 330, 80, 22, "Save");
+	_revert_button = new OS_Button(100, 330, 80, 22, "Revert");
+	_close_button = new OS_Button(518, 330, 80, 22, "Close");
 	_window->end();
+	_error_dialog = new Modal_Dialog(_window, "Error", Modal_Dialog::Icon::ERROR_ICON);
+	_success_dialog = new Modal_Dialog(_window, "Success", Modal_Dialog::Icon::SUCCESS_ICON);
+	_confirm_dialog = new Modal_Dialog(_window, "Warning", Modal_Dialog::Icon::WARNING_ICON, true);
 	// Initialize window
 	_window->box(OS_BG_BOX);
 	_window->callback((Fl_Callback *)cancel_cb, this);
@@ -175,8 +183,13 @@ void Wave_Window::initialize() {
 	_shift_down_button->callback((Fl_Callback *)shift_down_cb, this);
 	_flip_button->callback((Fl_Callback *)flip_cb, this);
 	_invert_button->callback((Fl_Callback *)invert_cb, this);
-	_ok_button->tooltip("OK (Enter)");
-	_ok_button->callback((Fl_Callback *)close_cb, this);
+	_save_button->shortcut(0);
+	_save_button->callback((Fl_Callback *)save_cb, this);
+	_revert_button->callback((Fl_Callback *)revert_cb, this);
+	_close_button->callback((Fl_Callback *)close_cb, this);
+	_error_dialog->width_range(280, 500);
+	_success_dialog->width_range(280, 500);
+	_confirm_dialog->width_range(280, 500);
 	Fl_Group::current(prev_current);
 }
 
@@ -205,33 +218,82 @@ void Wave_Window::stop_audio_thread() {
 	}
 }
 
-Wave *Wave_Window::wave() {
-	if (_selected_wave == 0) return nullptr;
-	return &_waves[_selected_wave-1];
+bool Wave_Window::modified() {
+	if (_waves.num_waves != _saved_waves.num_waves) return true;
+
+	for (int32_t i = 0; i < _waves.num_waves; ++i) {
+		for (size_t j = 0; j < NUM_WAVE_SAMPLES; ++j) {
+			if (_waves.waves[i][j] != _saved_waves.waves[i][j]) return true;
+		}
+	}
+
+	return false;
 }
 
-void Wave_Window::waves(const std::vector<Wave> &w, int32_t n) {
+bool Wave_Window::write_waves(const char *f) {
+	std::ofstream ofs;
+	open_ofstream(ofs, f);
+	if (!ofs.good()) { return false; }
+
+	if (_waves.waves_label.size()) {
+		ofs << _waves.waves_label << ":\n";
+	}
+
+	for (int32_t i = 0; i < _waves.num_waves; ++i) {
+		if (_waves.uses_dn) {
+			ofs << "\tdn ";
+			for (size_t j = 0; j < NUM_WAVE_SAMPLES; ++j) {
+				ofs << std::setw(2) << (int)_waves.waves[i][j];
+				if (j < NUM_WAVE_SAMPLES - 1) {
+					ofs << ", ";
+				}
+			}
+			ofs << "\n";
+		}
+		else {
+			ofs << "\tdb ";
+			for (size_t j = 0; j < NUM_WAVE_SAMPLES; j += 2) {
+				ofs << "$" << std::hex << (int)_waves.waves[i][j] << (int)_waves.waves[i][j+1];
+				if (j < NUM_WAVE_SAMPLES - 2) {
+					ofs << ", ";
+				}
+			}
+			ofs << "\n";
+		}
+	}
+
+	ofs.close();
+	return true;
+}
+
+Wave *Wave_Window::wave() {
+	if (_selected_wave == 0) return nullptr;
+	return &_waves.waves[_selected_wave-1];
+}
+
+void Wave_Window::waves(const Waves &w) {
 	initialize();
 
 	_waves = w;
-	_num_waves = n;
 
-	_waves.resize(16);
-	assert(_num_waves >= 1 && _num_waves <= 16);
+	_waves.waves.resize(16);
+	assert(_waves.num_waves >= 1 && _waves.num_waves <= 16);
 
 	_wave_browser->clear();
 	char buffer[16];
-	for (int32_t i = 0; i < _num_waves; ++i) {
+	for (int32_t i = 0; i < _waves.num_waves; ++i) {
 		snprintf(buffer, 16, "Wave %d", i);
 		_wave_browser->add(buffer);
 	}
 
-	if (_num_waves == 16) {
+	if (_waves.num_waves == 16) {
 		_add_button->deactivate();
 	}
 	else {
 		_add_button->activate();
 	}
+
+	_saved_waves = _waves;
 }
 
 void Wave_Window::show(const Fl_Widget *p) {
@@ -242,7 +304,7 @@ void Wave_Window::show(const Fl_Widget *p) {
 	int x = p->x() + (p->w() - _window->w()) / 2;
 	int y = p->y() + (p->h() - _window->h()) / 2;
 	_window->position(x, y);
-	_ok_button->take_focus();
+	_wave_browser->take_focus();
 	_window->show();
 	while (_window->shown()) { Fl::wait(); }
 	Fl::grab(prev_grab);
@@ -252,7 +314,7 @@ void Wave_Window::regenerate_mod() {
 	if (_mod && _audio_thread.joinable()) {
 		_audio_mutex.lock();
 		_mod_channel = -1;
-		_mod->regenerate_it_module(_waves, {}, {}, -1);
+		_mod->regenerate_it_module(_waves.waves, {}, {}, -1);
 		_mod->start();
 		_audio_mutex.unlock();
 	}
@@ -264,6 +326,15 @@ void Wave_Window::redraw_wave() {
 }
 
 void Wave_Window::close_cb(Fl_Widget *, Wave_Window *ww) {
+	if (ww->modified()) {
+		std::string msg = fl_filename_name(ww->_waves.waves_file.c_str());
+		msg = msg + " has unsaved changes!\n\n"
+			"Close anyway?";
+		ww->_confirm_dialog->message(msg);
+		ww->_confirm_dialog->show(ww->_window);
+		if (ww->_confirm_dialog->canceled()) { return; }
+	}
+
 	ww->stop_audio_thread();
 	if (ww->_mod) delete ww->_mod;
 	ww->_mod = nullptr;
@@ -275,16 +346,52 @@ void Wave_Window::cancel_cb(Fl_Widget *w, Wave_Window *ww) {
 	close_cb(w, ww);
 }
 
-void Wave_Window::add_wave_cb(Fl_Widget *, Wave_Window *ww) {
-	if (ww->_num_waves == 16) return;
+void Wave_Window::save_cb(Fl_Widget *, Wave_Window *ww) {
+	const char *filename = ww->_waves.waves_file.c_str();
+	const char *basename = fl_filename_name(filename);
 
-	std::fill(RANGE(ww->_waves[ww->_num_waves]), 8);
+	if (ww->modified() && !ww->write_waves(filename)) {
+		std::string msg = "Could not write to ";
+		msg = msg + basename + "!";
+		ww->_error_dialog->message(msg);
+		ww->_error_dialog->show(ww->_window);
+		return;
+	}
+
+	std::string msg = "Saved ";
+	msg = msg + basename + "!";
+	ww->_success_dialog->message(msg);
+	ww->_success_dialog->show(ww->_window);
+
+	ww->_saved_waves = ww->_waves;
+}
+
+void Wave_Window::revert_cb(Fl_Widget *, Wave_Window *ww) {
+	if (!ww->modified()) return;
+
+	std::string msg = "Discard unsaved changes?";
+	ww->_confirm_dialog->message(msg);
+	ww->_confirm_dialog->show(ww->_window);
+	if (ww->_confirm_dialog->canceled()) { return; }
+
+	ww->waves(ww->_saved_waves);
+
+	ww->_wave_browser->select(1);
+	select_wave_cb(nullptr, ww);
+
+	ww->regenerate_mod();
+}
+
+void Wave_Window::add_wave_cb(Fl_Widget *, Wave_Window *ww) {
+	if (ww->_waves.num_waves == 16) return;
+
+	std::fill(RANGE(ww->_waves.waves[ww->_waves.num_waves]), 8);
 	char buffer[16];
-	snprintf(buffer, 16, "Wave %d", ww->_num_waves);
+	snprintf(buffer, 16, "Wave %d", ww->_waves.num_waves);
 	ww->_wave_browser->add(buffer);
-	ww->_wave_browser->select(ww->_num_waves + 1);
-	ww->_num_waves += 1;
-	if (ww->_num_waves == 16) {
+	ww->_wave_browser->select(ww->_waves.num_waves + 1);
+	ww->_waves.num_waves += 1;
+	if (ww->_waves.num_waves == 16) {
 		ww->_add_button->deactivate();
 	}
 	select_wave_cb(nullptr, ww);
@@ -293,15 +400,15 @@ void Wave_Window::add_wave_cb(Fl_Widget *, Wave_Window *ww) {
 }
 
 void Wave_Window::remove_wave_cb(Fl_Widget *, Wave_Window *ww) {
-	if (!ww->_selected_wave || ww->_num_waves == 1) return;
+	if (!ww->_selected_wave || ww->_waves.num_waves == 1) return;
 
-	for (int i = ww->_selected_wave; i < ww->_num_waves; ++i) {
-		ww->_waves[i-1] = ww->_waves[i];
+	for (int i = ww->_selected_wave; i < ww->_waves.num_waves; ++i) {
+		ww->_waves.waves[i-1] = ww->_waves.waves[i];
 	}
-	ww->_waves[ww->_num_waves - 1] = { 0 };
+	ww->_waves.waves[ww->_waves.num_waves - 1] = { 0 };
 	ww->_wave_browser->deselect();
-	ww->_wave_browser->remove(ww->_num_waves);
-	ww->_num_waves -= 1;
+	ww->_wave_browser->remove(ww->_waves.num_waves);
+	ww->_waves.num_waves -= 1;
 	ww->_add_button->activate();
 	select_wave_cb(nullptr, ww);
 
@@ -311,7 +418,7 @@ void Wave_Window::remove_wave_cb(Fl_Widget *, Wave_Window *ww) {
 void Wave_Window::move_wave_up_cb(Fl_Widget *, Wave_Window *ww) {
 	if (!ww->_selected_wave || ww->_selected_wave == 1) return;
 
-	std::swap(ww->_waves[ww->_selected_wave - 1], ww->_waves[ww->_selected_wave - 2]);
+	std::swap(ww->_waves.waves[ww->_selected_wave - 1], ww->_waves.waves[ww->_selected_wave - 2]);
 	ww->_wave_browser->select(ww->_selected_wave - 1);
 	select_wave_cb(nullptr, ww);
 
@@ -319,9 +426,9 @@ void Wave_Window::move_wave_up_cb(Fl_Widget *, Wave_Window *ww) {
 }
 
 void Wave_Window::move_wave_down_cb(Fl_Widget *, Wave_Window *ww) {
-	if (!ww->_selected_wave || ww->_selected_wave == ww->_num_waves) return;
+	if (!ww->_selected_wave || ww->_selected_wave == ww->_waves.num_waves) return;
 
-	std::swap(ww->_waves[ww->_selected_wave - 1], ww->_waves[ww->_selected_wave]);
+	std::swap(ww->_waves.waves[ww->_selected_wave - 1], ww->_waves.waves[ww->_selected_wave]);
 	ww->_wave_browser->select(ww->_selected_wave + 1);
 	select_wave_cb(nullptr, ww);
 
@@ -330,7 +437,7 @@ void Wave_Window::move_wave_down_cb(Fl_Widget *, Wave_Window *ww) {
 
 void Wave_Window::select_wave_cb(Fl_Widget *, Wave_Window *ww) {
 	ww->_selected_wave = ww->_wave_browser->value();
-	if (!ww->_selected_wave || ww->_num_waves == 1) {
+	if (!ww->_selected_wave || ww->_waves.num_waves == 1) {
 		ww->_remove_button->deactivate();
 	}
 	else {
@@ -342,7 +449,7 @@ void Wave_Window::select_wave_cb(Fl_Widget *, Wave_Window *ww) {
 	else {
 		ww->_up_button->activate();
 	}
-	if (!ww->_selected_wave || ww->_selected_wave == ww->_num_waves) {
+	if (!ww->_selected_wave || ww->_selected_wave == ww->_waves.num_waves) {
 		ww->_down_button->deactivate();
 	}
 	else {
@@ -393,7 +500,7 @@ void Wave_Window::play_cb(Fl_Widget *, Wave_Window *ww) {
 		ww->_playing_instrument = ww->_selected_wave;
 		ww->_mod_channel = -1;
 
-		ww->_mod = new IT_Module(ww->_waves, {}, {}, -1);
+		ww->_mod = new IT_Module(ww->_waves.waves, {}, {}, -1);
 		ww->_mod->start();
 
 		ww->start_audio_thread();
