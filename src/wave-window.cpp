@@ -2,6 +2,7 @@
 #include <cassert>
 
 #include "themes.h"
+#include "utils.h"
 #include "wave-window.h"
 
 const Fl_Color WAVE_COLOR = fl_rgb_color(0, 165, 0);
@@ -96,12 +97,6 @@ void Wave_Display::draw() {
 	}
 }
 
-Wave_Double_Window::Wave_Double_Window(int x, int y, int w, int h, const char *l) : Fl_Double_Window(x, y, w, h, l) {}
-
-int Wave_Double_Window::handle(int event) {
-	return Fl_Double_Window::handle(event);
-}
-
 Wave_Window::Wave_Window(int x, int y) : _dx(x), _dy(y) {}
 
 Wave_Window::~Wave_Window() {
@@ -118,7 +113,7 @@ void Wave_Window::initialize() {
 	Fl_Group *prev_current = Fl_Group::current();
 	Fl_Group::current(NULL);
 	// Populate window
-	_window = new Wave_Double_Window(_dx, _dy, 608, 362, "Wave Editor");
+	_window = new Fl_Double_Window(_dx, _dy, 608, 362, "Wave Editor");
 	_add_button = new OS_Button(10, 10, 21, 21, "@+");
 	_remove_button = new OS_Button(35, 10, 21, 21, "@1+");
 	_up_button = new OS_Button(64, 10, 21, 21, "@8>");
@@ -310,6 +305,11 @@ void Wave_Window::show(const Fl_Widget *p) {
 	Fl::grab(prev_grab);
 }
 
+void Wave_Window::redraw_wave() {
+	_wave_graph->redraw();
+	_wave_display->redraw();
+}
+
 void Wave_Window::regenerate_mod() {
 	if (_mod && _audio_thread.joinable()) {
 		_audio_mutex.lock();
@@ -318,11 +318,6 @@ void Wave_Window::regenerate_mod() {
 		_mod->start();
 		_audio_mutex.unlock();
 	}
-}
-
-void Wave_Window::redraw_wave() {
-	_wave_graph->redraw();
-	_wave_display->redraw();
 }
 
 void Wave_Window::close_cb(Fl_Widget *, Wave_Window *ww) {

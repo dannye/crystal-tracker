@@ -27,17 +27,11 @@ public:
 	void draw();
 };
 
-class Wave_Double_Window : public Fl_Double_Window {
-public:
-	Wave_Double_Window(int x, int y, int w, int h, const char *l = NULL);
-	int handle(int event);
-};
-
 class Wave_Window {
 private:
 	int _dx, _dy;
 	bool _canceled = false;
-	Wave_Double_Window *_window = nullptr;
+	Fl_Double_Window *_window = nullptr;
 	OS_Button *_add_button = nullptr;
 	OS_Button *_remove_button = nullptr;
 	OS_Button *_up_button = nullptr;
@@ -57,12 +51,12 @@ private:
 	OS_Button *_flip_button = nullptr;
 	OS_Button *_invert_button = nullptr;
 	Default_Button *_save_button = nullptr;
-	OS_Button * _revert_button = nullptr;
-	OS_Button * _close_button = nullptr;
+	OS_Button *_revert_button = nullptr;
+	OS_Button *_close_button = nullptr;
 	Modal_Dialog *_error_dialog = nullptr;
 	Modal_Dialog *_success_dialog = nullptr;
 	Modal_Dialog *_confirm_dialog = nullptr;
-	friend class Wave_Double_Window;
+
 	Waves _saved_waves;
 	Waves _waves;
 	int _selected_wave = 0;
@@ -93,8 +87,8 @@ public:
 	Wave *wave();
 	void waves(const Waves &w);
 	void show(const Fl_Widget *p);
-	void regenerate_mod();
 	void redraw_wave();
+	void regenerate_mod();
 private:
 	static void close_cb(Fl_Widget *w, Wave_Window *ww);
 	static void cancel_cb(Fl_Widget *w, Wave_Window *ww);
