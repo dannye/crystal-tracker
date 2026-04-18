@@ -163,7 +163,7 @@ void Wave_Window::initialize() {
 	_play_button->shortcut(' ');
 	_play_button->callback((Fl_Callback *)play_cb, this);
 	for (int i = 1; i <= NUM_PITCHES; ++i) {
-		_pitch_input->add(PITCH_NAMES[i]);
+		_pitch_input->add(PITCH_DISPLAY_NAMES[i]);
 	}
 	_pitch_input->tooltip("Pitch");
 	_pitch_input->callback((Fl_Callback *)pitch_cb, this);

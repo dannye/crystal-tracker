@@ -1255,7 +1255,7 @@ void Piano_Timeline::set_channel(std::vector<Note_Box *> &channel, std::vector<F
 					buf += snprintf(buf, 32, "Slide octave: %d\n", note.slide_octave);
 				}
 				if (note.slide_pitch != Pitch::REST) {
-					buf += snprintf(buf, 32, "Slide pitch: %s\n", PITCH_NAMES[(int)note.slide_pitch]);
+					buf += snprintf(buf, 32, "Slide pitch: %s\n", PITCH_DISPLAY_NAMES[(int)note.slide_pitch]);
 				}
 				if (note.panning_left != prev_note.panning_left) {
 					buf += snprintf(buf, 32, "Panning left: %s\n", note.panning_left ? "On" : "Off");

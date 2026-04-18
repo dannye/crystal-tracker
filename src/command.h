@@ -38,6 +38,22 @@ static const char * const PITCH_NAMES[] = {
 
 static const size_t NUM_PITCHES = sizeof(PITCH_NAMES) / sizeof(char *) - 1;
 
+static const char * const PITCH_DISPLAY_NAMES[] = {
+	"--",
+	"C",
+	"C♯",
+	"D",
+	"D♯",
+	"E",
+	"F",
+	"F♯",
+	"G",
+	"G♯",
+	"A",
+	"A♯",
+	"B",
+};
+
 enum class Command_Type {
 	NOTE,
 	DRUM_NOTE,

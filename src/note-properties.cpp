@@ -56,7 +56,7 @@ Note_Properties::Note_Properties(int X, int Y, int W, int H, const char *l) : Sc
 	_slide_pitch_input = new Dropdown(x() + dx + text_width("Slide pitch:", 2), y() + wgt_m, wgt_w2, wgt_h, "Slide pit&ch:");
 	dx += wgt_w2 + wgt_m + text_width("Slide pitch:", 2) + wgt_m;
 	for (int i = 0; i <= NUM_PITCHES; ++i) {
-		_slide_pitch_input->add(PITCH_NAMES[i]);
+		_slide_pitch_input->add(PITCH_DISPLAY_NAMES[i]);
 	}
 
 	_panning_left_input = new OS_Check_Button(x() + dx, y() + wgt_m, wgt_h + wgt_m, wgt_h, "&L");
