@@ -3245,6 +3245,7 @@ void OS::use_native_fonts() {
 void OS::use_native_settings() {
 	Fl::visible_focus(0);
 	Fl::scrollbar_size(15);
+	Fl::menu_linespacing(OS_MENU_SPACING);
 	Fl_Tooltip::font(OS_FONT);
 	Fl_Tooltip::size(OS_FONT_SIZE);
 	Fl_Tooltip::delay(0.5f);

@@ -16,8 +16,10 @@
 
 #ifdef _WIN32
 #define OS_FONT_SIZE 12
+#define OS_MENU_SPACING 4
 #else
 #define OS_FONT_SIZE 13
+#define OS_MENU_SPACING 5
 #endif
 
 #define OS_BUTTON_UP_BOX              FL_GTK_UP_BOX

@@ -26,7 +26,7 @@
 	constexpr int TOOLBAR_HEIGHT = 38;
 	constexpr bool TOOLBAR_SCROLLBAR = true;
 #else
-	constexpr int MENU_BAR_HEIGHT = 21;
+	constexpr int MENU_BAR_HEIGHT = OS_FONT_SIZE * 2 - 3;
 	constexpr int TOOLBAR_HEIGHT = 26;
 	constexpr bool TOOLBAR_SCROLLBAR = false;
 #endif
