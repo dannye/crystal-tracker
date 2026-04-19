@@ -192,9 +192,11 @@ void Wave_Window::initialize() {
 		_pitch_input->add(PITCH_DISPLAY_NAMES[i]);
 	}
 	_pitch_input->tooltip("Pitch");
+	_pitch_input->scroll_enabled(true);
 	_pitch_input->callback((Fl_Callback *)pitch_cb, this);
 	_octave_input->add("1|2|3|4|5|6|7|8");
 	_octave_input->tooltip("Octave");
+	_octave_input->scroll_enabled(true);
 	_octave_input->callback((Fl_Callback *)octave_cb, this);
 	_copy_button->callback((Fl_Callback *)copy_cb, this);
 	_paste_button->callback((Fl_Callback *)paste_cb, this);

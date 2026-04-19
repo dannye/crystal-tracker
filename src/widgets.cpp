@@ -605,6 +605,15 @@ int Dropdown::handle(int event) {
 			redraw();
 			return 1;
 		} else return 0;
+	case FL_MOUSEWHEEL: {
+		if (!_scroll_enabled || !Fl::event_inside(this)) return 0;
+		int dir = Fl::event_dy();
+		if (dir != 0 && value()+dir >= 0 && value()+dir < size()-1) {
+			value(value()+dir);
+			if (when() & (FL_WHEN_CHANGED | FL_WHEN_RELEASE)) do_callback();
+		}
+		return 1;
+	}
 	default:
 		return 0;
 	}
