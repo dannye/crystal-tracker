@@ -25,6 +25,7 @@ class Wave_Display : public Fl_Box {
 public:
 	Wave_Display(int x, int y, int w, int h, const char *l = NULL);
 	void draw();
+	int handle(int event);
 };
 
 class Wave_Window {

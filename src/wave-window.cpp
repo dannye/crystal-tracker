@@ -98,6 +98,31 @@ void Wave_Display::draw() {
 	}
 }
 
+int Wave_Display::handle(int event) {
+	switch (event) {
+	case FL_ENTER:
+	case FL_LEAVE:
+		return 1;
+	case FL_MOUSEWHEEL: {
+		if (!Fl::event_inside(this)) return 0;
+		Wave_Window *ww = (Wave_Window *)user_data();
+		Wave *wave = ww->wave();
+		if (wave) {
+			int x_step = w() / NUM_WAVE_SAMPLES;
+			int x_pos = (Fl::event_x() - x() - 2) / x_step;
+			int dir = -Fl::event_dy();
+			if (dir != 0 && x_pos >= 0 && x_pos < NUM_WAVE_SAMPLES && wave->at(x_pos)+dir >= 0 && wave->at(x_pos)+dir < 16) {
+				wave->at(x_pos) += dir;
+				ww->redraw_wave();
+				ww->regenerate_mod();
+			}
+		}
+		return 1;
+	}
+	}
+	return 0;
+}
+
 Wave_Window::Wave_Window(int x, int y) : _dx(x), _dy(y) {}
 
 Wave_Window::~Wave_Window() {
