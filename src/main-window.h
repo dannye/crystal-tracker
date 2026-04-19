@@ -214,8 +214,7 @@ private:
 	int _zoom = 0;
 	Song _song;
 	Waves _waves;
-	std::vector<Drumkit> _drumkits;
-	std::vector<Drum> _drums;
+	Drumkits _drumkits;
 	std::vector<std::vector<uint8_t>> _drum_samples;
 	IT_Module *_it_module = nullptr;
 	IT_Module *_interactive_module = nullptr;

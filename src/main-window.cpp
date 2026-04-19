@@ -917,8 +917,8 @@ void Main_Window::draw() {
 }
 
 const char *Main_Window::get_drum_name(int32_t drumkit, Pitch drum) const {
-	if (drumkit != -1 && drumkit < (int32_t)_drumkits.size()) {
-		return _drums[_drumkits[drumkit].drums[(int32_t)drum]].label.c_str();
+	if (drumkit != -1 && drumkit < (int32_t)_drumkits.drumkits.size()) {
+		return _drumkits.drums[_drumkits.drumkits[drumkit].drums[(int32_t)drum]].label.c_str();
 	}
 	return nullptr;
 }
@@ -1108,7 +1108,7 @@ void Main_Window::set_note_properties(const std::vector<const Note_View *> &note
 		notes,
 		selected_channel(),
 		(int)_waves.num_waves,
-		(int)_drumkits.size(),
+		(int)_drumkits.drumkits.size(),
 		selected_channel() == _piano_roll->first_channel_number()
 	);
 }
@@ -1817,10 +1817,10 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 			_warning_dialog->show(this);
 		}
 		int32_t max_drumkit_id = _song.max_drumkit_id();
-		if (max_drumkit_id >= (int32_t)_drumkits.size()) {
+		if (max_drumkit_id >= (int32_t)_drumkits.drumkits.size()) {
 			std::string msg = basename;
 			msg = msg + " uses undefined drumkit: " + std::to_string(max_drumkit_id) + "\n\n"
-				"Valid drumkit IDs are: 0-" + std::to_string(_drumkits.size() - 1);
+				"Valid drumkit IDs are: 0-" + std::to_string(_drumkits.drumkits.size() - 1);
 			_warning_dialog->message(msg);
 			_warning_dialog->show(this);
 		}
@@ -1972,9 +1972,12 @@ bool Main_Window::load_drumkits() {
 		_warning_dialog->message(msg);
 		_warning_dialog->show(this);
 	}
-	_drumkits = parsed_drumkits.drumkits();
-	_drums = parsed_drumkits.drums();
-	_drum_samples = generate_noise_samples(_drums);
+	_drumkits.drumkits_file = parsed_drumkits.drumkits_file();
+	_drumkits.drumkits_label = parsed_drumkits.drumkits_label();
+	_drumkits.drumkits = parsed_drumkits.drumkits();
+	_drumkits.drums = parsed_drumkits.drums();
+	_drumkits.uses_dr = parsed_drumkits.uses_dr();
+	_drum_samples = generate_noise_samples(_drumkits.drums);
 	return true;
 }
 
@@ -1988,7 +1991,7 @@ void Main_Window::regenerate_it_module() {
 		_piano_roll->channel_3_notes(),
 		_piano_roll->channel_4_notes(),
 		_waves.waves,
-		_drumkits,
+		_drumkits.drumkits,
 		_drum_samples,
 		loop() ? _piano_roll->get_loop_tick() : -1,
 		stereo()
@@ -2020,7 +2023,7 @@ void Main_Window::regenerate_interactive_module() {
 	}
 	_interactive_module = new IT_Module(
 		waves,
-		_drumkits,
+		_drumkits.drumkits,
 		_drum_samples,
 		_playing_channel == 4 ? _playing_instrument : -1
 	);
@@ -2541,8 +2544,11 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_waves.waves.clear();
 	mw->_waves.num_waves = 0;
 	mw->_waves.uses_dn = false;
-	mw->_drumkits.clear();
-	mw->_drums.clear();
+	mw->_drumkits.drumkits_file.clear();
+	mw->_drumkits.drumkits_label.clear();
+	mw->_drumkits.drumkits.clear();
+	mw->_drumkits.drums.clear();
+	mw->_drumkits.uses_dr = false;
 	mw->_drum_samples.clear();
 	if (mw->_it_module) {
 		delete mw->_it_module;
@@ -4179,6 +4185,10 @@ void Main_Window::reload_waves_cb(Fl_Widget *, Main_Window *mw) {
 	}
 
 	mw->refresh_note_properties();
+
+	mw->_status_message = "Reloaded ";
+	mw->_status_message += fl_filename_name(mw->_waves.waves_file.c_str());
+	mw->_status_label->label(mw->_status_message.c_str());
 }
 
 void Main_Window::drumkit_editor_cb(Fl_Widget *, Main_Window *mw) {
@@ -4199,6 +4209,10 @@ void Main_Window::reload_drumkits_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_piano_roll->set_channel_4_note_tooltips();
 
 	mw->refresh_note_properties();
+
+	mw->_status_message = "Reloaded ";
+	mw->_status_message += fl_filename_name(mw->_drumkits.drumkits_file.c_str());
+	mw->_status_label->label(mw->_status_message.c_str());
 }
 
 void Main_Window::help_cb(Fl_Widget *, Main_Window *mw) {

@@ -29,6 +29,14 @@ struct Drumkit {
 	std::array<int32_t, NUM_DRUMS_PER_DRUMKIT> drums;
 };
 
+struct Drumkits {
+	std::string drumkits_file;
+	std::string drumkits_label;
+	std::vector<Drumkit> drumkits;
+	std::vector<Drum> drums;
+	bool uses_dr = false;
+};
+
 class Parsed_Drumkits {
 public:
 	enum class Result {
@@ -46,9 +54,11 @@ public:
 	};
 private:
 	std::string _drumkits_file;
+	std::string _drumkits_label;
 	std::vector<Drumkit> _drumkits;
 	std::vector<Drum> _drums;
 	int32_t _num_parsed_drumkits = 0;
+	bool _uses_dr = false;
 	Result _result = Result::DRUMKITS_NULL;
 
 	// for error reporting
@@ -58,9 +68,11 @@ public:
 	Parsed_Drumkits(const char *d);
 	inline ~Parsed_Drumkits() {}
 	inline std::string drumkits_file(void) const { return _drumkits_file; }
+	inline std::string drumkits_label(void) const { return _drumkits_label; }
 	inline std::vector<Drumkit> &&drumkits(void) { return std::move(_drumkits); }
 	inline std::vector<Drum> &&drums(void) { return std::move(_drums); }
 	inline int32_t num_parsed_drumkits(void) const { return _num_parsed_drumkits; }
+	inline bool uses_dr(void) const { return _uses_dr; }
 	inline Result result(void) const { return _result; }
 
 	std::string get_error_message() const;

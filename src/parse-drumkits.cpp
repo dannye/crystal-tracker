@@ -149,16 +149,22 @@ static int32_t find_drum(const std::vector<Drum> &drums, const std::string &labe
 	return -1;
 }
 
-static bool leading_pointer(std::istringstream &lss) {
+static bool leading_pointer(std::istringstream &lss, bool &uses_dr) {
 	std::string macro;
-	return leading_macro(lss, macro) && (equals_ignore_case(macro, "dw") || equals_ignore_case(macro, "dr"));
+	if (!leading_macro(lss, macro)) { return false; }
+	bool relative = equals_ignore_case(macro, "dr");
+	if (!relative && !equals_ignore_case(macro, "dw")) { return false; }
+	uses_dr |= relative;
+	return true;
 }
 
 Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 	_drumkits_file = f;
+	_drumkits_label = "";
 	_drumkits.clear();
 	_drums.clear();
 	_num_parsed_drumkits = 0;
+	_uses_dr = false;
 	_result = Result::DRUMKITS_NULL;
 	_line_number = 0;
 
@@ -197,8 +203,7 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 			if (indented) {
 				return (_result = Result::DRUMKITS_INVALID_DRUMKITS_TABLE);
 			}
-			std::string dummy;
-			if (!get_label(lss, dummy)) {
+			if (!get_label(lss, _drumkits_label)) {
 				return (_result = Result::DRUMKITS_INVALID_DRUMKITS_TABLE);
 			}
 			step = Step::READING_DRUMKITS;
@@ -217,7 +222,7 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 				step = Step::LOOKING_FOR_DRUMKIT;
 				continue;
 			}
-			if (!leading_pointer(lss)) {
+			if (!leading_pointer(lss, _uses_dr)) {
 				return (_result = Result::DRUMKITS_INVALID_DRUMKITS_TABLE);
 			}
 			Drumkit drumkit;
@@ -240,7 +245,7 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 
 		else if (step == Step::READING_DRUMKIT) {
 			if (!indented) { continue; }
-			if (!leading_pointer(lss)) {
+			if (!leading_pointer(lss, _uses_dr)) {
 				return (_result = Result::DRUMKITS_INVALID_DRUMKIT);
 			}
 			std::string label;
