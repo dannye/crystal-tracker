@@ -123,8 +123,8 @@ void Wave_Window::initialize() {
 	_wave_graph = new Wave_Graph(120, 35, 388, 260);
 	_wave_display = new Wave_Display(120, 300, 388, 20);
 	_play_button = new OS_Light_Button(343, 10, 65, 22, "Play");
-	_pitch_input = new Dropdown(413, 10, 50, 22);
-	_octave_input = new Dropdown(468, 10, 40, 22);
+	_pitch_input = new Dropdown(413, 10, 45, 22);
+	_octave_input = new Dropdown(463, 10, 45, 22);
 	_copy_button = new OS_Button(518, 35, 80, 22, "Copy");
 	_paste_button = new OS_Button(518, 62, 80, 22, "Paste");
 	_phase_left_button = new OS_Button(518, 94, 80, 22, "Phase @-2<<");
