@@ -110,7 +110,7 @@ int Wave_Display::handle(int event) {
 		if (wave) {
 			int x_step = w() / NUM_WAVE_SAMPLES;
 			int x_pos = (Fl::event_x() - x() - 2) / x_step;
-			int dir = -Fl::event_dy();
+			int dir = -std::clamp(Fl::event_dy(), -1, 1);
 			if (dir != 0 && x_pos >= 0 && x_pos < NUM_WAVE_SAMPLES && wave->at(x_pos)+dir >= 0 && wave->at(x_pos)+dir < 16) {
 				wave->at(x_pos) += dir;
 				ww->redraw_wave();
