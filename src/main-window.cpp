@@ -4196,7 +4196,14 @@ void Main_Window::drumkit_editor_cb(Fl_Widget *, Main_Window *mw) {
 
 	mw->_drumkit_editor_tb->simulate_key_action();
 
+	mw->_drumkit_window->drumkits(mw->_drumkits);
 	mw->_drumkit_window->show(mw);
+
+	mw->_drumkits = mw->_drumkit_window->saved_drumkits();
+
+	mw->_piano_roll->set_channel_4_note_tooltips();
+
+	mw->refresh_note_properties();
 }
 
 void Main_Window::reload_drumkits_cb(Fl_Widget *, Main_Window *mw) {

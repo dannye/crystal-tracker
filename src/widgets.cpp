@@ -636,6 +636,11 @@ int OS_Browser::handle(int event) {
 	return ret;
 }
 
+OS_Tabs::OS_Tabs(int x, int y, int w, int h, const char *l) : Fl_Tabs(x, y, w, h, l) {
+	labelfont(OS_FONT);
+	labelsize(OS_FONT_SIZE);
+}
+
 OS_Scroll::OS_Scroll(int x, int y, int w, int h, const char *l) : Fl_Scroll(x, y, w, h, l) {
 	scrollbar.slider(OS_MINI_BUTTON_UP_BOX);
 	hscrollbar.slider(OS_MINI_BUTTON_UP_BOX);

@@ -11,6 +11,7 @@
 #include <FL/Fl_Hor_Nice_Slider.H>
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Browser.H>
+#include <FL/Fl_Tabs.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Scroll.H>
 #include <FL/Fl_Check_Button.H>
@@ -206,6 +207,11 @@ public:
 	OS_Browser(int x, int y, int w, int h, const char *l = NULL);
 protected:
 	int handle(int event);
+};
+
+class OS_Tabs : public Fl_Tabs {
+public:
+	OS_Tabs(int x, int y, int w, int h, const char *l = NULL);
 };
 
 class OS_Scroll : public Fl_Scroll {

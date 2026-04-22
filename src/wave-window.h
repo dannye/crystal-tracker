@@ -2,7 +2,6 @@
 #define WAVE_WINDOW_H
 
 #include <future>
-#include <vector>
 
 #pragma warning(push, 0)
 #include <FL/Fl_Double_Window.H>
