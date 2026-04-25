@@ -12,9 +12,9 @@ You will need [Microsoft Visual Studio](https://visualstudio.microsoft.com/vs/);
 
 #### Setting up FLTK
 
-1. Clone [fltk release-1.4.1](https://github.com/fltk/fltk/tree/release-1.4.1) into lib\\**fltk**. (ie, `git clone -b release-1.4.1 https://github.com/fltk/fltk.git lib/fltk`)
+1. Clone [fltk release-1.4.5](https://github.com/fltk/fltk/tree/release-1.4.5) into lib\\**fltk**. (ie, `git clone -b release-1.4.5 https://github.com/fltk/fltk.git lib/fltk`)
 2. Open Visual Studio, select **Open a local folder**, and open the lib\fltk folder. This will automatically generate the CMake project with a configuration named **x64-Debug**.
-3. Create the following additional configurations with the appropriate **Configuration Type** of either Debug or Release: x64-Release, x86-Debug, and x86-Release. For x64 configurations, make sure the **Toolset** is set to **msvc_x64_x64**. For x86 configurations, make sure the Toolset is set to **msvc_x86_x64**. For all 4 configurations, uncheck the **FLTK_GRAPHICS_GDIPLUS** option and set the **FLTK_ABI_VERSION** option to **10401**.
+3. Create the following additional configurations with the appropriate **Configuration Type** of either Debug or Release: x64-Release, x86-Debug, and x86-Release. For x64 configurations, make sure the **Toolset** is set to **msvc_x64_x64**. For x86 configurations, make sure the Toolset is set to **msvc_x86_x64**. For all 4 configurations, uncheck the **FLTK_GRAPHICS_GDIPLUS** option and set the **FLTK_ABI_VERSION** option to **10405**.
 4. Set the configuration to **x86-Release**.
 5. In the **Solution Explorer**, switch to the **CMake Targets View**, right-click on **fltk_images**, and select **Build fltk_images**. This will also build the other required libraries: fltk, fltk_png, and fltk_z.
 6. Move all the .lib files from lib\fltk\out\build\x86-Release\lib\\\*.lib up to lib\\\*.lib. (You may also choose the x86-Debug config in the previous step and move the .lib files from lib\fltk\out\build\x86-Debug\lib\\\*.lib to lib\Debug\\\*.lib instead.)
@@ -87,17 +87,17 @@ Run the following commands:
 git clone https://github.com/dannye/crystal-tracker.git
 cd crystal-tracker
 
-# Build FLTK 1.4.1
-git clone -b release-1.4.1 https://github.com/fltk/fltk.git lib/fltk
+# Build FLTK 1.4.5
+git clone -b release-1.4.5 https://github.com/fltk/fltk.git lib/fltk
 pushd lib/fltk
 cmake -B build \
 	-D CMAKE_INSTALL_PREFIX="$(realpath "$PWD/../..")" \
 	-D CMAKE_BUILD_TYPE=Release \
-	-D FLTK_ABI_VERSION=10401 \
-	-D FLTK_GRAPHICS_CAIRO=1 \
-	-D FLTK_BACKEND_WAYLAND=0 \
+	-D FLTK_ABI_VERSION=10405 \
 	-D FLTK_BUILD_GL=0 \
-	-D FLTK_BUILD_TEST=0
+	-D FLTK_BUILD_TEST=0 \
+	-D FLTK_GRAPHICS_CAIRO=1 \
+	-D FLTK_BACKEND_WAYLAND=0
 cmake --build build
 cmake --install build
 popd
@@ -153,7 +153,7 @@ When building FLTK with CMake, use the following `cmake` command instead of the 
 cmake -B build \
 	-D CMAKE_INSTALL_PREFIX="$(realpath "$PWD/../..")" \
 	-D CMAKE_BUILD_TYPE=Release \
-	-D FLTK_ABI_VERSION=10401 \
+	-D FLTK_ABI_VERSION=10405 \
 	-D FLTK_BUILD_GL=0 \
 	-D FLTK_BUILD_TEST=0 \
 	-D FLTK_USE_SYSTEM_LIBPNG=ON \
