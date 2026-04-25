@@ -325,7 +325,7 @@ static void aero_check_down_box(int x, int y, int w, int h, Fl_Color c) {
 
 static void aero_panel_thin_up_frame(int x, int y, int w, int h, Fl_Color) {
 	// top and left borders
-	fl_color(activated_color(fl_rgb_color(0xFA, 0xFA, 0xFA)));
+	fl_color(activated_color(fl_rgb_color(0xFF, 0xFF, 0xFF)));
 	fl_yxline(x, y+h-2, y, x+w-2);
 	// bottom and right borders
 	fl_color(activated_color(fl_rgb_color(0xC9, 0xC9, 0xC9)));
@@ -343,7 +343,7 @@ static void aero_spacer_thin_down_frame(int x, int y, int w, int h, Fl_Color) {
 	fl_color(activated_color(fl_rgb_color(0xC9, 0xC9, 0xC9)));
 	fl_yxline(x, y+h-2, y, x+w-2);
 	// bottom and right borders
-	fl_color(activated_color(fl_rgb_color(0xFA, 0xFA, 0xFA)));
+	fl_color(activated_color(fl_rgb_color(0xFF, 0xFF, 0xFF)));
 	fl_xyline(x, y+h-1, x+w-1, y);
 }
 
@@ -810,7 +810,7 @@ static void aqua_button_up_box(int x, int y, int w, int h, Fl_Color c) {
 }
 
 static void aqua_panel_thin_up_frame(int x, int y, int w, int h, Fl_Color c) {
-	fl_color(activated_color(devalued(c, 0.06751f)));
+	fl_color(activated_color(devalued(c, 0.15f)));
 	fl_rect(x, y, w, h);
 }
 
@@ -1092,10 +1092,10 @@ static void greybird_check_down_frame(int x, int y, int w, int h, Fl_Color) {
 
 static void greybird_panel_thin_up_frame(int x, int y, int w, int h, Fl_Color) {
 	// top and left borders
-	fl_color(activated_color(fl_rgb_color(0xDA, 0xDA, 0xDA)));
+	fl_color(activated_color(fl_rgb_color(0xE0, 0xE0, 0xE0)));
 	fl_yxline(x, y+h-2, y, x+w-2);
 	// bottom and right borders
-	fl_color(activated_color(fl_rgb_color(0xC1, 0xC1, 0xC1)));
+	fl_color(activated_color(fl_rgb_color(0xBA, 0xBA, 0xBA)));
 	fl_xyline(x, y+h-1, x+w-1, y);
 }
 
@@ -1116,7 +1116,7 @@ static void greybird_spacer_thin_down_frame(int x, int y, int w, int h, Fl_Color
 	fl_color(activated_color(fl_rgb_color(0xBA, 0xBA, 0xBA)));
 	fl_yxline(x, y+h-2, y, x+w-2);
 	// bottom and right borders
-	fl_color(activated_color(fl_rgb_color(0xDA, 0xDA, 0xDA)));
+	fl_color(activated_color(fl_rgb_color(0xE0, 0xE0, 0xE0)));
 	fl_xyline(x, y+h-1, x+w-1, y);
 }
 
@@ -2832,10 +2832,10 @@ static void brushed_metal_default_depressed_down_box(int x, int y, int w, int h,
 
 static void brushed_metal_panel_thin_up_frame(int x, int y, int w, int h, Fl_Color) {
 	// top and left borders
-	fl_color(activated_color(fl_rgb_color(0xDD, 0xDD, 0xDD)));
+	fl_color(activated_color(fl_rgb_color(0xF0, 0xF0, 0xF0)));
 	fl_yxline(x, y+h-2, y, x+w-2);
 	// bottom and right borders
-	fl_color(activated_color(fl_rgb_color(0xAB, 0xAB, 0xAB)));
+	fl_color(activated_color(fl_rgb_color(0x5D, 0x5D, 0x5D)));
 	fl_xyline(x, y+h-1, x+w-1, y);
 }
 

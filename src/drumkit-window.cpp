@@ -19,14 +19,14 @@ void Drumkit_Window::initialize() {
 	// Populate window
 	_window = new Fl_Double_Window(_dx, _dy, 608, 362, "Drumkit Editor");
 	_tabs = new OS_Tabs(10, 10, 588, 310);
-	_drumkit_tab = new Fl_Group(10, 35, 588, 285, "Drumkits");
+	_drumkit_tab = new OS_Tab(10, 35, 588, 285, "Drumkits");
 	_add_drumkit_button = new OS_Button(20, 45, 21, 21, "@+");
 	_remove_drumkit_button = new OS_Button(45, 45, 21, 21, "@1+");
 	_drumkit_up_button = new OS_Button(74, 45, 21, 21, "@8>");
 	_drumkit_down_button = new OS_Button(99, 45, 21, 21, "@2>");
 	_drumkit_browser = new OS_Browser(20, 70, 100, 240);
 	_drumkit_tab->end();
-	_drum_tab = new Fl_Group(10, 35, 588, 285, "Drums");
+	_drum_tab = new OS_Tab(10, 35, 588, 285, "Drums");
 	_add_drum_button = new OS_Button(20, 45, 21, 21, "@+");
 	_remove_drum_button = new OS_Button(45, 45, 21, 21, "@1+");
 	_drum_up_button = new OS_Button(74, 45, 21, 21, "@8>");

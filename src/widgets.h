@@ -214,6 +214,11 @@ public:
 	OS_Tabs(int x, int y, int w, int h, const char *l = NULL);
 };
 
+class OS_Tab : public Fl_Group {
+public:
+	OS_Tab(int x, int y, int w, int h, const char *l = NULL);
+};
+
 class OS_Scroll : public Fl_Scroll {
 public:
 	OS_Scroll(int x, int y, int w, int h, const char *l = NULL);

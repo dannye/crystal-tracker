@@ -15,13 +15,13 @@ private:
 	bool _canceled = false;
 	Fl_Double_Window *_window = nullptr;
 	OS_Tabs *_tabs = nullptr;
-	Fl_Group *_drumkit_tab = nullptr;
+	OS_Tab *_drumkit_tab = nullptr;
 	OS_Button *_add_drumkit_button = nullptr;
 	OS_Button *_remove_drumkit_button = nullptr;
 	OS_Button *_drumkit_up_button = nullptr;
 	OS_Button *_drumkit_down_button = nullptr;
 	OS_Browser *_drumkit_browser = nullptr;
-	Fl_Group *_drum_tab = nullptr;
+	OS_Tab *_drum_tab = nullptr;
 	OS_Button *_add_drum_button = nullptr;
 	OS_Button *_remove_drum_button = nullptr;
 	OS_Button *_drum_up_button = nullptr;
@@ -42,10 +42,10 @@ public:
 	Drumkit_Window(int x, int y);
 	~Drumkit_Window();
 private:
-	void initialize(void);
-	void refresh(void);
+	void initialize();
+	void refresh();
 public:
-	inline bool canceled(void) const { return _canceled; }
+	inline bool canceled() const { return _canceled; }
 	inline void canceled(bool c) { _canceled = c; }
 	inline const Drumkits &saved_drumkits() const { return _saved_drumkits; }
 	Drumkit *drumkit();
