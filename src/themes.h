@@ -45,11 +45,15 @@
 #define OS_DEFAULT_HOVERED_UP_BOX     FL_PLASTIC_THIN_UP_BOX
 #define OS_DEFAULT_DEPRESSED_DOWN_BOX FL_DIAMOND_DOWN_BOX
 #define OS_TOOLBAR_BUTTON_HOVER_BOX   FL_GLEAM_ROUND_UP_BOX
+#define OS_TABS_BOX                   FL_EMBOSSED_BOX
 #define OS_SWATCH_BOX                 FL_ENGRAVED_BOX
 #define OS_SWATCH_FRAME               FL_ENGRAVED_FRAME
 #define OS_BG_BOX                     FL_FREE_BOXTYPE
 #define OS_BG_DOWN_BOX                (Fl_Boxtype)(FL_FREE_BOXTYPE+1)
 #define OS_TOOLBAR_FRAME              (Fl_Boxtype)(FL_FREE_BOXTYPE+2)
+
+#define BACKGROUND3_COLOR FL_FREE_COLOR
+#define OS_TAB_COLOR (Fl_Color)(FL_FREE_COLOR+1)
 
 class OS {
 public:

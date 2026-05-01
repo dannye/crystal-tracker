@@ -511,14 +511,16 @@ int OS_Browser::handle(int event) {
 }
 
 OS_Tabs::OS_Tabs(int x, int y, int w, int h, const char *l) : Fl_Tabs(x, y, w, h, l) {
-	box(OS_PANEL_THIN_UP_BOX);
 	labelfont(OS_FONT);
 	labelsize(OS_FONT_SIZE);
+	box(OS_TABS_BOX);
+	selection_color(OS_TAB_COLOR);
 }
 
 OS_Tab::OS_Tab(int x, int y, int w, int h, const char *l) : Fl_Group(x, y, w, h, l) {
 	labelfont(OS_FONT);
 	labelsize(OS_FONT_SIZE);
+	color(OS_TAB_COLOR);
 }
 
 OS_Scroll::OS_Scroll(int x, int y, int w, int h, const char *l) : Fl_Scroll(x, y, w, h, l) {

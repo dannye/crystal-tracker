@@ -217,6 +217,7 @@ static void use_classic_scheme() {
 	Fl::set_boxtype(OS_DEFAULT_HOVERED_UP_BOX, classic_default_button_up_box, 3, 3, 6, 6);
 	Fl::set_boxtype(OS_DEFAULT_DEPRESSED_DOWN_BOX, classic_check_down_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_TOOLBAR_BUTTON_HOVER_BOX, FL_FLAT_BOX);
+	Fl::set_boxtype(OS_TABS_BOX, classic_button_up_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_SWATCH_BOX, classic_check_down_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_SWATCH_FRAME, classic_check_down_frame, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_MINI_BUTTON_UP_BOX, classic_button_up_box, 2, 2, 4, 4);
@@ -237,7 +238,8 @@ static void use_classic_colors() {
 	Fl::foreground(0x00, 0x00, 0x00);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x5F, 0x5F, 0x5F);
 	Fl::set_color(FL_SELECTION_COLOR, 0x0A, 0x24, 0x6A);
-	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(BACKGROUND3_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(OS_TAB_COLOR, 0xD4, 0xD0, 0xC8);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xE1));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -325,7 +327,7 @@ static void aero_check_down_box(int x, int y, int w, int h, Fl_Color c) {
 
 static void aero_panel_thin_up_frame(int x, int y, int w, int h, Fl_Color) {
 	// top and left borders
-	fl_color(activated_color(fl_rgb_color(0xFF, 0xFF, 0xFF)));
+	fl_color(activated_color(fl_rgb_color(0xFA, 0xFA, 0xFA)));
 	fl_yxline(x, y+h-2, y, x+w-2);
 	// bottom and right borders
 	fl_color(activated_color(fl_rgb_color(0xC9, 0xC9, 0xC9)));
@@ -343,7 +345,7 @@ static void aero_spacer_thin_down_frame(int x, int y, int w, int h, Fl_Color) {
 	fl_color(activated_color(fl_rgb_color(0xC9, 0xC9, 0xC9)));
 	fl_yxline(x, y+h-2, y, x+w-2);
 	// bottom and right borders
-	fl_color(activated_color(fl_rgb_color(0xFF, 0xFF, 0xFF)));
+	fl_color(activated_color(fl_rgb_color(0xFA, 0xFA, 0xFA)));
 	fl_xyline(x, y+h-1, x+w-1, y);
 }
 
@@ -537,6 +539,17 @@ static void aero_default_hovered_up_box(int x, int y, int w, int h, Fl_Color c) 
 	aero_default_button_up_frame(x, y, w, h, c);
 }
 
+static void aero_tabs_frame(int x, int y, int w, int h, Fl_Color) {
+	fl_color(activated_color(fl_rgb_color(0x88, 0x8B, 0x94)));
+	fl_rect(x, y, w, h);
+}
+
+static void aero_tabs_box(int x, int y, int w, int h, Fl_Color c) {
+	fl_color(activated_color(c));
+	fl_rectf(x+1, y+1, w-2, h-2);
+	aero_tabs_frame(x, y, w, h, c);
+}
+
 static void aero_swatch_frame(int x, int y, int w, int h, Fl_Color) {
 	// outer border
 	fl_color(activated_color(fl_rgb_color(0xA0, 0xA0, 0xA0)));
@@ -573,6 +586,7 @@ static void use_aero_scheme() {
 	Fl::set_boxtype(OS_DEFAULT_HOVERED_UP_BOX, aero_default_hovered_up_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_DEFAULT_DEPRESSED_DOWN_BOX, OS_DEPRESSED_DOWN_BOX);
 	Fl::set_boxtype(OS_TOOLBAR_BUTTON_HOVER_BOX, FL_FLAT_BOX);
+	Fl::set_boxtype(OS_TABS_BOX, aero_tabs_box, 2, 1, 4, 2);
 	Fl::set_boxtype(OS_SWATCH_BOX, aero_swatch_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_SWATCH_FRAME, aero_swatch_frame, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_MINI_BUTTON_UP_BOX, OS_BUTTON_UP_BOX);
@@ -593,7 +607,8 @@ static void use_aero_colors() {
 	Fl::foreground(0x00, 0x00, 0x00);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x6F, 0x6F, 0x6F);
 	Fl::set_color(FL_SELECTION_COLOR, 0x2A, 0x7D, 0xDD);
-	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(BACKGROUND3_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(OS_TAB_COLOR, 0xFF, 0xFF, 0xFF);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xF0));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -717,6 +732,7 @@ static void use_metro_scheme() {
 	Fl::set_boxtype(OS_DEFAULT_HOVERED_UP_BOX, metro_default_hovered_up_box, 1, 1, 2, 2);
 	Fl::set_boxtype(OS_DEFAULT_DEPRESSED_DOWN_BOX, OS_DEPRESSED_DOWN_BOX);
 	Fl::set_boxtype(OS_TOOLBAR_BUTTON_HOVER_BOX, FL_FLAT_BOX);
+	Fl::set_boxtype(OS_TABS_BOX, aero_tabs_box, 2, 1, 4, 2);
 	Fl::set_boxtype(OS_SWATCH_FRAME, aero_swatch_frame, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_SWATCH_BOX, aero_swatch_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_MINI_BUTTON_UP_BOX, OS_BUTTON_UP_BOX);
@@ -738,7 +754,8 @@ static void use_metro_colors() {
 	Fl::foreground(0x00, 0x00, 0x00);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x6F, 0x6F, 0x6F);
 	Fl::set_color(FL_SELECTION_COLOR, 0x2A, 0x7D, 0xDD);
-	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(BACKGROUND3_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(OS_TAB_COLOR, 0xFF, 0xFF, 0xFF);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xFF));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -810,7 +827,7 @@ static void aqua_button_up_box(int x, int y, int w, int h, Fl_Color c) {
 }
 
 static void aqua_panel_thin_up_frame(int x, int y, int w, int h, Fl_Color c) {
-	fl_color(activated_color(devalued(c, 0.15f)));
+	fl_color(activated_color(devalued(c, 0.06751f)));
 	fl_rect(x, y, w, h);
 }
 
@@ -959,6 +976,43 @@ static void aqua_default_button_up_box(int x, int y, int w, int h, Fl_Color c) {
 	aqua_default_button_up_frame(x, y, w, h, c);
 }
 
+static void aqua_tabs_frame(int x, int y, int w, int h, Fl_Color) {
+	// top outer border
+	fl_color(activated_color(fl_rgb_color(0xAE, 0xAE, 0xAE)));
+	fl_xyline(x+3, y, x+w-4);
+	// side outer borders
+	fl_color(activated_color(fl_rgb_color(0x9E, 0x9E, 0x9E)));
+	fl_yxline(x, y+3, y+h-4);
+	fl_yxline(x+w-1, y+3, y+h-4);
+	// bottom outer border
+	fl_color(activated_color(fl_rgb_color(0x8E, 0x8E, 0x8E)));
+	fl_xyline(x+3, y+h-1, x+w-4);
+	// top inner border
+	fl_color(activated_color(fl_rgb_color(0xFA, 0xFA, 0xFA)));
+	fl_xyline(x+3, y+1, x+w-4);
+	// side inner borders
+	fl_color(activated_color(fl_rgb_color(0xF6, 0xF6, 0xF6)));
+	fl_yxline(x+1, y+3, y+h-4);
+	fl_yxline(x+w-2, y+3, y+h-4);
+	// bottom inner border
+	fl_color(activated_color(fl_rgb_color(0xF2, 0xF2, 0xF2)));
+	fl_xyline(x+3, y+h-2, x+w-4);
+	// top corners
+	fl_color(activated_color(fl_rgb_color(0xA4, 0xA4, 0xA4)));
+	fl_arc(x, y, 8, 8, 90.0, 180.0);
+	fl_arc(x+w-8, y, 8, 8, 0.0, 90.0);
+	// bottom corners
+	fl_color(activated_color(fl_rgb_color(0x94, 0x94, 0x94)));
+	fl_arc(x, y+h-8, 8, 8, 180.0, 270.0);
+	fl_arc(x+w-8, y+h-8, 8, 8, 270.0, 360.0);
+}
+
+static void aqua_tabs_box(int x, int y, int w, int h, Fl_Color c) {
+	fl_color(activated_color(c));
+	fl_rectf(x+2, y+2, w-4, h-4);
+	aqua_tabs_frame(x, y, w, h, c);
+}
+
 static void aqua_swatch_frame(int x, int y, int w, int h, Fl_Color) {
 	// outer border
 	fl_color(activated_color(fl_rgb_color(0xA3, 0xA3, 0xA3)));
@@ -995,6 +1049,7 @@ static void use_aqua_scheme() {
 	Fl::set_boxtype(OS_DEFAULT_HOVERED_UP_BOX, OS_HOVERED_UP_BOX);
 	Fl::set_boxtype(OS_DEFAULT_DEPRESSED_DOWN_BOX, OS_DEPRESSED_DOWN_BOX);
 	Fl::set_boxtype(OS_TOOLBAR_BUTTON_HOVER_BOX, FL_FLAT_BOX);
+	Fl::set_boxtype(OS_TABS_BOX, aqua_tabs_box, 2, 1, 4, 2);
 	Fl::set_boxtype(OS_SWATCH_BOX, aqua_swatch_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_SWATCH_FRAME, aqua_swatch_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_MINI_BUTTON_UP_BOX, OS_BUTTON_UP_BOX);
@@ -1015,7 +1070,8 @@ static void use_aqua_colors() {
 	Fl::foreground(0x00, 0x00, 0x00);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x4D, 0x4D, 0x69);
 	Fl::set_color(FL_SELECTION_COLOR, 0x30, 0x60, 0xF6);
-	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(BACKGROUND3_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(OS_TAB_COLOR, 0xFB, 0xFB, 0xFB);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xC7));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -1092,10 +1148,10 @@ static void greybird_check_down_frame(int x, int y, int w, int h, Fl_Color) {
 
 static void greybird_panel_thin_up_frame(int x, int y, int w, int h, Fl_Color) {
 	// top and left borders
-	fl_color(activated_color(fl_rgb_color(0xE0, 0xE0, 0xE0)));
+	fl_color(activated_color(fl_rgb_color(0xDA, 0xDA, 0xDA)));
 	fl_yxline(x, y+h-2, y, x+w-2);
 	// bottom and right borders
-	fl_color(activated_color(fl_rgb_color(0xBA, 0xBA, 0xBA)));
+	fl_color(activated_color(fl_rgb_color(0xC1, 0xC1, 0xC1)));
 	fl_xyline(x, y+h-1, x+w-1, y);
 }
 
@@ -1116,7 +1172,7 @@ static void greybird_spacer_thin_down_frame(int x, int y, int w, int h, Fl_Color
 	fl_color(activated_color(fl_rgb_color(0xBA, 0xBA, 0xBA)));
 	fl_yxline(x, y+h-2, y, x+w-2);
 	// bottom and right borders
-	fl_color(activated_color(fl_rgb_color(0xE0, 0xE0, 0xE0)));
+	fl_color(activated_color(fl_rgb_color(0xDA, 0xDA, 0xDA)));
 	fl_xyline(x, y+h-1, x+w-1, y);
 }
 
@@ -1297,6 +1353,40 @@ static void greybird_default_depressed_down_box(int x, int y, int w, int h, Fl_C
 	greybird_default_depressed_down_frame(x, y, w, h, c);
 }
 
+static void greybird_tabs_frame(int x, int y, int w, int h, Fl_Color) {
+	// top outer border
+	fl_color(activated_color(fl_rgb_color(0xA6, 0xA6, 0xA6)));
+	fl_xyline(x+2, y, x+w-3);
+	// side outer borders
+	fl_color(activated_color(fl_rgb_color(0x96, 0x96, 0x96)));
+	fl_yxline(x, y+2, y+h-3);
+	fl_yxline(x+w-1, y+2, y+h-3);
+	// bottom outer border
+	fl_color(activated_color(fl_rgb_color(0x87, 0x87, 0x87)));
+	fl_xyline(x+2, y+h-1, x+w-3);
+	// top inner border
+	fl_color(activated_color(fl_rgb_color(0xEE, 0xEE, 0xEE)));
+	fl_xyline(x+2, y+1, x+w-3);
+	// side inner borders
+	fl_color(activated_color(fl_rgb_color(0xE4, 0xE4, 0xE4)));
+	fl_yxline(x+1, y+2, y+h-3);
+	fl_yxline(x+w-2, y+2, y+h-3);
+	// top corners
+	fl_color(activated_color(fl_rgb_color(0xB8, 0xB8, 0xB8)));
+	fl_xyline(x, y+1, x+1, y);
+	fl_yxline(x+w-2, y, y+1, x+w-1);
+	// bottom corners
+	fl_color(activated_color(fl_rgb_color(0xA0, 0xA0, 0xA0)));
+	fl_xyline(x, y+h-2, x+1, y+h-1);
+	fl_yxline(x+w-2, y+h-1, y+h-2, x+w-1);
+}
+
+static void greybird_tabs_box(int x, int y, int w, int h, Fl_Color c) {
+	fl_color(activated_color(fl_rgb_color(0xD9, 0xD9, 0xD9)));
+	fl_rectf(x+2, y+2, w-3, h-2);
+	greybird_tabs_frame(x, y, w, h, c);
+}
+
 static void use_greybird_scheme() {
 	Fl::scheme("gtk+");
 	Fl::set_boxtype(OS_BUTTON_UP_BOX, greybird_button_up_box, 2, 2, 4, 4);
@@ -1318,6 +1408,7 @@ static void use_greybird_scheme() {
 	Fl::set_boxtype(OS_DEFAULT_HOVERED_UP_BOX, OS_HOVERED_UP_BOX);
 	Fl::set_boxtype(OS_DEFAULT_DEPRESSED_DOWN_BOX, greybird_default_depressed_down_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_TOOLBAR_BUTTON_HOVER_BOX, OS_BUTTON_UP_BOX);
+	Fl::set_boxtype(OS_TABS_BOX, greybird_tabs_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_SWATCH_BOX, OS_SPACER_THIN_DOWN_BOX);
 	Fl::set_boxtype(OS_SWATCH_FRAME, OS_SPACER_THIN_DOWN_FRAME);
 	Fl::set_boxtype(OS_MINI_BUTTON_UP_BOX, OS_BUTTON_UP_BOX);
@@ -1338,7 +1429,8 @@ static void use_greybird_colors() {
 	Fl::foreground(0x3C, 0x3C, 0x3C);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x55, 0x55, 0x55);
 	Fl::set_color(FL_SELECTION_COLOR, 0x3D, 0x7B, 0xBB);
-	Fl::set_color(FL_FREE_COLOR, 0xFC, 0xFC, 0xFC);
+	Fl::set_color(BACKGROUND3_COLOR, 0xFC, 0xFC, 0xFC);
+	Fl::set_color(OS_TAB_COLOR, 0xD9, 0xD9, 0xD9);
 	Fl_Tooltip::color(fl_rgb_color(0x0A, 0x0A, 0x0A));
 	Fl_Tooltip::textcolor(fl_rgb_color(0xFF, 0xFF, 0xFF));
 }
@@ -1437,6 +1529,17 @@ static void ocean_depressed_down_box(int x, int y, int w, int h, Fl_Color c) {
 	ocean_button_up_frame(x, y, w, h, c);
 }
 
+static void ocean_tabs_frame(int x, int y, int w, int h, Fl_Color) {
+	fl_color(activated_color(fl_rgb_color(0x63, 0x82, 0xBF)));
+	fl_rect(x, y, w, h);
+}
+
+static void ocean_tabs_box(int x, int y, int w, int h, Fl_Color c) {
+	fl_color(activated_color(c));
+	fl_rectf(x+1, y+1, w-2, h-2);
+	ocean_tabs_frame(x, y, w, h, c);
+}
+
 static void use_ocean_scheme() {
 	Fl::scheme("none");
 	Fl::set_boxtype(OS_BUTTON_UP_BOX, ocean_button_up_box, 1, 1, 2, 2);
@@ -1458,6 +1561,7 @@ static void use_ocean_scheme() {
 	Fl::set_boxtype(OS_DEFAULT_HOVERED_UP_BOX, OS_HOVERED_UP_BOX);
 	Fl::set_boxtype(OS_DEFAULT_DEPRESSED_DOWN_BOX, OS_DEPRESSED_DOWN_BOX);
 	Fl::set_boxtype(OS_TOOLBAR_BUTTON_HOVER_BOX, FL_FLAT_BOX);
+	Fl::set_boxtype(OS_TABS_BOX, ocean_tabs_box, 2, 1, 4, 2);
 	Fl::set_boxtype(OS_SWATCH_BOX, OS_INPUT_THIN_DOWN_BOX);
 	Fl::set_boxtype(OS_SWATCH_FRAME, OS_BUTTON_UP_FRAME);
 	Fl::set_boxtype(OS_MINI_BUTTON_UP_BOX, OS_BUTTON_UP_BOX);
@@ -1478,7 +1582,8 @@ static void use_ocean_colors() {
 	Fl::foreground(0x33, 0x33, 0x33);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x58, 0x58, 0x68);
 	Fl::set_color(FL_SELECTION_COLOR, 0xA3, 0xB8, 0xCC);
-	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(BACKGROUND3_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(OS_TAB_COLOR, 0xC8, 0XDD, 0xF2);
 	Fl_Tooltip::color(fl_rgb_color(0xB8, 0xCF, 0xE5));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -1681,6 +1786,29 @@ static void blue_default_button_up_box(int x, int y, int w, int h, Fl_Color c) {
 	blue_default_button_up_frame(x, y, w, h, c);
 }
 
+static void blue_tabs_frame(int x, int y, int w, int h, Fl_Color) {
+	// border
+	fl_color(activated_color(fl_rgb_color(0x87, 0x97, 0xAA)));
+	fl_xyline(x+2, y, x+w-3);
+	fl_xyline(x+2, y+h-1, x+w-3);
+	fl_yxline(x, y+2, y+h-3);
+	fl_yxline(x+w-1, y+2, y+h-3);
+	// top corners
+	fl_color(activated_color(fl_rgb_color(0x9B, 0xAA, 0xBB)));
+	fl_xyline(x, y+1, x+1, y);
+	fl_yxline(x+w-2, y, y+1, x+w-1);
+	// bottom corners
+	fl_color(activated_color(fl_rgb_color(0xA1, 0xAE, 0xBD)));
+	fl_xyline(x, y+h-2, x+1, y+h-1);
+	fl_yxline(x+w-2, y+h-1, y+h-2, x+w-1);
+}
+
+static void blue_tabs_box(int x, int y, int w, int h, Fl_Color c) {
+	fl_color(activated_color(c));
+	fl_rectf(x+1, y+1, w-2, h-2);
+	blue_tabs_frame(x, y, w, h, c);
+}
+
 static void use_blue_scheme() {
 	Fl::scheme("gtk+");
 	Fl::set_boxtype(OS_BUTTON_UP_BOX, blue_button_up_box, 2, 2, 4, 4);
@@ -1702,6 +1830,7 @@ static void use_blue_scheme() {
 	Fl::set_boxtype(OS_DEFAULT_HOVERED_UP_BOX, OS_HOVERED_UP_BOX);
 	Fl::set_boxtype(OS_DEFAULT_DEPRESSED_DOWN_BOX, OS_DEPRESSED_DOWN_BOX);
 	Fl::set_boxtype(OS_TOOLBAR_BUTTON_HOVER_BOX, FL_FLAT_BOX);
+	Fl::set_boxtype(OS_TABS_BOX, blue_tabs_box, 2, 1, 4, 2);
 	Fl::set_boxtype(OS_SWATCH_BOX, aero_swatch_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_SWATCH_FRAME, aero_swatch_frame, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_MINI_BUTTON_UP_BOX, OS_BUTTON_UP_BOX);
@@ -1722,7 +1851,8 @@ static void use_blue_colors() {
 	Fl::foreground(0x1E, 0x39, 0x5B);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x35, 0x49, 0x6A);
 	Fl::set_color(FL_SELECTION_COLOR, 0x33, 0x33, 0x33);
-	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(BACKGROUND3_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(OS_TAB_COLOR, 0xEA, 0xF1, 0xFA);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xFF));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -2095,6 +2225,20 @@ static void olive_mini_button_up_box(int x, int y, int w, int h, Fl_Color c) {
 	olive_mini_button_up_frame(x, y, w, h, c);
 }
 
+static void olive_tabs_frame(int x, int y, int w, int h, Fl_Color) {
+	fl_color(activated_color(fl_rgb_color(0x91, 0x9B, 0x9C)));
+	fl_xyline(x+1, y, x+w-2);
+	fl_xyline(x+1, y+h-1, x+w-2);
+	fl_yxline(x, y+1, y+h-2);
+	fl_yxline(x+w-1, y+1, y+h-2);
+}
+
+static void olive_tabs_box(int x, int y, int w, int h, Fl_Color c) {
+	fl_color(activated_color(c));
+	fl_rectf(x+1, y+1, w-2, h-2);
+	olive_tabs_frame(x, y, w, h, c);
+}
+
 static void use_olive_scheme() {
 	Fl::scheme("none");
 	Fl::set_boxtype(OS_BUTTON_UP_BOX, olive_button_up_box, 1, 3, 2, 6);
@@ -2116,6 +2260,7 @@ static void use_olive_scheme() {
 	Fl::set_boxtype(OS_DEFAULT_HOVERED_UP_BOX, OS_HOVERED_UP_BOX);
 	Fl::set_boxtype(OS_DEFAULT_DEPRESSED_DOWN_BOX, OS_DEPRESSED_DOWN_BOX);
 	Fl::set_boxtype(OS_TOOLBAR_BUTTON_HOVER_BOX, olive_toolbar_button_hover_box, 1, 2, 2, 4);
+	Fl::set_boxtype(OS_TABS_BOX, olive_tabs_box, 2, 1, 4, 2);
 	Fl::set_boxtype(OS_SWATCH_BOX, olive_swatch_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_SWATCH_FRAME, olive_swatch_frame, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_MINI_BUTTON_UP_BOX, olive_mini_button_up_box, 1, 3, 2, 6);
@@ -2136,7 +2281,8 @@ static void use_olive_colors() {
 	Fl::foreground(0x41, 0x40, 0x0A);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x56, 0x66, 0x46);
 	Fl::set_color(FL_SELECTION_COLOR, 0xCC, 0x45, 0x18);
-	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(BACKGROUND3_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(OS_TAB_COLOR, 0xFC, 0xFC, 0xD0);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xE1));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -2339,6 +2485,29 @@ static void rose_gold_default_button_up_box(int x, int y, int w, int h, Fl_Color
 	rose_gold_default_button_up_frame(x, y, w, h, c);
 }
 
+static void rose_gold_tabs_frame(int x, int y, int w, int h, Fl_Color) {
+	// border
+	fl_color(activated_color(fl_rgb_color(0xB0, 0x8C, 0x83)));
+	fl_xyline(x+2, y, x+w-3);
+	fl_xyline(x+2, y+h-1, x+w-3);
+	fl_yxline(x, y+2, y+h-3);
+	fl_yxline(x+w-1, y+2, y+h-3);
+	// top corners
+	fl_color(activated_color(fl_rgb_color(0xC1, 0x9F, 0x97)));
+	fl_xyline(x, y+1, x+1, y);
+	fl_yxline(x+w-2, y, y+1, x+w-1);
+	// bottom corners
+	fl_color(activated_color(fl_rgb_color(0xC3, 0xA6, 0x9E)));
+	fl_xyline(x, y+h-2, x+1, y+h-1);
+	fl_yxline(x+w-2, y+h-1, y+h-2, x+w-1);
+}
+
+static void rose_gold_tabs_box(int x, int y, int w, int h, Fl_Color c) {
+	fl_color(activated_color(c));
+	fl_rectf(x+1, y+1, w-2, h-2);
+	rose_gold_tabs_frame(x, y, w, h, c);
+}
+
 static void use_rose_gold_scheme() {
 	Fl::scheme("gtk+");
 	Fl::set_boxtype(OS_BUTTON_UP_BOX, rose_gold_button_up_box, 2, 2, 4, 4);
@@ -2360,6 +2529,7 @@ static void use_rose_gold_scheme() {
 	Fl::set_boxtype(OS_DEFAULT_HOVERED_UP_BOX, OS_HOVERED_UP_BOX);
 	Fl::set_boxtype(OS_DEFAULT_DEPRESSED_DOWN_BOX, OS_DEPRESSED_DOWN_BOX);
 	Fl::set_boxtype(OS_TOOLBAR_BUTTON_HOVER_BOX, OS_BUTTON_UP_BOX);
+	Fl::set_boxtype(OS_TABS_BOX, rose_gold_tabs_box, 2, 1, 4, 2);
 	Fl::set_boxtype(OS_SWATCH_BOX, aero_swatch_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_SWATCH_FRAME, aero_swatch_frame, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_MINI_BUTTON_UP_BOX, OS_BUTTON_UP_BOX);
@@ -2380,7 +2550,8 @@ static void use_rose_gold_colors() {
 	Fl::foreground(0x4C, 0x1E, 0x12);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x60, 0x4C, 0x4C);
 	Fl::set_color(FL_SELECTION_COLOR, 0x14, 0x79, 0xEA);
-	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(BACKGROUND3_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(OS_TAB_COLOR, 0xFA, 0xEA, 0xF7);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xFF));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
@@ -2533,6 +2704,24 @@ static void dark_input_thin_down_box(int x, int y, int w, int h, Fl_Color c) {
 	dark_input_thin_down_frame(x, y, w, h, c);
 }
 
+static void dark_tabs_frame(int x, int y, int w, int h, Fl_Color) {
+	// outer border
+	fl_color(activated_color(fl_rgb_color(0x28, 0x28, 0x28)));
+	fl_xyline(x+1, y, x+w-2);
+	fl_xyline(x+1, y+h-1, x+w-2);
+	fl_yxline(x, y+1, y+h-2);
+	fl_yxline(x+w-1, y+1, y+h-2);
+	// top inner border
+	fl_color(activated_color(fl_rgb_color(0x6A, 0x6A, 0x6A)));
+	fl_xyline(x+2, y+1, x+w-3);
+}
+
+static void dark_tabs_box(int x, int y, int w, int h, Fl_Color c) {
+	fl_color(activated_color(c));
+	fl_rectf(x+1, y+1, w-2, h-2);
+	dark_tabs_frame(x, y, w, h, c);
+}
+
 static void dark_swatch_frame(int x, int y, int w, int h, Fl_Color) {
 	// outer border
 	fl_color(activated_color(fl_rgb_color(0x25, 0x25, 0x25)));
@@ -2569,6 +2758,7 @@ static void use_dark_scheme() {
 	Fl::set_boxtype(OS_DEFAULT_HOVERED_UP_BOX, OS_HOVERED_UP_BOX);
 	Fl::set_boxtype(OS_DEFAULT_DEPRESSED_DOWN_BOX, OS_DEPRESSED_DOWN_BOX);
 	Fl::set_boxtype(OS_TOOLBAR_BUTTON_HOVER_BOX, OS_BUTTON_UP_BOX);
+	Fl::set_boxtype(OS_TABS_BOX, dark_tabs_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_SWATCH_BOX, dark_swatch_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_SWATCH_FRAME, dark_swatch_frame, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_MINI_BUTTON_UP_BOX, OS_BUTTON_UP_BOX);
@@ -2589,7 +2779,8 @@ static void use_dark_colors() {
 	Fl::foreground(0xEC, 0xEC, 0xEC);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x26, 0x26, 0x26);
 	Fl::set_color(FL_SELECTION_COLOR, 0xD6, 0xD6, 0xD6);
-	Fl::set_color(FL_FREE_COLOR, 0x24, 0x24, 0x24);
+	Fl::set_color(BACKGROUND3_COLOR, 0x24, 0x24, 0x24);
+	Fl::set_color(OS_TAB_COLOR, 0x53, 0x53, 0x53);
 	Fl_Tooltip::color(fl_rgb_color(0xFF, 0xFF, 0xCC));
 	Fl_Tooltip::textcolor(fl_rgb_color(0x00, 0x00, 0x00));
 }
@@ -2832,10 +3023,10 @@ static void brushed_metal_default_depressed_down_box(int x, int y, int w, int h,
 
 static void brushed_metal_panel_thin_up_frame(int x, int y, int w, int h, Fl_Color) {
 	// top and left borders
-	fl_color(activated_color(fl_rgb_color(0xF0, 0xF0, 0xF0)));
+	fl_color(activated_color(fl_rgb_color(0xDD, 0xDD, 0xDD)));
 	fl_yxline(x, y+h-2, y, x+w-2);
 	// bottom and right borders
-	fl_color(activated_color(fl_rgb_color(0x5D, 0x5D, 0x5D)));
+	fl_color(activated_color(fl_rgb_color(0xAB, 0xAB, 0xAB)));
 	fl_xyline(x, y+h-1, x+w-1, y);
 }
 
@@ -2981,6 +3172,7 @@ static void use_brushed_metal_scheme() {
 	Fl::set_boxtype(OS_DEFAULT_HOVERED_UP_BOX, OS_DEFAULT_BUTTON_UP_BOX);
 	Fl::set_boxtype(OS_DEFAULT_DEPRESSED_DOWN_BOX, brushed_metal_default_depressed_down_box, 1, 2, 2, 4);
 	Fl::set_boxtype(OS_TOOLBAR_BUTTON_HOVER_BOX, OS_BUTTON_UP_BOX);
+	Fl::set_boxtype(OS_TABS_BOX, brushed_metal_button_up_box, 1, 1, 2, 2);
 	Fl::set_boxtype(OS_SWATCH_BOX, brushed_metal_swatch_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_MINI_BUTTON_UP_BOX, OS_BUTTON_UP_BOX);
 	Fl::set_boxtype(OS_MINI_DEPRESSED_DOWN_BOX, OS_DEPRESSED_DOWN_BOX);
@@ -3000,7 +3192,8 @@ static void use_brushed_metal_colors() {
 	Fl::foreground(0x00, 0x00, 0x00);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x50, 0x50, 0x50);
 	Fl::set_color(FL_SELECTION_COLOR, 0x40, 0x40, 0x40);
-	Fl::set_color(FL_FREE_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(BACKGROUND3_COLOR, 0xFF, 0xFF, 0xFF);
+	Fl::set_color(OS_TAB_COLOR, 0xCB, 0xCB, 0xCB);
 	Fl_Tooltip::color(fl_rgb_color(0xEE, 0xEE, 0xEE));
 	Fl_Tooltip::textcolor(fl_rgb_color(0x00, 0x00, 0x00));
 }
@@ -3125,6 +3318,7 @@ static void use_high_contrast_scheme() {
 	Fl::set_boxtype(OS_DEFAULT_HOVERED_UP_BOX, OS_HOVERED_UP_BOX);
 	Fl::set_boxtype(OS_DEFAULT_DEPRESSED_DOWN_BOX, OS_DEPRESSED_DOWN_BOX);
 	Fl::set_boxtype(OS_TOOLBAR_BUTTON_HOVER_BOX, OS_HOVERED_UP_BOX);
+	Fl::set_boxtype(OS_TABS_BOX, high_contrast_button_up_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_SWATCH_BOX, high_contrast_check_down_box, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_SWATCH_FRAME, high_contrast_check_down_frame, 2, 2, 4, 4);
 	Fl::set_boxtype(OS_MINI_BUTTON_UP_BOX, high_contrast_button_up_box, 2, 2, 4, 4);
@@ -3145,7 +3339,8 @@ static void use_high_contrast_colors() {
 	Fl::foreground(0xFF, 0xFF, 0xFF);
 	Fl::set_color(FL_INACTIVE_COLOR, 0x00, 0x20, 0x20);
 	Fl::set_color(FL_SELECTION_COLOR, 0x00, 0xFF, 0xFF);
-	Fl::set_color(FL_FREE_COLOR, 0x00, 0x15, 0x15);
+	Fl::set_color(BACKGROUND3_COLOR, 0x00, 0x15, 0x15);
+	Fl::set_color(OS_TAB_COLOR, 0x20, 0x20, 0x20);
 	Fl_Tooltip::color(fl_rgb_color(0x00, 0x00, 0x00));
 	Fl_Tooltip::textcolor(FL_FOREGROUND_COLOR);
 }
