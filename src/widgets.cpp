@@ -1,40 +1,11 @@
 #pragma warning(push, 0)
 #include <FL/Fl.H>
-#include <FL/Fl_Box.H>
-#include <FL/Fl_Pack.H>
-#include <FL/Fl_Scroll.H>
-#include <FL/Fl_Spinner.H>
-#include <FL/Fl_Button.H>
-#include <FL/Fl_Toggle_Button.H>
-#include <FL/Fl_Menu_.H>
 #include <FL/fl_draw.H>
 #pragma warning(pop)
 
 #include "themes.h"
 #include "utils.h"
 #include "widgets.h"
-
-void DnD_Receiver::deferred_callback(DnD_Receiver *dndr) {
-	dndr->do_callback();
-}
-
-DnD_Receiver::DnD_Receiver(int x, int y, int w, int h, const char *l) : Fl_Box(x, y, w, h, l), _text() {
-	labeltype(FL_NO_LABEL);
-	box(FL_NO_BOX);
-	clear_visible_focus();
-}
-
-int DnD_Receiver::handle(int event) {
-	if (event == FL_PASTE && Fl::event_length()) {
-		_text = Fl::event_text();
-		// Callback deferral technique taken from <http://www.fltk.org/articles.php?L770>
-		if (callback() && ((when() & FL_WHEN_RELEASE) || (when() & FL_WHEN_CHANGED))) {
-			Fl::add_timeout(0.0, (Fl_Timeout_Handler)DnD_Receiver::deferred_callback, this);
-		}
-		return 1;
-	}
-	return 0;
-}
 
 Label::Label(int x, int y, int w, int h, const char *l) : Fl_Box(x, y, w, h, l) {
 	labelfont(OS_FONT);
@@ -79,15 +50,6 @@ OS_Input::OS_Input(int x, int y, int w, int h, const char *l) : Fl_Input(x, y, w
 }
 
 OS_Int_Input::OS_Int_Input(int x, int y, int w, int h, const char *l) : Fl_Int_Input(x, y, w, h, l) {
-	labelfont(OS_FONT);
-	labelsize(OS_FONT_SIZE);
-	textfont(OS_FONT);
-	textsize(OS_FONT_SIZE);
-	box(OS_INPUT_THIN_DOWN_BOX);
-	align(FL_ALIGN_LEFT | FL_ALIGN_CLIP);
-}
-
-OS_Hex_Input::OS_Hex_Input(int x, int y, int w, int h, const char *l) : Hex_Input(x, y, w, h, l) {
 	labelfont(OS_FONT);
 	labelsize(OS_FONT_SIZE);
 	textfont(OS_FONT);
@@ -343,65 +305,6 @@ int OS_Spinner::handle(int event) {
 	return Fl_Group::handle(event);
 }
 
-OS_Hex_Spinner::OS_Hex_Spinner(int x, int y, int w, int h, const char *l) : Hex_Spinner(x, y, w, h, l) {
-	labelfont(OS_FONT);
-	labelsize(OS_FONT_SIZE);
-	textfont(OS_FONT);
-	textsize(OS_FONT_SIZE);
-	align(FL_ALIGN_LEFT | FL_ALIGN_CLIP);
-	_input.box(OS_INPUT_THIN_DOWN_BOX);
-	_up_button.labelfont(OS_FONT);
-	_up_button.labelsize(OS_FONT_SIZE);
-	_up_button.box(OS_MINI_BUTTON_UP_BOX);
-	_up_button.down_box(OS_MINI_DEPRESSED_DOWN_BOX);
-	_down_button.labelfont(OS_FONT);
-	_down_button.labelsize(OS_FONT_SIZE);
-	_down_button.box(OS_MINI_BUTTON_UP_BOX);
-	_down_button.down_box(OS_MINI_DEPRESSED_DOWN_BOX);
-}
-
-Default_Spinner::Default_Spinner(int x, int y, int w, int h, const char *l) : OS_Spinner(x, y, w, h, l),
-	_default_value(0.0) {}
-
-int Default_Spinner::handle(int event) {
-	switch (event) {
-	case FL_PUSH:
-		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
-			return 1;
-		}
-		break;
-	case FL_RELEASE:
-		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
-			value(_default_value);
-			do_callback();
-			return 1;
-		}
-		break;
-	}
-	return Fl_Spinner::handle(event);
-}
-
-Default_Hex_Spinner::Default_Hex_Spinner(int x, int y, int w, int h, const char *l) : OS_Hex_Spinner(x, y, w, h, l),
-	_default_value(0) {}
-
-int Default_Hex_Spinner::handle(int event) {
-	switch (event) {
-	case FL_PUSH:
-		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
-			return 1;
-		}
-		break;
-	case FL_RELEASE:
-		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
-			value(_default_value);
-			do_callback();
-			return 1;
-		}
-		break;
-	}
-	return Hex_Spinner::handle(event);
-}
-
 OS_Slider::OS_Slider(int x, int y, int w, int h, const char *l) : Fl_Hor_Nice_Slider(x, y, w, h, l) {
 	labelfont(OS_FONT);
 	labelsize(OS_FONT_SIZE);
@@ -445,37 +348,6 @@ void OS_Slider::draw(int x, int y, int w, int h) {
 	if (Fl::focus() == this) {
 		draw_focus(slider(), lx, y, s, h);
 	}
-}
-
-Default_Slider::Default_Slider(int x, int y, int w, int h, const char *l) : OS_Slider(x, y, w, h, l),
-	_default_value(0.0) {}
-
-int Default_Slider::handle(int event) {
-	return handle(event, x(), y(), w(), h());
-}
-
-int Default_Slider::handle(int event, int x, int y, int w, int h) {
-	switch (event) {
-	case FL_PUSH:
-		Fl::focus(this);
-		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
-			return 1;
-		}
-		break;
-	case FL_DRAG:
-		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
-			return 0;
-		}
-		break;
-	case FL_RELEASE:
-		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
-			value(_default_value);
-			do_callback();
-			return 1;
-		}
-		break;
-	}
-	return Fl_Hor_Nice_Slider::handle(event, x, y, w, h);
 }
 
 HTML_View::HTML_View(int x, int y, int w, int h, const char *l) : Fl_Help_View(x, y, w, h, l) {
@@ -652,68 +524,6 @@ OS_Tab::OS_Tab(int x, int y, int w, int h, const char *l) : Fl_Group(x, y, w, h,
 OS_Scroll::OS_Scroll(int x, int y, int w, int h, const char *l) : Fl_Scroll(x, y, w, h, l) {
 	scrollbar.slider(OS_MINI_BUTTON_UP_BOX);
 	hscrollbar.slider(OS_MINI_BUTTON_UP_BOX);
-}
-
-Workspace::Workspace(int x, int y, int w, int h, const char *l) : OS_Scroll(x, y, w, h, l),
-	_content_w(0), _content_h(0), _ox(0), _oy(0), _cx(0), _cy(0), _dnd_receiver(NULL), _correlates() {
-	labeltype(FL_NO_LABEL);
-	box(FL_NO_BOX);
-	color(FL_INACTIVE_COLOR);
-	hscrollbar.callback((Fl_Callback *)hscrollbar_cb);
-	scrollbar.callback((Fl_Callback *)scrollbar_cb);
-}
-
-int Workspace::handle(int event) {
-	if (_dnd_receiver) {
-		switch (event) {
-		case FL_DND_ENTER:
-		case FL_DND_LEAVE:
-		case FL_DND_DRAG:
-		case FL_DND_RELEASE:
-			return 1;
-		case FL_PASTE:
-			return _dnd_receiver->handle(event);
-		}
-	}
-	switch (event) {
-	case FL_PUSH:
-		if (Fl::event_button() != FL_MIDDLE_MOUSE) { break; }
-		Fl::belowmouse(this);
-		_ox = xposition();
-		_oy = yposition();
-		_cx = Fl::event_x();
-		_cy = Fl::event_y();
-		fl_cursor(FL_CURSOR_MOVE);
-		return 1;
-	case FL_RELEASE:
-		fl_cursor(FL_CURSOR_DEFAULT);
-		return 1;
-	case FL_DRAG:
-		int dx = Fl::event_x(), dy = Fl::event_y();
-		int nx = _ox + (_cx - dx), ny = _oy + (_cy - dy);
-		int max_x = std::max(_content_w - w() + (scrollbar.visible() ? Fl::scrollbar_size() : 0), 0);
-		int max_y = std::max(_content_h - h() + (hscrollbar.visible() ? Fl::scrollbar_size() : 0), 0);
-		scroll_to(std::clamp(nx, 0, max_x), std::clamp(ny, 0, max_y));
-		return 1;
-	}
-	return Fl_Scroll::handle(event);
-}
-
-void Workspace::scroll_to(int x, int y) {
-	Fl_Scroll::scroll_to(x, y);
-	for (Fl_Widget *wgt : _correlates) {
-		wgt->damage(1);
-	}
-}
-
-void Workspace::hscrollbar_cb(Fl_Scrollbar *sb, void *) {
-	Workspace *ws = (Workspace *)(sb->parent());
-	ws->scroll_to(sb->value(), ws->yposition());
-}
-
-void Workspace::scrollbar_cb(Fl_Scrollbar *sb, void *) {
-	Workspace *ws = (Workspace *)(sb->parent());
-	ws->scroll_to(ws->xposition(), sb->value());
 }
 
 Toolbar::Toolbar(int x, int y, int w, int h, const char *l) : Fl_Group(x, y, w, h, l) {

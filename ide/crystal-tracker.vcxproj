@@ -196,7 +196,6 @@
     <ClCompile Include="..\src\drumkit-window.cpp" />
     <ClCompile Include="..\src\edit-context-menu.cpp" />
     <ClCompile Include="..\src\help-window.cpp" />
-    <ClCompile Include="..\src\hex-spinner.cpp" />
     <ClCompile Include="..\src\it-module.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\main-window.cpp" />
@@ -222,7 +221,6 @@
     <ClInclude Include="..\src\drumkit-window.h" />
     <ClInclude Include="..\src\edit-context-menu.h" />
     <ClInclude Include="..\src\help-window.h" />
-    <ClInclude Include="..\src\hex-spinner.h" />
     <ClInclude Include="..\src\icons.h" />
     <ClInclude Include="..\src\it-module.h" />
     <ClInclude Include="..\src\main-window.h" />

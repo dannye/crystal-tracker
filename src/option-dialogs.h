@@ -1,6 +1,8 @@
 #ifndef OPTION_DIALOGS_H
 #define OPTION_DIALOGS_H
 
+#include <string>
+
 #include "widgets.h"
 
 #pragma warning(push, 0)

@@ -92,10 +92,6 @@ typedef uint64_t size64_t;
 extern const std::string whitespace;
 
 bool equals_ignore_case(std::string_view s, std::string_view p);
-bool starts_with(std::string_view s, std::string_view p);
-bool ends_with(std::string_view s, std::string_view p);
-bool ends_with_ignore_case(std::string_view s, std::string_view p);
-bool ends_with_ignore_case(std::wstring_view s, std::wstring_view p);
 bool is_indented(std::string_view s);
 bool is_hex(std::string_view s);
 bool is_decimal(std::string_view s);
@@ -103,22 +99,14 @@ bool is_octal(std::string_view s);
 bool is_binary(std::string_view s);
 void trim(std::string &s, const std::string &t = whitespace);
 void rtrim(std::string &s, const std::string &t = whitespace);
-void lowercase(std::string &s);
 bool leading_macro(std::istringstream &iss, std::string &macro, const char *v = NULL);
 void remove_comment(std::string &s);
-void remove_suffix(const char *n, char *s);
-void before_suffix(const char *n, char *s);
-void after_suffix(const char *n, char *s);
-void remove_dot_ext(const char *f, char *s);
 void add_dot_ext(const char *f, const char *ext, char *s);
 int text_width(const char *l, int pad = 0);
 bool file_exists(const char *f);
-size_t file_size(const char *f);
-size_t file_size(FILE *f);
 int64_t file_modified(const char *f);
 void open_ifstream(std::ifstream &ifs, const char *f);
 void open_ofstream(std::ofstream &ofs, const char *f);
-void draw_outlined_text(const char *l, int x, int y, int w, int h, Fl_Align a, Fl_Color c, Fl_Color s);
 
 bool parse_value(std::string s, int32_t &v);
 
