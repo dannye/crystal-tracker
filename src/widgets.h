@@ -133,11 +133,14 @@ public:
 class Dropdown : public Fl_Choice {
 private:
 	Fl_Callback *_before_open_cb = nullptr;
+	bool _center_menu = false;
 	bool _scroll_enabled = false;
 public:
 	Dropdown(int x, int y, int w, int h, const char *l = NULL);
 	Fl_Callback *before_open_cb() const { return _before_open_cb; }
 	void before_open_cb(Fl_Callback *c) { _before_open_cb = c; }
+	bool center_menu() const { return _center_menu; }
+	void center_menu(bool c) { _center_menu = c; }
 	bool scroll_enabled() const { return _scroll_enabled; }
 	void scroll_enabled(bool s) { _scroll_enabled = s; }
 	void draw(void);

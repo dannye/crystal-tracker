@@ -451,12 +451,12 @@ int Dropdown::handle(int event) {
 	J1:
 		if (_before_open_cb) _before_open_cb(this, user_data());
 		if (Fl::scheme() || fl_contrast(textcolor(), FL_BACKGROUND2_COLOR) != textcolor()) {
-			v = menu()->pulldown(x(), y(), w(), h(), nullptr, this);
+			v = menu()->pulldown(x(), y(), w(), h(), _center_menu ? mvalue() : nullptr, this);
 			if (wp.deleted()) return 1;
 		} else {
 			Fl_Color c = color();
 			color(FL_BACKGROUND2_COLOR);
-			v = menu()->pulldown(x(), y(), w(), h(), nullptr, this);
+			v = menu()->pulldown(x(), y(), w(), h(), _center_menu ? mvalue() : nullptr, this);
 			if (wp.deleted()) return 1;
 			color(c);
 		}

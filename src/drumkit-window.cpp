@@ -22,16 +22,19 @@ void Drumkit_Window::initialize() {
 	_drumkit_tab = new OS_Tab(10, 35, 588, 285, "Drumkits");
 	_add_drumkit_button = new OS_Button(20, 45, 21, 21, "@+");
 	_remove_drumkit_button = new OS_Button(45, 45, 21, 21, "@1+");
-	_drumkit_up_button = new OS_Button(74, 45, 21, 21, "@8>");
-	_drumkit_down_button = new OS_Button(99, 45, 21, 21, "@2>");
-	_drumkit_browser = new OS_Browser(20, 70, 100, 240);
+	_drumkit_up_button = new OS_Button(99, 45, 21, 21, "@8>");
+	_drumkit_down_button = new OS_Button(124, 45, 21, 21, "@2>");
+	_drumkit_browser = new OS_Browser(20, 70, 125, 240);
+	for (int i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
+		_drumkit_drums[i] = new Dropdown(DRUM_DROPDOWNS[i].x, DRUM_DROPDOWNS[i].y, 125, 22, DRUM_DROPDOWNS[i].label);
+	}
 	_drumkit_tab->end();
 	_drum_tab = new OS_Tab(10, 35, 588, 285, "Drums");
 	_add_drum_button = new OS_Button(20, 45, 21, 21, "@+");
 	_remove_drum_button = new OS_Button(45, 45, 21, 21, "@1+");
-	_drum_up_button = new OS_Button(74, 45, 21, 21, "@8>");
-	_drum_down_button = new OS_Button(99, 45, 21, 21, "@2>");
-	_drum_browser = new OS_Browser(20, 70, 100, 240);
+	_drum_up_button = new OS_Button(99, 45, 21, 21, "@8>");
+	_drum_down_button = new OS_Button(124, 45, 21, 21, "@2>");
+	_drum_browser = new OS_Browser(20, 70, 125, 240);
 	_tabs->end();
 	_save_button = new Default_Button(10, 330, 80, 22, "Save");
 	_revert_button = new OS_Button(100, 330, 80, 22, "Revert");
@@ -54,6 +57,10 @@ void Drumkit_Window::initialize() {
 	_drumkit_down_button->tooltip("Move down");
 	_drumkit_down_button->callback((Fl_Callback *)move_drumkit_down_cb, this);
 	_drumkit_browser->callback((Fl_Callback *)select_drumkit_cb, this);
+	for (int i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
+		_drumkit_drums[i]->center_menu(true);
+		_drumkit_drums[i]->callback((Fl_Callback *)edit_drumkit_cb, this);
+	}
 	_add_drum_button->tooltip("New drum");
 	_add_drum_button->callback((Fl_Callback *)add_drum_cb, this);
 	_remove_drum_button->tooltip("Delete drum");
@@ -109,6 +116,13 @@ void Drumkit_Window::drumkits(const Drumkits &d) {
 	}
 	else {
 		_add_drumkit_button->activate();
+	}
+
+	for (int i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
+		_drumkit_drums[i]->clear();
+		for (size_t j = 0; j < _drumkits.drums.size(); ++j) {
+			_drumkit_drums[i]->add(_drumkits.drums[j].label.c_str());
+		}
 	}
 
 	_drum_browser->clear();
@@ -167,7 +181,48 @@ void Drumkit_Window::move_drumkit_down_cb(Fl_Widget *, Drumkit_Window *dw) {
 }
 
 void Drumkit_Window::select_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
-	// TODO
+	dw->_selected_drumkit = dw->_drumkit_browser->value();
+	if (!dw->_selected_drumkit || dw->_drumkits.drumkits.size() == 1) {
+		dw->_remove_drumkit_button->deactivate();
+	}
+	else {
+		dw->_remove_drumkit_button->activate();
+	}
+	if (!dw->_selected_drumkit || dw->_selected_drumkit == 1) {
+		dw->_drumkit_up_button->deactivate();
+	}
+	else {
+		dw->_drumkit_up_button->activate();
+	}
+	if (!dw->_selected_drumkit || dw->_selected_drumkit == dw->_drumkits.drumkits.size()) {
+		dw->_drumkit_down_button->deactivate();
+	}
+	else {
+		dw->_drumkit_down_button->activate();
+	}
+	if (!dw->_selected_drumkit) {
+		for (int i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
+			dw->_drumkit_drums[i]->value(nullptr);
+			dw->_drumkit_drums[i]->deactivate();
+		}
+	}
+	else {
+		for (int i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
+			dw->_drumkit_drums[i]->value(dw->_drumkits.drumkits[dw->_selected_drumkit-1].drums[i]);
+			dw->_drumkit_drums[i]->activate();
+		}
+	}
+}
+
+void Drumkit_Window::edit_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw) {
+	if (!dw->_selected_drumkit) return;
+	for (int i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
+		if (dw->_drumkit_drums[i] == (Dropdown *)w) {
+			dw->_drumkits.drumkits[dw->_selected_drumkit-1].drums[i] = dw->_drumkit_drums[i]->value();
+			return;
+		}
+	}
+	assert(false);
 }
 
 void Drumkit_Window::add_drum_cb(Fl_Widget *, Drumkit_Window *dw) {

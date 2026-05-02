@@ -1,6 +1,8 @@
 #ifndef DRUMKIT_WINDOW_H
 #define DRUMKIT_WINDOW_H
 
+#include <array>
+
 #pragma warning(push, 0)
 #include <FL/Fl_Double_Window.H>
 #pragma warning(pop)
@@ -8,6 +10,27 @@
 #include "modal-dialog.h"
 #include "parse-drumkits.h"
 #include "widgets.h"
+
+struct Drum_Dropdown {
+	int x, y;
+	const char *label;
+};
+
+constexpr Drum_Dropdown DRUM_DROPDOWNS[NUM_DRUMS_PER_DRUMKIT] {
+	{ 463,  45, "Rest:" },
+	{ 210, 286, "C:" },
+	{ 410, 268, "D♭/C♯:" },
+	{ 210, 250, "D:" },
+	{ 410, 232, "E♭/D♯:" },
+	{ 210, 214, "E:" },
+	{ 210, 178, "F:" },
+	{ 410, 160, "G♭/F♯:" },
+	{ 210, 142, "G:" },
+	{ 410, 124, "A♭/G♯:" },
+	{ 210, 106, "A:" },
+	{ 410,  88, "B♭/A♯:" },
+	{ 210,  70, "B:" },
+};
 
 class Drumkit_Window {
 private:
@@ -21,6 +44,7 @@ private:
 	OS_Button *_drumkit_up_button = nullptr;
 	OS_Button *_drumkit_down_button = nullptr;
 	OS_Browser *_drumkit_browser = nullptr;
+	std::array<Dropdown *, NUM_DRUMS_PER_DRUMKIT> _drumkit_drums;
 	OS_Tab *_drum_tab = nullptr;
 	OS_Button *_add_drum_button = nullptr;
 	OS_Button *_remove_drum_button = nullptr;
@@ -62,6 +86,7 @@ private:
 	static void move_drumkit_up_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void move_drumkit_down_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void select_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw);
+	static void edit_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void add_drum_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void remove_drum_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void move_drum_up_cb(Fl_Widget *w, Drumkit_Window *dw);
