@@ -156,3 +156,11 @@ bool parse_value(std::string s, int32_t &v) {
 	}
 	return false;
 }
+
+bool is_label_valid(const std::string &label) {
+	return (
+		label.size() > 0 &&
+		(label[0] < '0' || label[0] > '9') &&
+		label.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_") == std::string::npos
+	);
+}

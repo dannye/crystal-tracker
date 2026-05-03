@@ -7,7 +7,7 @@
 Drumkit_Window::Drumkit_Window(int x, int y) : _dx(x), _dy(y) {}
 
 Drumkit_Window::~Drumkit_Window() {
-	delete _drumkit_name_dialog;
+	delete _new_name_dialog;
 	delete _confirm_dialog;
 	delete _success_dialog;
 	delete _error_dialog;
@@ -45,7 +45,7 @@ void Drumkit_Window::initialize() {
 	_error_dialog = new Modal_Dialog(_window, "Error", Modal_Dialog::Icon::ERROR_ICON);
 	_success_dialog = new Modal_Dialog(_window, "Success", Modal_Dialog::Icon::SUCCESS_ICON);
 	_confirm_dialog = new Modal_Dialog(_window, "Warning", Modal_Dialog::Icon::WARNING_ICON, true);
-	_drumkit_name_dialog = new Drumkit_Name_Dialog("New Drumkit");
+	_new_name_dialog = new New_Name_Dialog("New Name");
 	// Initialize window
 	_window->box(OS_BG_BOX);
 	_window->callback((Fl_Callback *)cancel_cb, this);
@@ -297,17 +297,15 @@ void Drumkit_Window::add_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
 
 	std::string drumkit_name;
 	bool reset = true;
+	dw->_new_name_dialog->title("New Drumkit");
+	dw->_new_name_dialog->label("Drumkit Name:");
 	while (true) {
-		dw->_drumkit_name_dialog->show(dw->_window, reset);
-		bool canceled = dw->_drumkit_name_dialog->canceled();
+		dw->_new_name_dialog->show(dw->_window, reset);
+		bool canceled = dw->_new_name_dialog->canceled();
 		if (canceled) { return; }
 
-		drumkit_name = dw->_drumkit_name_dialog->get_drumkit_name();
-		if (
-			drumkit_name.size() == 0 ||
-			(drumkit_name[0] >= '0' && drumkit_name[0] <= '9') ||
-			drumkit_name.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_") != std::string::npos
-		) {
+		drumkit_name = dw->_new_name_dialog->get_name();
+		if (!is_label_valid(drumkit_name)) {
 			std::string msg = "Name is invalid! Name can only contain letters, numbers, and underscores, and must not start with a number.";
 			dw->_error_dialog->message(msg);
 			dw->_error_dialog->show(dw->_window);
@@ -367,6 +365,70 @@ void Drumkit_Window::move_drumkit_down_cb(Fl_Widget *, Drumkit_Window *dw) {
 }
 
 void Drumkit_Window::select_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
+	if (Fl::callback_reason() == FL_REASON_RESELECTED && Fl::event_clicks() > 0) {
+		assert(dw->_selected_drumkit == dw->_drumkit_browser->value());
+		Drumkit *selected_drumkit = dw->drumkit();
+		if (!selected_drumkit) return;
+
+		const auto is_label_taken = [&](const std::string &label) {
+			if (label == dw->_drumkits.drumkits_label) return true;
+			for (const Drumkit &drumkit : dw->_drumkits.drumkits) {
+				if (label == drumkit.label) {
+					return true;
+				}
+			}
+			for (const Drum &drum : dw->_drumkits.drums) {
+				if (label == drum.label) {
+					return true;
+				}
+			}
+			return false;
+		};
+
+		std::string drumkit_name;
+		std::string original_name = selected_drumkit->label;
+		dw->_new_name_dialog->title("Rename Drumkit");
+		dw->_new_name_dialog->label("Drumkit Name:");
+		dw->_new_name_dialog->set_name(original_name.c_str());
+		while (true) {
+			int focus = Fl::visible_focus();
+			Fl::visible_focus(0);
+			dw->_new_name_dialog->show(dw->_window, false);
+			Fl::visible_focus(focus);
+			bool canceled = dw->_new_name_dialog->canceled();
+			if (canceled) { return; }
+
+			drumkit_name = dw->_new_name_dialog->get_name();
+			if (drumkit_name == original_name) return;
+			if (!is_label_valid(drumkit_name)) {
+				std::string msg = "Name is invalid! Name can only contain letters, numbers, and underscores, and must not start with a number.";
+				dw->_error_dialog->message(msg);
+				Fl::visible_focus(0);
+				dw->_error_dialog->show(dw->_window);
+				Fl::visible_focus(focus);
+			}
+			else if (is_label_taken(drumkit_name)) {
+				std::string msg = "Duplicate label.";
+				dw->_error_dialog->message(msg);
+				Fl::visible_focus(0);
+				dw->_error_dialog->show(dw->_window);
+				Fl::visible_focus(focus);
+			}
+			else {
+				break;
+			}
+		}
+
+		for (size_t i = 0; i < dw->_drumkits.drumkits.size(); ++i) {
+			if (dw->_drumkits.drumkits[i].label == original_name) {
+				dw->_drumkits.drumkits[i].label = drumkit_name;
+				dw->_drumkit_browser->text(i+1, drumkit_name.c_str());
+			}
+		}
+
+		return;
+	}
+
 	dw->_selected_drumkit = dw->_drumkit_browser->value();
 	if (!dw->_selected_drumkit || dw->_drumkits.drumkits.size() == 1) {
 		dw->_remove_drumkit_button->deactivate();

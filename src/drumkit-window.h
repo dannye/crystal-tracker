@@ -58,7 +58,7 @@ private:
 	Modal_Dialog *_error_dialog = nullptr;
 	Modal_Dialog *_success_dialog = nullptr;
 	Modal_Dialog *_confirm_dialog = nullptr;
-	Drumkit_Name_Dialog *_drumkit_name_dialog = nullptr;
+	New_Name_Dialog *_new_name_dialog = nullptr;
 
 	Drumkits _saved_drumkits;
 	Drumkits _drumkits;

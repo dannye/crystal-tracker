@@ -133,12 +133,7 @@ Song_Options_Dialog::Song_Options Song_Options_Dialog::get_options() {
 	options.channel_4_end_tick = std::atoi(_channel_4_end_tick->value()) * (_beats_radio->value() ? 48 : 1);
 	options.result = Result::RESULT_OK;
 
-	if (
-		_song_name->active() &&
-		(options.song_name.size() == 0 ||
-		(options.song_name[0] >= '0' && options.song_name[0] <= '9') ||
-		options.song_name.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_") != std::string::npos)
-	) {
+	if (_song_name->active() && !is_label_valid(options.song_name)) {
 		options.result = Result::RESULT_BAD_TITLE;
 	}
 	else if (
@@ -803,30 +798,29 @@ void Ruler_Config_Dialog::reset_button_cb(Fl_Widget *, Ruler_Config_Dialog *rcd)
 	rcd->ruler_config_cb(nullptr, rcd);
 }
 
-Drumkit_Name_Dialog::Drumkit_Name_Dialog(const char *t) : Option_Dialog(300, t) {}
+New_Name_Dialog::New_Name_Dialog(const char *t) : Option_Dialog(300, t) {}
 
-Drumkit_Name_Dialog::~Drumkit_Name_Dialog() {
-	delete _drumkit_name;
+New_Name_Dialog::~New_Name_Dialog() {
+	delete _name;
 }
 
-void Drumkit_Name_Dialog::initialize_content() {
+void New_Name_Dialog::initialize_content() {
 	// Populate content group
-	_drumkit_name = new OS_Input(0, 0, 0, 0, "Drumkit Name:");
+	_name = new OS_Input(0, 0, 0, 0, "Name:");
 	// Initialize content group's children
-	_drumkit_name->align(FL_ALIGN_LEFT);
+	_name->align(FL_ALIGN_LEFT);
 }
 
-int Drumkit_Name_Dialog::refresh_content(int ww, int dy, bool reset) {
-	int wgt_h = 22, win_m = 10, wgt_m = 4;
+int New_Name_Dialog::refresh_content(int ww, int dy, bool reset) {
+	int wgt_h = 22, win_m = 10;
 	int dx = win_m;
-	int ch = wgt_h * 1 + wgt_m * 2;
+	int ch = wgt_h;
 	_content->resize(dx, dy, ww, ch);
 
-	dx += text_width(_drumkit_name->label(), 2) + wgt_h;
-	int wgt_w = 150;
-	_drumkit_name->resize(dx, dy, wgt_w, wgt_h);
-	if (reset) _drumkit_name->value("");
-	dx += wgt_w + wgt_h;
+	int wgt_w = 174;
+	dx = dx + ww - wgt_w;
+	_name->resize(dx, dy, wgt_w, wgt_h);
+	if (reset) _name->value("");
 
 	return ch;
 }

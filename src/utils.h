@@ -109,5 +109,6 @@ void open_ifstream(std::ifstream &ifs, const char *f);
 void open_ofstream(std::ofstream &ofs, const char *f);
 
 bool parse_value(std::string s, int32_t &v);
+bool is_label_valid(const std::string &label);
 
 #endif
