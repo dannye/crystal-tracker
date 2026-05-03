@@ -422,7 +422,7 @@ void Drumkit_Window::select_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
 		for (size_t i = 0; i < dw->_drumkits.drumkits.size(); ++i) {
 			if (dw->_drumkits.drumkits[i].label == original_name) {
 				dw->_drumkits.drumkits[i].label = drumkit_name;
-				dw->_drumkit_browser->text(i+1, drumkit_name.c_str());
+				dw->_drumkit_browser->text((int)i+1, drumkit_name.c_str());
 			}
 		}
 
