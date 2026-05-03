@@ -802,3 +802,31 @@ void Ruler_Config_Dialog::reset_button_cb(Fl_Widget *, Ruler_Config_Dialog *rcd)
 	rcd->_pickup_offset->value(0);
 	rcd->ruler_config_cb(nullptr, rcd);
 }
+
+Drumkit_Name_Dialog::Drumkit_Name_Dialog(const char *t) : Option_Dialog(300, t) {}
+
+Drumkit_Name_Dialog::~Drumkit_Name_Dialog() {
+	delete _drumkit_name;
+}
+
+void Drumkit_Name_Dialog::initialize_content() {
+	// Populate content group
+	_drumkit_name = new OS_Input(0, 0, 0, 0, "Drumkit Name:");
+	// Initialize content group's children
+	_drumkit_name->align(FL_ALIGN_LEFT);
+}
+
+int Drumkit_Name_Dialog::refresh_content(int ww, int dy, bool reset) {
+	int wgt_h = 22, win_m = 10, wgt_m = 4;
+	int dx = win_m;
+	int ch = wgt_h * 1 + wgt_m * 2;
+	_content->resize(dx, dy, ww, ch);
+
+	dx += text_width(_drumkit_name->label(), 2) + wgt_h;
+	int wgt_w = 150;
+	_drumkit_name->resize(dx, dy, wgt_w, wgt_h);
+	if (reset) _drumkit_name->value("");
+	dx += wgt_w + wgt_h;
+
+	return ch;
+}

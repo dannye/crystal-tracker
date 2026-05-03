@@ -126,4 +126,16 @@ private:
 	static void reset_button_cb(Fl_Widget *w, Ruler_Config_Dialog *rcd);
 };
 
+class Drumkit_Name_Dialog : public Option_Dialog {
+private:
+	OS_Input *_drumkit_name = nullptr;
+public:
+	Drumkit_Name_Dialog(const char *t);
+	~Drumkit_Name_Dialog();
+	const char *get_drumkit_name() { return _drumkit_name->value(); }
+protected:
+	void initialize_content(void);
+	int refresh_content(int ww, int dy, bool reset);
+};
+
 #endif

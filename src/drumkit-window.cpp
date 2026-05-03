@@ -6,6 +6,7 @@
 Drumkit_Window::Drumkit_Window(int x, int y) : _dx(x), _dy(y) {}
 
 Drumkit_Window::~Drumkit_Window() {
+	delete _drumkit_name_dialog;
 	delete _confirm_dialog;
 	delete _success_dialog;
 	delete _error_dialog;
@@ -43,6 +44,7 @@ void Drumkit_Window::initialize() {
 	_error_dialog = new Modal_Dialog(_window, "Error", Modal_Dialog::Icon::ERROR_ICON);
 	_success_dialog = new Modal_Dialog(_window, "Success", Modal_Dialog::Icon::SUCCESS_ICON);
 	_confirm_dialog = new Modal_Dialog(_window, "Warning", Modal_Dialog::Icon::WARNING_ICON, true);
+	_drumkit_name_dialog = new Drumkit_Name_Dialog("New Drumkit");
 	// Initialize window
 	_window->box(OS_BG_BOX);
 	_window->callback((Fl_Callback *)cancel_cb, this);
@@ -271,10 +273,53 @@ void Drumkit_Window::revert_cb(Fl_Widget *, Drumkit_Window *dw) {
 void Drumkit_Window::add_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
 	if (dw->_drumkits.drumkits.size() == 256) return;
 
+	const auto is_label_taken = [&](const std::string &label) {
+		if (label == dw->_drumkits.drumkits_label) return true;
+		for (size_t i = 0; i < dw->_drumkits.drumkits.size(); ++i) {
+			if (label == dw->_drumkits.drumkits[i].label) {
+				return true;
+			}
+		}
+		for (size_t i = 0; i < dw->_drumkits.drums.size(); ++i) {
+			if (label == dw->_drumkits.drums[i].label) {
+				return true;
+			}
+		}
+		return false;
+	};
+
+	std::string drumkit_name;
+	bool reset = true;
+	while (true) {
+		dw->_drumkit_name_dialog->show(dw->_window, reset);
+		bool canceled = dw->_drumkit_name_dialog->canceled();
+		if (canceled) { return; }
+
+		drumkit_name = dw->_drumkit_name_dialog->get_drumkit_name();
+		if (
+			drumkit_name.size() == 0 ||
+			(drumkit_name[0] >= '0' && drumkit_name[0] <= '9') ||
+			drumkit_name.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_") != std::string::npos
+		) {
+			std::string msg = "Name is invalid! Name can only contain letters, numbers, and underscores, and must not start with a number.";
+			dw->_error_dialog->message(msg);
+			dw->_error_dialog->show(dw->_window);
+			reset = false;
+		}
+		else if (is_label_taken(drumkit_name)) {
+			std::string msg = "Duplicate label.";
+			dw->_error_dialog->message(msg);
+			dw->_error_dialog->show(dw->_window);
+			reset = false;
+		}
+		else {
+			break;
+		}
+	}
+
 	dw->_drumkits.drumkits.emplace_back();
-	char buffer[16];
-	snprintf(buffer, 16, "NewDrumkit"); // TODO: user input
-	dw->_drumkit_browser->add(buffer);
+	dw->_drumkits.drumkits.back().label = drumkit_name;
+	dw->_drumkit_browser->add(drumkit_name.c_str());
 	dw->_drumkit_browser->select((int)dw->_drumkits.drumkits.size());
 	if (dw->_drumkits.drumkits.size() == 256) {
 		dw->_add_drumkit_button->deactivate();
