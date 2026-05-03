@@ -68,6 +68,8 @@ public:
 private:
 	void initialize();
 	void refresh();
+	bool modified();
+	bool write_drumkits(const char *f);
 public:
 	inline bool canceled() const { return _canceled; }
 	inline void canceled(bool c) { _canceled = c; }
