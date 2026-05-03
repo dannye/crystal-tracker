@@ -1,4 +1,5 @@
 #include <cassert>
+#include <set>
 
 #include "themes.h"
 #include "drumkit-window.h"
@@ -59,9 +60,9 @@ void Drumkit_Window::initialize() {
 	_drumkit_down_button->tooltip("Move down");
 	_drumkit_down_button->callback((Fl_Callback *)move_drumkit_down_cb, this);
 	_drumkit_browser->callback((Fl_Callback *)select_drumkit_cb, this);
-	for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
-		_drumkit_drums[i]->center_menu(true);
-		_drumkit_drums[i]->callback((Fl_Callback *)edit_drumkit_cb, this);
+	for (Dropdown *drumkit_drum : _drumkit_drums) {
+		drumkit_drum->center_menu(true);
+		drumkit_drum->callback((Fl_Callback *)edit_drumkit_cb, this);
 	}
 	_add_drum_button->tooltip("New drum");
 	_add_drum_button->callback((Fl_Callback *)add_drum_cb, this);
@@ -129,23 +130,26 @@ bool Drumkit_Window::write_drumkits(const char *f) {
 	if (!ofs.good()) { return false; }
 
 	ofs << _drumkits.drumkits_label << ":\n";
-	for (size_t i = 0; i < _drumkits.drumkits.size(); ++i) {
-		ofs << (_drumkits.uses_dr ? "\tdr " : "\tdw ") << _drumkits.drumkits[i].label << "\n";
+	for (const Drumkit &drumkit : _drumkits.drumkits) {
+		ofs << (_drumkits.uses_dr ? "\tdr " : "\tdw ") << drumkit.label << "\n";
 	}
 	ofs << "\n";
 
-	for (size_t i = 0; i < _drumkits.drumkits.size(); ++i) {
-		ofs << _drumkits.drumkits[i].label << ":\n";
-		for (size_t j = 0; j < NUM_DRUMS_PER_DRUMKIT; ++j) {
-			ofs << (_drumkits.uses_dr ? "\tdr " : "\tdw ") << _drumkits.drums[_drumkits.drumkits[i].drums[j]].label << "\n";
+	std::set<std::string> written_drumkits;
+	for (const Drumkit &drumkit : _drumkits.drumkits) {
+		if (!written_drumkits.count(drumkit.label)) {
+			ofs << drumkit.label << ":\n";
+			for (int32_t drum : drumkit.drums) {
+				ofs << (_drumkits.uses_dr ? "\tdr " : "\tdw ") << _drumkits.drums[drum].label << "\n";
+			}
+			written_drumkits.insert(drumkit.label);
 		}
 	}
 
-	for (size_t i = 0; i < _drumkits.drums.size(); ++i) {
+	for (const Drum &drum : _drumkits.drums) {
 		ofs << "\n";
-		ofs << _drumkits.drums[i].label << ":\n";
-		for (size_t j = 0; j < _drumkits.drums[i].noise_notes.size(); ++j) {
-			const Noise_Note &note = _drumkits.drums[i].noise_notes[j];
+		ofs << drum.label << ":\n";
+		for (const Noise_Note &note : drum.noise_notes) {
 			int32_t fade = note.sweep_pace * (note.envelope_direction ? -1 : 1);
 			if (fade == 0) fade = 8;
 			int32_t frequency = (note.clock_shift << 4) | (note.lfsr_width << 3) | (note.clock_divider);
@@ -176,8 +180,8 @@ void Drumkit_Window::drumkits(const Drumkits &d) {
 	assert(_drumkits.drums.size() > 0);
 
 	_drumkit_browser->clear();
-	for (size_t i = 0; i < _drumkits.drumkits.size(); ++i) {
-		_drumkit_browser->add(_drumkits.drumkits[i].label.c_str());
+	for (const Drumkit &drumkit : _drumkits.drumkits) {
+		_drumkit_browser->add(drumkit.label.c_str());
 	}
 
 	if (_drumkits.drumkits.size() == 256) {
@@ -187,16 +191,16 @@ void Drumkit_Window::drumkits(const Drumkits &d) {
 		_add_drumkit_button->activate();
 	}
 
-	for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
-		_drumkit_drums[i]->clear();
-		for (size_t j = 0; j < _drumkits.drums.size(); ++j) {
-			_drumkit_drums[i]->add(_drumkits.drums[j].label.c_str());
+	for (Dropdown *drumkit_drum : _drumkit_drums) {
+		drumkit_drum->clear();
+		for (const Drum &drum : _drumkits.drums) {
+			drumkit_drum->add(drum.label.c_str());
 		}
 	}
 
 	_drum_browser->clear();
-	for (size_t i = 0; i < _drumkits.drums.size(); ++i) {
-		_drum_browser->add(_drumkits.drums[i].label.c_str());
+	for (const Drum &drum : _drumkits.drums) {
+		_drum_browser->add(drum.label.c_str());
 	}
 
 	_saved_drumkits = _drumkits;
@@ -275,17 +279,20 @@ void Drumkit_Window::add_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
 
 	const auto is_label_taken = [&](const std::string &label) {
 		if (label == dw->_drumkits.drumkits_label) return true;
-		for (size_t i = 0; i < dw->_drumkits.drumkits.size(); ++i) {
-			if (label == dw->_drumkits.drumkits[i].label) {
-				return true;
-			}
-		}
-		for (size_t i = 0; i < dw->_drumkits.drums.size(); ++i) {
-			if (label == dw->_drumkits.drums[i].label) {
+		for (const Drum &drum : dw->_drumkits.drums) {
+			if (label == drum.label) {
 				return true;
 			}
 		}
 		return false;
+	};
+	const auto find_drumkit = [&](const std::string &label) {
+		for (const Drumkit &drumkit : dw->_drumkits.drumkits) {
+			if (label == drumkit.label) {
+				return &drumkit;
+			}
+		}
+		return (const Drumkit *)nullptr;
 	};
 
 	std::string drumkit_name;
@@ -317,8 +324,12 @@ void Drumkit_Window::add_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
 		}
 	}
 
-	dw->_drumkits.drumkits.emplace_back();
-	dw->_drumkits.drumkits.back().label = drumkit_name;
+	const Drumkit *drumkit = find_drumkit(drumkit_name);
+	Drumkit new_drumkit = {};
+	new_drumkit.label = drumkit_name;
+	if (drumkit) new_drumkit.drums = drumkit->drums;
+	dw->_drumkits.drumkits.push_back(new_drumkit);
+
 	dw->_drumkit_browser->add(drumkit_name.c_str());
 	dw->_drumkit_browser->select((int)dw->_drumkits.drumkits.size());
 	if (dw->_drumkits.drumkits.size() == 256) {
@@ -390,10 +401,16 @@ void Drumkit_Window::select_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
 }
 
 void Drumkit_Window::edit_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw) {
-	if (!dw->_selected_drumkit) return;
+	Drumkit *drumkit = dw->drumkit();
+	if (!drumkit) return;
 	for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
 		if (dw->_drumkit_drums[i] == (Dropdown *)w) {
-			dw->_drumkits.drumkits[dw->_selected_drumkit-1].drums[i] = dw->_drumkit_drums[i]->value();
+			drumkit->drums[i] = dw->_drumkit_drums[i]->value();
+			for (Drumkit &other : dw->_drumkits.drumkits) {
+				if (&other != drumkit && other.label == drumkit->label) {
+					other.drums[i] = dw->_drumkit_drums[i]->value();
+				}
+			}
 			return;
 		}
 	}
