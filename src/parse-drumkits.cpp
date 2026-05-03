@@ -20,6 +20,9 @@ std::string Parsed_Drumkits::get_error_message() const {
 		return "Cannot open drumkits file.";
 	case Result::DRUMKITS_INVALID_DRUMKITS_TABLE:
 		return "Invalid drumkits table.";
+	case Result::DRUMKITS_DUPLICATE_DRUMKIT:
+		return "Line " + std::to_string(_line_number) +
+			": Duplicate drumkit.";
 	case Result::DRUMKITS_INVALID_DRUMKIT:
 		return "Drumkit " + _label +
 			": Invalid drumkit.";
@@ -228,6 +231,11 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 			Drumkit drumkit;
 			if (!get_label(lss, drumkit.label)) {
 				return (_result = Result::DRUMKITS_INVALID_DRUMKITS_TABLE);
+			}
+			for (size_t i = 0; i < _drumkits.size(); ++i) {
+				if (_drumkits[i].label == drumkit.label) {
+					return (_result = Result::DRUMKITS_DUPLICATE_DRUMKIT);
+				}
 			}
 			_drumkits.push_back(drumkit);
 		}
