@@ -351,14 +351,22 @@ std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave>
 		samples.push_back(std::move(sample));
 	}
 	// dynamic wave samples
-	for (const Wave &wave : waves) {
+	for (int i = 0; i < std::max((int)waves.size(), 16); ++i) {
+		const Wave *wave = nullptr;
+		if (i < waves.size()) wave = &waves[i];
 		std::vector<uint8_t> sample;
 
 		sample_header(sample, sample_length);
 
 		for (uint32_t i = 0; i < NUM_WAVE_SAMPLES; ++i) {
-			sample.push_back(wave[i] * 255 / 15 / 2);
-			sample.push_back(wave[i] * 255 / 15 / 2);
+			if (wave) {
+				sample.push_back((*wave)[i] * 255 / 15 / 2);
+				sample.push_back((*wave)[i] * 255 / 15 / 2);
+			}
+			else {
+				sample.push_back(0);
+				sample.push_back(0);
+			}
 		}
 
 		samples.push_back(std::move(sample));

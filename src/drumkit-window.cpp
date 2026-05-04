@@ -2,11 +2,14 @@
 #include <set>
 
 #include "themes.h"
+#include "utils.h"
 #include "drumkit-window.h"
 
 Drumkit_Window::Drumkit_Window(int x, int y) : _dx(x), _dy(y) {}
 
 Drumkit_Window::~Drumkit_Window() {
+	stop_audio_thread();
+	if (_mod) delete _mod;
 	delete _new_name_dialog;
 	delete _confirm_dialog;
 	delete _success_dialog;
@@ -28,7 +31,10 @@ void Drumkit_Window::initialize() {
 	_drumkit_down_button = new OS_Button(124, 45, 21, 21, "@2>");
 	_drumkit_browser = new OS_Browser(20, 70, 125, 240);
 	for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
-		_drumkit_drums[i] = new Dropdown(DRUM_DROPDOWNS[i].x, DRUM_DROPDOWNS[i].y, 125, 22, DRUM_DROPDOWNS[i].label);
+		_drumkit_drum_dropdowns[i] = new Dropdown(DRUM_DROPDOWNS[i].x, DRUM_DROPDOWNS[i].y, 125, 22, DRUM_DROPDOWNS[i].label);
+	}
+	for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT - 1; ++i) {
+		_drumkit_drum_buttons[i] = new OS_Button(DRUM_DROPDOWNS[i+1].x + 135, DRUM_DROPDOWNS[i+1].y, 22, 22, "@>");
 	}
 	_drumkit_tab->end();
 	_drum_tab = new OS_Tab(10, 35, 588, 285, "Drums");
@@ -60,9 +66,12 @@ void Drumkit_Window::initialize() {
 	_drumkit_down_button->tooltip("Move down");
 	_drumkit_down_button->callback((Fl_Callback *)move_drumkit_down_cb, this);
 	_drumkit_browser->callback((Fl_Callback *)select_drumkit_cb, this);
-	for (Dropdown *drumkit_drum : _drumkit_drums) {
-		drumkit_drum->center_menu(true);
-		drumkit_drum->callback((Fl_Callback *)edit_drumkit_cb, this);
+	for (Dropdown *dropdown : _drumkit_drum_dropdowns) {
+		dropdown->center_menu(true);
+		dropdown->callback((Fl_Callback *)edit_drumkit_cb, this);
+	}
+	for (OS_Button *button : _drumkit_drum_buttons) {
+		button->callback((Fl_Callback *)play_drumkit_drum_cb, this);
 	}
 	_add_drum_button->tooltip("New drum");
 	_add_drum_button->callback((Fl_Callback *)add_drum_cb, this);
@@ -90,6 +99,21 @@ void Drumkit_Window::refresh() {
 	select_drumkit_cb(nullptr, this);
 	_drum_browser->select(1);
 	select_drum_cb(nullptr, this);
+}
+
+void Drumkit_Window::start_audio_thread() {
+	_audio_kill_signal = std::promise<void>();
+	std::future<void> kill_future = _audio_kill_signal.get_future();
+	_audio_thread = std::thread(&playback_thread, this, std::move(kill_future));
+}
+
+void Drumkit_Window::stop_audio_thread() {
+	if (_audio_thread.joinable()) {
+		_audio_mutex.lock();
+		_audio_kill_signal.set_value();
+		_audio_thread.join();
+		_audio_mutex.unlock();
+	}
 }
 
 bool Drumkit_Window::modified() {
@@ -191,10 +215,10 @@ void Drumkit_Window::drumkits(const Drumkits &d) {
 		_add_drumkit_button->activate();
 	}
 
-	for (Dropdown *drumkit_drum : _drumkit_drums) {
-		drumkit_drum->clear();
+	for (Dropdown *dropdown : _drumkit_drum_dropdowns) {
+		dropdown->clear();
 		for (const Drum &drum : _drumkits.drums) {
-			drumkit_drum->add(drum.label.c_str());
+			dropdown->add(drum.label.c_str());
 		}
 	}
 
@@ -230,6 +254,9 @@ void Drumkit_Window::close_cb(Fl_Widget *, Drumkit_Window *dw) {
 		if (dw->_confirm_dialog->canceled()) { return; }
 	}
 
+	dw->stop_audio_thread();
+	if (dw->_mod) delete dw->_mod;
+	dw->_mod = nullptr;
 	dw->_window->hide();
 }
 
@@ -450,14 +477,14 @@ void Drumkit_Window::select_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
 	}
 	if (!dw->_selected_drumkit) {
 		for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
-			dw->_drumkit_drums[i]->value(nullptr);
-			dw->_drumkit_drums[i]->deactivate();
+			dw->_drumkit_drum_dropdowns[i]->value(nullptr);
+			dw->_drumkit_drum_dropdowns[i]->deactivate();
 		}
 	}
 	else {
 		for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
-			dw->_drumkit_drums[i]->value(dw->_drumkits.drumkits[dw->_selected_drumkit-1].drums[i]);
-			dw->_drumkit_drums[i]->activate();
+			dw->_drumkit_drum_dropdowns[i]->value(dw->_drumkits.drumkits[dw->_selected_drumkit-1].drums[i]);
+			dw->_drumkit_drum_dropdowns[i]->activate();
 		}
 	}
 }
@@ -466,17 +493,44 @@ void Drumkit_Window::edit_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw) {
 	Drumkit *drumkit = dw->drumkit();
 	if (!drumkit) return;
 	for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
-		if (dw->_drumkit_drums[i] == (Dropdown *)w) {
-			drumkit->drums[i] = dw->_drumkit_drums[i]->value();
+		if (dw->_drumkit_drum_dropdowns[i] == (Dropdown *)w) {
+			drumkit->drums[i] = dw->_drumkit_drum_dropdowns[i]->value();
 			for (Drumkit &other : dw->_drumkits.drumkits) {
 				if (&other != drumkit && other.label == drumkit->label) {
-					other.drums[i] = dw->_drumkit_drums[i]->value();
+					other.drums[i] = dw->_drumkit_drum_dropdowns[i]->value();
 				}
 			}
 			return;
 		}
 	}
 	assert(false);
+}
+
+void Drumkit_Window::play_drumkit_drum_cb(Fl_Widget *w, Drumkit_Window *dw) {
+	if (!dw->_selected_drumkit) return;
+
+	dw->stop_audio_thread();
+	if (dw->_mod) delete dw->_mod;
+	dw->_mod = nullptr;
+
+	Pitch pitch = Pitch::REST;
+	for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT - 1; ++i) {
+		if (dw->_drumkit_drum_buttons[i] == (OS_Button *)w) {
+			pitch = (Pitch)(i + 1);
+			break;
+		}
+	}
+	assert(pitch != Pitch::REST);
+
+	dw->_playing_drum = pitch;
+	dw->_playing_drumkit = dw->_selected_drumkit;
+	dw->_mod_channel = -1;
+
+	dw->_drum_samples = generate_noise_samples(dw->_drumkits.drums);
+	dw->_mod = new IT_Module({}, dw->_drumkits.drumkits, dw->_drum_samples, dw->_selected_drumkit - 1);
+	dw->_mod->start();
+
+	dw->start_audio_thread();
 }
 
 void Drumkit_Window::add_drum_cb(Fl_Widget *, Drumkit_Window *dw) {
@@ -497,4 +551,39 @@ void Drumkit_Window::move_drum_down_cb(Fl_Widget *, Drumkit_Window *dw) {
 
 void Drumkit_Window::select_drum_cb(Fl_Widget *, Drumkit_Window *dw) {
 	// TODO
+}
+
+void Drumkit_Window::playback_thread(Drumkit_Window *dw, std::future<void> kill_signal) {
+	Pitch pitch = Pitch::REST;
+	int instrument = 0;
+
+	while (kill_signal.wait_for(std::chrono::milliseconds(8)) == std::future_status::timeout) {
+		if (dw->_audio_mutex.try_lock()) {
+			IT_Module *mod = dw->_mod;
+			if (mod && mod->playing()) {
+				if (
+					pitch != dw->_playing_drum || instrument != dw->_playing_drumkit ||
+					(dw->_mod_channel == -1 && pitch != Pitch::REST && instrument != 0)
+				) {
+					if (dw->_mod_channel != -1) {
+						mod->stop_note(dw->_mod_channel);
+						dw->_mod_channel = -1;
+					}
+					pitch = dw->_playing_drum;
+					instrument = dw->_playing_drumkit;
+					if (pitch != Pitch::REST && instrument != 0) {
+						dw->_mod_channel = mod->play_note(pitch, 0, 4, 0);
+					}
+				}
+
+				bool success = mod->play();
+				if (!success) mod->stop();
+				dw->_audio_mutex.unlock();
+			}
+			else {
+				dw->_audio_mutex.unlock();
+				break;
+			}
+		}
+	}
 }

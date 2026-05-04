@@ -2,11 +2,15 @@
 #define DRUMKIT_WINDOW_H
 
 #include <array>
+#include <future>
+#include <vector>
 
 #pragma warning(push, 0)
 #include <FL/Fl_Double_Window.H>
 #pragma warning(pop)
 
+#include "command.h"
+#include "it-module.h"
 #include "modal-dialog.h"
 #include "option-dialogs.h"
 #include "parse-drumkits.h"
@@ -19,18 +23,18 @@ struct Drum_Dropdown {
 
 constexpr Drum_Dropdown DRUM_DROPDOWNS[NUM_DRUMS_PER_DRUMKIT] {
 	{ 463,  45, "Rest:" },
-	{ 210, 286, "C:" },
+	{ 190, 286, "C:" },
 	{ 410, 268, "D♭/C♯:" },
-	{ 210, 250, "D:" },
+	{ 190, 250, "D:" },
 	{ 410, 232, "E♭/D♯:" },
-	{ 210, 214, "E:" },
-	{ 210, 178, "F:" },
+	{ 190, 214, "E:" },
+	{ 190, 178, "F:" },
 	{ 410, 160, "G♭/F♯:" },
-	{ 210, 142, "G:" },
+	{ 190, 142, "G:" },
 	{ 410, 124, "A♭/G♯:" },
-	{ 210, 106, "A:" },
+	{ 190, 106, "A:" },
 	{ 410,  88, "B♭/A♯:" },
-	{ 210,  70, "B:" },
+	{ 190,  70, "B:" },
 };
 
 class Drumkit_Window {
@@ -45,7 +49,8 @@ private:
 	OS_Button *_drumkit_up_button = nullptr;
 	OS_Button *_drumkit_down_button = nullptr;
 	OS_Browser *_drumkit_browser = nullptr;
-	std::array<Dropdown *, NUM_DRUMS_PER_DRUMKIT> _drumkit_drums;
+	std::array<Dropdown *, NUM_DRUMS_PER_DRUMKIT> _drumkit_drum_dropdowns;
+	std::array<OS_Button *, NUM_DRUMS_PER_DRUMKIT - 1> _drumkit_drum_buttons;
 	OS_Tab *_drum_tab = nullptr;
 	OS_Button *_add_drum_button = nullptr;
 	OS_Button *_remove_drum_button = nullptr;
@@ -64,12 +69,23 @@ private:
 	Drumkits _drumkits;
 	int _selected_drumkit = 0;
 	int _selected_drum = 0;
+
+	std::vector<std::vector<uint8_t>> _drum_samples;
+	Pitch _playing_drum = Pitch::REST;
+	int _playing_drumkit = 0;
+	IT_Module *_mod = nullptr;
+	int32_t _mod_channel = -1;
+	std::thread _audio_thread;
+	std::mutex _audio_mutex;
+	std::promise<void> _audio_kill_signal;
 public:
 	Drumkit_Window(int x, int y);
 	~Drumkit_Window();
 private:
 	void initialize();
 	void refresh();
+	void start_audio_thread();
+	void stop_audio_thread();
 	bool modified();
 	bool write_drumkits(const char *f);
 public:
@@ -91,11 +107,14 @@ private:
 	static void move_drumkit_down_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void select_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void edit_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw);
+	static void play_drumkit_drum_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void add_drum_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void remove_drum_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void move_drum_up_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void move_drum_down_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void select_drum_cb(Fl_Widget *w, Drumkit_Window *dw);
+
+	static void playback_thread(Drumkit_Window *dw, std::future<void> kill_signal);
 };
 
 #endif
