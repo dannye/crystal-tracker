@@ -480,11 +480,17 @@ void Drumkit_Window::select_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
 			dw->_drumkit_drum_dropdowns[i]->value(nullptr);
 			dw->_drumkit_drum_dropdowns[i]->deactivate();
 		}
+		for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT - 1; ++i) {
+			dw->_drumkit_drum_buttons[i]->deactivate();
+		}
 	}
 	else {
 		for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
 			dw->_drumkit_drum_dropdowns[i]->value(dw->_drumkits.drumkits[dw->_selected_drumkit-1].drums[i]);
 			dw->_drumkit_drum_dropdowns[i]->activate();
+		}
+		for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT - 1; ++i) {
+			dw->_drumkit_drum_buttons[i]->activate();
 		}
 	}
 }
