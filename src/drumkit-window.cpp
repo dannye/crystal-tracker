@@ -476,12 +476,12 @@ void Drumkit_Window::select_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
 		dw->_drumkit_down_button->activate();
 	}
 	if (!dw->_selected_drumkit) {
-		for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
-			dw->_drumkit_drum_dropdowns[i]->value(nullptr);
-			dw->_drumkit_drum_dropdowns[i]->deactivate();
+		for (Dropdown *dropdown : dw->_drumkit_drum_dropdowns) {
+			dropdown->value(nullptr);
+			dropdown->deactivate();
 		}
-		for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT - 1; ++i) {
-			dw->_drumkit_drum_buttons[i]->deactivate();
+		for (OS_Button *button : dw->_drumkit_drum_buttons) {
+			button->deactivate();
 		}
 	}
 	else {
@@ -489,8 +489,8 @@ void Drumkit_Window::select_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
 			dw->_drumkit_drum_dropdowns[i]->value(dw->_drumkits.drumkits[dw->_selected_drumkit-1].drums[i]);
 			dw->_drumkit_drum_dropdowns[i]->activate();
 		}
-		for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT - 1; ++i) {
-			dw->_drumkit_drum_buttons[i]->activate();
+		for (OS_Button *button : dw->_drumkit_drum_buttons) {
+			button->activate();
 		}
 	}
 }
@@ -532,7 +532,7 @@ void Drumkit_Window::play_drumkit_drum_cb(Fl_Widget *w, Drumkit_Window *dw) {
 	dw->_playing_drumkit = dw->_selected_drumkit;
 	dw->_mod_channel = -1;
 
-	dw->_drum_samples = generate_noise_samples(dw->_drumkits.drums);
+	dw->_drum_samples = generate_noise_samples(dw->_drumkits.drums, dw->_drumkits.drumkits[dw->_selected_drumkit-1].drums[(size_t)pitch]);
 	dw->_mod = new IT_Module({}, dw->_drumkits.drumkits, dw->_drum_samples, dw->_selected_drumkit - 1);
 	dw->_mod->start();
 

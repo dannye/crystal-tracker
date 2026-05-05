@@ -124,6 +124,6 @@ private:
 	);
 };
 
-std::vector<std::vector<uint8_t>> generate_noise_samples(const std::vector<Drum> &drums);
+std::vector<std::vector<uint8_t>> generate_noise_samples(const std::vector<Drum> &drums, int32_t only = -1);
 
 #endif

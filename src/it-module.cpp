@@ -1140,11 +1140,11 @@ void IT_Module::generate_it_module(
 	}
 }
 
-std::vector<std::vector<uint8_t>> generate_noise_samples(const std::vector<Drum> &drums) {
+std::vector<std::vector<uint8_t>> generate_noise_samples(const std::vector<Drum> &drums, int32_t only) {
 	std::vector<std::vector<uint8_t>> samples;
 	for (const Drum &drum : drums) {
 		std::vector<uint8_t> sample;
-		for (uint32_t i = 0; i < drum.noise_notes.size(); ++i) {
+		if (only == -1 || only == samples.size()) for (uint32_t i = 0; i < drum.noise_notes.size(); ++i) {
 			const Noise_Note &note = drum.noise_notes[i];
 			bool last = i == drum.noise_notes.size() - 1;
 
