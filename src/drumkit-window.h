@@ -57,6 +57,7 @@ private:
 	OS_Button *_drum_up_button = nullptr;
 	OS_Button *_drum_down_button = nullptr;
 	OS_Browser *_drum_browser = nullptr;
+	OS_Light_Button *_play_button = nullptr;
 	Default_Button *_save_button = nullptr;
 	OS_Button *_revert_button = nullptr;
 	OS_Button *_close_button = nullptr;
@@ -96,6 +97,7 @@ public:
 	Drum *drum();
 	void drumkits(const Drumkits &d);
 	void show(const Fl_Widget *p);
+	void regenerate_mod();
 private:
 	static void close_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void cancel_cb(Fl_Widget *w, Drumkit_Window *dw);
@@ -114,6 +116,7 @@ private:
 	static void move_drum_up_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void move_drum_down_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void select_drum_cb(Fl_Widget *w, Drumkit_Window *dw);
+	static void play_drum_cb(Fl_Widget *w, Drumkit_Window *dw);
 
 	static void playback_thread(Drumkit_Window *dw, std::future<void> kill_signal);
 };

@@ -8,9 +8,10 @@ IT_Module::IT_Module(
 	const std::vector<Wave> &waves,
 	const std::vector<Drumkit> &drumkits,
 	const std::vector<std::vector<uint8_t>> &drums,
-	int32_t drumkit
+	int32_t drumkit,
+	bool loop_drums
 ) {
-	generate_it_module({}, {}, {}, {}, waves, drumkits, drums, drumkit);
+	generate_it_module({}, {}, {}, {}, waves, drumkits, drums, drumkit, loop_drums);
 
 	_mod = new openmpt::module_ext(_data);
 	_mod->set_repeat_count(-1);
@@ -33,7 +34,7 @@ IT_Module::IT_Module(
 	int32_t loop_tick,
 	bool stereo
 ) {
-	generate_it_module(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, waves, drumkits, drums, -1, loop_tick, stereo);
+	generate_it_module(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, waves, drumkits, drums, -1, false, loop_tick, stereo);
 
 	_mod = new openmpt::module_ext(_data);
 	if (loop_tick != -1) {
@@ -58,7 +59,8 @@ void IT_Module::regenerate_it_module(
 	const std::vector<Wave> &waves,
 	const std::vector<Drumkit> &drumkits,
 	const std::vector<std::vector<uint8_t>> &drums,
-	int32_t drumkit
+	int32_t drumkit,
+	bool loop_drums
 ) {
 	if (_mod) {
 		delete _mod;
@@ -71,7 +73,7 @@ void IT_Module::regenerate_it_module(
 	_current_pattern = 0;
 	_current_row = 0;
 
-	generate_it_module({}, {}, {}, {}, waves, drumkits, drums, drumkit);
+	generate_it_module({}, {}, {}, {}, waves, drumkits, drums, drumkit, loop_drums);
 
 	_mod = new openmpt::module_ext(_data);
 	_mod->set_repeat_count(-1);
@@ -207,17 +209,16 @@ std::vector<std::vector<uint8_t>> IT_Module::get_instruments() {
 	return instruments;
 }
 
-std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave> &waves, const std::vector<const std::vector<uint8_t> *> &drums) {
+std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave> &waves, const std::vector<const std::vector<uint8_t> *> &drums, bool loop_drums) {
 	const uint32_t sample_filename_length = 12;
 	const uint32_t sample_global_volume = 64;
-	const uint32_t sample_wave_flags = 0b00010001;
-	const uint32_t sample_noise_flags = 0b00000001;
+	const uint32_t sample_loop_flags = 0b00010001;
+	const uint32_t sample_no_loop_flags = 0b00000001;
 	const uint32_t sample_default_volume = 64;
 	const uint32_t sample_name_length = 26;
 	const uint32_t sample_default_panning = 32;
 	const uint32_t sample_length = 64;
 	const uint32_t sample_loop_begin = 0;
-	const uint32_t sample_loop_end = 64;
 	const uint32_t sample_speed = 33520;
 	const uint32_t sample_sustain_loop_begin = 0;
 	const uint32_t sample_sustain_loop_end = 0;
@@ -229,7 +230,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave>
 	std::vector<std::vector<uint8_t>> samples;
 
 	// sample header, 80 bytes
-	auto sample_header = [&](std::vector<uint8_t> &sample, uint32_t sample_size, bool noise = false) {
+	auto sample_header = [&](std::vector<uint8_t> &sample, uint32_t sample_size, bool loop = true, bool noise = false) {
 		sample.push_back('I');
 		sample.push_back('M');
 		sample.push_back('P');
@@ -241,7 +242,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave>
 
 		sample.push_back(0); // unused
 		sample.push_back(sample_global_volume);
-		sample.push_back(noise ? sample_noise_flags : sample_wave_flags);
+		sample.push_back(loop ? sample_loop_flags : sample_no_loop_flags);
 		sample.push_back(sample_default_volume);
 
 		for (uint32_t i = 0; i < sample_name_length; ++i) {
@@ -253,7 +254,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave>
 
 		put_int(sample, sample_size);
 		put_int(sample, sample_loop_begin);
-		put_int(sample, noise ? 0 : sample_loop_end);
+		put_int(sample, loop ? sample_size : 0);
 		put_int(sample, noise ? sample_speed * NOISE_SAMPLE_SPEED_FACTOR : sample_speed);
 		put_int(sample, sample_sustain_loop_begin);
 		put_int(sample, sample_sustain_loop_end);
@@ -375,14 +376,14 @@ std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave>
 		std::vector<uint8_t> sample;
 
 		if (drum) {
-			sample_header(sample, (uint32_t)drum->size(), true);
+			sample_header(sample, (uint32_t)drum->size(), loop_drums, true);
 
 			for (uint32_t i = 0; i < drum->size(); ++i) {
 				sample.push_back(drum->at(i));
 			}
 		}
 		else {
-			sample_header(sample, 0, true);
+			sample_header(sample, 0, loop_drums, true);
 		}
 
 		samples.push_back(std::move(sample));
@@ -933,6 +934,7 @@ void IT_Module::generate_it_module(
 	const std::vector<Drumkit> &drumkits,
 	const std::vector<std::vector<uint8_t>> &drums,
 	int32_t preserve_drumkit,
+	bool loop_drums,
 	int32_t loop_tick,
 	bool stereo
 ) {
@@ -999,7 +1001,7 @@ void IT_Module::generate_it_module(
 	}
 
 	std::vector<std::vector<uint8_t>> instruments = get_instruments();
-	std::vector<std::vector<uint8_t>> samples = get_samples(waves, optimized_drums);
+	std::vector<std::vector<uint8_t>> samples = get_samples(waves, optimized_drums, loop_drums);
 	std::vector<std::vector<uint8_t>> patterns = get_patterns(channel_1_notes, channel_2_notes, channel_3_notes, channel_4_notes, optimized_drumkits, loop_tick, stereo, (int32_t)waves.size() - 0x10);
 
 	const uint32_t number_of_orders = (uint32_t)patterns.size() + 1;
@@ -1140,48 +1142,57 @@ void IT_Module::generate_it_module(
 	}
 }
 
-std::vector<std::vector<uint8_t>> generate_noise_samples(const std::vector<Drum> &drums, int32_t only) {
+std::vector<std::vector<uint8_t>> generate_noise_samples(const std::vector<Drum> &drums, int32_t only, bool pad) {
 	std::vector<std::vector<uint8_t>> samples;
 	for (const Drum &drum : drums) {
 		std::vector<uint8_t> sample;
-		if (only == -1 || only == samples.size()) for (uint32_t i = 0; i < drum.noise_notes.size(); ++i) {
-			const Noise_Note &note = drum.noise_notes[i];
-			bool last = i == drum.noise_notes.size() - 1;
+		if (only == -1 || only == samples.size()) {
+			bool needs_pad = true;
+			for (uint32_t i = 0; i < drum.noise_notes.size(); ++i) {
+				const Noise_Note &note = drum.noise_notes[i];
+				bool last = i == drum.noise_notes.size() - 1;
 
-			uint32_t sample_len = note.length * 48 * NOISE_SAMPLE_SPEED_FACTOR;
-			uint32_t lfsr_period = std::max(
-				(uint32_t)(((note.clock_divider == 0 ? 0.5f : note.clock_divider) * (1 << note.clock_shift)) * (32768.0f * NOISE_SAMPLE_SPEED_FACTOR / 262144.0f)),
-				(uint32_t)1
-			);
-			uint32_t envelope_period = note.sweep_pace * 512 * NOISE_SAMPLE_SPEED_FACTOR;
+				uint32_t sample_len = note.length * 48 * NOISE_SAMPLE_SPEED_FACTOR;
+				uint32_t lfsr_period = std::max(
+					(uint32_t)(((note.clock_divider == 0 ? 0.5f : note.clock_divider) * (1 << note.clock_shift)) * (32768.0f * NOISE_SAMPLE_SPEED_FACTOR / 262144.0f)),
+					(uint32_t)1
+				);
+				uint32_t envelope_period = note.sweep_pace * 512 * NOISE_SAMPLE_SPEED_FACTOR;
 
-			uint16_t lfsr = 0;
-			int32_t volume = note.volume;
+				uint16_t lfsr = 0;
+				int32_t volume = note.volume;
 
-			uint32_t j = 0;
-			while (
-				j < sample_len ||
-				(last && volume != 0 && j < 255 * 48 * NOISE_SAMPLE_SPEED_FACTOR * 8)
-			) {
-				if (j % lfsr_period == 0) {
-					uint16_t xnor = (~(((lfsr >> 1) & 1) ^ (lfsr & 1))) & 1;
-					if (note.lfsr_width) {
-						lfsr = ((lfsr & 0b0111111101111111) | (xnor << 15) | (xnor << 7)) >> 1;
+				uint32_t j = 0;
+				while (
+					j < sample_len ||
+					(last && volume != 0 && j < 255 * 48 * NOISE_SAMPLE_SPEED_FACTOR * 8)
+				) {
+					if (j % lfsr_period == 0) {
+						uint16_t xnor = (~(((lfsr >> 1) & 1) ^ (lfsr & 1))) & 1;
+						if (note.lfsr_width) {
+							lfsr = ((lfsr & 0b0111111101111111) | (xnor << 15) | (xnor << 7)) >> 1;
+						}
+						else {
+							lfsr = ((lfsr & 0b0111111111111111) | (xnor << 15)) >> 1;
+						}
 					}
-					else {
-						lfsr = ((lfsr & 0b0111111111111111) | (xnor << 15)) >> 1;
+					if (envelope_period && j % envelope_period == 0) {
+						if (note.envelope_direction == 0 && volume != 0) {
+							volume -= 1;
+						}
+						else if (note.envelope_direction == 1 && volume != 15) {
+							volume += 1;
+						}
 					}
+					sample.push_back((lfsr & 1) ? (volume * 255 / 15 / 2) : 0);
+					j += 1;
 				}
-				if (envelope_period && j % envelope_period == 0) {
-					if (note.envelope_direction == 0 && volume != 0) {
-						volume -= 1;
-					}
-					else if (note.envelope_direction == 1 && volume != 15) {
-						volume += 1;
-					}
+				if (j >= 255 * 48 * NOISE_SAMPLE_SPEED_FACTOR * 8) needs_pad = false;
+			}
+			if (pad && needs_pad) {
+				for (uint32_t i = 0; i < 255 * 48 * NOISE_SAMPLE_SPEED_FACTOR; ++i) {
+					sample.push_back(0);
 				}
-				sample.push_back((lfsr & 1) ? (volume * 255 / 15 / 2) : 0);
-				j += 1;
 			}
 		}
 		samples.push_back(std::move(sample));

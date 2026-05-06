@@ -43,6 +43,7 @@ void Drumkit_Window::initialize() {
 	_drum_up_button = new OS_Button(99, 45, 21, 21, "@8>");
 	_drum_down_button = new OS_Button(124, 45, 21, 21, "@2>");
 	_drum_browser = new OS_Browser(20, 70, 125, 240);
+	_play_button = new OS_Light_Button(523, 45, 65, 22, "Play");
 	_tabs->end();
 	_save_button = new Default_Button(10, 330, 80, 22, "Save");
 	_revert_button = new OS_Button(100, 330, 80, 22, "Revert");
@@ -83,6 +84,9 @@ void Drumkit_Window::initialize() {
 	_drum_down_button->tooltip("Move down");
 	_drum_down_button->callback((Fl_Callback *)move_drum_down_cb, this);
 	_drum_browser->callback((Fl_Callback *)select_drum_cb, this);
+	_play_button->tooltip("Play (Spacebar)");
+	_play_button->shortcut(' ');
+	_play_button->callback((Fl_Callback *)play_drum_cb, this);
 	_save_button->shortcut(0);
 	_save_button->callback((Fl_Callback *)save_cb, this);
 	_revert_button->callback((Fl_Callback *)revert_cb, this);
@@ -96,6 +100,7 @@ void Drumkit_Window::initialize() {
 void Drumkit_Window::refresh() {
 	_canceled = false;
 	_tabs->value(_drumkit_tab);
+	_play_button->value(0);
 	_drumkit_browser->select(1);
 	select_drumkit_cb(nullptr, this);
 	_drum_browser->select(1);
@@ -247,6 +252,22 @@ void Drumkit_Window::show(const Fl_Widget *p) {
 	Fl::grab(prev_grab);
 }
 
+void Drumkit_Window::regenerate_mod() {
+	if (_mod && _audio_thread.joinable()) {
+		_audio_mutex.lock();
+		_playing_drum = _selected_drum ? Pitch::C_NAT : Pitch::REST;
+		_mod_channel = -1;
+
+		Drumkit drumkit = {};
+		drumkit.drums[(size_t)_playing_drum] = _selected_drum ? _selected_drum - 1 : 0;
+
+		_drum_samples = generate_noise_samples(_drumkits.drums, drumkit.drums[(size_t)_playing_drum], true);
+		_mod->regenerate_it_module({}, { drumkit }, _drum_samples, _playing_drumkit - 1, true);
+		_mod->start();
+		_audio_mutex.unlock();
+	}
+}
+
 void Drumkit_Window::close_cb(Fl_Widget *, Drumkit_Window *dw) {
 	if (dw->modified()) {
 		std::string msg = fl_filename_name(dw->_drumkits.drumkits_file.c_str());
@@ -306,6 +327,10 @@ void Drumkit_Window::revert_cb(Fl_Widget *, Drumkit_Window *dw) {
 
 void Drumkit_Window::tabs_cb(Fl_Widget *, Drumkit_Window *dw) {
 	dw->stop_audio_thread();
+	if (dw->_mod) delete dw->_mod;
+	dw->_mod = nullptr;
+	dw->_play_button->value(0);
+
 	if (dw->_tabs->value() == dw->_drumkit_tab) {
 		for (Dropdown *dropdown : dw->_drumkit_drum_dropdowns) {
 			dropdown->clear();
@@ -509,11 +534,22 @@ void Drumkit_Window::select_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw) {
 			button->activate();
 		}
 	}
+
+	if (dw->_tabs->value() == dw->_drumkit_tab) {
+		dw->stop_audio_thread();
+		if (dw->_mod) delete dw->_mod;
+		dw->_mod = nullptr;
+	}
 }
 
 void Drumkit_Window::edit_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw) {
 	Drumkit *drumkit = dw->drumkit();
 	if (!drumkit) return;
+
+	dw->stop_audio_thread();
+	if (dw->_mod) delete dw->_mod;
+	dw->_mod = nullptr;
+
 	for (size_t i = 0; i < NUM_DRUMS_PER_DRUMKIT; ++i) {
 		if (dw->_drumkit_drum_dropdowns[i] == (Dropdown *)w) {
 			drumkit->drums[i] = dw->_drumkit_drum_dropdowns[i]->value();
@@ -747,12 +783,36 @@ void Drumkit_Window::select_drum_cb(Fl_Widget *w, Drumkit_Window *dw) {
 	else {
 		dw->_drum_down_button->activate();
 	}
+
+	if (dw->_tabs->value() == dw->_drum_tab) dw->regenerate_mod();
+}
+
+void Drumkit_Window::play_drum_cb(Fl_Widget *, Drumkit_Window *dw) {
+	dw->stop_audio_thread();
+	if (dw->_mod) delete dw->_mod;
+	dw->_mod = nullptr;
+
+	if (dw->_play_button->value()) {
+		dw->_playing_drum = dw->_selected_drum ? Pitch::C_NAT : Pitch::REST;
+		dw->_playing_drumkit = 1;
+		dw->_mod_channel = -1;
+
+		Drumkit drumkit = {};
+		drumkit.drums[(size_t)dw->_playing_drum] = dw->_selected_drum ? dw->_selected_drum - 1 : 0;
+
+		dw->_drum_samples = generate_noise_samples(dw->_drumkits.drums, drumkit.drums[(size_t)dw->_playing_drum], true);
+		dw->_mod = new IT_Module({}, { drumkit }, dw->_drum_samples, dw->_playing_drumkit - 1, true);
+		dw->_mod->start();
+
+		dw->start_audio_thread();
+	}
 }
 
 void Drumkit_Window::playback_thread(Drumkit_Window *dw, std::future<void> kill_signal) {
 	Pitch pitch = Pitch::REST;
 	int instrument = 0;
 
+	int error_count = 0;
 	while (kill_signal.wait_for(std::chrono::milliseconds(8)) == std::future_status::timeout) {
 		if (dw->_audio_mutex.try_lock()) {
 			IT_Module *mod = dw->_mod;
@@ -773,7 +833,13 @@ void Drumkit_Window::playback_thread(Drumkit_Window *dw, std::future<void> kill_
 				}
 
 				bool success = mod->play();
-				if (!success) mod->stop();
+				if (success) {
+					error_count = 0;
+				}
+				else {
+					error_count += 1;
+					if (error_count >= 10) mod->stop();
+				}
 				dw->_audio_mutex.unlock();
 			}
 			else {

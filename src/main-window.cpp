@@ -4233,6 +4233,7 @@ void Main_Window::about_cb(Fl_Widget *, Main_Window *mw) {
 }
 
 void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal) {
+	int error_count = 0;
 	int32_t tick = -1;
 	while (kill_signal.wait_for(std::chrono::milliseconds(8)) == std::future_status::timeout) {
 		if (mw->_audio_mutex.try_lock()) {
@@ -4240,6 +4241,7 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 			if (mod && mod->playing()) {
 				bool success = mod->play();
 				if (success) {
+					error_count = 0;
 					int32_t t = mod->current_tick();
 					if (tick != t) {
 						tick = t;
@@ -4251,7 +4253,8 @@ void Main_Window::playback_thread(Main_Window *mw, std::future<void> kill_signal
 					}
 				}
 				else {
-					mod->stop();
+					error_count += 1;
+					if (error_count >= 10) mod->stop();
 				}
 				mw->_audio_mutex.unlock();
 			}
@@ -4306,6 +4309,7 @@ void Main_Window::interactive_thread(Main_Window *mw, std::future<void> kill_sig
 		return;
 	}
 
+	int error_count = 0;
 	while (kill_signal.wait_for(std::chrono::milliseconds(8)) == std::future_status::timeout) {
 		if (mw->_interactive_mutex.try_lock()) {
 			IT_Module *mod = mw->_interactive_module;
@@ -4323,7 +4327,13 @@ void Main_Window::interactive_thread(Main_Window *mw, std::future<void> kill_sig
 				}
 
 				bool success = mod->play();
-				if (!success) mod->stop();
+				if (success) {
+					error_count = 0;
+				}
+				else {
+					error_count += 1;
+					if (error_count >= 10) mod->stop();
+				}
 				mw->_interactive_mutex.unlock();
 			}
 			else {

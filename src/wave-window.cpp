@@ -342,7 +342,7 @@ void Wave_Window::regenerate_mod() {
 	if (_mod && _audio_thread.joinable()) {
 		_audio_mutex.lock();
 		_mod_channel = -1;
-		_mod->regenerate_it_module(_waves.waves, {}, {}, -1);
+		_mod->regenerate_it_module(_waves.waves, {}, {});
 		_mod->start();
 		_audio_mutex.unlock();
 	}
@@ -523,7 +523,7 @@ void Wave_Window::play_cb(Fl_Widget *, Wave_Window *ww) {
 		ww->_playing_instrument = ww->_selected_wave;
 		ww->_mod_channel = -1;
 
-		ww->_mod = new IT_Module(ww->_waves.waves, {}, {}, -1);
+		ww->_mod = new IT_Module(ww->_waves.waves, {}, {});
 		ww->_mod->start();
 
 		ww->start_audio_thread();
@@ -639,6 +639,7 @@ void Wave_Window::playback_thread(Wave_Window *ww, std::future<void> kill_signal
 	int32_t octave = 0;
 	int instrument = 0;
 
+	int error_count = 0;
 	while (kill_signal.wait_for(std::chrono::milliseconds(8)) == std::future_status::timeout) {
 		if (ww->_audio_mutex.try_lock()) {
 			IT_Module *mod = ww->_mod;
@@ -660,7 +661,13 @@ void Wave_Window::playback_thread(Wave_Window *ww, std::future<void> kill_signal
 				}
 
 				bool success = mod->play();
-				if (!success) mod->stop();
+				if (success) {
+					error_count = 0;
+				}
+				else {
+					error_count += 1;
+					if (error_count >= 10) mod->stop();
+				}
 				ww->_audio_mutex.unlock();
 			}
 			else {

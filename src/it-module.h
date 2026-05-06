@@ -43,7 +43,8 @@ public:
 		const std::vector<Wave> &waves,
 		const std::vector<Drumkit> &drumkits,
 		const std::vector<std::vector<uint8_t>> &drums,
-		int32_t drumkit
+		int32_t drumkit = -1,
+		bool loop_drums = false
 	);
 	IT_Module(
 		const std::vector<Note_View> &channel_1_notes,
@@ -65,7 +66,8 @@ public:
 		const std::vector<Wave> &waves,
 		const std::vector<Drumkit> &drumkits,
 		const std::vector<std::vector<uint8_t>> &drums,
-		int32_t drumkit
+		int32_t drumkit = -1,
+		bool loop_drums = false
 	);
 
 	bool export_file(const char *f);
@@ -99,7 +101,7 @@ public:
 private:
 	bool try_open();
 	std::vector<std::vector<uint8_t>> get_instruments();
-	std::vector<std::vector<uint8_t>> get_samples(const std::vector<Wave> &waves, const std::vector<const std::vector<uint8_t> *> &drums);
+	std::vector<std::vector<uint8_t>> get_samples(const std::vector<Wave> &waves, const std::vector<const std::vector<uint8_t> *> &drums, bool loop_drums);
 	std::vector<std::vector<uint8_t>> get_patterns(
 		const std::vector<Note_View> &channel_1_notes,
 		const std::vector<Note_View> &channel_2_notes,
@@ -119,11 +121,12 @@ private:
 		const std::vector<Drumkit> &drumkits = {},
 		const std::vector<std::vector<uint8_t>> &drums = {},
 		int32_t preserve_drumkit = -1,
+		bool loop_drums = false,
 		int32_t loop_tick = -1,
 		bool stereo = true
 	);
 };
 
-std::vector<std::vector<uint8_t>> generate_noise_samples(const std::vector<Drum> &drums, int32_t only = -1);
+std::vector<std::vector<uint8_t>> generate_noise_samples(const std::vector<Drum> &drums, int32_t only = -1, bool pad = false);
 
 #endif
