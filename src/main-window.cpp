@@ -1977,6 +1977,7 @@ bool Main_Window::load_drumkits() {
 	_drumkits.drumkits = parsed_drumkits.drumkits();
 	_drumkits.drums = parsed_drumkits.drums();
 	_drumkits.uses_dr = parsed_drumkits.uses_dr();
+	_drumkits.uses_local = parsed_drumkits.uses_local();
 	_drum_samples = generate_noise_samples(_drumkits.drums);
 	return true;
 }
@@ -2549,6 +2550,7 @@ void Main_Window::close_cb(Fl_Widget *, Main_Window *mw) {
 	mw->_drumkits.drumkits.clear();
 	mw->_drumkits.drums.clear();
 	mw->_drumkits.uses_dr = false;
+	mw->_drumkits.uses_local = false;
 	mw->_drum_samples.clear();
 	if (mw->_it_module) {
 		delete mw->_it_module;

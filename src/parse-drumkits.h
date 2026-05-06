@@ -35,6 +35,7 @@ struct Drumkits {
 	std::vector<Drumkit> drumkits;
 	std::vector<Drum> drums;
 	bool uses_dr = false;
+	bool uses_local = false;
 };
 
 class Parsed_Drumkits {
@@ -42,6 +43,8 @@ public:
 	enum class Result {
 		DRUMKITS_OK,
 		DRUMKITS_BAD_FILE,
+		DRUMKITS_MIXED_SCOPE,
+		DRUMKITS_INVALID_LABEL,
 		DRUMKITS_INVALID_DRUMKITS_TABLE,
 		DRUMKITS_INVALID_DRUMKIT,
 		DRUMKITS_DRUMKIT_ENDED_PREMATURELY,
@@ -59,6 +62,7 @@ private:
 	std::vector<Drum> _drums;
 	int32_t _num_parsed_drumkits = 0;
 	bool _uses_dr = false;
+	bool _uses_local = false;
 	Result _result = Result::DRUMKITS_NULL;
 
 	// for error reporting
@@ -73,6 +77,7 @@ public:
 	inline std::vector<Drum> &&drums(void) { return std::move(_drums); }
 	inline int32_t num_parsed_drumkits(void) const { return _num_parsed_drumkits; }
 	inline bool uses_dr(void) const { return _uses_dr; }
+	inline bool uses_local(void) const { return _uses_local; }
 	inline Result result(void) const { return _result; }
 
 	std::string get_error_message() const;

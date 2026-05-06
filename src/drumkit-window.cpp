@@ -153,18 +153,20 @@ bool Drumkit_Window::write_drumkits(const char *f) {
 	open_ofstream(ofs, f);
 	if (!ofs.good()) { return false; }
 
-	ofs << _drumkits.drumkits_label << ":\n";
+	if (_drumkits.drumkits_label.size()) {
+		ofs << _drumkits.drumkits_label << ":\n";
+	}
 	for (const Drumkit &drumkit : _drumkits.drumkits) {
-		ofs << (_drumkits.uses_dr ? "\tdr " : "\tdw ") << drumkit.label << "\n";
+		ofs << (_drumkits.uses_dr ? "\tdr " : "\tdw ") << (_drumkits.uses_local ? "." : "") << drumkit.label << "\n";
 	}
 	ofs << "\n";
 
 	std::set<std::string> written_drumkits;
 	for (const Drumkit &drumkit : _drumkits.drumkits) {
 		if (!written_drumkits.count(drumkit.label)) {
-			ofs << drumkit.label << ":\n";
+			ofs << (_drumkits.uses_local ? "." : "") << drumkit.label << ":\n";
 			for (int32_t drum : drumkit.drums) {
-				ofs << (_drumkits.uses_dr ? "\tdr " : "\tdw ") << _drumkits.drums[drum].label << "\n";
+				ofs << (_drumkits.uses_dr ? "\tdr " : "\tdw ") << (_drumkits.uses_local ? "." : "") << _drumkits.drums[drum].label << "\n";
 			}
 			written_drumkits.insert(drumkit.label);
 		}
@@ -172,7 +174,7 @@ bool Drumkit_Window::write_drumkits(const char *f) {
 
 	for (const Drum &drum : _drumkits.drums) {
 		ofs << "\n";
-		ofs << drum.label << ":\n";
+		ofs << (_drumkits.uses_local ? "." : "") << drum.label << ":\n";
 		for (const Noise_Note &note : drum.noise_notes) {
 			int32_t fade = note.sweep_pace * (note.envelope_direction ? -1 : 1);
 			if (fade == 0) fade = 8;

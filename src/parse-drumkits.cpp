@@ -18,6 +18,11 @@ std::string Parsed_Drumkits::get_error_message() const {
 		return "OK.";
 	case Result::DRUMKITS_BAD_FILE:
 		return "Cannot open drumkits file.";
+	case Result::DRUMKITS_MIXED_SCOPE:
+		return "Labels should be all local or all global.";
+	case Result::DRUMKITS_INVALID_LABEL:
+		return "Line " + std::to_string(_line_number) +
+			": Invalid label.";
 	case Result::DRUMKITS_INVALID_DRUMKITS_TABLE:
 		return "Invalid drumkits table.";
 	case Result::DRUMKITS_INVALID_DRUMKIT:
@@ -165,6 +170,7 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 	_drums.clear();
 	_num_parsed_drumkits = 0;
 	_uses_dr = false;
+	_uses_local = false;
 	_result = Result::DRUMKITS_NULL;
 	_line_number = 0;
 
@@ -199,10 +205,11 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 		bool indented = is_indented(line);
 		std::istringstream lss(line);
 
+		if (step == Step::LOOKING_FOR_DRUMKITS && indented) {
+			step = Step::READING_DRUMKITS;
+		}
+
 		if (step == Step::LOOKING_FOR_DRUMKITS) {
-			if (indented) {
-				return (_result = Result::DRUMKITS_INVALID_DRUMKITS_TABLE);
-			}
 			if (!get_label(lss, _drumkits_label)) {
 				return (_result = Result::DRUMKITS_INVALID_DRUMKITS_TABLE);
 			}
@@ -229,6 +236,23 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 			if (!get_label(lss, drumkit.label)) {
 				return (_result = Result::DRUMKITS_INVALID_DRUMKITS_TABLE);
 			}
+			if (_drumkits.size() == 0) {
+				_uses_local = drumkit.label[0] == '.';
+			}
+			if (_uses_local) {
+				if (drumkit.label[0] != '.') {
+					return (_result = Result::DRUMKITS_MIXED_SCOPE);
+				}
+				drumkit.label.erase(0, 1);
+			}
+			else {
+				if (drumkit.label[0] == '.') {
+					return (_result = Result::DRUMKITS_MIXED_SCOPE);
+				}
+			}
+			if (!is_label_valid(drumkit.label)) {
+				return (_result = Result::DRUMKITS_INVALID_LABEL);
+			}
 			_drumkits.push_back(drumkit);
 		}
 
@@ -238,6 +262,7 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 			if (!get_label(lss, label)) {
 				continue;
 			}
+			if (label[0] == '.') label.erase(0, 1);
 			if (label == drumkit_itr->label) {
 				step = Step::READING_DRUMKIT;
 			}
@@ -251,6 +276,20 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 			std::string label;
 			if (!get_label(lss, label)) {
 				return (_result = Result::DRUMKITS_INVALID_DRUMKIT);
+			}
+			if (_uses_local) {
+				if (label[0] != '.') {
+					return (_result = Result::DRUMKITS_MIXED_SCOPE);
+				}
+				label.erase(0, 1);
+			}
+			else {
+				if (label[0] == '.') {
+					return (_result = Result::DRUMKITS_MIXED_SCOPE);
+				}
+			}
+			if (!is_label_valid(label)) {
+				return (_result = Result::DRUMKITS_INVALID_LABEL);
 			}
 			int32_t drum_index = find_drum(_drums, label);
 			if (drum_index == -1) {
@@ -288,6 +327,7 @@ Parsed_Drumkits::Result Parsed_Drumkits::try_parse_drumkits(const char *f) {
 			if (!get_label(lss, label)) {
 				continue;
 			}
+			if (label[0] == '.') label.erase(0, 1);
 			if (label == drum_itr->label) {
 				step = Step::READING_DRUM;
 			}
