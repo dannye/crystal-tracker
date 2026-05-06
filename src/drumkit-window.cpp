@@ -57,6 +57,7 @@ void Drumkit_Window::initialize() {
 	_window->callback((Fl_Callback *)cancel_cb, this);
 	_window->set_modal();
 	// Initialize window's children
+	_tabs->callback((Fl_Callback *)tabs_cb, this);
 	_add_drumkit_button->tooltip("New drumkit");
 	_add_drumkit_button->callback((Fl_Callback *)add_drumkit_cb, this);
 	_remove_drumkit_button->tooltip("Delete drumkit");
@@ -303,6 +304,19 @@ void Drumkit_Window::revert_cb(Fl_Widget *, Drumkit_Window *dw) {
 	select_drum_cb(nullptr, dw);
 }
 
+void Drumkit_Window::tabs_cb(Fl_Widget *, Drumkit_Window *dw) {
+	dw->stop_audio_thread();
+	if (dw->_tabs->value() == dw->_drumkit_tab) {
+		for (Dropdown *dropdown : dw->_drumkit_drum_dropdowns) {
+			dropdown->clear();
+			for (const Drum &drum : dw->_drumkits.drums) {
+				dropdown->add(drum.label.c_str());
+			}
+		}
+		select_drumkit_cb(nullptr, dw);
+	}
+}
+
 void Drumkit_Window::add_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
 	if (dw->_drumkits.drumkits.size() == 256) return;
 
@@ -393,8 +407,8 @@ void Drumkit_Window::move_drumkit_down_cb(Fl_Widget *, Drumkit_Window *dw) {
 	select_drumkit_cb(nullptr, dw);
 }
 
-void Drumkit_Window::select_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
-	if (Fl::callback_reason() == FL_REASON_RESELECTED && Fl::event_clicks() > 0) {
+void Drumkit_Window::select_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw) {
+	if (Fl::callback_reason() == FL_REASON_RESELECTED && Fl::event_clicks() > 0 && w) {
 		assert(dw->_selected_drumkit == dw->_drumkit_browser->value());
 		Drumkit *selected_drumkit = dw->drumkit();
 		if (!selected_drumkit) return;
@@ -542,23 +556,197 @@ void Drumkit_Window::play_drumkit_drum_cb(Fl_Widget *w, Drumkit_Window *dw) {
 }
 
 void Drumkit_Window::add_drum_cb(Fl_Widget *, Drumkit_Window *dw) {
-	// TODO
+	const auto is_label_taken = [&](const std::string &label) {
+		if (label == dw->_drumkits.drumkits_label) return true;
+		for (const Drumkit &drumkit : dw->_drumkits.drumkits) {
+			if (label == drumkit.label) {
+				return true;
+			}
+		}
+		for (const Drum &drum : dw->_drumkits.drums) {
+			if (label == drum.label) {
+				return true;
+			}
+		}
+		return false;
+	};
+
+	std::string drum_name;
+	bool reset = true;
+	dw->_new_name_dialog->title("New Drum");
+	dw->_new_name_dialog->label("Drum Name:");
+	while (true) {
+		dw->_new_name_dialog->show(dw->_window, reset);
+		bool canceled = dw->_new_name_dialog->canceled();
+		if (canceled) { return; }
+
+		drum_name = dw->_new_name_dialog->get_name();
+		if (!is_label_valid(drum_name)) {
+			std::string msg = "Name is invalid! Name can only contain letters, numbers, and underscores, and must not start with a number.";
+			dw->_error_dialog->message(msg);
+			dw->_error_dialog->show(dw->_window);
+			reset = false;
+		}
+		else if (is_label_taken(drum_name)) {
+			std::string msg = "Duplicate label.";
+			dw->_error_dialog->message(msg);
+			dw->_error_dialog->show(dw->_window);
+			reset = false;
+		}
+		else {
+			break;
+		}
+	}
+
+	Drum new_drum;
+	new_drum.label = drum_name;
+	dw->_drumkits.drums.push_back(new_drum);
+
+	dw->_drum_browser->add(drum_name.c_str());
+	dw->_drum_browser->select((int)dw->_drumkits.drums.size());
+	select_drum_cb(nullptr, dw);
 }
 
 void Drumkit_Window::remove_drum_cb(Fl_Widget *, Drumkit_Window *dw) {
-	// TODO
+	if (!dw->_selected_drum || dw->_drumkits.drums.size() == 1) return;
+
+	for (Drumkit &drumkit : dw->_drumkits.drumkits) {
+		for (int32_t &drum : drumkit.drums) {
+			if (drum == dw->_selected_drum - 1) {
+				drum = 0;
+			}
+			else if (drum > dw->_selected_drum - 1) {
+				drum -= 1;
+			}
+		}
+	}
+
+	dw->_drumkits.drums.erase(dw->_drumkits.drums.begin() + dw->_selected_drum-1);
+	dw->_drum_browser->deselect();
+	dw->_drum_browser->remove(dw->_selected_drum);
+	select_drum_cb(nullptr, dw);
 }
 
 void Drumkit_Window::move_drum_up_cb(Fl_Widget *, Drumkit_Window *dw) {
-	// TODO
+	if (!dw->_selected_drum || dw->_selected_drum == 1) return;
+
+	for (Drumkit &drumkit : dw->_drumkits.drumkits) {
+		for (int32_t &drum : drumkit.drums) {
+			if (drum == dw->_selected_drum - 1) {
+				drum -= 1;
+			}
+			else if (drum == dw->_selected_drum - 2) {
+				drum += 1;
+			}
+		}
+	}
+
+	std::swap(dw->_drumkits.drums[dw->_selected_drum - 1], dw->_drumkits.drums[dw->_selected_drum - 2]);
+	dw->_drum_browser->swap(dw->_selected_drum, dw->_selected_drum - 1);
+	dw->_drum_browser->select(dw->_selected_drum - 1);
+	select_drum_cb(nullptr, dw);
 }
 
 void Drumkit_Window::move_drum_down_cb(Fl_Widget *, Drumkit_Window *dw) {
-	// TODO
+	if (!dw->_selected_drum || dw->_selected_drum == dw->_drumkits.drums.size()) return;
+
+	for (Drumkit &drumkit : dw->_drumkits.drumkits) {
+		for (int32_t &drum : drumkit.drums) {
+			if (drum == dw->_selected_drum - 1) {
+				drum += 1;
+			}
+			else if (drum == dw->_selected_drum) {
+				drum -= 1;
+			}
+		}
+	}
+
+	std::swap(dw->_drumkits.drums[dw->_selected_drum - 1], dw->_drumkits.drums[dw->_selected_drum]);
+	dw->_drum_browser->swap(dw->_selected_drum, dw->_selected_drum + 1);
+	dw->_drum_browser->select(dw->_selected_drum + 1);
+	select_drum_cb(nullptr, dw);
 }
 
-void Drumkit_Window::select_drum_cb(Fl_Widget *, Drumkit_Window *dw) {
-	// TODO
+void Drumkit_Window::select_drum_cb(Fl_Widget *w, Drumkit_Window *dw) {
+	if (Fl::callback_reason() == FL_REASON_RESELECTED && Fl::event_clicks() > 0 && w) {
+		assert(dw->_selected_drum == dw->_drum_browser->value());
+		Drum *selected_drum = dw->drum();
+		if (!selected_drum) return;
+
+		const auto is_label_taken = [&](const std::string &label) {
+			if (label == dw->_drumkits.drumkits_label) return true;
+			for (const Drumkit &drumkit : dw->_drumkits.drumkits) {
+				if (label == drumkit.label) {
+					return true;
+				}
+			}
+			for (const Drum &drum : dw->_drumkits.drums) {
+				if (label == drum.label) {
+					return true;
+				}
+			}
+			return false;
+		};
+
+		std::string drum_name;
+		std::string original_name = selected_drum->label;
+		dw->_new_name_dialog->title("Rename Drum");
+		dw->_new_name_dialog->label("Drum Name:");
+		dw->_new_name_dialog->set_name(original_name.c_str());
+		while (true) {
+			int focus = Fl::visible_focus();
+			Fl::visible_focus(0);
+			dw->_new_name_dialog->show(dw->_window, false);
+			Fl::visible_focus(focus);
+			bool canceled = dw->_new_name_dialog->canceled();
+			if (canceled) { return; }
+
+			drum_name = dw->_new_name_dialog->get_name();
+			if (drum_name == original_name) return;
+			if (!is_label_valid(drum_name)) {
+				std::string msg = "Name is invalid! Name can only contain letters, numbers, and underscores, and must not start with a number.";
+				dw->_error_dialog->message(msg);
+				Fl::visible_focus(0);
+				dw->_error_dialog->show(dw->_window);
+				Fl::visible_focus(focus);
+			}
+			else if (is_label_taken(drum_name)) {
+				std::string msg = "Duplicate label.";
+				dw->_error_dialog->message(msg);
+				Fl::visible_focus(0);
+				dw->_error_dialog->show(dw->_window);
+				Fl::visible_focus(focus);
+			}
+			else {
+				break;
+			}
+		}
+
+		selected_drum->label = drum_name;
+		dw->_drum_browser->text(dw->_selected_drum, drum_name.c_str());
+
+		return;
+	}
+
+	dw->_selected_drum = dw->_drum_browser->value();
+	if (!dw->_selected_drum || dw->_drumkits.drums.size() == 1) {
+		dw->_remove_drum_button->deactivate();
+	}
+	else {
+		dw->_remove_drum_button->activate();
+	}
+	if (!dw->_selected_drum || dw->_selected_drum == 1) {
+		dw->_drum_up_button->deactivate();
+	}
+	else {
+		dw->_drum_up_button->activate();
+	}
+	if (!dw->_selected_drum || dw->_selected_drum == dw->_drumkits.drums.size()) {
+		dw->_drum_down_button->deactivate();
+	}
+	else {
+		dw->_drum_down_button->activate();
+	}
 }
 
 void Drumkit_Window::playback_thread(Drumkit_Window *dw, std::future<void> kill_signal) {

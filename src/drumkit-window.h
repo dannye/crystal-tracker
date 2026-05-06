@@ -101,6 +101,7 @@ private:
 	static void cancel_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void save_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void revert_cb(Fl_Widget *w, Drumkit_Window *dw);
+	static void tabs_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void add_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void remove_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void move_drumkit_up_cb(Fl_Widget *w, Drumkit_Window *dw);
