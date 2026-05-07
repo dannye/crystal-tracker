@@ -5,6 +5,204 @@
 #include "utils.h"
 #include "drumkit-window.h"
 
+Drum_Note_Table::Drum_Note_Table(int x, int y, int w, int h, const char *l) : OS_Table(x, y, w, h, l) {
+	col_header(1);
+	col_header_height(25);
+	cols(NUM_COLUMNS);
+	col_width_all((w-2) / cols());
+	scrollbar_size(12);
+	end();
+}
+
+void Drum_Note_Table::clear() {
+	table->clear();
+	rows(0);
+	label("");
+}
+
+void Drum_Note_Table::set(Drum *drum) {
+	table->clear();
+	rows(drum->noise_notes.size());
+	label(drum->label.c_str());
+
+	begin();
+	for (int r = 0; r < drum->noise_notes.size(); ++r) {
+		const Noise_Note &note = drum->noise_notes[r];
+		for (int c = 0; c < NUM_COLUMNS; ++c) {
+			int X, Y, W, H;
+			find_cell(CONTEXT_TABLE, r, c, X, Y, W, H);
+			OS_Int_Input *input = new OS_Int_Input(X, Y, W, H);
+			if (c == LENGTH) {
+				input->value(note.length);
+			}
+			else if (c == VOLUME) {
+				input->value(note.volume);
+			}
+			else if (c == FADE) {
+				input->value(note.sweep_pace * (note.envelope_direction ? -1 : 1));
+			}
+			else if (c == SHIFT) {
+				input->value(note.clock_shift);
+			}
+			else if (c == WIDTH) {
+				input->value(note.lfsr_width);
+			}
+			else if (c == DIVIDER) {
+				input->value(note.clock_divider);
+			}
+			input->when(FL_WHEN_CHANGED | FL_WHEN_RELEASE_ALWAYS);
+			input->callback((Fl_Callback *)edit_note_cb, this);
+		}
+	}
+	end();
+}
+
+void Drum_Note_Table::add_row() {
+	rows(rows() + 1);
+
+	begin();
+	for (int c = 0; c < NUM_COLUMNS; ++c) {
+		int X, Y, W, H;
+		find_cell(CONTEXT_TABLE, rows()-1, c, X, Y, W, H);
+		OS_Int_Input *input = new OS_Int_Input(X, Y, W, H);
+		input->value(0);
+		input->when(FL_WHEN_CHANGED | FL_WHEN_RELEASE_ALWAYS);
+		input->callback((Fl_Callback *)edit_note_cb, this);
+	}
+	end();
+}
+
+void Drum_Note_Table::remove_row() {
+	if (rows() == 0) return;
+
+	for (int c = 0; c < NUM_COLUMNS; ++c) {
+		Fl_Widget *ch = find_child(rows()-1, c);
+		if (ch) delete ch;
+	}
+
+	rows(rows() - 1);
+}
+
+void Drum_Note_Table::draw_cell(TableContext context, int R, int C, int X, int Y, int W, int H) {
+	switch (context) {
+	case CONTEXT_RC_RESIZE: {
+		col_width_all((w()-2 - (vscrollbar->visible() ? scrollbar_size() : 0)) / cols());
+		int X, Y, W, H;
+		int index = 0;
+		for (int r = 0; r < rows(); ++r) {
+			for (int c = 0; c < cols(); ++c) {
+				if (index >= children()) break;
+				find_cell(CONTEXT_TABLE, r, c, X, Y, W, H);
+				child(index++)->resize(X, Y, W, H);
+			}
+		}
+		init_sizes();
+		return;
+	}
+	case CONTEXT_COL_HEADER:
+		fl_push_clip(X, Y, W, H);
+		fl_draw_box(OS_PANEL_THIN_UP_BOX, X, Y, W, H, col_header_color());
+		fl_font(OS_FONT, OS_FONT_SIZE);
+		fl_color(FL_FOREGROUND_COLOR);
+		fl_draw(COLUMN_LABELS[C], X, Y, W, H, FL_ALIGN_CENTER);
+		fl_pop_clip();
+		return;
+	default:
+		return;
+	}
+}
+
+void Drum_Note_Table::find_coord(int x, int y, int &R, int &C) {
+	int X, Y, W, H;
+	for (int r = 0; r < rows(); ++r) {
+		for (int c = 0; c < cols(); ++c) {
+			find_cell(CONTEXT_TABLE, r, c, X, Y, W, H);
+			if (X == x && Y == y) {
+				R = r;
+				C = c;
+				return;
+			}
+		}
+	}
+	R = -1;
+	C = -1;
+}
+
+Fl_Widget *Drum_Note_Table::find_child(int R, int C) {
+	int X, Y, W, H;
+	find_cell(CONTEXT_TABLE, R, C, X, Y, W, H);
+	for (int i = 0; i < children(); ++i) {
+		Fl_Widget *c = child(i);
+		if (c->x() == X && c->y() == Y) return c;
+	}
+	return nullptr;
+}
+
+void Drum_Note_Table::edit_note_cb(OS_Int_Input *i, Drum_Note_Table *dt) {
+	Drumkit_Window *dw = (Drumkit_Window *)dt->user_data();
+	Drum *drum = dw->drum();
+	if (!drum) return;
+
+	int R, C;
+	dt->find_coord(i->x(), i->y(), R, C);
+	assert(R >= 0 && R < drum->noise_notes.size());
+	assert(C >= 0 && C < NUM_COLUMNS);
+
+	if (
+		(strlen(i->value()) == 0 && Fl::focus() != i) ||
+		(strlen(i->value()) > 0 && i->value()[0] == '-' && COLUMN_MIN[C] >= 0) ||
+		(strlen(i->value()) > 1 && i->value()[0] == '0' && i->value()[1] == 'x')
+	) {
+		i->value("0");
+	}
+
+	int value = i->ivalue();
+	if (value < COLUMN_MIN[C]) {
+		value = COLUMN_MIN[C];
+		i->value(value);
+	}
+	if (value > COLUMN_MAX[C]) {
+		value = COLUMN_MAX[C];
+		i->value(value);
+	}
+
+	Noise_Note &note = drum->noise_notes[R];
+	bool changed = false;
+	if (C == LENGTH) {
+		changed = note.length != value;
+		note.length = value;
+	}
+	else if (C == VOLUME) {
+		changed = note.volume != value;
+		note.volume = value;
+	}
+	else if (C == FADE) {
+		changed = (note.sweep_pace * (note.envelope_direction ? -1 : 1)) != value;
+		if (value < 0) {
+			note.sweep_pace = -value;
+			note.envelope_direction = 1;
+		}
+		else {
+			note.sweep_pace = value;
+			note.envelope_direction = 0;
+		}
+	}
+	else if (C == SHIFT) {
+		changed = note.clock_shift != value;
+		note.clock_shift = value;
+	}
+	else if (C == WIDTH) {
+		changed = note.lfsr_width != value;
+		note.lfsr_width = value;
+	}
+	else if (C == DIVIDER) {
+		changed = note.clock_divider != value;
+		note.clock_divider = value;
+	}
+
+	if (changed) dw->regenerate_mod();
+}
+
 Drumkit_Window::Drumkit_Window(int x, int y) : _dx(x), _dy(y) {}
 
 Drumkit_Window::~Drumkit_Window() {
@@ -43,7 +241,10 @@ void Drumkit_Window::initialize() {
 	_drum_up_button = new OS_Button(99, 45, 21, 21, "@8>");
 	_drum_down_button = new OS_Button(124, 45, 21, 21, "@2>");
 	_drum_browser = new OS_Browser(20, 70, 125, 240);
+	_add_note_button = new OS_Button(160, 45, 21, 21, "@+");
+	_remove_note_button = new OS_Button(185, 45, 21, 21, "@-");
 	_play_button = new OS_Light_Button(523, 45, 65, 22, "Play");
+	_drum_note_table = new Drum_Note_Table(160, 70, 428, 240);
 	_tabs->end();
 	_save_button = new Default_Button(10, 330, 80, 22, "Save");
 	_revert_button = new OS_Button(100, 330, 80, 22, "Revert");
@@ -84,9 +285,14 @@ void Drumkit_Window::initialize() {
 	_drum_down_button->tooltip("Move down");
 	_drum_down_button->callback((Fl_Callback *)move_drum_down_cb, this);
 	_drum_browser->callback((Fl_Callback *)select_drum_cb, this);
+	_add_note_button->tooltip("Add note");
+	_add_note_button->callback((Fl_Callback *)add_note_cb, this);
+	_remove_note_button->tooltip("Remove note");
+	_remove_note_button->callback((Fl_Callback *)remove_note_cb, this);
 	_play_button->tooltip("Play (Spacebar)");
 	_play_button->shortcut(' ');
 	_play_button->callback((Fl_Callback *)play_drum_cb, this);
+	_drum_note_table->user_data(this);
 	_save_button->shortcut(0);
 	_save_button->callback((Fl_Callback *)save_cb, this);
 	_revert_button->callback((Fl_Callback *)revert_cb, this);
@@ -339,6 +545,10 @@ void Drumkit_Window::tabs_cb(Fl_Widget *, Drumkit_Window *dw) {
 			}
 		}
 		select_drumkit_cb(nullptr, dw);
+		dw->_drumkit_browser->take_focus();
+	}
+	else {
+		dw->_drum_browser->take_focus();
 	}
 }
 
@@ -783,8 +993,52 @@ void Drumkit_Window::select_drum_cb(Fl_Widget *w, Drumkit_Window *dw) {
 	else {
 		dw->_drum_down_button->activate();
 	}
+	if (!dw->_selected_drum) {
+		dw->_add_note_button->deactivate();
+		dw->_remove_note_button->deactivate();
+		dw->_drum_note_table->clear();
+		dw->_drum_tab->redraw();
+	}
+	else {
+		dw->_add_note_button->activate();
+		if (dw->drum()->noise_notes.size() == 0) {
+			dw->_remove_note_button->deactivate();
+		}
+		else {
+			dw->_remove_note_button->activate();
+		}
+		dw->_drum_note_table->set(&dw->_drumkits.drums[dw->_selected_drum-1]);
+		dw->_drum_tab->redraw();
+	}
 
 	if (dw->_tabs->value() == dw->_drum_tab) dw->regenerate_mod();
+}
+
+void Drumkit_Window::add_note_cb(Fl_Widget *, Drumkit_Window *dw) {
+	Drum *drum = dw->drum();
+	if (!drum) return;
+
+	Noise_Note note = {};
+	drum->noise_notes.push_back(note);
+	dw->_drum_note_table->add_row();
+
+	dw->_remove_note_button->activate();
+
+	dw->regenerate_mod();
+}
+
+void Drumkit_Window::remove_note_cb(Fl_Widget *, Drumkit_Window *dw) {
+	Drum *drum = dw->drum();
+	if (!drum || drum->noise_notes.size() == 0) return;
+
+	drum->noise_notes.pop_back();
+	dw->_drum_note_table->remove_row();
+
+	if (drum->noise_notes.size() == 0) {
+		dw->_remove_note_button->deactivate();
+	}
+
+	dw->regenerate_mod();
 }
 
 void Drumkit_Window::play_drum_cb(Fl_Widget *, Drumkit_Window *dw) {

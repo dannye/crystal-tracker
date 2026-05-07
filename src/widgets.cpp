@@ -58,6 +58,11 @@ OS_Int_Input::OS_Int_Input(int x, int y, int w, int h, const char *l) : Fl_Int_I
 	align(FL_ALIGN_LEFT | FL_ALIGN_CLIP);
 }
 
+int OS_Int_Input::handle(int event) {
+	if (event == FL_KEYBOARD && Fl::event_key() == ' ') return 0;
+	return Fl_Int_Input::handle(event);
+}
+
 OS_Button::OS_Button(int x, int y, int w, int h, const char *l) : Fl_Button(x, y, w, h, l) {
 	labelfont(OS_FONT);
 	labelsize(OS_FONT_SIZE);
@@ -521,6 +526,14 @@ OS_Tab::OS_Tab(int x, int y, int w, int h, const char *l) : Fl_Group(x, y, w, h,
 	labelfont(OS_FONT);
 	labelsize(OS_FONT_SIZE);
 	color(OS_TAB_COLOR);
+}
+
+OS_Table::OS_Table(int x, int y, int w, int h, const char *l) : Fl_Table(x, y, w, h, l) {
+	labelfont(OS_FONT);
+	labelsize(OS_FONT_SIZE);
+	box(OS_SPACER_THIN_DOWN_FRAME);
+	vscrollbar->slider(OS_MINI_BUTTON_UP_BOX);
+	hscrollbar->slider(OS_MINI_BUTTON_UP_BOX);
 }
 
 OS_Scroll::OS_Scroll(int x, int y, int w, int h, const char *l) : Fl_Scroll(x, y, w, h, l) {

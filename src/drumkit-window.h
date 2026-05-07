@@ -37,6 +37,34 @@ constexpr Drum_Dropdown DRUM_DROPDOWNS[NUM_DRUMS_PER_DRUMKIT] {
 	{ 190,  70, "B:" },
 };
 
+class Drum_Note_Table : public OS_Table {
+private:
+	enum Columns {
+		LENGTH,
+		VOLUME,
+		FADE,
+		SHIFT,
+		WIDTH,
+		DIVIDER,
+		NUM_COLUMNS
+	};
+	static inline const char *COLUMN_LABELS[NUM_COLUMNS] = { "Length", "Volume", "Fade", "Shift", "Width", "Divider" };
+	static inline int COLUMN_MIN[NUM_COLUMNS] = { 0, 0, -7, 0, 0, 0 };
+	static inline int COLUMN_MAX[NUM_COLUMNS] = { 255, 15, 7, 15, 1, 7 };
+public:
+	Drum_Note_Table(int x, int y, int w, int h, const char *l = nullptr);
+	void clear() override;
+	void set(Drum *drum);
+	void add_row();
+	void remove_row();
+protected:
+	void draw_cell(TableContext context, int R = 0, int C = 0, int X = 0, int Y = 0, int W = 0, int H = 0) override;
+	void find_coord(int X, int Y, int &R, int &C);
+	Fl_Widget *find_child(int X, int Y);
+
+	static void edit_note_cb(OS_Int_Input *i, Drum_Note_Table *dt);
+};
+
 class Drumkit_Window {
 private:
 	int _dx, _dy;
@@ -57,7 +85,10 @@ private:
 	OS_Button *_drum_up_button = nullptr;
 	OS_Button *_drum_down_button = nullptr;
 	OS_Browser *_drum_browser = nullptr;
+	OS_Button *_add_note_button = nullptr;
+	OS_Button *_remove_note_button = nullptr;
 	OS_Light_Button *_play_button = nullptr;
+	Drum_Note_Table *_drum_note_table = nullptr;
 	Default_Button *_save_button = nullptr;
 	OS_Button *_revert_button = nullptr;
 	OS_Button *_close_button = nullptr;
@@ -116,6 +147,8 @@ private:
 	static void move_drum_up_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void move_drum_down_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void select_drum_cb(Fl_Widget *w, Drumkit_Window *dw);
+	static void add_note_cb(Fl_Widget *w, Drumkit_Window *dw);
+	static void remove_note_cb(Fl_Widget *w, Drumkit_Window *dw);
 	static void play_drum_cb(Fl_Widget *w, Drumkit_Window *dw);
 
 	static void playback_thread(Drumkit_Window *dw, std::future<void> kill_signal);

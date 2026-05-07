@@ -263,6 +263,13 @@ static void draw_plus(Fl_Color col) {
 	EC;
 }
 
+static void draw_minus(Fl_Color col) {
+	fl_color(col);
+	BP; vv(-0.9,-0.15); vv(-0.9,0.15); vv(0.9,0.15); vv(0.9,-0.15); EP;
+	set_outline_color(col);
+	BC; vv(-0.9,-0.15); vv(-0.9,0.15); vv(0.9,0.15); vv(0.9,-0.15); EC;
+}
+
 static void override_symbols() {
 	fl_add_symbol(">",    draw_arrow2,           1);
 	fl_add_symbol(">>",   draw_arrow3,           1);
@@ -272,6 +279,7 @@ static void override_symbols() {
 	fl_add_symbol("<->",  draw_doublearrow,      1);
 	fl_add_symbol("^|v",  draw_doublearrow_vert, 1);
 	fl_add_symbol("+",    draw_plus,             1);
+	fl_add_symbol("-",    draw_minus,            1);
 }
 
 #undef BP

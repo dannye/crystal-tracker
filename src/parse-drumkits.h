@@ -6,15 +6,15 @@
 #include <vector>
 
 struct Noise_Note {
-	int32_t length;
+	int32_t length = 0;
 
-	int32_t volume;
-	int32_t envelope_direction;
-	int32_t sweep_pace;
+	int32_t volume = 0;
+	int32_t envelope_direction = 0;
+	int32_t sweep_pace = 0;
 
-	int32_t clock_shift;
-	int32_t lfsr_width;
-	int32_t clock_divider;
+	int32_t clock_shift = 0;
+	int32_t lfsr_width = 0;
+	int32_t clock_divider = 0;
 };
 
 struct Drum {

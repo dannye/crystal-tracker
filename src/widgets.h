@@ -15,6 +15,7 @@
 #include <FL/Fl_Browser.H>
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Group.H>
+#include <FL/Fl_Table.H>
 #include <FL/Fl_Scroll.H>
 #include <FL/Fl_Menu_.H>
 #include <FL/Fl_Help_View.H>
@@ -64,6 +65,8 @@ public:
 class OS_Int_Input : public Fl_Int_Input {
 public:
 	OS_Int_Input(int x, int y, int w, int h, const char *l = NULL);
+protected:
+	int handle(int event);
 };
 
 class OS_Button : public Fl_Button {
@@ -163,6 +166,11 @@ public:
 class OS_Tab : public Fl_Group {
 public:
 	OS_Tab(int x, int y, int w, int h, const char *l = NULL);
+};
+
+class OS_Table : public Fl_Table {
+public:
+	OS_Table(int x, int y, int w, int h, const char *l = NULL);
 };
 
 class OS_Scroll : public Fl_Scroll {
