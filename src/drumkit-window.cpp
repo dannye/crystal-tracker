@@ -22,11 +22,11 @@ void Drum_Note_Table::clear() {
 
 void Drum_Note_Table::set(Drum *drum) {
 	table->clear();
-	rows(drum->noise_notes.size());
+	rows((int)drum->noise_notes.size());
 	label(drum->label.c_str());
 
 	begin();
-	for (int r = 0; r < drum->noise_notes.size(); ++r) {
+	for (int r = 0; r < (int)drum->noise_notes.size(); ++r) {
 		const Noise_Note &note = drum->noise_notes[r];
 		for (int c = 0; c < NUM_COLUMNS; ++c) {
 			int X, Y, W, H;
@@ -145,7 +145,7 @@ void Drum_Note_Table::edit_note_cb(OS_Int_Input *i, Drum_Note_Table *dt) {
 
 	int R, C;
 	dt->find_coord(i->x(), i->y(), R, C);
-	assert(R >= 0 && R < drum->noise_notes.size());
+	assert(R >= 0 && R < (int)drum->noise_notes.size());
 	assert(C >= 0 && C < NUM_COLUMNS);
 
 	if (

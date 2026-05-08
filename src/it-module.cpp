@@ -354,7 +354,7 @@ std::vector<std::vector<uint8_t>> IT_Module::get_samples(const std::vector<Wave>
 	// dynamic wave samples
 	for (int i = 0; i < std::max((int)waves.size(), 16); ++i) {
 		const Wave *wave = nullptr;
-		if (i < waves.size()) wave = &waves[i];
+		if (i < (int)waves.size()) wave = &waves[i];
 		std::vector<uint8_t> sample;
 
 		sample_header(sample, sample_length);
