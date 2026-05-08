@@ -86,7 +86,7 @@ void Drum_Note_Table::remove_row() {
 void Drum_Note_Table::draw_cell(TableContext context, int R, int C, int X, int Y, int W, int H) {
 	switch (context) {
 	case CONTEXT_RC_RESIZE: {
-		col_width_all((w()-2 - (vscrollbar->visible() ? scrollbar_size() : 0)) / cols());
+		col_width_all((w()-2 - (vscrollbar->visible() ? scrollbar_size() : 0)) / (cols() ? cols() : 1));
 		int X, Y, W, H;
 		int index = 0;
 		for (int r = 0; r < rows(); ++r) {
@@ -723,7 +723,7 @@ void Drumkit_Window::select_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw) {
 	else {
 		dw->_remove_drumkit_button->activate();
 	}
-	if (!dw->_selected_drumkit) {
+	if (!dw->_selected_drumkit || dw->_drumkits.drumkits.size() == 256) {
 		dw->_copy_drumkit_button->deactivate();
 	}
 	else {
