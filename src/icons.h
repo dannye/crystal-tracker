@@ -160,7 +160,7 @@ bool make_deimage(Fl_Widget *wgt, Fl_Image *image = nullptr) {
 #define vv(x,y) fl_vertex(x,y)
 
 static void set_outline_color(Fl_Color c) {
-	fl_color(fl_color_average(c, FL_BLACK, .9f));
+	fl_color(fl_color_average(c, FL_BLACK, 0.9f));
 }
 
 static void rectangle(double x, double y, double x2, double y2, Fl_Color col) {
@@ -270,6 +270,17 @@ static void draw_minus(Fl_Color col) {
 	BC; vv(-0.9,-0.15); vv(-0.9,0.15); vv(0.9,0.15); vv(0.9,-0.15); EC;
 }
 
+static void draw_copy(Fl_Color col) {
+	fl_color(fl_color_average(col, FL_WHITE, 0.4f));
+	BP; vv(-0.8,-0.8); vv(0.4,-0.8); vv(0.4,0.4); vv(-0.8,0.4); EP;
+	fl_color(fl_color_average(col, FL_BLACK, 0.6f));
+	BC; vv(-0.8,-0.8); vv(0.4,-0.8); vv(0.4,0.4); vv(-0.8,0.4); EC;
+	fl_color(fl_color_average(col, FL_WHITE, 0.4f));
+	BP; vv(-0.4,-0.4); vv(0.8,-0.4); vv(0.8,0.8); vv(-0.4,0.8); EP;
+	fl_color(fl_color_average(col, FL_BLACK, 0.6f));
+	BC; vv(-0.4,-0.4); vv(0.8,-0.4); vv(0.8,0.8); vv(-0.4,0.8); EC;
+}
+
 static void override_symbols() {
 	fl_add_symbol(">",    draw_arrow2,           1);
 	fl_add_symbol(">>",   draw_arrow3,           1);
@@ -280,6 +291,7 @@ static void override_symbols() {
 	fl_add_symbol("^|v",  draw_doublearrow_vert, 1);
 	fl_add_symbol("+",    draw_plus,             1);
 	fl_add_symbol("-",    draw_minus,            1);
+	fl_add_symbol("copy", draw_copy,             1);
 }
 
 #undef BP

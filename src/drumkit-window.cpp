@@ -238,6 +238,7 @@ void Drumkit_Window::initialize() {
 	_drum_tab = new OS_Tab(10, 35, 588, 285, "Drums");
 	_add_drum_button = new OS_Button(20, 45, 21, 21, "@+");
 	_remove_drum_button = new OS_Button(45, 45, 21, 21, "@1+");
+	_copy_drum_button = new OS_Button(72, 45, 21, 21, "@copy");
 	_drum_up_button = new OS_Button(99, 45, 21, 21, "@8>");
 	_drum_down_button = new OS_Button(124, 45, 21, 21, "@2>");
 	_drum_browser = new OS_Browser(20, 70, 125, 240);
@@ -280,6 +281,8 @@ void Drumkit_Window::initialize() {
 	_add_drum_button->callback((Fl_Callback *)add_drum_cb, this);
 	_remove_drum_button->tooltip("Delete drum");
 	_remove_drum_button->callback((Fl_Callback *)remove_drum_cb, this);
+	_copy_drum_button->tooltip("Duplicate drum");
+	_copy_drum_button->callback((Fl_Callback *)add_drum_cb, this);
 	_drum_up_button->tooltip("Move up");
 	_drum_up_button->callback((Fl_Callback *)move_drum_up_cb, this);
 	_drum_down_button->tooltip("Move down");
@@ -801,7 +804,7 @@ void Drumkit_Window::play_drumkit_drum_cb(Fl_Widget *w, Drumkit_Window *dw) {
 	dw->start_audio_thread();
 }
 
-void Drumkit_Window::add_drum_cb(Fl_Widget *, Drumkit_Window *dw) {
+void Drumkit_Window::add_drum_cb(Fl_Widget *w, Drumkit_Window *dw) {
 	const auto is_label_taken = [&](const std::string &label) {
 		if (label == dw->_drumkits.drumkits_label) return true;
 		for (const Drumkit &drumkit : dw->_drumkits.drumkits) {
@@ -846,6 +849,9 @@ void Drumkit_Window::add_drum_cb(Fl_Widget *, Drumkit_Window *dw) {
 
 	Drum new_drum;
 	new_drum.label = drum_name;
+	if (w == dw->_copy_drum_button && dw->drum()) {
+		new_drum.noise_notes = dw->drum()->noise_notes;
+	}
 	dw->_drumkits.drums.push_back(new_drum);
 
 	dw->_drum_browser->add(drum_name.c_str());
@@ -980,6 +986,12 @@ void Drumkit_Window::select_drum_cb(Fl_Widget *w, Drumkit_Window *dw) {
 	}
 	else {
 		dw->_remove_drum_button->activate();
+	}
+	if (!dw->_selected_drum) {
+		dw->_copy_drum_button->deactivate();
+	}
+	else {
+		dw->_copy_drum_button->activate();
 	}
 	if (!dw->_selected_drum || dw->_selected_drum == 1) {
 		dw->_drum_up_button->deactivate();

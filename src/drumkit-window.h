@@ -82,6 +82,7 @@ private:
 	OS_Tab *_drum_tab = nullptr;
 	OS_Button *_add_drum_button = nullptr;
 	OS_Button *_remove_drum_button = nullptr;
+	OS_Button *_copy_drum_button = nullptr;
 	OS_Button *_drum_up_button = nullptr;
 	OS_Button *_drum_down_button = nullptr;
 	OS_Browser *_drum_browser = nullptr;
