@@ -225,6 +225,7 @@ void Drumkit_Window::initialize() {
 	_drumkit_tab = new OS_Tab(10, 35, 588, 285, "Drumkits");
 	_add_drumkit_button = new OS_Button(20, 45, 21, 21, "@+");
 	_remove_drumkit_button = new OS_Button(45, 45, 21, 21, "@1+");
+	_copy_drumkit_button = new OS_Button(72, 45, 21, 21, "@copy");
 	_drumkit_up_button = new OS_Button(99, 45, 21, 21, "@8>");
 	_drumkit_down_button = new OS_Button(124, 45, 21, 21, "@2>");
 	_drumkit_browser = new OS_Browser(20, 70, 125, 240);
@@ -265,6 +266,8 @@ void Drumkit_Window::initialize() {
 	_add_drumkit_button->callback((Fl_Callback *)add_drumkit_cb, this);
 	_remove_drumkit_button->tooltip("Delete drumkit");
 	_remove_drumkit_button->callback((Fl_Callback *)remove_drumkit_cb, this);
+	_copy_drumkit_button->tooltip("Duplicate drumkit");
+	_copy_drumkit_button->callback((Fl_Callback *)add_drumkit_cb, this);
 	_drumkit_up_button->tooltip("Move up");
 	_drumkit_up_button->callback((Fl_Callback *)move_drumkit_up_cb, this);
 	_drumkit_down_button->tooltip("Move down");
@@ -555,7 +558,7 @@ void Drumkit_Window::tabs_cb(Fl_Widget *, Drumkit_Window *dw) {
 	}
 }
 
-void Drumkit_Window::add_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
+void Drumkit_Window::add_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw) {
 	if (dw->_drumkits.drumkits.size() == 256) return;
 
 	const auto is_label_taken = [&](const std::string &label) {
@@ -607,6 +610,9 @@ void Drumkit_Window::add_drumkit_cb(Fl_Widget *, Drumkit_Window *dw) {
 	Drumkit new_drumkit = {};
 	new_drumkit.label = drumkit_name;
 	if (drumkit) new_drumkit.drums = drumkit->drums;
+	else if (w == dw->_copy_drumkit_button && dw->drumkit()) {
+		new_drumkit.drums = dw->drumkit()->drums;
+	}
 	dw->_drumkits.drumkits.push_back(new_drumkit);
 
 	dw->_drumkit_browser->add(drumkit_name.c_str());
@@ -716,6 +722,12 @@ void Drumkit_Window::select_drumkit_cb(Fl_Widget *w, Drumkit_Window *dw) {
 	}
 	else {
 		dw->_remove_drumkit_button->activate();
+	}
+	if (!dw->_selected_drumkit) {
+		dw->_copy_drumkit_button->deactivate();
+	}
+	else {
+		dw->_copy_drumkit_button->activate();
 	}
 	if (!dw->_selected_drumkit || dw->_selected_drumkit == 1) {
 		dw->_drumkit_up_button->deactivate();

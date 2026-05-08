@@ -74,6 +74,7 @@ private:
 	OS_Tab *_drumkit_tab = nullptr;
 	OS_Button *_add_drumkit_button = nullptr;
 	OS_Button *_remove_drumkit_button = nullptr;
+	OS_Button *_copy_drumkit_button = nullptr;
 	OS_Button *_drumkit_up_button = nullptr;
 	OS_Button *_drumkit_down_button = nullptr;
 	OS_Browser *_drumkit_browser = nullptr;
