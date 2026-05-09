@@ -33,6 +33,11 @@ R"(<html>
 <li><a href="#LoopsAndCalls">Loops and Calls</a></li>
 </ul>
 <li><a href="#View">View</a></li>
+<li><a href="#Tools">Tools</a></li>
+<ul>
+<li><a href="#WaveEditor">Wave Editor</a></li>
+<li><a href="#DrumkitEditor">Drumkit Editor</a></li>
+</ul>
 </ul>
 <hr>
 <a name="Files"></a>
@@ -56,7 +61,6 @@ R"(<html>
 <p><b>Note:</b> When loading a file, if some pattern of notes is called by multiple channels then this pattern will be duplicated in-memory so that each channel is entirely independent. This has the side effect of creating duplicate labels in the file when re-saved. These duplicated labels will have to be fixed afterward in a text editor. This only has to be done once for a particular song that is affected by this.</p>
 <p><b>Note:</b> When saving a file, the song data is serialized and no comments or formatting details from the original file are preserved.</p>
 <p>An Impulse Tracker mod file for the current song can be exported by pressing )" COMMAND_KEY_PLUS R"(F3. This file is designed for playback only and is not suitable for direct editing. This export function is provided only for convenience. It will be saved in the same directory as the current song, with the same name but with the .it file extension.</p>
-<p>To quickly create and test custom channel 3 waveforms, check out <a href="https://github.com/dannye/waveform-gb">waveform-gb</a>.</p>
 <a name="CreatingANewSong"></a>
 <h3>Creating a New Song</h3>
 <p>Creating a new song will immediately prompt to choose a project directory (unless a song is already open) so that channel 3 waveforms and channel 4 drumkits can be loaded.</p>
@@ -189,5 +193,28 @@ R"(<html>
 <p>By default, the status bar displays the current beats per minute (BPM). This can be toggled to instead display the raw tempo value.</p>
 <p>BPM is determined by the following: <code>BPM = 256 × (262144 ÷ 4389) × 60 ÷ (ticks-per-step * steps-per-beat) ÷ tempo</code></p>
 <p>Or, simplified: <code>BPM ≈ 917414.4 ÷ ticks-per-beat ÷ tempo</code></p>
+<hr>
+<a name="Tools"></a>
+<h2>Tools</h2>
+<a name="WaveEditor"></a>
+<h3>Wave Editor</h3>
+<p>Use the Wave Editor to create and edit channel 3 waveforms. Press the "+" button to add a new wave; up to a maximum of 16. Press the "x" button to delete the selected wave. When a wave is deleted, all the waves below it are moved up. Press the up and down arrow buttons to reorder the waves in the wave table by moving the selected wave up or down. Note that editing or reordering the waves in the wave table can affect all songs in the project.</p>
+<p>With a wave selected, use the mouse to draw on the wave graph to modify the waveform. To make precise adjustments to the waveform, hover the mouse over the hexadecimal display at the bottom and scroll the mouse wheel up or down to adjust specific points. Use the buttons on the right to transform the waveform.</p>
+<p>Press the "Play" button to hear the selected wave. As long as the Play button remains active, the selected wave will be played, even as it is edited or if a different wave is selected. Use the "Pitch" and "Octave" dropdowns to change the note that is played. The dropdowns can also be controlled directly with the mouse wheel, for faster selection.</p>
+<p>Press "Save" to save all changes to the waves file. Press "Revert" to restore the last saved version of the waves file. Closing the Wave Editor will warn if there are any unsaved changes. Once the Wave Editor is closed, any saved changes will immediately take effect and be applied to the open song.</p>
+<p>In the main editor window, select Tools&nbsp;→&nbsp;Reload&nbsp;Waves to reload the waves file if it has been modified by an external program, for example in a text editor.</p>
+<a name="DrumkitEditor"></a>
+<h3>Drumkit Editor</h3>
+<p>Use the Drumkit Editor to create and edit channel 4 drumkits. There are two tabs in the Drumkit Editor — one to edit the drumkits and one to edit the drums. Note that editing the drumkits or the drums can affect all songs in the project.</p>
+<p>From the Drumkits tab, press the "+" button to add a new drumkit; up to a maximum of 256. Press the "x" button to delete the selected drumkit. Press the "Duplicate" button to create a copy of the selected drumkit. Press the up and down arrow buttons to reorder the drumkits by moving the selected drumkit up or down. Rename a drumkit by double-clicking on it in the drumkit list.</p>
+<p>With a drumkit selected, use the dropdowns to edit the drum mappings for each key. Press the "play" buttons next to each dropdown to preview the drum that is currently mapped to that key.</p>
+<p>From the Drums tab, press the "+" button to add a new drum. There is no limit to the number of drums that can be added. Press the "x" button to delete the selected drum. When a drum is deleted, any mapping in any drumkit that uses this drum will be replaced with the first drum in the drum list. Press the "Duplicate" button to create a copy of the selected drum. Press the up and down arrow buttons to reorder the drums. The order of the drums has no real effect and is only for the organization in the drumkits file. Rename a drum by double-clicking on it in the drum list.</p>
+<p>With a drum selected, edit the notes that compose the drum using the drum note table. Add and remove notes to/from the bottom of the table with the "+/-" buttons. The table has 6 columns for each note: Length, Volume, Fade, Clock Shift, LFSR Width, and Clock Divider.</p>
+<p>Length is the length of the note, in ticks, from 0 to 255. Volume and Fade work exactly the same as volume envelopes for channels 1 and 2. Volume is from 0 to 15 and Fade is from -7 to 7.</p>
+<p>Clock Shift and Clock Divider together determine the overall frequency of the note. The Shift value is from 0 to 15 and the Divider value is from 0 to 7. The LFSR Width is a flag (0 or 1) to choose between a 15-bit LFSR (0) or a 7-bit LFSR (1). Together, these three values control the NR43 register.</p>
+<p>It is generally a good idea to ensure that the last note of a drum has a positive fade value so that the volume fades to 0 after the drum ends.</p>
+<p>Press the "Play" button to hear the selected drum. As long as the Play button remains active, the selected drum will be played on a loop, even as it is edited or if a different drum is selected.</p>
+<p>Press "Save" to save all changes to the drumkits file. Any drums in the drum list that are not included in any drumkit will still be saved to the drumkits file, but will not be detected/loaded the next time the drumkits file is reloaded by the main editor. Press "Revert" to restore the last saved version of the drumkits file. Closing the Drumkit Editor will warn if there are any unsaved changes. Once the Drumkit Editor is closed, any saved changes will immediately take effect and be applied to the open song.</p>
+<p>In the main editor window, select Tools&nbsp;→&nbsp;Reload&nbsp;Drumkits to reload the drumkits file if it has been modified by an external program, for example in a text editor.</p>
 </body>
 </html>)"

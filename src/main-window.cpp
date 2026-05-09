@@ -1848,7 +1848,7 @@ void Main_Window::open_song(const char *directory, const char *filename) {
 		std::string msg = basename;
 		msg = msg + " desyncs badly!\n\n"
 			"No channels will be extended beyond the end of the longest channel.\n"
-			"This may be fixed with Edit -> Resize Song...";
+			"This may be fixed with Edit → Resize Song...";
 		_warning_dialog->message(msg);
 		_warning_dialog->show(this);
 
@@ -2092,7 +2092,7 @@ void Main_Window::toggle_playback() {
 			if (differences_list.size() > 0) {
 				std::string warning = "Channel " + std::to_string(channel_number) + ": The following properties are different at the start of the second iteration of the main loop. The song may not loop correctly in-game.\n" + differences_list + "\n\n"
 					"Fix this by explicitly setting these properties on the first note or rest at the beginning of the main loop. This can be done by using the Format Painter to apply the properties of the first note or rest onto itself.\n\n"
-					"If this is intentional, disable this warning via the Play -> Loop Verification checkbox.";
+					"If this is intentional, disable this warning via the Play → Loop Verification checkbox.";
 				_warning_dialog->message(warning);
 				_warning_dialog->show(this);
 			}
@@ -3665,7 +3665,7 @@ void Main_Window::resize_song_cb(Fl_Widget *, Main_Window *mw) {
 			std::string msg = basename;
 			msg = msg + " desyncs badly!\n\n"
 				"No channels will be extended beyond the end of the longest channel.\n"
-				"This may be fixed with Edit -> Resize Song...";
+				"This may be fixed with Edit → Resize Song...";
 			mw->_warning_dialog->message(msg);
 			mw->_warning_dialog->show(mw);
 
