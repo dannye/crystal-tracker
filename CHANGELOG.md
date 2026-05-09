@@ -1,6 +1,32 @@
 Changelog
 =========
 
+### Crystal Tracker v0.9.0 (2026-05-08)
+
+ * Add Wave Editor and Drumkit Editor to Tools menu.
+   * Wave Editor: Interactively create, edit, and save waves in wave_samples.asm.
+   * Drumkit Editor: Interactively create, edit, and save drums and drumkits in drumkits.asm.
+ * Add Reload Waves and Reload Drumkits to Tools menu.
+ * Give more specific error messages for wave_samples.asm and drumkits.asm.
+ * Only warn when a song actually uses more than 64 drums and do not warn just because drumkits.asm contains more than 64 drums.
+ * A song using an undefined drumkit ID is now a warning and not an error.
+ * Interactive piano keys now use the instrument of the active channel at the playhead's current position.
+ * Add tooltips to channel 4 notes to show drum name.
+ * Add tooltips to flag boxes to show new changed values.
+ * Empty loops and calls are now drawn with a vertical line.
+ * Insert Rest can now insert into empty loops and calls.
+ * The Shift+F10 keyboard shortcut for context menu now uses playhead's current position instead of the mouse position.
+ * Add mouse controls for managing bookmarks.
+   * Right-click on ruler to toggle bookmark.
+   * Use backward/forward mouse buttons (or Alt+Left/Right) to cycle through bookmarks.
+ * Make the toolbar scrollable if the window isn't wide enough.
+ * Add Find box to Help window.
+ * Bugfix: Loops cannot be created inside a call when *another* instance of that call is inside a loop.
+ * Bugfix: Fix rare bug with call bodies that jump backwards.
+ * Bugfix: A vibrato rate of 0 no longer disables vibrato during playback.
+ * Bugfix: Fix playback for transposed notes that go below octave 1.
+ * Bugfix: Fix loop verification warning for pitch slides, and other pitch slide fixes.
+
 ### Crystal Tracker v0.8.9 (2024-12-12)
 
  * Minor bug fixes.
