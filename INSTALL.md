@@ -12,7 +12,7 @@ You will need [Microsoft Visual Studio](https://visualstudio.microsoft.com/vs/);
 
 #### Setting up FLTK
 
-1. Clone [fltk release-1.4.5](https://github.com/fltk/fltk/tree/release-1.4.5) into lib\\**fltk**. (ie, `git clone -b release-1.4.5 https://github.com/fltk/fltk.git lib/fltk`)
+1. Clone [fltk release-1.4.5](https://github.com/fltk/fltk/tree/release-1.4.5) into lib\\**fltk** (ie, `git clone -b release-1.4.5 https://github.com/fltk/fltk.git lib/fltk`) and apply fltk.patch by running `git apply ../patches/fltk.patch` from the lib\fltk directory.
 2. Open Visual Studio, select **Open a local folder**, and open the lib\fltk folder. This will automatically generate the CMake project with a configuration named **x64-Debug**.
 3. Create the following additional configurations with the appropriate **Configuration Type** of either Debug or Release: x64-Release, x86-Debug, and x86-Release. For x64 configurations, make sure the **Toolset** is set to **msvc_x64_x64**. For x86 configurations, make sure the Toolset is set to **msvc_x86_x64**. For all 4 configurations, uncheck the **FLTK_GRAPHICS_GDIPLUS** option and set the **FLTK_ABI_VERSION** option to **10405**.
 4. Set the configuration to **x86-Release**.
@@ -90,6 +90,7 @@ cd crystal-tracker
 # Build FLTK 1.4.5
 git clone -b release-1.4.5 https://github.com/fltk/fltk.git lib/fltk
 pushd lib/fltk
+git apply ../patches/fltk.patch
 cmake -B build \
 	-D CMAKE_INSTALL_PREFIX="$(realpath "$PWD/../..")" \
 	-D CMAKE_BUILD_TYPE=Release \
