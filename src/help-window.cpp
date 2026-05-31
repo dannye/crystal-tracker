@@ -53,6 +53,7 @@ void Help_Window::show(const Fl_Widget *p) {
 	refresh();
 	Fl_Window *prev_grab = Fl::grab();
 	_window->position(p->x() + _dx, p->y() + _dy);
+	_window->screen_num(p->top_window()->screen_num());
 	Fl::grab(NULL);
 	_ok_button->take_focus();
 	_window->show();

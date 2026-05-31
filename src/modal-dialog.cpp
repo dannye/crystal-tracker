@@ -155,6 +155,7 @@ void Modal_Dialog::show(const Fl_Widget *p) {
 	int x = p->x() + (p->w() - _dialog->w()) / 2;
 	int y = p->y() + (p->h() - _dialog->h()) / 2;
 	_dialog->position(x, y);
+	_dialog->screen_num(p->top_window()->screen_num());
 	_dialog->show();
 #ifdef _WIN32
 	// Flash taskbar button

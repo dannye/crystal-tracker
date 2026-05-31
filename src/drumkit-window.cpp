@@ -458,6 +458,7 @@ void Drumkit_Window::show(const Fl_Widget *p) {
 	int x = p->x() + (p->w() - _window->w()) / 2;
 	int y = p->y() + (p->h() - _window->h()) / 2;
 	_window->position(x, y);
+	_window->screen_num(p->top_window()->screen_num());
 	_drumkit_browser->take_focus();
 	_window->show();
 	while (_window->shown()) { Fl::wait(); }

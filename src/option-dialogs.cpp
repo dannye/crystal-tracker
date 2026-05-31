@@ -78,6 +78,7 @@ void Option_Dialog::show(Fl_Widget *p, bool reset) {
 	int x = p->x() + (p->w() - _dialog->w()) / 2;
 	int y = p->y() + (p->h() - _dialog->h()) / 2;
 	_dialog->position(x, y);
+	_dialog->screen_num(p->top_window()->screen_num());
 	_ok_button->take_focus();
 	_dialog->show();
 	while (_dialog->shown()) { Fl::wait(); }
