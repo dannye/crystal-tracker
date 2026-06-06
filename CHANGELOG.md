@@ -1,6 +1,10 @@
 Changelog
 =========
 
+### Crystal Tracker v0.9.1 (2026-06-06)
+
+ * Minor bug fixes.
+
 ### Crystal Tracker v0.9.0 (2026-05-08)
 
  * Add Wave Editor and Drumkit Editor to Tools menu.
