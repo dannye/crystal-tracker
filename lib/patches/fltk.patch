@@ -83,6 +83,42 @@ index f506c96db..d77d30593 100644
      menuwindow& cw = *pp.p[pp.menu_number];
      const Fl_Menu_Item* m = pp.current_item;
      if (!m || !m->activevisible()) { // pointing at inactive item
+diff --git a/src/Fl_Tooltip.cxx b/src/Fl_Tooltip.cxx
+index 21b60c8b9..117dbe84e 100644
+--- a/src/Fl_Tooltip.cxx
++++ b/src/Fl_Tooltip.cxx
+@@ -101,17 +101,22 @@ void Fl_TooltipBox::layout() {
+       oy += p->y();
+     }
+   }
++  screen_num(Fl_Tooltip::current()->top_window()->screen_num());
+   if (Fl::screen_driver()->screen_boundaries_known()) {
+-    int scr_x, scr_y, scr_w, scr_h;
+-    Fl::screen_xywh(scr_x, scr_y, scr_w, scr_h);
+-    if (ox+ww > scr_x+scr_w) ox = scr_x+scr_w - ww;
+-    if (ox < scr_x) ox = scr_x;
+-    if (currentTooltipH > 30) {
+-      if (oy+hh > scr_y+scr_h) oy -= 23+hh;
+-    } else {
+-      if (oy+hh > scr_y+scr_h) oy -= (4+hh+currentTooltipH);
++    int mx, my;
++    int nscreen = Fl::screen_driver()->get_mouse(mx, my);
++    if (screen_num() == nscreen) {
++      int scr_x, scr_y, scr_w, scr_h;
++      Fl::screen_driver()->screen_xywh(scr_x, scr_y, scr_w, scr_h, nscreen);
++      if (ox+ww > scr_x+scr_w) ox = scr_x+scr_w - ww;
++      if (ox < scr_x) ox = scr_x;
++      if (currentTooltipH > 30) {
++        if (oy+hh > scr_y+scr_h) oy -= 23+hh;
++      } else {
++        if (oy+hh > scr_y+scr_h) oy -= (4+hh+currentTooltipH);
++      }
++      if (oy < scr_y) oy = scr_y;
+     }
+-    if (oy < scr_y) oy = scr_y;
+   }
+ 
+   resize(ox, oy, ww, hh);
 diff --git a/src/Fl_Window.cxx b/src/Fl_Window.cxx
 index 593622071..79b7c9883 100644
 --- a/src/Fl_Window.cxx
@@ -121,7 +157,7 @@ index 725d2c201..5dab9e44e 100644
    Fl_Window *window = [(FLWindow*)[theEvent window] getFl_Window];
    Fl::first_window(window);
 diff --git a/src/Fl_win32.cxx b/src/Fl_win32.cxx
-index 3981b8966..f0b782424 100644
+index 3981b8966..e58417884 100644
 --- a/src/Fl_win32.cxx
 +++ b/src/Fl_win32.cxx
 @@ -562,7 +562,7 @@ void Fl_WinAPI_Screen_Driver::desktop_scale_factor() {
@@ -360,6 +396,15 @@ index 3981b8966..f0b782424 100644
        // put the new window on same screen as mouse
         int mx, my, X, Y, W, H;
         nscreen = Fl::screen_driver()->get_mouse(mx, my);
+@@ -2270,7 +2335,7 @@ void Fl_WinAPI_Window_Driver::makeWindow() {
+     if (!force_position()) {
+       xp = yp = CW_USEDEFAULT;
+     } else {
+-      if (!Fl::grab()) {
++      if (!Fl::grab() && !w->tooltip_window()) {
+         xp = xwm;
+         yp = ywm;
+         x(int(round(xp / s)));
 @@ -2920,14 +2985,14 @@ void Fl_WinAPI_Window_Driver::capture_titlebar_and_borders(Fl_RGB_Image *&top, F
    int offset = r.left < 0 ? -r.left : 0;
    Fl_WinAPI_Screen_Driver *dr = (Fl_WinAPI_Screen_Driver *)Fl::screen_driver();
@@ -379,6 +424,38 @@ index 3981b8966..f0b782424 100644
      if (scaling != 1) {
        if (left) left->scale(wsides, h(), 0, 1);
        if (right) right->scale(wsides, h(), 0, 1);
+diff --git a/src/Fl_x.cxx b/src/Fl_x.cxx
+index 482e26708..10d1ac6cd 100644
+--- a/src/Fl_x.cxx
++++ b/src/Fl_x.cxx
+@@ -2215,7 +2215,7 @@ int fl_handle(const XEvent& thisevent)
+     int num = d->screen_num_unscaled(X+ actual.width/2, Y +actual.height/2);
+     if (num == -1) num = olds;
+     float s = d->scale(num);
+-    if (num != olds && !window->menu_window()) {
++    if (num != olds && !window->menu_window() && !window->tooltip_window()) {
+       if (Fl::modal() && Fl::modal()->menu_window()) { // is a menu window active?
+         Fl::e_x_root = 1000000;
+         Fl::modal()->handle(FL_PUSH); // simulate a distant click to close menus
+@@ -2242,7 +2242,8 @@ int fl_handle(const XEvent& thisevent)
+     resize_bug_fix = window;
+ #if USE_XFT
+     if (!Fl_X11_Window_Driver::data_for_resize_window_between_screens_.busy &&
+-      ( ceil(W/s) != window->w() || ceil(H/s) != window->h() ) && !window->menu_window()) {
++      ( ceil(W/s) != window->w() || ceil(H/s) != window->h() ) &&
++      !window->menu_window() && !window->tooltip_window()) {
+         window->resize(rint(X/s), rint(Y/s), ceil(W/s), ceil(H/s));
+     } else {
+       window->position(rint(X/s), rint(Y/s));
+@@ -2560,7 +2561,7 @@ void Fl_X::make_xid(Fl_Window* win, XVisualInfo *visual, Colormap colormap)
+   if (W <= 0) W = 1; // X don't like zero...
+   int H = win->h();
+   if (H <= 0) H = 1; // X don't like zero...
+-  if (!win->parent() && !Fl::grab()) {
++  if (!win->parent() && !Fl::grab() && !win->tooltip_window()) {
+     // center windows in case window manager does not do anything:
+ #ifdef FL_CENTER_WINDOWS
+     if (!win->force_position()) {
 diff --git a/src/drivers/WinAPI/Fl_WinAPI_Screen_Driver.H b/src/drivers/WinAPI/Fl_WinAPI_Screen_Driver.H
 index b038fc5f1..8fb7f759f 100644
 --- a/src/drivers/WinAPI/Fl_WinAPI_Screen_Driver.H
